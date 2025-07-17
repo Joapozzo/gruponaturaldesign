@@ -60,7 +60,7 @@ const productos = [
 ];
 
 const ProductosDestacados = () => {
-    const [hoveredProduct, setHoveredProduct] = useState(null);
+    const [hoveredProduct, setHoveredProduct] = useState<number | null>(null);
 
     return (
         <section id="productos" className="py-20 bg-gray-50">

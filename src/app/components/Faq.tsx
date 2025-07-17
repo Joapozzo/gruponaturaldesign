@@ -26,7 +26,7 @@ const faqs = [
 ];
 
 const Faq = () => {
-    const [openFaq, setOpenFaq] = useState(null);
+    const [openFaq, setOpenFaq] = useState<number | null>(null);
 
     return (
         <section id="preguntas" className="py-20 bg-gray-50">
@@ -73,36 +73,36 @@ const Faq = () => {
                                     />
                                 </motion.div>
                             </button>
-                            
+
                             <AnimatePresence mode="wait">
                                 {openFaq === index && (
                                     <motion.div
-                                        initial={{ 
+                                        initial={{
                                             maxHeight: 0,
                                             opacity: 0,
                                             paddingTop: 0,
                                             paddingBottom: 0
                                         }}
-                                        animate={{ 
+                                        animate={{
                                             maxHeight: 200,
                                             opacity: 1,
                                             paddingTop: 24,
                                             paddingBottom: 24
                                         }}
-                                        exit={{ 
+                                        exit={{
                                             maxHeight: 0,
                                             opacity: 0,
                                             paddingTop: 0,
                                             paddingBottom: 0
                                         }}
-                                        transition={{ 
+                                        transition={{
                                             duration: 0.4,
                                             ease: [0.4, 0, 0.2, 1],
                                             opacity: { duration: 0.25 }
                                         }}
                                         className="bg-white px-8 border-t border-gray-100 overflow-hidden"
                                     >
-                                        <motion.p 
+                                        <motion.p
                                             initial={{ y: -10 }}
                                             animate={{ y: 0 }}
                                             exit={{ y: -10 }}
