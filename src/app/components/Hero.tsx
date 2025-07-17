@@ -17,8 +17,8 @@ const Hero = () => {
                     src="/imgs/14.png"
                     alt="Hero NTDS"
                     className="w-full h-full object-cover"
-                    width={300}
-                    height={300}
+                    width={20000}
+                    height={2000}
                 />
                 <div className="absolute inset-0 bg-black/50"></div>
             </div>
