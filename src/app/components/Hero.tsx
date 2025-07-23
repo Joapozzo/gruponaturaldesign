@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { useNavigation } from '../hooks/useNavigation';
 import Image from 'next/image';
+import Button from './ui/Button';
 
 const Hero = () => {
 
@@ -14,13 +15,13 @@ const Hero = () => {
         <section id="inicio" className="relative h-screen flex items-center justify-center overflow-hidden -mt-22">
             <div className="absolute inset-0">
                 <Image
-                    src="/imgs/14.png"
+                    src="/imgs/Hero-2.jpg"
                     alt="Hero NTDS"
                     className="w-full h-full object-cover"
                     width={20000}
                     height={2000}
                 />
-                <div className="absolute inset-0 bg-black/50"></div>
+                <div className="absolute inset-0 bg-black/30"></div>
             </div>
 
             <div className="relative z-10 text-center text-white px-4 max-w-5xl mx-auto pt-20">
@@ -28,7 +29,7 @@ const Hero = () => {
                     initial={{ opacity: 0, y: 50 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1 }}
-                    className="text-6xl md:text-8xl font-bold mb-6 leading-tight"
+                    className="text-6xl md:text-7xl font-bold mb-6 leading-tight"
                     style={{ fontFamily: 'Franklin Gothic Heavy, Arial Black, sans-serif' }}
                 >
                     UNIFORMES DE DISEÑO
@@ -37,9 +38,9 @@ const Hero = () => {
                     initial={{ opacity: 0, y: 50 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1, delay: 0.3 }}
-                    className="text-2xl md:text-3xl mb-8 font-light tracking-wide"
+                    className="text-2xl md:text-2xl mb-8 font-light tracking-wide"
                 >
-                    Más de 25 años vistiendo empresas con calidad y estilo
+                    Mas de 25 años vistiendo empresas con calidad y compromiso.
                 </motion.p>
                 <motion.div
                     initial={{ opacity: 0, y: 50 }}
@@ -47,18 +48,22 @@ const Hero = () => {
                     transition={{ duration: 1, delay: 0.6 }}
                     className="flex flex-col sm:flex-row gap-6 justify-center"
                 >
-                    <button
+                    <Button
+                        variant="black"
+                        size="lg"
                         onClick={() => scrollToSection('categorias')}
-                        className="bg-[var(--red)] hover:bg-[var(--red-dark)] text-white px-12 py-4 text-lg font-semibold tracking-wide transition-all transform hover:scale-105"
+                        className="tracking-wide"
                     >
                         VER CATÁLOGO
-                    </button>
-                    <button
-                        onClick={() => scrollToSection('contacto')}
-                        className="border-2 border-white text-white hover:bg-white hover:text-[var(--black)] px-12 py-4 text-lg font-semibold tracking-wide transition-all"
+                    </Button>
+                    <Button
+                        variant="lightWhiteOutline"
+                        size="lg"
+                        onClick={() => scrollToSection('categorias')}
+                        className="tracking-wide"
                     >
                         SOLICITAR COTIZACIÓN
-                    </button>
+                    </Button>
                 </motion.div>
             </div>
 

@@ -1,10 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin } from 'lucide-react';
+import Button from './ui/Button';
 
 const Contacto = () => {
     return (
-        <section id="contacto" className="py-20 bg-white">
+        <section id="contacto" className="py-20 bg-gray-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
@@ -13,8 +14,8 @@ const Contacto = () => {
                     viewport={{ once: true }}
                     className="text-center mb-16"
                 >
-                    <h2 className="text-5xl font-bold text-gray-900 mb-6">
-                        CONTACTANOS
+                    <h2 className="text-5xl font-bold text-black mb-6">
+                        Contactanos
                     </h2>
                     <p className="text-xl text-gray-600">
                         Estamos listos para asesorarte en tu próximo proyecto
@@ -28,7 +29,7 @@ const Contacto = () => {
                         whileInView={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.8 }}
                         viewport={{ once: true }}
-                        className="bg-gray-50 p-10"
+                        className="bg-gray-50 p-10 rounded-lg"
                     >
                         <h3 className="text-2xl font-bold text-gray-900 mb-8">SOLICITAR COTIZACIÓN</h3>
                         <div className="space-y-6">
@@ -38,7 +39,7 @@ const Contacto = () => {
                                 </label>
                                 <input
                                     type="text"
-                                    className="w-full px-4 py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors bg-white  placeholder-gray-400 text-gray-900"
+                                    className="w-full px-4 py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900"
                                     placeholder="Ej: Juan Carlos Pérez"
                                 />
                             </div>
@@ -48,7 +49,7 @@ const Contacto = () => {
                                 </label>
                                 <input
                                     type="email"
-                                    className="w-full px-4 py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors bg-white  placeholder-gray-400 text-gray-900"
+                                    className="w-full px-4 py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900"
                                     placeholder="ejemplo@empresa.com"
                                 />
                             </div>
@@ -58,7 +59,7 @@ const Contacto = () => {
                                 </label>
                                 <input
                                     type="text"
-                                    className="w-full px-4 py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors bg-white placeholder-gray-400 text-gray-900"
+                                    className="w-full px-4 py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900"
                                     placeholder="Ej: Distribuidora San Martín S.A."
                                 />
                             </div>
@@ -68,7 +69,7 @@ const Contacto = () => {
                                 </label>
                                 <input
                                     type="tel"
-                                    className="w-full px-4 py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors bg-white  placeholder-gray-400 text-gray-900"
+                                    className="w-full px-4 py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900"
                                     placeholder="Ej: 351 123-4567"
                                 />
                             </div>
@@ -78,7 +79,7 @@ const Contacto = () => {
                                 </label>
                                 <textarea
                                     rows={6}
-                                    className="w-full px-4 py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors resize-none bg-white placeholder-gray-400 text-gray-900"
+                                    className="w-full px-4 py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors resize-none bg-white rounded-lg placeholder-gray-400 text-gray-900"
                                     placeholder="Necesito cotización para uniformes de trabajo. Somos una empresa de 25 empleados del rubro gastronómico. Me interesa conocer opciones de diseño y tiempos de entrega..."
                                 ></textarea>
                             </div>
@@ -91,12 +92,14 @@ const Contacto = () => {
                                     Acepto las políticas de privacidad y autorizo el tratamiento de mis datos personales para recibir información comercial
                                 </span>
                             </div>
-                            <button
+                            <Button
                                 onClick={() => alert('Funcionalidad de envío - En implementación real se enviaría el formulario')}
-                                className="w-full bg-red-500 hover:bg-red-600 text-white py-4 font-semibold tracking-wide transition-colors shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
+                                className="w-full"
+                                variant="black"
+                                size="lg"
                             >
                                 ENVIAR CONSULTA
-                            </button>
+                            </Button>
                         </div>
                     </motion.div>
 
@@ -108,7 +111,7 @@ const Contacto = () => {
                         viewport={{ once: true }}
                         className="space-y-8"
                     >
-                        <div className="bg-gray-50 p-8 hover:shadow-lg transition-shadow">
+                        <div className="bg-gray-50 p-8 rounded-lg hover:shadow-lg transition-shadow">
                             <div className="flex items-center mb-6">
                                 <Phone className="text-red-500 mr-4" size={28} />
                                 <h4 className="text-xl font-bold text-gray-900">TELÉFONO</h4>
@@ -117,7 +120,7 @@ const Contacto = () => {
                             <p className="text-sm text-gray-500 mt-2">Lunes a Viernes de 8:00 a 18:00hs</p>
                         </div>
 
-                        <div className="bg-gray-50 p-8 hover:shadow-lg transition-shadow">
+                        <div className="bg-gray-50 p-8 rounded-lg hover:shadow-lg transition-shadow">
                             <div className="flex items-center mb-6">
                                 <Mail className="text-red-500 mr-4" size={28} />
                                 <h4 className="text-xl font-bold text-gray-900">EMAIL</h4>
@@ -126,7 +129,7 @@ const Contacto = () => {
                             <p className="text-sm text-gray-500 mt-2">Respuesta en menos de 24hs</p>
                         </div>
 
-                        <div className="bg-gray-50 p-8 hover:shadow-lg transition-shadow">
+                        <div className="bg-gray-50 p-8 rounded-lg hover:shadow-lg transition-shadow">
                             <div className="flex items-center mb-6">
                                 <MapPin className="text-red-500 mr-4" size={28} />
                                 <h4 className="text-xl font-bold text-gray-900">UBICACIÓN</h4>
@@ -138,17 +141,30 @@ const Contacto = () => {
                             <p className="text-sm text-gray-500 mt-2">Showroom con cita previa</p>
                         </div>
 
-                        {/* Imagen de contacto */}
-                        <div className="relative h-64 overflow-hidden shadow-lg">
-                            <div className="w-full h-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center">
-                                <div className="text-center text-white">
-                                    <Phone size={48} className="mx-auto mb-4 opacity-80" />
-                                    <h3 className="text-2xl font-bold">¿Necesitas ayuda?</h3>
-                                    <p className="text-red-100 mt-2">Llamanos ahora</p>
-                                </div>
+                        {/* Mapa */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, delay: 0.3 }}
+                            viewport={{ once: true }}
+                            className="relative h-74 overflow-hidden shadow-lg rounded-lg group"
+                        >
+                            <iframe
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3404.5123456789!2d-64.1835!3d-31.4135!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9432a2f3456789ab%3A0x123456789abcdef!2sRivera%20Indarte%202143%2C%20C%C3%B3rdoba%2C%20Argentina!5e0!3m2!1ses!2sar!4v1234567890123!5m2!1ses!2sar"
+                                width="100%"
+                                height="100%"
+                                style={{ border: 0 }}
+                                allowFullScreen
+                                loading="lazy"
+                                referrerPolicy="no-referrer-when-downgrade"
+                                className="grayscale group-hover:grayscale-0 transition-all duration-500"
+                                title="Ubicación NTDS - Rivera Indarte 2143, Córdoba"
+                            ></iframe>
+                            <div className="absolute inset-0 bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                            <div className="absolute bottom-4 left-4 bg-white px-3 py-2 rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <p className="text-sm font-semibold text-gray-800">📍 Nuestro Showroom</p>
                             </div>
-                            <div className="absolute inset-0 bg-red-500/20"></div>
-                        </div>
+                        </motion.div>
                     </motion.div>
                 </div>
             </div>

@@ -25,8 +25,8 @@ const Navbar = () => {
 
     const menuItems = [
         { id: 'inicio', label: 'INICIO' },
-        { id: 'nosotros', label: 'NOSOTROS' },
         { id: 'categorias', label: 'CATÁLOGO' },
+        { id: 'nosotros', label: 'NOSOTROS' },
         { id: 'testimonios', label: 'CLIENTES' },
         { id: 'contacto', label: 'CONTACTO' }
     ];
@@ -34,7 +34,7 @@ const Navbar = () => {
     return (
         <>
             {/* Promo Bar - fluye normal */}
-            <AnimatePresence>
+            {/* <AnimatePresence>
                 {!isScrolled && (
                     <motion.div
                         initial={{ y: -50, opacity: 0 }}
@@ -46,7 +46,7 @@ const Navbar = () => {
                         ENVÍO GRATIS EN COMPRAS SUPERIORES A $50.000
                     </motion.div>
                 )}
-            </AnimatePresence>
+            </AnimatePresence> */}
 
             {/* Navbar dinámico */}
             <motion.nav

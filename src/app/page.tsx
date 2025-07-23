@@ -31,7 +31,6 @@ const NTDS_Website = () => {
       <Navbar />
       <Hero />
       <Categorias/>
-      {/* <ModalCategoria selectedCategory={selectedCategory} onClose={() => setSelectedCategory(null)} /> */}
       <ProductosDestacados/>
       <Nosotros/>
       <Testimonios/>
