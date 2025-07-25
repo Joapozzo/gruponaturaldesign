@@ -43,7 +43,6 @@ const BrandsSlider = () => {
     const slide2 = brands.slice(3, 6); // [4, 5, 6]
     const slides = [slide1, slide2];
 
-    // Auto-slide cada 4 segundos en loop infinito
     useEffect(() => {
         const timer = setInterval(() => {
             setCurrentSlide(prev => (prev + 1) % 2);
@@ -52,7 +51,7 @@ const BrandsSlider = () => {
         return () => clearInterval(timer);
     }, []);
 
-    const renderBrandCard = (brand, index) => (
+    const renderBrandCard = (brand: any, index: number) => (
         <motion.div
             key={brand.id}
             className="relative group cursor-pointer flex-1"
@@ -116,7 +115,7 @@ const BrandsSlider = () => {
     return (
         <div className="w-full mt-30 overflow-hidden">
             {/* Slider Container */}
-            <div className="relative w-full overflow-hidden">
+            <div className="relative w-full">
                 <motion.div
                     className="flex"
                     animate={{
@@ -145,11 +144,10 @@ const BrandsSlider = () => {
                 {[0, 1].map((slideIndex) => (
                     <motion.button
                         key={slideIndex}
-                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                            slideIndex === currentSlide
+                        className={`w-2 h-2 rounded-full transition-all duration-300 ${slideIndex === currentSlide
                                 ? 'bg-gray-900 w-8'
                                 : 'bg-gray-300 hover:bg-gray-400'
-                        }`}
+                            }`}
                         onClick={() => setCurrentSlide(slideIndex)}
                         whileHover={{ scale: 1.2 }}
                         whileTap={{ scale: 0.9 }}
