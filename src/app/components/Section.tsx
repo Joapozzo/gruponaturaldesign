@@ -36,7 +36,6 @@ const Section: React.FC<SectionProps> = ({
     background = 'white',
     textAlignment = 'center',
     padding = 'lg',
-    maxWidth = '6xl',
     className = '',
     headerClassName = '',
     contentClassName = '',
@@ -68,16 +67,16 @@ const Section: React.FC<SectionProps> = ({
     };
 
     // Variantes de ancho máximo
-    const maxWidthVariants = {
-        sm: 'max-w-sm',
-        md: 'max-w-md',
-        lg: 'max-w-lg',
-        xl: 'max-w-xl',
-        '2xl': 'max-w-2xl',
-        '4xl': 'max-w-4xl',
-        '6xl': 'max-w-6xl',
-        full: 'max-w-full',
-    };
+    // const maxWidthVariants = {
+    //     sm: 'max-w-sm',
+    //     md: 'max-w-md',
+    //     lg: 'max-w-lg',
+    //     xl: 'max-w-xl',
+    //     '2xl': 'max-w-2xl',
+    //     '4xl': 'max-w-4xl',
+    //     '6xl': 'max-w-6xl',
+    //     full: 'max-w-full',
+    // };
 
     // Clases del contenedor principal
     const sectionClasses = `

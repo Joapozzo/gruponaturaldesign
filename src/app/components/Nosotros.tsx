@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Users, Award, Clock, ArrowRight, Shield, Palette, Headphones } from 'lucide-react';
+import { Users, Award, Clock, ArrowRight } from 'lucide-react';
 import Section from './Section';
 import Button from './ui/Button';
 import Image from 'next/image';

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Instagram, Camera, Heart, Eye, ArrowRight, Sparkles } from 'lucide-react';
+import { Instagram, ArrowRight } from 'lucide-react';
 import Section from './Section';
 import Button from './ui/Button';
 import Image from 'next/image';

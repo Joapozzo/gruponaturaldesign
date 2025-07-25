@@ -1,5 +1,4 @@
 import {
-    ChevronDown,
     ShoppingCart,
     Package,
     Clock,

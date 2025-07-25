@@ -2,6 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 
+interface Brand {
+    id: number;
+    name: string;
+    image: string;
+}
+
 const BrandsSlider = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -41,7 +47,6 @@ const BrandsSlider = () => {
     // Dividir en 2 grupos de 3
     const slide1 = brands.slice(0, 3); // [1, 2, 3]
     const slide2 = brands.slice(3, 6); // [4, 5, 6]
-    const slides = [slide1, slide2];
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -51,7 +56,7 @@ const BrandsSlider = () => {
         return () => clearInterval(timer);
     }, []);
 
-    const renderBrandCard = (brand: any, index: number) => (
+    const renderBrandCard = (brand: Brand, index: number) => (
         <motion.div
             key={brand.id}
             className="relative group cursor-pointer flex-1"
@@ -145,8 +150,8 @@ const BrandsSlider = () => {
                     <motion.button
                         key={slideIndex}
                         className={`w-2 h-2 rounded-full transition-all duration-300 ${slideIndex === currentSlide
-                                ? 'bg-gray-900 w-8'
-                                : 'bg-gray-300 hover:bg-gray-400'
+                            ? 'bg-gray-900 w-8'
+                            : 'bg-gray-300 hover:bg-gray-400'
                             }`}
                         onClick={() => setCurrentSlide(slideIndex)}
                         whileHover={{ scale: 1.2 }}
