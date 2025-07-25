@@ -4,6 +4,7 @@ import { Users, Award, Clock, ArrowRight, Shield, Palette, Headphones } from 'lu
 import Section from './Section';
 import Button from './ui/Button';
 import Image from 'next/image';
+import BrandsSlider from './BrandSlider';
 
 // Hook para animar números
 const useCountAnimation = (end: number, duration = 2000, start = 0) => {
@@ -292,7 +293,7 @@ const Nosotros = () => {
             </div>
 
             {/* Sección adicional de valores */}
-            <motion.div
+            {/* <motion.div
                 className="mt-20 pt-16 border-t border-gray-100"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -341,7 +342,8 @@ const Nosotros = () => {
                         </motion.div>
                     ))}
                 </div>
-            </motion.div>
+            </motion.div> */}
+            <BrandsSlider/>
         </Section>
     );
 };

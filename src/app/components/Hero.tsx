@@ -4,12 +4,16 @@ import { ChevronDown } from 'lucide-react';
 import { useNavigation } from '../hooks/useNavigation';
 import Image from 'next/image';
 import Button from './ui/Button';
+import { useWhatsApp } from './hooks/useWhatsApp';
 
 const Hero = () => {
-
+    const mensajeCotizacion =
+        "¡Hola! Me interesa solicitar una cotización de un proyecto.";
     const {
         scrollToSection,
     } = useNavigation();
+
+    const { openWhatsApp } = useWhatsApp({ defaultMessage: mensajeCotizacion });
 
     return (
         <section id="inicio" className="relative h-screen flex items-center justify-center overflow-hidden -mt-22">
@@ -59,7 +63,7 @@ const Hero = () => {
                     <Button
                         variant="lightWhiteOutline"
                         size="lg"
-                        onClick={() => scrollToSection('categorias')}
+                        onClick={() => openWhatsApp()}
                         className="tracking-wide"
                     >
                         SOLICITAR COTIZACIÓN

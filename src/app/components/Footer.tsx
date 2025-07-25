@@ -1,8 +1,10 @@
-import { Mail, Phone, MapPin, Instagram } from 'lucide-react';
+import { Mail, MapPin, Instagram } from 'lucide-react';
 import Image from 'next/image';
 import { WhatsApp } from './logos/WhatsApp';
+import { useWhatsApp } from './hooks/useWhatsApp';
 
 const Footer = () => {
+    const { openWhatsApp } = useWhatsApp({ defaultMessage: "¡Hola! Me interesa conocer más sobre los uniformes de NTDS. ¿Te gustaría hablar conmigo?" });
     return (
         <footer className="bg-[var(--black)] text-white pt-16 pb-8 shadow-sm">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -55,7 +57,7 @@ const Footer = () => {
                     <div>
                         <h4 className="font-bold mb-6 text-lg">CONTACTO</h4>
                         <div className="space-y-3 text-gray-400">
-                            <p className="flex items-center">
+                            <p className="flex items-center" onClick={() => openWhatsApp()}>
                                 {/* <Phone size={16} className="mr-2" /> */}
                                 <WhatsApp size={16} className="mr-2" />
                                 351 - 7136316

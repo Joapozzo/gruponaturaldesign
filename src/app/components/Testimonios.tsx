@@ -5,12 +5,13 @@ import { testimonios } from '../data/testimonios';
 import { logosClientes } from '../data/marcas';
 import Section from './Section';
 import Button from './ui/Button';
+import { useWhatsApp } from './hooks/useWhatsApp';
 
 const Testimonios = () => {
     const [currentLogoIndex, setCurrentLogoIndex] = useState(0);
     const [currentTestimonioIndex, setCurrentTestimonioIndex] = useState(0);
+    const { openWhatsApp } = useWhatsApp({ defaultMessage: "¡Hola! Me interesa conocer más sobre los uniformes de NTDS. ¿Te gustaría hablar conmigo?" });
 
-    // Auto-scroll para logos (más rápido)
     useEffect(() => {
         const interval = setInterval(() => {
             setCurrentLogoIndex((prev) => (prev + 1) % logosClientes.length);
@@ -19,7 +20,6 @@ const Testimonios = () => {
         return () => clearInterval(interval);
     }, []);
 
-    // Auto-scroll para testimonios (más lento para leer)
     useEffect(() => {
         const interval = setInterval(() => {
             setCurrentTestimonioIndex((prev) => (prev + 1) % testimonios.length);
@@ -39,7 +39,7 @@ const Testimonios = () => {
     return (
         <Section
             id="testimonios"
-            background="gray"
+            // background="gray"
             title='Nuestros clientes'
             subtitle='Más de 500 empresas confían en nosotros para vestir a sus equipos con calidad y profesionalismo'
             contentClassName='max-w-7xl mx-auto'
@@ -185,6 +185,7 @@ const Testimonios = () => {
                     variant="lightWhite"
                     size="lg"
                     className="tracking-wide inline-flex items-center space-x-3"
+                    onClick={() => openWhatsApp()}
                 >
                     <span>SOLICITAR COTIZACIÓN</span>
                     <CheckCircle className="w-5 h-5" />

@@ -4,9 +4,11 @@ import { ArrowRight, Plus } from 'lucide-react';
 import Section from './Section';
 import categorias from '../data/categorias';
 import Button from './ui/Button';
+import { useWhatsApp } from './hooks/useWhatsApp';
 
 const Categorias = () => {
     const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+    const { openWhatsApp } = useWhatsApp({ defaultMessage: "¡Hola! Me interesa solicitar un diseño personalizado de uniformes de NTDS. ¿Te gustaría hablar conmigo?" });
 
     return (
         <Section id="categorias" className="w-full bg-white" title='Categorias' subtitle='Uniformes profesionales diseñados específicamente para cada sector, combinando funcionalidad, comodidad y diseño.'>
@@ -201,6 +203,7 @@ const Categorias = () => {
                         variant="darkGray"
                         size="lg"
                         className="tracking-wide inline-flex items-center space-x-3"
+                        onClick={() => openWhatsApp()}
                     >
                         <span>SOLICITAR DISEÑO PERSONALIZADO</span>
                         <ArrowRight className="w-6 h-6" />

@@ -9,6 +9,7 @@ import Testimonios from './components/Testimonios';
 import Faq from './components/Faq';
 import Contacto from './components/Contacto';
 import Footer from './components/Footer';
+import InstagramCTA from './components/InstagramCTA';
 
 const NTDS_Website = () => {
 
@@ -32,6 +33,7 @@ const NTDS_Website = () => {
       <Hero />
       <Categorias/>
       <ProductosDestacados/>
+      <InstagramCTA/>
       <Nosotros/>
       <Testimonios/>
       <Faq/>

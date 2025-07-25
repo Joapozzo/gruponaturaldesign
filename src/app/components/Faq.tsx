@@ -7,6 +7,7 @@ import {
 import Section from './Section';
 import Button from './ui/Button';
 import { frequentFaqs, workProcessFaqs } from '../data/faqs';
+import { useWhatsApp } from './hooks/useWhatsApp';
 
 
 interface AccordionItemProps {
@@ -183,6 +184,7 @@ const WorkProcessCard: React.FC<WorkProcessCardProps> = ({ item, index }) => {
 
 const Faq: React.FC = () => {
     const [openFaq, setOpenFaq] = useState<number | null>(null);
+    const { openWhatsApp } = useWhatsApp({ defaultMessage: "¡Hola! Me interesa saber más sobre sus servicios. ¿Te gustaría hablar conmigo?" });
 
     return (
         <Section
@@ -190,7 +192,7 @@ const Faq: React.FC = () => {
             background="white"
             title="PREGUNTAS FRECUENTES"
             subtitle="Resolvé tus dudas más comunes sobre nuestros servicios y procesos"
-            contentClassName='max-w-7xl mx-auto'
+            contentClassName="max-w-7xl mx-auto"
         >
             {/* Acordeones - Preguntas Frecuentes */}
             <motion.div
@@ -231,11 +233,11 @@ const Faq: React.FC = () => {
                         className="w-3 h-3 bg-gray-600 rounded-full"
                         animate={{
                             scale: [1, 1.2, 1],
-                            opacity: [0.7, 1, 0.7]
+                            opacity: [0.7, 1, 0.7],
                         }}
                         transition={{
                             duration: 2,
-                            repeat: Infinity
+                            repeat: Infinity,
                         }}
                     />
                 </div>
@@ -272,7 +274,8 @@ const Faq: React.FC = () => {
                     transition={{ duration: 0.8, delay: 0.4 }}
                     viewport={{ once: true }}
                 >
-                    Nuestro proceso integral te acompaña desde el diseño hasta la entrega final
+                    Nuestro proceso integral te acompaña desde el diseño hasta la
+                    entrega final
                 </motion.p>
             </motion.div>
 
@@ -318,7 +321,8 @@ const Faq: React.FC = () => {
                         transition={{ duration: 0.6, delay: 0.4 }}
                         viewport={{ once: true }}
                     >
-                        Nuestros vendedores están listos para asesorarte en todo el proceso y resolver cualquier duda específica sobre tu proyecto.
+                        Nuestros vendedores están listos para asesorarte en todo el
+                        proceso y resolver cualquier duda específica sobre tu proyecto.
                     </motion.p>
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -330,6 +334,7 @@ const Faq: React.FC = () => {
                             variant="black"
                             size="lg"
                             className="tracking-wide inline-flex items-center space-x-3"
+                            onClick={() => openWhatsApp()}
                         >
                             <MessageCircle size={20} />
                             <span>CONTACTANOS AHORA</span>

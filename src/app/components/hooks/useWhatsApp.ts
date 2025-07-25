@@ -6,8 +6,8 @@ interface UseWhatsAppProps {
 }
 
 export const useWhatsApp = ({
-    phoneNumber = "3517136316", // Reemplaza con tu número real
-    defaultMessage = "¡Hola! Me interesa conocer más sobre las expediciones de Altiplano Experience 🏔️"
+    phoneNumber = "+549351713-6316",
+    defaultMessage = "¡Hola! Me interesa conocer más sobre los uniformes de NTDS. ¿Te gustaría hablar conmigo?"
 }: UseWhatsAppProps = {}) => {
 
     const openWhatsApp = useCallback((customMessage?: string) => {
