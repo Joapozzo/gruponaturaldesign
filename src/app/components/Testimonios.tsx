@@ -45,7 +45,7 @@ const Testimonios = () => {
             contentClassName='max-w-7xl mx-auto'
         >
             {/* Slider de Logos - Minimalista */}
-            <div className="mb-20">
+            <div className="mb-10">
                 <motion.div
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
@@ -67,11 +67,10 @@ const Testimonios = () => {
                         {[...logosClientes, ...logosClientes, ...logosClientes].map((cliente, index) => (
                             <motion.div
                                 key={`${cliente.nombre}-${index}`}
-                                className="flex-shrink-0 w-32 h-16 flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
+                                className="flex-shrink-0 w-20 h-30 flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
                             >
                                 <div
                                     className="filter grayscale hover:grayscale-0 transition-all duration-300"
-                                    title={cliente.nombre}
                                 >
                                     {cliente.logo}
                                 </div>
@@ -151,8 +150,8 @@ const Testimonios = () => {
                                 key={index}
                                 onClick={() => setCurrentTestimonioIndex(index)}
                                 className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentTestimonioIndex
-                                        ? 'bg-gray-800'
-                                        : 'bg-gray-300 hover:bg-gray-400'
+                                    ? 'bg-gray-800'
+                                    : 'bg-gray-300 hover:bg-gray-400'
                                     }`}
                             />
                         ))}

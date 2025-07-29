@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Poppins, Montserrat } from "next/font/google";
 import "./globals.css";
 import WhatsAppButton from "./components/WhatsAppButton";
+import Footer from "./components/Footer";
+import Navbar from "./components/Navbar";
 
 // Fuentes según el manual de marca NTDS
 // Franklin Gothic Heavy no está en Google Fonts, usamos Poppins como fallback principal
@@ -220,6 +222,7 @@ export default function RootLayout({
         {/* Security headers */}
         <meta httpEquiv="Content-Security-Policy" content="upgrade-insecure-requests" />
       </head>
+      <Navbar />
       <body
         className={`${poppins.variable} ${montserrat.variable} antialiased`}
         style={{
@@ -228,7 +231,8 @@ export default function RootLayout({
       >
         {children}
       </body>
-      <WhatsAppButton/>
+      <Footer />
+      <WhatsAppButton />
     </html>
   );
 }

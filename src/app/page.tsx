@@ -1,6 +1,5 @@
 "use client";
 import React from 'react';
-import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Categorias from './components/Categorias';
 import ProductosDestacados from './components/ProductosDestacados';
@@ -8,7 +7,6 @@ import Nosotros from './components/Nosotros';
 import Testimonios from './components/Testimonios';
 import Faq from './components/Faq';
 import Contacto from './components/Contacto';
-import Footer from './components/Footer';
 import InstagramCTA from './components/InstagramCTA';
 
 const NTDS_Website = () => {
@@ -28,8 +26,6 @@ const NTDS_Website = () => {
           --gray-bg: #F5F5F5;
         }
       `}</style>
-
-      <Navbar />
       <Hero />
       <Categorias/>
       <ProductosDestacados/>
@@ -38,7 +34,6 @@ const NTDS_Website = () => {
       <Testimonios/>
       <Faq/>
       <Contacto/>
-      <Footer/> 
     </div>
   );
 };

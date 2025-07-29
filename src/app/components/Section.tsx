@@ -62,7 +62,7 @@ const Section: React.FC<SectionProps> = ({
         none: '',
         sm: 'pt-8',
         md: 'pt-12',
-        lg: 'pt-20',
+        lg: 'pt-10',
         xl: 'pt-32',
     };
 

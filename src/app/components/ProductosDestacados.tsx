@@ -8,7 +8,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import Product from './Product';
 import Section from './Section';
-import productos from '../data/productos';
+import { productos } from '../data/productos'; 
 import Button from './ui/Button';
 
 const ProductosDestacados = () => {

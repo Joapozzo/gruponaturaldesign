@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Star, Eye } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { ProductType } from '../types/producto';
 
 interface ProductProps {
@@ -10,6 +11,16 @@ interface ProductProps {
 
 const Product: React.FC<ProductProps> = ({ product, index }) => {
     const [isHovered, setIsHovered] = useState(false);
+    const router = useRouter();
+
+    const handleProductClick = () => {
+        router.push(`/producto/${product.id}`);
+    };
+
+    const handleQuickView = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        router.push(`/producto/${product.id}`);
+    };
 
     return (
         <motion.div
@@ -20,6 +31,7 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
             className="group relative overflow-hidden bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer mb-12"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            onClick={handleProductClick}
         >
             {/* Badge de destacado */}
             {product.destacado && (
@@ -32,7 +44,7 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
             {/* Imagen del producto */}
             <div className="relative h-56 overflow-hidden rounded-t-lg">
                 <motion.img
-                    src={product.imagen}
+                    src={product.imagenes ? product.imagenes[0] : product.imagenes}
                     alt={product.nombre}
                     className="w-full h-full object-cover transition-all duration-500"
                     animate={{
@@ -52,6 +64,7 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
                         backgroundColor: isHovered ? "rgba(0, 0, 0, 0.7)" : "rgba(255, 255, 255, 0.2)",
                     }}
                     transition={{ duration: 0.3 }}
+                    onClick={handleQuickView}
                 >
                     <Eye className="w-4 h-4 text-white" />
                 </motion.div>
@@ -68,7 +81,7 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
                 >
                     <div className="flex items-center justify-between">
                         <span className="text-xs font-semibold bg-black/40 backdrop-blur-sm px-2 py-1 rounded-lg">
-                            {product.categoria}
+                            {product.categoriaIndumentaria || product.categoria}
                         </span>
                         <motion.div
                             className="flex items-center space-x-1 text-xs font-semibold"
@@ -85,7 +98,7 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
             <div className="p-4">
                 <div className="mb-1">
                     <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                        {product.categoria}
+                        {product.categoriaIndumentaria || product.categoria}
                     </span>
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-gray-700 transition-colors line-clamp-1">
@@ -102,8 +115,12 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
                         className="bg-gray-700 hover:bg-gray-900 text-white px-3 py-2 text-xs font-semibold transition-all duration-300 flex items-center space-x-1 rounded-lg"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleProductClick();
+                        }}
                     >
-                        <span>COTIZAR</span>
+                        <span>VER DETALLE</span>
                         <ArrowRight size={12} />
                     </motion.button>
                 </div>

@@ -1,3 +1,4 @@
+"use client";
 import { Mail, MapPin, Instagram } from 'lucide-react';
 import Image from 'next/image';
 import { WhatsApp } from './logos/WhatsApp';
