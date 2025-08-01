@@ -18,7 +18,7 @@ const ProductosDestacados = () => {
             className="bg-gray-50" 
             title='Productos destacados' 
             subtitle='Lo mejor de nuestro catálogo en diseño, calidad y funcionalidad.'
-            contentClassName='max-w-7xl mx-auto'
+            contentClassName='max-w-7xl mx-auto pb-20'
         >
             {/* Slider de productos */}
             <div className="px-4 sm:px-6 lg:px-8">

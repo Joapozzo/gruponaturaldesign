@@ -10,8 +10,9 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "ABRIGOS",
         precio: "A pedido",
         imagenes: [
-            "/productos/anorak-unisex-con-capucha-de-frisa-1.jpg",
-            "/productos/anorak-unisex-con-capucha-de-frisa-2.jpg"
+            "/imgs/products/anorak-unisex-con-capucha-de-frisa-1.jpg",
+            "/imgs/products/anorak-unisex-con-capucha-de-frisa-2.jpg",
+            "/imgs/products/anorak-unisex-con-capucha-de-frisa-3.jpg"
         ]
     },
     {
@@ -22,8 +23,8 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "ABRIGOS",
         precio: "A pedido",
         imagenes: [
-            "/productos/buzo-base-unisex-de-frisa-1.jpg",
-            "/productos/buzo-base-unisex-de-frisa-2.jpg"
+            "/imgs/products/buzo-base-unisex-de-frisa-1.jpg",
+            "/imgs/products/buzo-base-unisex-de-frisa-2.jpg"
         ]
     },
     {
@@ -34,8 +35,8 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "ABRIGOS",
         precio: "A pedido",
         imagenes: [
-            "/productos/buzo-canguro-unisex-de-frisa-1.jpg",
-            "/productos/buzo-canguro-unisex-de-frisa-2.jpg"
+            "/imgs/products/buzo-canguro-unisex-de-frisa-1.jpg",
+            "/imgs/products/buzo-canguro-unisex-de-frisa-2.jpg"
         ]
     },
     {
@@ -46,8 +47,10 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "ABRIGOS",
         precio: "A pedido",
         imagenes: [
-            "/productos/campera-polar-unisex-1.jpg",
-            "/productos/campera-polar-unisex-2.jpg"
+            "/imgs/products/campera-polar-unisex-1.jpg",
+            "/imgs/products/campera-polar-unisex-2.jpg",
+            "/imgs/products/campera-polar-unisex-3.jpg",
+            "/imgs/products/campera-polar-unisex-4.jpg",
         ]
     },
     {
@@ -58,8 +61,8 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "ABRIGOS",
         precio: "A pedido",
         imagenes: [
-            "/productos/anorak-rompeviento-unisex-1.jpg",
-            "/productos/anorak-rompeviento-unisex-2.jpg"
+            "/imgs/products/anorak-rompeviento-unisex-1.jpg",
+            "/imgs/products/anorak-rompeviento-unisex-2.jpg"
         ]
     },
     {
@@ -70,8 +73,9 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "ABRIGOS",
         precio: "A pedido",
         imagenes: [
-            "/productos/campera-rompeviento-unisex-1.jpg",
-            "/productos/campera-rompeviento-unisex-2.jpg"
+            "/imgs/products/campera-rompeviento-unisex-1.jpg",
+            "/imgs/products/campera-rompeviento-unisex-2.jpg",
+            "/imgs/products/campera-rompeviento-unisex-3.jpg",
         ]
     },
     {
@@ -82,8 +86,10 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "ABRIGOS",
         precio: "A pedido",
         imagenes: [
-            "/productos/campera-softshell-unisex-1.jpg",
-            "/productos/campera-softshell-unisex-2.jpg"
+            "/imgs/products/campera-softshell-unisex-1.jpg",
+            "/imgs/products/campera-softshell-unisex-2.jpg",
+            "/imgs/products/campera-softshell-unisex-3.jpg",
+            "/imgs/products/campera-softshell-unisex-4.jpg"
         ]
     },
     {
@@ -94,8 +100,8 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "ABRIGOS",
         precio: "A pedido",
         imagenes: [
-            "/productos/campera-trucker-con-reflectivo-unisex-1.jpg",
-            "/productos/campera-trucker-con-reflectivo-unisex-2.jpg"
+            "/imgs/products/campera-trucker-con-reflectivo-unisex-1.jpg",
+            "/imgs/products/campera-trucker-con-reflectivo-unisex-2.jpg"
         ]
     },
     {
@@ -106,8 +112,10 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "ABRIGOS",
         precio: "A pedido",
         imagenes: [
-            "/productos/campera-trucker-con-rib-unisex-1.jpg",
-            "/productos/campera-trucker-con-rib-unisex-2.jpg"
+            "/imgs/products/campera-trucker-con-rib-unisex-1.jpg",
+            "/imgs/products/campera-trucker-con-rib-unisex-2.jpg",
+            "/imgs/products/campera-trucker-con-rib-unisex-3.jpg",
+            "/imgs/products/campera-trucker-con-rib-unisex-4.jpg"
         ]
     },
     {
@@ -118,8 +126,8 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "ABRIGOS",
         precio: "A pedido",
         imagenes: [
-            "/productos/cardigan-tejido-de-dama-1.jpg",
-            "/productos/cardigan-tejido-de-dama-2.jpg"
+            "/imgs/products/cardigan-tejido-de-dama-1.jpg",
+            "/imgs/products/cardigan-tejido-de-dama-2.jpg"
         ]
     },
     {
@@ -130,8 +138,7 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "ABRIGOS",
         precio: "A pedido",
         imagenes: [
-            "/productos/sweater-unisex-1.jpg",
-            "/productos/sweater-unisex-2.jpg"
+            "/imgs/products/sweater-unisex-1.jpg",
         ]
     },
 
@@ -144,8 +151,8 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "CAMISAS",
         precio: "A pedido",
         imagenes: [
-            "/productos/camisa-de-poplin-con-spandex-de-hombre-1.jpg",
-            "/productos/camisa-de-poplin-con-spandex-de-hombre-2.jpg"
+            "/imgs/products/camisa-de-poplin-con-spandex-de-hombre-1.jpg",
+            "/imgs/products/camisa-de-poplin-con-spandex-de-hombre-2.jpg"
         ]
     },
     {
@@ -156,8 +163,7 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "CAMISAS",
         precio: "A pedido",
         imagenes: [
-            "/productos/camisa-de-poplin-con-spandex-de-dama-1.jpg",
-            "/productos/camisa-de-poplin-con-spandex-de-dama-2.jpg"
+            "/imgs/products/camisa-de-poplin-con-spandex-de-dama-1.jpg",
         ]
     },
     {
@@ -168,8 +174,8 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "CAMISAS",
         precio: "A pedido",
         imagenes: [
-            "/productos/camisa-40-1-unisex-1.jpg",
-            "/productos/camisa-40-1-unisex-2.jpg"
+            "/imgs/products/camisa-40-1-unisex-1.jpg",
+            "/imgs/products/camisa-40-1-unisex-2.jpg"
         ]
     },
     {
@@ -180,8 +186,8 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "CAMISAS",
         precio: "A pedido",
         imagenes: [
-            "/productos/camisa-de-batista-unisex-1.jpg",
-            "/productos/camisa-de-batista-unisex-2.jpg"
+            "/imgs/products/camisa-de-batista-unisex-1.jpg",
+            "/imgs/products/camisa-de-batista-unisex-2.jpg"
         ]
     },
     {
@@ -192,8 +198,8 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "CAMISAS",
         precio: "A pedido",
         imagenes: [
-            "/productos/camisa-oversize-de-dama-1.jpg",
-            "/productos/camisa-oversize-de-dama-2.jpg"
+            "/imgs/products/camisa-oversize-de-dama-1.jpg",
+            "/imgs/products/camisa-oversize-de-dama-2.jpg"
         ]
     },
     {
@@ -204,8 +210,8 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "CAMISAS",
         precio: "A pedido",
         imagenes: [
-            "/productos/camisa-oxford-unisex-1.jpg",
-            "/productos/camisa-oxford-unisex-2.jpg"
+            "/imgs/products/camisa-oxford-unisex-1.jpg",
+            "/imgs/products/camisa-oxford-unisex-2.jpg"
         ]
     },
     {
@@ -216,8 +222,9 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "CAMISAS",
         precio: "A pedido",
         imagenes: [
-            "/productos/casaca-de-trabajo-1.jpg",
-            "/productos/casaca-de-trabajo-2.jpg"
+            "/imgs/products/casaca-de-trabajo-1.jpg",
+            "/imgs/products/casaca-de-trabajo-2.jpg",
+            "/imgs/products/casaca-de-trabajo-3.jpg",
         ]
     },
 
@@ -230,8 +237,9 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "PANTALONES",
         precio: "A pedido",
         imagenes: [
-            "/productos/pantalon-cargo-babucha-unisex-1.jpg",
-            "/productos/pantalon-cargo-babucha-unisex-2.jpg"
+            "/imgs/products/pantalon-cargo-babucha-unisex-1.jpg",
+            "/imgs/products/pantalon-cargo-babucha-unisex-2.jpg",
+            "/imgs/products/pantalon-cargo-babucha-unisex-3.jpg",
         ]
     },
     {
@@ -242,8 +250,9 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "PANTALONES",
         precio: "A pedido",
         imagenes: [
-            "/productos/pantalon-cargo-rigido-unisex-1.jpg",
-            "/productos/pantalon-cargo-rigido-unisex-2.jpg"
+            "/imgs/products/pantalon-cargo-rigido-unisex-1.jpg",
+            "/imgs/products/pantalon-cargo-rigido-unisex-2.jpg",
+            "/imgs/products/pantalon-cargo-rigido-unisex-3.jpg"
         ]
     },
     {
@@ -254,8 +263,10 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "PANTALONES",
         precio: "A pedido",
         imagenes: [
-            "/productos/pantalon-chino-de-dama-1.jpg",
-            "/productos/pantalon-chino-de-dama-2.jpg"
+            "/imgs/products/pantalon-chino-de-dama-1.jpg",
+            "/imgs/products/pantalon-chino-de-dama-2.jpg",
+            "/imgs/products/pantalon-chino-de-dama-3.jpg",
+            "/imgs/products/pantalon-chino-de-dama-4.jpg",
         ]
     },
     {
@@ -266,8 +277,7 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "PANTALONES",
         precio: "A pedido",
         imagenes: [
-            "/productos/pantalon-chino-de-hombre-1.jpg",
-            "/productos/pantalon-chino-de-hombre-2.jpg"
+            "/imgs/products/pantalon-chino-de-hombre-1.jpg",
         ]
     },
     {
@@ -278,8 +288,9 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "PANTALONES",
         precio: "A pedido",
         imagenes: [
-            "/productos/pantalon-de-jean-hombre-1.jpg",
-            "/productos/pantalon-de-jean-hombre-2.jpg"
+            "/imgs/products/pantalon-de-jean-hombre-1.jpg",
+            "/imgs/products/pantalon-de-jean-hombre-2.jpg",
+            "/imgs/products/pantalon-de-jean-hombre-3.jpg",
         ]
     },
     {
@@ -290,8 +301,9 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "PANTALONES",
         precio: "A pedido",
         imagenes: [
-            "/productos/pantalon-de-jean-dama-1.jpg",
-            "/productos/pantalon-de-jean-dama-2.jpg"
+            "/imgs/products/pantalon-de-jean-dama-1.jpg",
+            "/imgs/products/pantalon-de-jean-dama-2.jpg",
+            "/imgs/products/pantalon-de-jean-dama-3.jpg"
         ]
     },
     {
@@ -302,8 +314,9 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "PANTALONES",
         precio: "A pedido",
         imagenes: [
-            "/productos/pantalon-sastrero-dama-1.jpg",
-            "/productos/pantalon-sastrero-dama-2.jpg"
+            "/imgs/products/pantalon-sastrero-dama-1.jpg",
+            "/imgs/products/pantalon-sastrero-dama-2.jpg",
+            "/imgs/products/pantalon-sastrero-dama-3.jpg",
         ]
     },
     {
@@ -314,8 +327,9 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "PANTALONES",
         precio: "A pedido",
         imagenes: [
-            "/productos/pantalon-nautico-unisex-1.jpg",
-            "/productos/pantalon-nautico-unisex-2.jpg"
+            "/imgs/products/pantalon-nautico-unisex-1.png",
+            "/imgs/products/pantalon-nautico-unisex-2.png",
+            "/imgs/products/pantalon-nautico-unisex-3.png"
         ]
     },
     {
@@ -326,8 +340,10 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "PANTALONES",
         precio: "A pedido",
         imagenes: [
-            "/productos/pantalon-cargo-nautico-unisex-de-gabardina-1.jpg",
-            "/productos/pantalon-cargo-nautico-unisex-de-gabardina-2.jpg"
+            "/imgs/products/pantalon-cargo-nautico-unisex-de-gabardina-1.jpg",
+            "/imgs/products/pantalon-cargo-nautico-unisex-de-gabardina-2.jpg",
+            "/imgs/products/pantalon-cargo-nautico-unisex-de-gabardina-3.jpg",
+            "/imgs/products/pantalon-cargo-nautico-unisex-de-gabardina-4.jpg",
         ]
     },
 
@@ -340,8 +356,8 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "CHOMBAS Y REMERAS",
         precio: "A pedido",
         imagenes: [
-            "/productos/chomba-manga-corta-unisex-combinada-de-pique-1.jpg",
-            "/productos/chomba-manga-corta-unisex-combinada-de-pique-2.jpg"
+            "/imgs/products/chomba-manga-corta-unisex-combinada-de-pique-1.jpg",
+            "/imgs/products/chomba-manga-corta-unisex-combinada-de-pique-2.jpg"
         ]
     },
     {
@@ -352,8 +368,8 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "CHOMBAS Y REMERAS",
         precio: "A pedido",
         imagenes: [
-            "/productos/chomba-manga-corta-unisex-de-pique-con-spandex-1.jpg",
-            "/productos/chomba-manga-corta-unisex-de-pique-con-spandex-2.jpg"
+            "/imgs/products/chomba-manga-corta-unisex-de-pique-con-spandex-1.jpg",
+            "/imgs/products/chomba-manga-corta-unisex-de-pique-con-spandex-2.jpg"
         ]
     },
     {
@@ -364,8 +380,9 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "CHOMBAS Y REMERAS",
         precio: "A pedido",
         imagenes: [
-            "/productos/chomba-manga-corta-unisex-cuello-camisa-de-jersey-1.jpg",
-            "/productos/chomba-manga-corta-unisex-cuello-camisa-de-jersey-2.jpg"
+            "/imgs/products/chomba-manga-corta-unisex-cuello-camisa-de-jersey-1.jpg",
+            "/imgs/products/chomba-manga-corta-unisex-cuello-camisa-de-jersey-2.jpg",
+            "/imgs/products/chomba-manga-corta-unisex-cuello-camisa-de-jersey-3.jpg",
         ]
     },
     {
@@ -376,8 +393,8 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "CHOMBAS Y REMERAS",
         precio: "A pedido",
         imagenes: [
-            "/productos/chomba-manga-larga-unisex-cuello-camisa-de-jersey-1.jpg",
-            "/productos/chomba-manga-larga-unisex-cuello-camisa-de-jersey-2.jpg"
+            "/imgs/products/chomba-manga-larga-unisex-cuello-camisa-de-jersey-1.jpg",
+            "/imgs/products/chomba-manga-larga-unisex-cuello-camisa-de-jersey-2.jpg"
         ]
     },
     {
@@ -388,8 +405,11 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "CHOMBAS Y REMERAS",
         precio: "A pedido",
         imagenes: [
-            "/productos/chomba-manga-corta-unisex-de-pique-1.jpg",
-            "/productos/chomba-manga-corta-unisex-de-pique-2.jpg"
+            "/imgs/products/chomba-manga-corta-unisex-de-pique-1.jpg",
+            "/imgs/products/chomba-manga-corta-unisex-de-pique-2.jpg",
+            "/imgs/products/chomba-manga-corta-unisex-de-pique-3.jpg",
+            "/imgs/products/chomba-manga-corta-unisex-de-pique-4.jpg",
+            "/imgs/products/chomba-manga-corta-unisex-de-pique-5.jpg",
         ]
     },
     {
@@ -400,8 +420,9 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "CHOMBAS Y REMERAS",
         precio: "A pedido",
         imagenes: [
-            "/productos/remera-base-unisex-1.jpg",
-            "/productos/remera-base-unisex-2.jpg"
+            "/imgs/products/remera-base-unisex-1.jpg",
+            "/imgs/products/remera-base-unisex-2.jpg",
+            "/imgs/products/remera-base-unisex-3.jpg"
         ]
     },
     {
@@ -412,8 +433,7 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "CHOMBAS Y REMERAS",
         precio: "A pedido",
         imagenes: [
-            "/productos/remera-base-unisex-combinada-1.jpg",
-            "/productos/remera-base-unisex-combinada-2.jpg"
+            "/imgs/products/remera-base-unisex-combinada-1.jpg",
         ]
     },
     {
@@ -424,8 +444,8 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "CHOMBAS Y REMERAS",
         precio: "A pedido",
         imagenes: [
-            "/productos/remera-escote-en-v-dama-1.jpg",
-            "/productos/remera-escote-en-v-dama-2.jpg"
+            "/imgs/products/remera-escote-en-v-dama-1.jpg",
+            "/imgs/products/remera-escote-en-v-dama-2.jpg"
         ]
     },
     {
@@ -436,8 +456,7 @@ export const productos: ProductType[] = [
         categoriaIndumentaria: "CHOMBAS Y REMERAS",
         precio: "A pedido",
         imagenes: [
-            "/productos/remera-manga-corta-de-lycra-dama-1.jpg",
-            "/productos/remera-manga-corta-de-lycra-dama-2.jpg"
+            "/imgs/products/remera-manga-corta-de-lycra-dama-1.jpg",
         ]
     }
 ];

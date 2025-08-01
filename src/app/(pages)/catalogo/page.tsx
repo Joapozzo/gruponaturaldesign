@@ -2,13 +2,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Package, Grid3X3 } from 'lucide-react';
-import { useCatalogFilters } from '@/app/components/hooks/useCatalogFilters'; 
-import { productos } from '@/app/data/productos'; 
-import FilterControls from '@/app/components/FilterControls'; 
-import ProductGrid from '@/app/components/ProductsGrid'; 
-import Pagination from '@/app/components/Pagination'; 
-import Button from '@/app/components/ui/Button'; 
-import Section from '@/app/components/Section'; 
+import { useCatalogFilters } from '@/app/components/hooks/useCatalogFilters';
+import { productos } from '@/app/data/productos';
+import FilterControls from '@/app/components/FilterControls';
+import ProductGrid from '@/app/components/ProductsGrid';
+import Pagination from '@/app/components/Pagination';
+import Button from '@/app/components/ui/Button';
+import Section from '@/app/components/Section';
 import Link from 'next/link';
 
 const CatalogPage = () => {
@@ -31,98 +31,86 @@ const CatalogPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 px-5">
+        <div className="min-h-screen bg-gray-50">
             {/* Header */}
-            <Section
+            <section
                 id="catalog-header"
-                className="bg-white border-b border-gray-100"
-                contentClassName="max-w-7xl mx-auto"
-                noPadding
+                className="relative bg-gray-900 border-b border-gray-100 overflow-hidden h-120 flex items-end justify-between w-full"
             >
-                <div className="py-8">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
-                        className="flex flex-col lg:flex-row lg:items-center lg:justify-between"
-                    >
-                        <div className="mb-6 lg:mb-0">
-                            {/* Breadcrumb */}
-                            <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-4">
-                                <Link href="/" className="hover:text-gray-900 transition-colors">
-                                    Inicio
-                                </Link>
-                                <span>/</span>
-                                <span className="text-gray-900 font-medium">Catálogo</span>
-                            </nav>
+                {/* Imagen de fondo */}
+                <div
+                    className="absolute inset-0 bg-cover bg-top bg-no-repeat"
+                    style={{ backgroundImage: "url('/imgs/Hero-3.jpg')" }}
+                >
+                    <div className="absolute inset-0 bg-black/50"></div>
+                </div>
 
-                            {/* Título principal */}
-                            <div className="flex items-center space-x-4 mb-2">
-                                {/* <div className="p-3 bg-gray-100 rounded-lg">
-                                    <Package className="w-6 h-6 text-gray-700" />
-                                </div> */}
-                                <div>
-                                    <h1 className="text-4xl font-bold text-gray-900 font-display">
-                                        Catálogo Completo
-                                    </h1>
-                                    <p className="text-lg text-gray-600 mt-1">
-                                        Descubrí toda nuestra colección de uniformes y prendas profesionales
-                                    </p>
+                <div className="py-16 relative z-10 w-full">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6 }}
+                            className="flex flex-col lg:flex-row lg:items-center lg:justify-between"
+                        >
+                            {/* Acciones - Móvil: arriba, Desktop: derecha */}
+                            <div className="flex flex-col-reverse lg:flex-col lg:order-2 mb-6 lg:mb-0">
+                                <div className="flex items-start flex-col lg:items-end gap-4">
+                                    <Button
+                                        variant="lightWhiteOutline"
+                                        size="md"
+                                        onClick={() => window.history.back()}
+                                        className="inline-flex items-center space-x-2"
+                                    >
+                                        <ArrowLeft size={16} />
+                                        <span>Volver</span>
+                                    </Button>
+                                    <div className="flex sm:hidden items-center space-x-2 text-sm text-gray-300">
+                                        <Grid3X3 size={16} />
+                                        <span>{productos.length} productos disponibles</span>
+                                    </div>
+                                    <div className="hidden sm:flex lg:flex items-center space-x-2 text-sm text-gray-300">
+                                        <Grid3X3 size={16} />
+                                        <span>{productos.length} productos disponibles</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-
-                        {/* Acciones */}
-                        <div className="flex items-center space-x-4">
-                            <Button
-                                variant="grayOutline"
-                                size="md"
-                                onClick={() => window.history.back()}
-                                className="inline-flex items-center space-x-2"
-                            >
-                                <ArrowLeft size={16} />
-                                <span>Volver</span>
-                            </Button>
-
-                            <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-600">
-                                <Grid3X3 size={16} />
-                                <span>{productos.length} productos disponibles</span>
+                            {/* Contenido principal - Móvil: abajo, Desktop: izquierda */}
+                            <div className="lg:order-1">
+                                {/* Breadcrumb */}
+                                <nav className="flex items-center space-x-2 text-sm text-gray-300 mb-4">
+                                    <Link
+                                        href="/"
+                                        className="hover:text-white transition-colors"
+                                    >
+                                        Inicio
+                                    </Link>
+                                    <span>/</span>
+                                    <span className="text-white font-medium">Catálogo</span>
+                                </nav>
+                                {/* Título principal */}
+                                <div className="flex items-center space-x-4 mb-2">
+                                    <div>
+                                        <h1 className="text-4xl lg:text-5xl font-bold text-white font-display">
+                                            Catálogo Completo
+                                        </h1>
+                                        <p className="text-lg text-gray-200 mt-1">
+                                            Descubrí toda nuestra colección de uniformes y prendas
+                                            profesionales
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </motion.div>
-
-                    {/* Estadísticas rápidas */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                        className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4"
-                    >
-                        {availableCategories.map((category, index) => {
-                            const categoryCount = productos.filter(p => p.categoriaIndumentaria === category).length;
-                            return (
-                                <motion.div
-                                    key={category}
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ duration: 0.4, delay: 0.3 + (index * 0.1) }}
-                                    className="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-                                    onClick={() => updateFilter('selectedCategory', category)}
-                                >
-                                    <div className="text-2xl font-bold text-gray-900">{categoryCount}</div>
-                                    <div className="text-sm text-gray-600 font-medium">{category}</div>
-                                </motion.div>
-                            );
-                        })}
-                    </motion.div>
+                        </motion.div>
+                    </div>
                 </div>
-            </Section>
+            </section>
 
             {/* Contenido principal */}
             <Section
                 id="catalog-content"
                 className=""
-                contentClassName="max-w-7xl mx-auto"
+                contentClassName="max-w-7xl mx-auto px-4"
             >
                 {/* Controles de filtro */}
                 <FilterControls
@@ -171,7 +159,7 @@ const CatalogPage = () => {
             {/* Call to Action */}
             <Section
                 id="catalog-cta"
-                className="bg-gray-900 text-white pb-20"
+                className="bg-gray-900 text-white pb-20 px-4"
                 contentClassName="max-w-4xl mx-auto text-center"
             >
                 <motion.div
@@ -184,7 +172,8 @@ const CatalogPage = () => {
                         ¿No encontrás lo que buscás?
                     </h2>
                     <p className="text-lg text-gray-700 mb-8 leading-relaxed">
-                        Diseñamos uniformes personalizados para tu empresa. Contactanos y te asesoramos sin compromiso.
+                        Diseñamos uniformes personalizados para tu empresa. Contactanos y
+                        te asesoramos sin compromiso.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Button
@@ -198,9 +187,9 @@ const CatalogPage = () => {
                         <Button
                             variant="black"
                             size="lg"
-                            className="tracking-wide"
+                            className="tracking-wide uppercase"
                         >
-                            VER DISEÑOS PERSONALIZADOS
+                            Creá tu propio diseño
                         </Button>
                     </div>
                 </motion.div>

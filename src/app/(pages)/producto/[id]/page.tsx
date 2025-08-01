@@ -125,6 +125,9 @@ const ProductDetailPage = () => {
         );
     }
 
+    console.log(product);
+    
+
     return (
         <div className="min-h-screen bg-gray-50 px-5">
             {/* Header */}

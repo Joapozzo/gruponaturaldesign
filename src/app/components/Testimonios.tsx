@@ -42,7 +42,7 @@ const Testimonios = () => {
             // background="gray"
             title='Nuestros clientes'
             subtitle='Más de 500 empresas confían en nosotros para vestir a sus equipos con calidad y profesionalismo'
-            contentClassName='max-w-7xl mx-auto'
+            contentClassName='max-w-7xl mx-auto pb-20'
         >
             {/* Slider de Logos - Minimalista */}
             <div className="mb-10">

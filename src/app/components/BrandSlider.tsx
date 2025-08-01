@@ -45,8 +45,8 @@ const BrandsSlider = () => {
     ];
 
     // Dividir en 2 grupos de 3
-    const slide1 = brands.slice(0, 3); // [1, 2, 3]
-    const slide2 = brands.slice(3, 6); // [4, 5, 6]
+    const slide1 = brands.slice(0, 3);
+    const slide2 = brands.slice(3, 6);
 
     useEffect(() => {
         const timer = setInterval(() => {
