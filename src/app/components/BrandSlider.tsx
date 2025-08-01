@@ -15,32 +15,32 @@ const BrandsSlider = () => {
         {
             id: 1,
             name: "Coca Cola",
-            image: "/imgs/1.png",
+            image: "/imgs/products/campera-rompeviento-unisex-1.jpg",
         },
         {
             id: 2,
             name: "Stellantis",
-            image: "/imgs/2.png",
+            image: "/imgs/products/casaca-de-trabajo-3.jpg",
         },
         {
             id: 3,
             name: "Tarjeta Naranja",
-            image: "/imgs/3.png",
+            image: "/imgs/products/pantalon-cargo-babucha-unisex-1.jpg",
         },
         {
             id: 4,
             name: "Reina Fabiola",
-            image: "/imgs/4.png",
+            image: "/imgs/products/camisa-oversize-de-dama-2.jpg",
         },
         {
             id: 5,
             name: "Arcor",
-            image: "/imgs/5.png",
+            image: "/imgs/products/anorak-unisex-con-capucha-de-frisa-3.jpg",
         },
         {
             id: 6,
             name: "CNH",
-            image: "/imgs/6.png",
+            image: "/imgs/products/pantalon-cargo-rigido-unisex-2.jpg",
         }
     ];
 

@@ -15,10 +15,10 @@ const InstagramCTA = () => {
     };
 
     const mockPosts = [
-        { id: 1, likes: '127', image: '/imgs/1.png' },
-        { id: 2, likes: '89', image: '/imgs/4.png' },
-        { id: 3, likes: '156', image: '/imgs/22.png' },
-        { id: 4, likes: '203', image: '/imgs/38.png' },
+        { id: 1, likes: '127', image: '/imgs/products/cardigan-tejido-de-dama-1.jpg' },
+        { id: 2, likes: '89', image: '/imgs/products/chomba-manga-corta-unisex-cuello-camisa-de-jersey-2.jpg' },
+        { id: 3, likes: '156', image: '/imgs/products/remera-base-unisex-2.jpg' },
+        { id: 4, likes: '203', image: '/imgs/products/remera-escote-en-v-dama-1.jpg' },
     ];
 
     return (
