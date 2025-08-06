@@ -291,58 +291,6 @@ const Nosotros = () => {
                     </div>
                 </motion.div>
             </div>
-
-            {/* Sección adicional de valores */}
-            {/* <motion.div
-                className="mt-20 pt-16 border-t border-gray-100"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.5 }}
-                viewport={{ once: true }}
-            >
-                <div className="grid md:grid-cols-3 gap-8 text-center">
-                    {[
-                        {
-                            icon: Shield,
-                            title: "CALIDAD PREMIUM",
-                            description: "Materiales de primera calidad seleccionados cuidadosamente"
-                        },
-                        {
-                            icon: Palette,
-                            title: "DISEÑO FUNCIONAL",
-                            description: "Cada prenda diseñada pensando en comodidad y durabilidad"
-                        },
-                        {
-                            icon: Headphones,
-                            title: "ASESORAMIENTO INTEGRAL",
-                            description: "Te acompañamos desde la idea hasta el producto final"
-                        }
-                    ].map((item, index) => (
-                        <motion.div
-                            key={index}
-                            className="space-y-4"
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6, delay: index * 0.2 }}
-                            viewport={{ once: true }}
-                        >
-                            <motion.div
-                                className="flex items-center justify-center w-12 h-12 bg-gray-100 hover:bg-gray-200 rounded-lg mx-auto mb-4 transition-all duration-300"
-                                whileHover={{ y: -3, scale: 1.05 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                <item.icon className="text-gray-700 hover:text-gray-900 transition-colors" size={20} />
-                            </motion.div>
-                            <h3 className="text-lg font-bold text-gray-900 tracking-wide">
-                                {item.title}
-                            </h3>
-                            <p className="text-gray-600 leading-relaxed">
-                                {item.description}
-                            </p>
-                        </motion.div>
-                    ))}
-                </div>
-            </motion.div> */}
             <BrandsSlider/>
         </Section>
     );

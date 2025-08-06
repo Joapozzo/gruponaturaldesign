@@ -29,7 +29,7 @@ const Navbar = () => {
     }, []);
 
     const menuItems = [
-        { id: 'inicio', label: 'INICIO', href: '/' },
+        { id: 'inicio', label: 'INICIO', href: '/#inicio' },
         { id: 'categorias', label: 'CATÁLOGO', href: '/catalogo' },
         { id: 'nosotros', label: 'NOSOTROS', href: '/#nosotros' },
         { id: 'testimonios', label: 'CLIENTES', href: '/#testimonios' },
@@ -117,7 +117,7 @@ const Navbar = () => {
                                     width={90}
                                     height={30}
                                     className="cursor-pointer"
-                                    onClick={() => window.location.href = '/'}
+                                    onClick={() => window.location.href = '/#inicio'}
                                     priority
                                 />
                             </motion.div>

@@ -213,7 +213,7 @@ const ProductDetailPage = () => {
                     >
                         {/* Imagen principal */}
                         <div className="relative group">
-                            <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                            <div className="aspect-[4/5] bg-gray-100 rounded-lg overflow-hidden">
                                 <Image
                                     src={product.imagenes[currentImageIndex]}
                                     alt={`${product.nombre} - Imagen ${currentImageIndex + 1}`}
