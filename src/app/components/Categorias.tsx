@@ -11,7 +11,7 @@ const Categorias = () => {
     const { openWhatsApp } = useWhatsApp({ defaultMessage: "¡Hola! Me interesa solicitar un diseño personalizado de uniformes de NTDS. ¿Te gustaría hablar conmigo?" });
 
     return (
-        <Section id="categorias" className="w-full bg-white" title='Categorias' subtitle='Uniformes profesionales diseñados específicamente para cada sector, combinando funcionalidad, comodidad y diseño.'>
+        <Section id="categorias" className="w-full bg-white" title='Categorías' subtitle='Uniformes profesionales diseñados específicamente para cada sector, combinando funcionalidad, comodidad y diseño.'>
 
             {/* Categorías Grid - Masonry Style */}
             <div className="w-full">
