@@ -25,7 +25,7 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   // Título optimizado para SEO
   title: {
-    default: "NTDS - Uniformes Empresariales y Escolares de Diseño | Natural Design",
+    default: "NTDS - Uniformes Empresariales de diseño | Natural Design",
     template: "%s | NTDS Natural Design"
   },
 
@@ -71,7 +71,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "es_AR",
     url: "https://naturalonline.com.ar",
-    title: "NTDS - Uniformes Empresariales y Escolares de Diseño",
+    title: "NTDS - Uniformes Empresariales de Diseño",
     description: "Uniformes empresariales, ropa de trabajo y merchandising de diseño en Córdoba. +25 años de experiencia vistiendo empresas con calidad y estilo.",
     siteName: "NTDS Natural Design",
     images: [
@@ -160,7 +160,7 @@ export default function RootLayout({
               "url": "https://naturalonline.com.ar",
               "logo": "https://naturalonline.com.ar/logo.png",
               "image": "https://naturalonline.com.ar/og-image.jpg",
-              "description": "Empresa especializada en uniformes empresariales, ropa de trabajo y merchandising de diseño con más de 25 años de experiencia en Córdoba, Argentina.",
+              "description": "Empresa especializada en uniformes empresariales de diseño, ropa de trabajo y merchandising de diseño con más de 25 años de experiencia en Córdoba, Argentina.",
               "address": {
                 "@type": "PostalAddress",
                 "streetAddress": "Rivera Indarte 2143",

@@ -193,6 +193,7 @@ const Faq: React.FC = () => {
             title="PREGUNTAS FRECUENTES"
             subtitle="Resolvé tus dudas más comunes sobre nuestros servicios y procesos"
             contentClassName="max-w-7xl mx-auto pb-20"
+            className='px-10'
         >
             {/* Acordeones - Preguntas Frecuentes */}
             <motion.div

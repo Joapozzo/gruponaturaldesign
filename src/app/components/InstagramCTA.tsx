@@ -24,7 +24,7 @@ const InstagramCTA = () => {
     return (
         <Section
             id="instagram-cta"
-            className="bg-gradient-to-br from-gray-50 via-white to-gray-50 relative"
+            className="bg-gradient-to-br from-gray-50 via-white to-gray-50 relative px-10" 
             contentClassName="max-w-7xl mx-auto relative z-10 pb-20"
         >
             {/* Elementos decorativos de fondo */}

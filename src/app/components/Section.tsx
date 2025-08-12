@@ -120,7 +120,7 @@ const Section: React.FC<SectionProps> = ({
                             </h2>
                         )}
                         {subtitle && (
-                            <p className="text-lg sm:text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed mb-12 sm:mb-16">
+                            <p className="text-lg sm:text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed mb-12 sm:mb-16 px-5">
                                 {subtitle}
                             </p>
                         )}

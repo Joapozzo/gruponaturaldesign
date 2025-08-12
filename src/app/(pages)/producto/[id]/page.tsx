@@ -355,7 +355,7 @@ const ProductDetailPage = () => {
                             <ul className="space-y-2">
                                 <li className="flex items-center space-x-2">
                                     <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
-                                    <span className="text-gray-700">Bordado personalizable</span>
+                                    <span className="text-gray-700">Bordado y estampado personalizable</span>
                                 </li>
                                 <li className="flex items-center space-x-2">
                                     <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
