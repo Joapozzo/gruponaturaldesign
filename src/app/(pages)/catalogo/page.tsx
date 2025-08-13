@@ -179,7 +179,7 @@ const CatalogPage = () => {
                         <Button
                             variant="slateOutline"
                             size="lg"
-                            className="tracking-wide inline-flex items-center space-x-3"
+                            className="tracking-wide inline-flex items-center space-x-3 text-center justify-center"
                         >
                             <Package size={20} />
                             <span>SOLICITAR COTIZACIÓN</span>

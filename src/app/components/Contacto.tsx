@@ -5,7 +5,7 @@ import Button from './ui/Button';
 
 const Contacto = () => {
     return (
-        <section id="contacto" className="py-20 bg-gray-200">
+        <section id="contacto" className="py-20 bg-gray-200 overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
@@ -25,8 +25,8 @@ const Contacto = () => {
                 <div className="grid lg:grid-cols-2 gap-16">
                     {/* Formulario */}
                     <motion.div
-                        initial={{ opacity: 0, x: -50 }}
-                        whileInView={{ opacity: 1, x: 0 }}
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8 }}
                         viewport={{ once: true }}
                         className="bg-gray-50 p-10 rounded-lg"
@@ -105,9 +105,9 @@ const Contacto = () => {
 
                     {/* Info de contacto */}
                     <motion.div
-                        initial={{ opacity: 0, x: 50 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.8 }}
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 0.2 }}
                         viewport={{ once: true }}
                         className="space-y-8"
                     >

@@ -80,7 +80,7 @@ const Section: React.FC<SectionProps> = ({
 
     // Clases del contenedor principal
     const sectionClasses = `
-    w-full
+    w-full overflow-hidden
     ${backgroundVariants[background]}
     ${paddingVariants[padding]}
     ${className}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { useNavigation } from '../hooks/useNavigation';
@@ -13,13 +13,29 @@ const Hero = () => {
         scrollToSection,
     } = useNavigation();
 
+    const [heroImage, setHeroImage] = useState('/imgs/Hero-2.jpg');
     const { openWhatsApp } = useWhatsApp({ defaultMessage: mensajeCotizacion });
+
+    useEffect(() => {
+        const updateImage = () => {
+            if (window.innerWidth < 640) {
+                setHeroImage('/imgs/nosotros.jpg'); // imagen para mobile
+            } else {
+                setHeroImage('/imgs/Hero-2.jpg'); // imagen para desktop
+            }
+        };
+
+        updateImage();
+        window.addEventListener('resize', updateImage);
+        return () => window.removeEventListener('resize', updateImage);
+    }, []);
+
 
     return (
         <section id="inicio" className="relative h-screen flex items-center justify-center overflow-hidden -mt-22">
             <div className="absolute inset-0">
                 <Image
-                    src="/imgs/Hero-2.jpg"
+                    src={heroImage}
                     alt="Hero NTDS"
                     className="w-full h-full object-cover"
                     width={20000}

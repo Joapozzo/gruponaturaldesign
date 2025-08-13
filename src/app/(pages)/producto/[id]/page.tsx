@@ -124,10 +124,7 @@ const ProductDetailPage = () => {
             </div>
         );
     }
-
-    console.log(product);
     
-
     return (
         <div className="min-h-screen bg-gray-50 px-5">
             {/* Header */}
@@ -378,7 +375,7 @@ const ProductDetailPage = () => {
                                 variant="black"
                                 size="lg"
                                 onClick={() => openWhatsApp()}
-                                className="w-full tracking-wide inline-flex items-center justify-center space-x-3"
+                                className="w-full tracking-wide inline-flex items-center justify-center space-x-3 text-center"
                             >
                                 <MessageCircle size={20} />
                                 <span>SOLICITAR COTIZACIÓN</span>
