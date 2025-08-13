@@ -148,7 +148,7 @@ const Navbar = () => {
                         </div>
 
                         {/* Actions */}
-                        <div className="hidden lg:flex items-center space-x-4">
+                        {/* <div className="hidden lg:flex items-center space-x-4">
                             <motion.button
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.95 }}
@@ -180,7 +180,7 @@ const Navbar = () => {
                                     0
                                 </motion.span>
                             </motion.button>
-                        </div>
+                        </div> */}
 
                         {/* Mobile Menu Button */}
                         <motion.button
@@ -236,7 +236,7 @@ const Navbar = () => {
                                 ))}
 
                                 {/* Mobile Actions */}
-                                <motion.div
+                                {/* <motion.div
                                     initial={{ y: 20, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
                                     transition={{ delay: 0.3 }}
@@ -283,7 +283,7 @@ const Navbar = () => {
                                         </div>
                                         <span className="text-xs">Carrito</span>
                                     </motion.button>
-                                </motion.div>
+                                </motion.div> */}
                             </div>
                         </motion.div>
                     )}
