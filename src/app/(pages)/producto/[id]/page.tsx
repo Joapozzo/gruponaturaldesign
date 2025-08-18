@@ -10,8 +10,6 @@ import {
     Maximize2,
     X,
     MessageCircle,
-    Share2,
-    Heart,
     Eye
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
@@ -179,7 +177,7 @@ const ProductDetailPage = () => {
                                 <span>Volver</span>
                             </Button>
 
-                            <Button
+                            {/* <Button
                                 variant="grayOutline"
                                 size="md"
                                 onClick={handleShare}
@@ -187,7 +185,7 @@ const ProductDetailPage = () => {
                             >
                                 <Share2 size={16} />
                                 <span className="hidden sm:inline">Compartir</span>
-                            </Button>
+                            </Button> */}
                         </div>
                     </motion.div>
                 </div>
@@ -382,15 +380,15 @@ const ProductDetailPage = () => {
                             </Button>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <Button
+                                {/* <Button
                                     variant="grayOutline"
                                     size="md"
                                     className="inline-flex items-center justify-center space-x-2"
                                 >
                                     <Heart size={16} />
                                     <span>Favoritos</span>
-                                </Button>
-                                <Button
+                                </Button> */}
+                                {/* <Button
                                     variant="grayOutline"
                                     size="md"
                                     onClick={handleShare}
@@ -398,7 +396,7 @@ const ProductDetailPage = () => {
                                 >
                                     <Share2 size={16} />
                                     <span>Compartir</span>
-                                </Button>
+                                </Button> */}
                             </div>
                         </div>
 

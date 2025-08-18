@@ -10,8 +10,14 @@ import Product from './Product';
 import Section from './Section';
 import { productos } from '../data/productos'; 
 import Button from './ui/Button';
+import { useRouter } from 'next/navigation';
+
 
 const ProductosDestacados = () => {
+    const router = useRouter();
+    const goToPage = () => {
+        router.push(`/catalogo`);
+    };
     return (
         <Section 
             id="productos" 
@@ -89,6 +95,7 @@ const ProductosDestacados = () => {
                         variant="black"
                         size="lg"
                         className="tracking-wide inline-flex items-center space-x-3"
+                        onClick={goToPage}
                     >
                         <span>VER CATÁLOGO COMPLETO</span>
                         <ArrowRight className="w-5 h-5" />

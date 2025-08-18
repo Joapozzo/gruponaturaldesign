@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Package, Grid3X3 } from 'lucide-react';
+import { ArrowLeft, Grid3X3 } from 'lucide-react';
 import { useCatalogFilters } from '@/app/components/hooks/useCatalogFilters';
 import { productos } from '@/app/data/productos';
 import FilterControls from '@/app/components/FilterControls';
@@ -110,7 +110,7 @@ const CatalogPage = () => {
             <Section
                 id="catalog-content"
                 className=""
-                contentClassName="max-w-7xl mx-auto px-4"
+                contentClassName="max-w-7xl mx-auto px-4 mb-20"
             >
                 {/* Controles de filtro */}
                 <FilterControls
@@ -157,7 +157,7 @@ const CatalogPage = () => {
             </Section>
 
             {/* Call to Action */}
-            <Section
+            {/* <Section
                 id="catalog-cta"
                 className="bg-gray-900 text-white pb-20 px-4"
                 contentClassName="max-w-4xl mx-auto text-center"
@@ -193,7 +193,7 @@ const CatalogPage = () => {
                         </Button>
                     </div>
                 </motion.div>
-            </Section>
+            </Section> */}
         </div>
     );
 };

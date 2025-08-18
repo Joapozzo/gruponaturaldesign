@@ -14,9 +14,9 @@ const Categorias = () => {
         <Section id="categorias" className="w-full bg-white" title='Categorías' subtitle='Uniformes profesionales diseñados específicamente para cada sector, combinando funcionalidad, comodidad y diseño.'>
 
             {/* Categorías Grid - Masonry Style */}
-            <div className="w-full">
+            <div className="w-full px-4 lg:px-20 pb-10">
                 {/* Primera fila - 2 columnas grandes */}
-                <div className="grid grid-cols-1 lg:grid-cols-2">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                     {categorias.slice(0, 2).map((categoria, index) => (
                         <motion.div
                             key={categoria.id}
@@ -101,7 +101,7 @@ const Categorias = () => {
                 </div>
 
                 {/* Segunda fila - 3 columnas */}
-                <div className="w-full">
+                <div className="w-full mt-2">
                     {categorias.slice(2, 5).map((categoria, index) => (
                         <motion.div
                             key={categoria.id}

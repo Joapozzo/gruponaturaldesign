@@ -40,13 +40,12 @@ const Testimonios = () => {
         <Section
             id="testimonios"
             // background="gray"
-            title='Nuestros clientes'
-            subtitle='Más de 500 empresas confían en nosotros para vestir a sus equipos con calidad y profesionalismo'
-            contentClassName='max-w-7xl mx-auto pb-20'
-            className='px-10'
+            title="Nuestros clientes"
+            subtitle="Más de 500 empresas confían en nosotros para vestir a sus equipos con calidad y profesionalismo"
+            className='mb-20'
         >
             {/* Slider de Logos - Minimalista */}
-            <div className="mb-10">
+            <div className="mb-10 px-20">
                 <motion.div
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
@@ -61,22 +60,22 @@ const Testimonios = () => {
                         }}
                         transition={{
                             duration: 0.8,
-                            ease: "easeInOut"
+                            ease: "easeInOut",
                         }}
                     >
                         {/* Triplicamos para efecto infinito */}
-                        {[...logosClientes, ...logosClientes, ...logosClientes].map((cliente, index) => (
-                            <motion.div
-                                key={`${cliente.nombre}-${index}`}
-                                className="flex-shrink-0 w-20 h-30 flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
-                            >
-                                <div
-                                    className="filter grayscale hover:grayscale-0 transition-all duration-300"
+                        {[...logosClientes, ...logosClientes, ...logosClientes].map(
+                            (cliente, index) => (
+                                <motion.div
+                                    key={`${cliente.nombre}-${index}`}
+                                    className="flex-shrink-0 w-20 h-30 flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
                                 >
-                                    {cliente.logo}
-                                </div>
-                            </motion.div>
-                        ))}
+                                    <div className="filter grayscale hover:grayscale-0 transition-all duration-300">
+                                        {cliente.logo}
+                                    </div>
+                                </motion.div>
+                            )
+                        )}
                     </motion.div>
                 </motion.div>
             </div>
@@ -97,14 +96,11 @@ const Testimonios = () => {
                         }}
                         transition={{
                             duration: 0.6,
-                            ease: "easeInOut"
+                            ease: "easeInOut",
                         }}
                     >
                         {testimonios.map((testimonio, index) => (
-                            <motion.div
-                                key={index}
-                                className="w-full flex-shrink-0 px-4"
-                            >
+                            <motion.div key={index} className="w-full flex-shrink-0 px-4">
                                 <div className="bg-white p-8 lg:p-12 shadow-sm hover:shadow-md transition-all duration-300 rounded-lg">
                                     {/* Rating */}
                                     <div className="flex items-center justify-center mb-6">
@@ -123,9 +119,14 @@ const Testimonios = () => {
 
                                     {/* Cliente info */}
                                     <div className="flex items-center justify-center">
-                                        <CheckCircle className="text-gray-600 mr-3 flex-shrink-0" size={20} />
+                                        <CheckCircle
+                                            className="text-gray-600 mr-3 flex-shrink-0"
+                                            size={20}
+                                        />
                                         <div className="text-center">
-                                            <div className="font-bold text-gray-900 text-lg">{testimonio.nombre}</div>
+                                            <div className="font-bold text-gray-900 text-lg">
+                                                {testimonio.nombre}
+                                            </div>
                                             <div className="text-gray-500">{testimonio.cargo}</div>
                                         </div>
                                     </div>
@@ -151,8 +152,8 @@ const Testimonios = () => {
                                 key={index}
                                 onClick={() => setCurrentTestimonioIndex(index)}
                                 className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentTestimonioIndex
-                                    ? 'bg-gray-800'
-                                    : 'bg-gray-300 hover:bg-gray-400'
+                                        ? "bg-gray-800"
+                                        : "bg-gray-300 hover:bg-gray-400"
                                     }`}
                             />
                         ))}
@@ -173,13 +174,14 @@ const Testimonios = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.3 }}
                 viewport={{ once: true }}
-                className="text-center mt-20 p-8 lg:p-12 shadow-sm rounded-lg bg-gray-800"
+                className="w-full text-center mt-20 p-8 lg:p-12 shadow-sm bg-gray-800 flex flex-col items-center justify-center gap-4"
             >
                 <h3 className="text-3xl lg:text-4xl font-bold text-gray-200 mb-4 font-display">
                     ¿Querés ser parte de nuestros clientes satisfechos?
                 </h3>
                 <p className="text-lg text-gray-200 mb-8 max-w-2xl mx-auto leading-relaxed">
-                    Contactanos y descubrí por qué más de 500 empresas eligen NTDS para sus uniformes
+                    Contactanos y descubrí por qué más de 500 empresas eligen NTDS para
+                    sus uniformes
                 </p>
                 <Button
                     variant="lightWhite"

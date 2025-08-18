@@ -27,8 +27,8 @@ const NTDS_Website = () => {
         }
       `}</style>
       <Hero />
-      <Categorias/>
       <ProductosDestacados/>
+      <Categorias/>
       <InstagramCTA/>
       <Nosotros/>
       <Testimonios/>

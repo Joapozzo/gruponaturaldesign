@@ -49,7 +49,7 @@ const Hero = () => {
                     initial={{ opacity: 0, y: 50 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1 }}
-                    className="text-6xl md:text-7xl font-bold mb-6 leading-tight"
+                    className="text-3xl md:text-7xl font-bold mb-4 leading-tight"
                     style={{ fontFamily: 'Franklin Gothic Heavy, Arial Black, sans-serif' }}
                 >
                     UNIFORMES DE DISEÑO
@@ -58,7 +58,7 @@ const Hero = () => {
                     initial={{ opacity: 0, y: 50 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1, delay: 0.3 }}
-                    className="text-2xl md:text-2xl mb-8 font-light tracking-wide"
+                    className="text-xl md:text-2xl mb-4 font-light tracking-wide"
                 >
                     Mas de 25 años vistiendo empresas con calidad y compromiso.
                 </motion.p>
@@ -66,11 +66,11 @@ const Hero = () => {
                     initial={{ opacity: 0, y: 50 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1, delay: 0.6 }}
-                    className="flex flex-col sm:flex-row gap-6 justify-center"
+                    className="flex flex-col sm:flex-row gap-4 justify-center"
                 >
                     <Button
                         variant="black"
-                        size="lg"
+                        size="md"
                         onClick={() => scrollToSection('categorias')}
                         className="tracking-wide"
                     >
@@ -78,7 +78,7 @@ const Hero = () => {
                     </Button>
                     <Button
                         variant="lightWhiteOutline"
-                        size="lg"
+                        size="md"
                         onClick={() => openWhatsApp()}
                         className="tracking-wide"
                     >

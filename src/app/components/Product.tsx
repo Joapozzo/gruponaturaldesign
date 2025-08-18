@@ -42,7 +42,7 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
             )}
 
             {/* Imagen del producto */}
-            <div className="relative h-56 overflow-hidden rounded-t-lg">
+            <div className="relative h-100 overflow-hidden rounded-t-lg">
                 <motion.img
                     src={product.imagenes ? product.imagenes[0] : product.imagenes}
                     alt={product.nombre}

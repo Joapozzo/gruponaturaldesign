@@ -105,7 +105,7 @@ const Nosotros = () => {
     return (
         <Section
             id="nosotros"
-            contentClassName='max-w-7xl mx-auto pb-20 px-10 '
+            contentClassName="max-w-7xl mx-auto relative z-10 pb-20"
         >
             <div className="grid lg:grid-cols-2 gap-16 lg:gap-20 items-center">
                 {/* Contenido de texto */}
