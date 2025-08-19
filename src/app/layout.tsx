@@ -206,9 +206,18 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
-        <link rel="icon" href="/logos/logo-2.svg" type="image/svg+xml" sizes="any" />
-        <link rel="icon" href="/logos/logo-2.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/logos/logo-2.svg" />
+        {/* Favicon para modo claro (light mode) */}
+        <link rel="icon" href="/logos/logo-1.svg" type="image/svg+xml" media="(prefers-color-scheme: light)" />
+        
+        {/* Favicon para modo oscuro (dark mode) */}
+        <link rel="icon" href="/logos/logo-2.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" />
+        
+        {/* Favicon por defecto (fallback) - usa el de modo claro */}
+        <link rel="icon" href="/logos/logo-1.svg" type="image/svg+xml" />
+        
+        {/* Apple touch icon - usa el de modo claro para mejor contraste */}
+        <link rel="apple-touch-icon" href="/logos/logo-1.svg" />
+        
         <link rel="manifest" href="/manifest.json" />
 
         {/* Optimización de recursos */}

@@ -60,7 +60,7 @@ const Hero = () => {
                     transition={{ duration: 1, delay: 0.3 }}
                     className="text-xl md:text-2xl mb-4 font-light tracking-wide"
                 >
-                    Mas de 25 años vistiendo empresas con calidad y compromiso.
+                    Más de 25 años vistiendo empresas con calidad y compromiso.
                 </motion.p>
                 <motion.div
                     initial={{ opacity: 0, y: 50 }}

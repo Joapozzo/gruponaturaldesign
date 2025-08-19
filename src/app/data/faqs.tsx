@@ -9,17 +9,17 @@ import {
 
 export const frequentFaqs = [
     {
-        pregunta: "¿Cómo hacer tu pedido?",
+        pregunta: "1. ¿Cómo hacer tu pedido?",
         respuesta: "1) Ponete en contacto con nosotros vía mail o WhatsApp. 2) Coordiná una visita a tu empresa o reunión en el showroom, para conocer nuestros productos. 3) Enviá tu pedido especificando talles y cantidades. 4) Con estos datos te enviaremos la cotización vía mail o WhatsApp.",
         icon: ShoppingCart
     },
     {
-        pregunta: "¿Cuáles son las cantidades mínimas?",
+        pregunta: "2. ¿Cuáles son las cantidades mínimas?",
         respuesta: "Trabajamos de manera mayorista con un mínimo de 30 unidades por artículo. Esto nos permite mantener la calidad y ofrecer los mejores precios del mercado.",
         icon: Package
     },
     {
-        pregunta: "¿Cuáles son los tiempos de entrega?",
+        pregunta: "3. ¿Cuáles son los tiempos de entrega?",
         respuesta: "Las fechas de entrega se pactan con el vendedor una vez confirmado el pedido con la información solicitada (talles-logos-cantidades) y el pago de la seña correspondiente. Se estipula aproximadamente un máximo de 60 días una vez recibida la información y el pago.",
         icon: Clock
     }
@@ -29,7 +29,9 @@ export const workProcessFaqs = [
     {
         title: "Toma de medidas y talles",
         content:
-            "Tenemos tablas de talles para cada uno de nuestros artículos con medidas reales y estandarizadas. Te enviaremos fichas con medidas de cada producto, compararás las medidas de tu personal con nuestras tablas y para talles especiales desarrollamos productos a medida.",
+            `Contamos con tablas de talles estandarizadas y con medidas reales para cada uno de nuestros artículos.
+            Te enviaremos fichas técnicas con las medidas de cada prenda, para que puedas compararlas fácilmente con las de tu equipo.
+            Y si necesitás talles especiales, también desarrollamos uniformes a medida.`,
         icon: Ruler,
         bgColor: "bg-gray-100",
         iconColor: "text-red-600",
