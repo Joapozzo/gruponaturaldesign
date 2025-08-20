@@ -85,7 +85,7 @@ const Pagination: React.FC<PaginationProps> = ({
                 {/* Botón anterior */}
                 <Button
                     variant="grayOutline"
-                    size="md"
+                    size="sm"
                     onClick={() => onPageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                     className="flex items-center space-x-2"
@@ -107,7 +107,7 @@ const Pagination: React.FC<PaginationProps> = ({
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => onPageChange(page)}
-                                    className={`w-10 h-10 flex items-center justify-center rounded-lg font-medium transition-all duration-200 ${currentPage === page
+                                    className={`w-8 h-8 flex items-center justify-center rounded-lg font-medium transition-all duration-200 ${currentPage === page
                                             ? 'bg-gray-900 text-white shadow-lg'
                                             : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-gray-300'
                                         }`}
@@ -122,7 +122,7 @@ const Pagination: React.FC<PaginationProps> = ({
                 {/* Botón siguiente */}
                 <Button
                     variant="grayOutline"
-                    size="md"
+                    size="sm"
                     onClick={() => onPageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
                     className="flex items-center space-x-2"
