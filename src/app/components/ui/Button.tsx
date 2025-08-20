@@ -55,12 +55,12 @@ const Button: React.FC<ButtonProps> = ({
     // Variantes de colores
     const colorVariants: Record<ColorVariant, string> = {
         // Negros y grises sólidos
-        black: 'bg-black hover:bg-gray-900 text-white',
+        black: 'bg-black hover:bg-gray-900 text-white border border-black hover:border-gray-900',
         charcoal: 'bg-gray-900 hover:bg-gray-800 text-white',
         slate: 'bg-gray-800 hover:bg-gray-700 text-white',
         darkGray: 'bg-gray-700 hover:bg-gray-600 text-white',
         gray: 'bg-gray-600 hover:bg-gray-500 text-white',
-        mediumGray: 'bg-gray-500 hover:bg-gray-400 text-white',
+        mediumGray: 'bg-gray-500 hover:bg-gray-400 text-white', 
         lightGray: 'bg-gray-400 hover:bg-gray-300 text-gray-900',
         silver: 'bg-gray-300 hover:bg-gray-200 text-gray-900',
         ash: 'bg-gray-200 hover:bg-gray-100 text-gray-900',

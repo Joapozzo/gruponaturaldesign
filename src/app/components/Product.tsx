@@ -49,11 +49,11 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: index * 0.1 }}
+initial={!isMobile ? { opacity: 0, y: 50 } : { opacity: 1, y: 0 }}
+whileInView={!isMobile ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
+transition={!isMobile ? { duration: 0.6, delay: index * 0.1 } : { duration: 0 }}
             viewport={{ once: true }}
-            className={`group relative overflow-hidden bg-white rounded-lg shadow-md transition-all duration-500 cursor-pointer mb-12 w-[370px] min-h-[550px] ${!isMobile ? 'hover:shadow-xl hover:scale-[1.02] hover:-translate-y-2' : ''
+            className={`group relative overflow-hidden bg-white rounded-lg shadow-md transition-all duration-500 cursor-pointer mb-12 md:w-[370px] w-[340px] min-h-[550px] ${!isMobile ? 'hover:shadow-xl hover:scale-[1.02] hover:-translate-y-2' : ''
                 }`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
@@ -63,10 +63,10 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
             {product.destacado && (
                 <motion.div
                     className="absolute top-6 left-4 z-10 text-white px-2 py-1 text-xs font-semibold flex items-center space-x-1 rounded-lg"
-                    animate={!isMobile ? {
+                    animate={{
                         scale: isHovered ? 1.1 : 1,
                         backgroundColor: isHovered ? "#1f2937" : "#374151"
-                    } : {}}
+                    }}
                     transition={{ duration: 0.3 }}
                 >
                     <Star size={10} fill="currentColor" />
