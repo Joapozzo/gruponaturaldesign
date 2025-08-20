@@ -325,7 +325,7 @@ const ProductDetailPage = () => {
                         </div>
 
                         {/* Descripción */}
-                        <div className="bg-gray-50 p-6 rounded-lg">
+                        <div className="bg-gray-50 rounded-lg">
                             <h3 className="text-lg font-semibold text-gray-900 mb-3">Descripción</h3>
                             <p className="text-gray-700 leading-relaxed">
                                 {product.descripcion}
@@ -334,18 +334,18 @@ const ProductDetailPage = () => {
 
                         {/* Especificaciones */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="bg-white p-4 rounded-lg border border-gray-100">
+                            <div className="bg-white p-4 rounded-lg border border-gray-300">
                                 <h4 className="font-semibold text-gray-900 mb-2">Categoría</h4>
                                 <p className="text-gray-600">{product.categoriaIndumentaria}</p>
                             </div>
-                            <div className="bg-white p-4 rounded-lg border border-gray-100">
+                            <div className="bg-white p-4 rounded-lg border border-gray-300">
                                 <h4 className="font-semibold text-gray-900 mb-2">Código</h4>
                                 <p className="text-gray-600">#{product.id.toString().padStart(4, '0')}</p>
                             </div>
                         </div>
 
                         {/* Características destacadas */}
-                        <div className="bg-white p-6 rounded-lg border border-gray-100">
+                        <div className="bg-white rounded-lg border border-gray-100">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">Características</h3>
                             <ul className="space-y-2">
                                 <li className="flex items-center space-x-2">
