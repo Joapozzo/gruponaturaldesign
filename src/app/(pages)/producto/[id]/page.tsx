@@ -345,7 +345,7 @@ const ProductDetailPage = () => {
                         </div>
 
                         {/* Características destacadas */}
-                        <div className="bg-white rounded-lg border border-gray-100">
+                        <div className="bg-white rounded-lg border border-gray-300 p-4">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">Características</h3>
                             <ul className="space-y-2">
                                 <li className="flex items-center space-x-2">
