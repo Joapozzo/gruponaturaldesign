@@ -11,7 +11,7 @@ interface ProductGridProps {
 const ProductGrid: React.FC<ProductGridProps> = ({ products, isLoading = false }) => {
     if (isLoading) {
         return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
                 {Array.from({ length: 12 }, (_, index) => (
                     <div key={index} className="animate-pulse">
                         <div className="bg-gray-200 rounded-lg h-64 mb-4"></div>
@@ -56,7 +56,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, isLoading = false }
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6"
         >
             {products.map((product, index) => (
                 <motion.div

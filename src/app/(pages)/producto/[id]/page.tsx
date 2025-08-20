@@ -93,7 +93,7 @@ const ProductDetailPage = () => {
         return (
             <div className="min-h-screen bg-gray-50 px-5 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-gray-900 mx-auto mb-6"></div>
                     <p className="text-gray-600">Cargando producto...</p>
                 </div>
             </div>
@@ -122,7 +122,7 @@ const ProductDetailPage = () => {
             </div>
         );
     }
-    
+
     return (
         <div className="min-h-screen bg-gray-50 px-5">
             {/* Header */}
@@ -149,10 +149,10 @@ const ProductDetailPage = () => {
                                 <a href="/catalogo" className="hover:text-gray-900 transition-colors">
                                     Catálogo
                                 </a>
-                                <span>/</span>
+                                {/* <span>/</span>
                                 <span className="text-gray-900 font-medium">
                                     {product.categoriaIndumentaria}
-                                </span>
+                                </span> */}
                                 <span>/</span>
                                 <span className="text-gray-900 font-medium truncate max-w-xs">
                                     {product.nombre}
@@ -169,8 +169,8 @@ const ProductDetailPage = () => {
                         <div className="flex items-center space-x-4">
                             <Button
                                 variant="grayOutline"
-                                size="md"
-                                onClick={() => router.push('/catalogo')}
+                                size="sm"
+                                onClick={() => router.back()}
                                 className="inline-flex items-center space-x-2"
                             >
                                 <ArrowLeft size={16} />
@@ -262,8 +262,8 @@ const ProductDetailPage = () => {
                                                 key={index}
                                                 onClick={() => setCurrentImageIndex(index)}
                                                 className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentImageIndex
-                                                        ? 'bg-white w-6'
-                                                        : 'bg-white/50 hover:bg-white/75'
+                                                    ? 'bg-white w-6'
+                                                    : 'bg-white/50 hover:bg-white/75'
                                                     }`}
                                             />
                                         ))}
@@ -280,8 +280,8 @@ const ProductDetailPage = () => {
                                         key={index}
                                         onClick={() => setCurrentImageIndex(index)}
                                         className={`aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 transition-all duration-300 ${index === currentImageIndex
-                                                ? 'border-gray-900 scale-95'
-                                                : 'border-transparent hover:border-gray-300'
+                                            ? 'border-gray-900 scale-95'
+                                            : 'border-transparent hover:border-gray-300'
                                             }`}
                                         whileHover={{ scale: 0.95 }}
                                         whileTap={{ scale: 0.9 }}
@@ -436,7 +436,7 @@ const ProductDetailPage = () => {
                                     className="group cursor-pointer"
                                     onClick={() => router.push(`/producto/${relatedProduct.id}`)}
                                 >
-                                    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+                                    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden min-h-[450px]">
                                         <div className="aspect-square bg-gray-100 overflow-hidden">
                                             <Image
                                                 src={relatedProduct.imagenes[0]}

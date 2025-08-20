@@ -86,14 +86,14 @@ const Button: React.FC<ButtonProps> = ({
         minimal: 'text-gray-600 hover:text-black underline-offset-4 hover:underline',
     };
 
-    // Tamaños
+    // Tamaños con responsive automático (mobile pequeño, desktop grande)
     const sizeVariants: Record<SizeVariant, string> = {
-        xs: 'px-2 py-1 text-xs',
-        sm: 'px-3 py-1.5 text-sm',
-        md: 'px-4 py-2 text-base',
-        lg: 'px-6 py-3 text-lg',
-        xl: 'px-8 py-4 text-xl',
-        xxl: 'px-12 py-5 text-2xl',
+        xs: 'px-1.5 py-0.5 text-[10px] tracking-tight lg:px-2 lg:py-1 lg:text-xs lg:tracking-normal',
+        sm: 'px-2 py-1 text-[11px] tracking-tight lg:px-4 lg:py-2 lg:text-sm lg:tracking-normal',
+        md: 'px-3 py-1.5 text-[12px] tracking-tight lg:px-6 lg:py-3 lg:text-base lg:tracking-normal',
+        lg: 'px-4 py-2 text-[13px] tracking-tight lg:px-8 lg:py-4 lg:text-lg lg:tracking-normal',
+        xl: 'px-6 py-3 text-sm tracking-tight lg:px-10 lg:py-5 lg:text-xl lg:tracking-normal',
+        xxl: 'px-8 py-4 text-base tracking-tight lg:px-12 lg:py-6 lg:text-2xl lg:tracking-normal',
     };
 
     // Si es outline, usar la variante outline correspondiente

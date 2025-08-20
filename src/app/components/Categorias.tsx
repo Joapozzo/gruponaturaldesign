@@ -5,16 +5,22 @@ import Section from './Section';
 import categorias from '../data/categorias';
 import Button from './ui/Button';
 import { useWhatsApp } from './hooks/useWhatsApp';
+import { useRouter } from 'next/navigation';
 
 const Categorias = () => {
+    const router = useRouter();
     const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
     const { openWhatsApp } = useWhatsApp({ defaultMessage: "¡Hola! Me interesa solicitar un diseño personalizado de uniformes de NTDS. ¿Te gustaría hablar conmigo?" });
+
+    const goToPage = () => {
+        router.push(`/catalogo`);
+    };
 
     return (
         <Section id="categorias" className="w-full bg-white" title='Categorías' subtitle='Uniformes profesionales diseñados específicamente para cada sector, combinando funcionalidad, comodidad y diseño.'>
 
             {/* Categorías Grid - Masonry Style */}
-            <div className="w-full px-4 lg:px-20 pb-10">
+            <div className="w-full px-4 lg:px-15 pb-10">
                 {/* Primera fila - 2 columnas grandes */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                     {categorias.slice(0, 2).map((categoria, index) => (
@@ -27,7 +33,7 @@ const Categorias = () => {
                             className="group relative overflow-hidden cursor-pointer"
                             onMouseEnter={() => setHoveredCategory(categoria.id)}
                             onMouseLeave={() => setHoveredCategory(null)}
-                        // onClick={() => setSelectedCategory(categoria)}
+                            onClick={() => goToPage()}
                         >
                             {/* Imagen de fondo */}
                             <div className="relative h-[70vh] w-full overflow-hidden">
@@ -65,7 +71,7 @@ const Categorias = () => {
                                     <h3 className="text-3xl lg:text-4xl font-bold mb-4 font-display">
                                         {categoria.nombre}
                                     </h3>
-                                    <p className="text-lg lg:text-xl opacity-90 mb-6 max-w-md leading-relaxed">
+                                    <p className="md:text-lg text-sm  opacity-90 mb-6 max-w-md leading-relaxed">
                                         {categoria.descripcion}
                                     </p>
 
@@ -112,7 +118,7 @@ const Categorias = () => {
                             className="group relative overflow-hidden cursor-pointer"
                             onMouseEnter={() => setHoveredCategory(categoria.id)}
                             onMouseLeave={() => setHoveredCategory(null)}
-                        // onClick={() => setSelectedCategory(categoria)}
+                            onClick={() => goToPage()}
                         >
                             {/* Imagen de fondo */}
                             <div className="relative h-[60vh] w-full overflow-hidden">
@@ -146,10 +152,10 @@ const Categorias = () => {
                                     }}
                                     transition={{ duration: 0.3 }}
                                 >
-                                    <h3 className="text-2xl lg:text-3xl font-bold mb-3 tracking-wide font-display">
+                                    <h3 className="text-3xl lg:text-3xl font-bold mb-3 tracking-wide font-display">
                                         {categoria.nombre}
                                     </h3>
-                                    <p className="text-sm lg:text-base opacity-90 mb-4 leading-relaxed">
+                                    <p className="md:text-lg text-sm opacity-90 mb-4 leading-relaxed">
                                         {categoria.descripcion}
                                     </p>
 

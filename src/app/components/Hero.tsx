@@ -19,9 +19,9 @@ const Hero = () => {
     useEffect(() => {
         const updateImage = () => {
             if (window.innerWidth < 640) {
-                setHeroImage('/imgs/nosotros.jpg'); // imagen para mobile
+                setHeroImage('/imgs/nosotros.jpg');
             } else {
-                setHeroImage('/imgs/Hero-2.jpg'); // imagen para desktop
+                setHeroImage('/imgs/Hero-2.jpg');
             }
         };
 
@@ -49,7 +49,7 @@ const Hero = () => {
                     initial={{ opacity: 0, y: 50 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1 }}
-                    className="text-3xl md:text-7xl font-bold mb-4 leading-tight"
+                    className="text-3xl md:text-5xl font-bold mb-4 leading-tight"
                     style={{ fontFamily: 'Franklin Gothic Heavy, Arial Black, sans-serif' }}
                 >
                     UNIFORMES DE DISEÑO
@@ -58,7 +58,7 @@ const Hero = () => {
                     initial={{ opacity: 0, y: 50 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1, delay: 0.3 }}
-                    className="text-xl md:text-2xl mb-4 font-light tracking-wide"
+                    className="text-xl md:text-xl mb-4 font-light tracking-wide"
                 >
                     Más de 25 años vistiendo empresas con calidad y compromiso.
                 </motion.p>
@@ -70,16 +70,16 @@ const Hero = () => {
                 >
                     <Button
                         variant="black"
-                        size="md"
                         onClick={() => scrollToSection('categorias')}
+                        size='md'
                         className="tracking-wide"
                     >
                         VER CATÁLOGO
                     </Button>
                     <Button
                         variant="lightWhiteOutline"
-                        size="md"
                         onClick={() => openWhatsApp()}
+                        size='md'
                         className="tracking-wide"
                     >
                         SOLICITAR COTIZACIÓN

@@ -27,7 +27,7 @@ const categorias: Categoria[] = [
     },
     {
         id: 'merch',
-        nombre: '⦁	MERCH & OTROS',
+        nombre: 'MERCH & OTROS',
         descripcion: 'OTROS: prendas promocionales personalizadas, gastronomía y más ',
         imagen: '/imgs/cat-3.jpg',
         productos: [

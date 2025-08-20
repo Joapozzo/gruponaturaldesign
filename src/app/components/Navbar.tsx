@@ -114,7 +114,7 @@ const Navbar = () => {
                                 <Image
                                     src={!isHomePage && "/logos/logo-1.svg" || isHomePage && !isScrolled ? "/logos/logo-2.svg" : "/logos/logo-1.svg"}
                                     alt="NTDS Natural Design Logo"
-                                    width={90}
+                                    width={70}
                                     height={30}
                                     className="cursor-pointer"
                                     onClick={() => window.location.href = '/#inicio'}
@@ -132,7 +132,7 @@ const Navbar = () => {
                                     animate={{ y: 0, opacity: 1 }}
                                     transition={{ delay: index * 0.1 }}
                                     onClick={() => handleNavigation(item)}
-                                    className={`text-sm font-medium transition-all duration-300 tracking-wide ${isHomePage
+                                    className={`text-xs font-medium transition-all duration-300 tracking-wide ${isHomePage
                                             ? getSectionClasses(
                                                 item.id,
                                                 textClasses.active,

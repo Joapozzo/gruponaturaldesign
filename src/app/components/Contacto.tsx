@@ -14,10 +14,10 @@ const Contacto = () => {
                     viewport={{ once: true }}
                     className="text-center mb-16"
                 >
-                    <h2 className="text-5xl font-bold text-black mb-6">
+                    <h2 className="text-3xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-black mb-6">
                         Contactanos
                     </h2>
-                    <p className="text-xl text-gray-600">
+                    <p className="text-md md:text-lg text-gray-600">
                         Estamos listos para asesorarte en tu próximo proyecto
                     </p>
                 </motion.div>
@@ -29,66 +29,66 @@ const Contacto = () => {
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8 }}
                         viewport={{ once: true }}
-                        className="bg-gray-50 p-10 rounded-lg"
+                        className="bg-gray-50 p-6 sm:p-10 rounded-lg"
                     >
-                        <h3 className="text-2xl font-bold text-gray-900 mb-8">SOLICITAR COTIZACIÓN</h3>
-                        <div className="space-y-6">
+                        <h3 className="text-lg sm:text-2xl font-bold text-gray-900 mb-6 sm:mb-8">SOLICITAR COTIZACIÓN</h3>
+                        <div className="space-y-4 sm:space-y-6">
                             <div>
-                                <label className="block text-sm font-semibold text-gray-900 mb-3 tracking-wide">
+                                <label className="block text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3 tracking-wide">
                                     NOMBRE COMPLETO
                                 </label>
                                 <input
                                     type="text"
-                                    className="w-full px-4 py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900"
+                                    className="w-full px-3 py-3 sm:px-4 sm:py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-sm sm:text-base"
                                     placeholder="Ej: Juan Carlos Pérez"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-900 mb-3 tracking-wide">
+                                <label className="block text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3 tracking-wide">
                                     EMAIL
                                 </label>
                                 <input
                                     type="email"
-                                    className="w-full px-4 py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900"
+                                    className="w-full px-3 py-3 sm:px-4 sm:py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-sm sm:text-base"
                                     placeholder="ejemplo@empresa.com"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-900 mb-3 tracking-wide">
+                                <label className="block text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3 tracking-wide">
                                     EMPRESA
                                 </label>
                                 <input
                                     type="text"
-                                    className="w-full px-4 py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900"
+                                    className="w-full px-3 py-3 sm:px-4 sm:py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-sm sm:text-base"
                                     placeholder="Ej: Distribuidora San Martín S.A."
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-900 mb-3 tracking-wide">
+                                <label className="block text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3 tracking-wide">
                                     TELÉFONO
                                 </label>
                                 <input
                                     type="tel"
-                                    className="w-full px-4 py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900"
+                                    className="w-full px-3 py-3 sm:px-4 sm:py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-sm sm:text-base"
                                     placeholder="Ej: 351 123-4567"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-900 mb-3 tracking-wide">
+                                <label className="block text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3 tracking-wide">
                                     MENSAJE
                                 </label>
                                 <textarea
-                                    rows={6}
-                                    className="w-full px-4 py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors resize-none bg-white rounded-lg placeholder-gray-400 text-gray-900"
-                                    placeholder="Necesito cotización para uniformes de trabajo. Somos una empresa de 25 empleados del rubro gastronómico. Me interesa conocer opciones de diseño y tiempos de entrega..."
+                                    rows={5}
+                                    className="w-full px-3 py-3 sm:px-4 sm:py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors resize-none bg-white rounded-lg placeholder-gray-400 text-gray-900 text-sm sm:text-base"
+                                    placeholder="Necesito cotización para uniformes de trabajo. Me interesa conocer opciones de diseño y tiempos de entrega..."
                                 ></textarea>
                             </div>
                             <div className="flex items-start">
                                 <input 
                                     type="checkbox" 
-                                    className="mr-3 w-4 h-4 text-red-500 mt-1 accent-red-500" 
+                                    className="mr-2 sm:mr-3 w-3 h-3 sm:w-4 sm:h-4 text-red-500 mt-1 accent-red-500" 
                                 />
-                                <span className="text-sm text-gray-600 leading-relaxed">
+                                <span className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                                     Acepto las políticas de privacidad y autorizo el tratamiento de mis datos personales para recibir información comercial
                                 </span>
                             </div>
@@ -113,28 +113,38 @@ const Contacto = () => {
                     >
                         <div className="bg-gray-50 p-8 rounded-lg hover:shadow-lg transition-shadow">
                             <div className="flex items-center mb-6">
-                                <Phone className="text-red-500 mr-4" size={28} />
-                                <h4 className="text-xl font-bold text-gray-900">TELÉFONO</h4>
+                                <Phone className="text-red-500 mr-4" size={24} />
+                                <h4 className="text-md md:text-xl font-bold text-gray-900">TELÉFONO</h4>
                             </div>
-                            <p className="text-lg text-gray-600">351 - 7136316</p>
+                            <div className="space-y-2">
+                                <p className="text-sm md:text-lg text-gray-600">
+                                    <span className="font-semibold">Ventas:</span> +54 9 3517 13-6316
+                                </p>
+                                <p className="text-sm md:text-lg text-gray-600">
+                                    <span className="font-semibold">Info:</span> +54 9 3516 29-2969
+                                </p>
+                                <p className="text-sm md:text-lg text-gray-600">
+                                    <span className="font-semibold">Fijo:</span> 351 - 7136316
+                                </p>
+                            </div>
                             <p className="text-sm text-gray-500 mt-2">Lunes a Viernes de 8:00 a 18:00hs</p>
                         </div>
 
                         <div className="bg-gray-50 p-8 rounded-lg hover:shadow-lg transition-shadow">
                             <div className="flex items-center mb-6">
-                                <Mail className="text-red-500 mr-4" size={28} />
-                                <h4 className="text-xl font-bold text-gray-900">EMAIL</h4>
+                                <Mail className="text-red-500 mr-4" size={24} />
+                                <h4 className="text-md md:text-xl font-bold text-gray-900">EMAIL</h4>
                             </div>
-                            <p className="text-lg text-gray-600">info@naturalonline.com.ar</p>
-                            <p className="text-sm text-gray-500 mt-2">Respuesta en menos de 24hs</p>
+                            <p className="text-sm md:text-lg text-gray-600">info@naturalonline.com.ar</p>
+                            <p className="text-xs text-gray-500 mt-2">Respuesta en menos de 24hs</p>
                         </div>
 
                         <div className="bg-gray-50 p-8 rounded-lg hover:shadow-lg transition-shadow">
                             <div className="flex items-center mb-6">
-                                <MapPin className="text-red-500 mr-4" size={28} />
-                                <h4 className="text-xl font-bold text-gray-900">UBICACIÓN</h4>
+                                <MapPin className="text-red-500 mr-4" size={24} />
+                                <h4 className="text-md md:text-xl font-bold text-gray-900">UBICACIÓN</h4>
                             </div>
-                            <p className="text-lg text-gray-600">
+                            <p className="text-sm md:text-lg text-gray-600">
                                 Rivera Indarte 2143<br />
                                 Córdoba, Argentina
                             </p>

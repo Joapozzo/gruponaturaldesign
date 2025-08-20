@@ -44,7 +44,6 @@ const BrandsSlider = () => {
         }
     ];
 
-    // Para móvil: 1 por slide, para tablet: 2 por slide, para desktop: 3 por slide
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
 
@@ -53,7 +52,7 @@ const BrandsSlider = () => {
             setIsMobile(window.innerWidth < 768);
             setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
         };
-        
+
         checkScreenSize();
         window.addEventListener('resize', checkScreenSize);
         return () => window.removeEventListener('resize', checkScreenSize);
@@ -64,8 +63,8 @@ const BrandsSlider = () => {
             // En móvil: 1 marca por slide
             return {
                 slides: brands.map(brand => [brand]),
-                totalSlides: brands.length,
-                slideWidth: 100
+                totalSlides: brands.length, // 6 slides
+                slideWidth: 100 / brands.length // 16.67% por slide
             };
         } else if (isTablet) {
             // En tablet: 2 marcas por slide
@@ -76,17 +75,17 @@ const BrandsSlider = () => {
                     brands.slice(4, 6)
                 ],
                 totalSlides: 3,
-                slideWidth: 100
+                slideWidth: 100 / 3 // 33.33% por slide
             };
         } else {
-            // En desktop: 3 marcas por slide (original)
+            // En desktop: 3 marcas por slide
             return {
                 slides: [
                     brands.slice(0, 3),
                     brands.slice(3, 6)
                 ],
                 totalSlides: 2,
-                slideWidth: 50
+                slideWidth: 100 / 2 // 50% por slide
             };
         }
     };
@@ -118,7 +117,6 @@ const BrandsSlider = () => {
                     width={400}
                     height={400}
                 />
-
                 {/* Overlay oscuro sutil */}
                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
 
@@ -166,7 +164,7 @@ const BrandsSlider = () => {
     return (
         <div className="w-full mt-20 sm:mt-30 overflow-hidden px-4 sm:px-0">
             {/* Slider Container */}
-            <div className="relative w-full">
+            <div className="relative w-full overflow-hidden">
                 <motion.div
                     className="flex"
                     animate={{
@@ -176,12 +174,12 @@ const BrandsSlider = () => {
                         duration: 0.8,
                         ease: "easeInOut"
                     }}
-                    style={{ 
+                    style={{
                         width: `${totalSlides * 100}%`
                     }}
                 >
                     {slides.map((slide, slideIndex) => (
-                        <div 
+                        <div
                             key={slideIndex}
                             className="flex-shrink-0 flex gap-2 sm:gap-4 md:gap-8 px-2 sm:px-4 md:px-8"
                             style={{ width: `${100 / totalSlides}%` }}
@@ -209,7 +207,7 @@ const BrandsSlider = () => {
             </div>
 
             {/* Navegación con flechas para pantallas pequeñas */}
-            <div className="flex justify-center mt-4 space-x-4 md:hidden">
+            <div className="flex justify-center mt-6 space-x-4 md:hidden">
                 <motion.button
                     className="bg-gray-800 text-white p-2 rounded-full shadow-lg hover:bg-gray-700"
                     onClick={() => setCurrentSlide(currentSlide === 0 ? totalSlides - 1 : currentSlide - 1)}
@@ -220,7 +218,7 @@ const BrandsSlider = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                     </svg>
                 </motion.button>
-                
+
                 <motion.button
                     className="bg-gray-800 text-white p-2 rounded-full shadow-lg hover:bg-gray-700"
                     onClick={() => setCurrentSlide((currentSlide + 1) % totalSlides)}

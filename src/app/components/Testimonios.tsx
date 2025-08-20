@@ -45,7 +45,7 @@ const Testimonios = () => {
             className='mb-20'
         >
             {/* Slider de Logos - Minimalista */}
-            <div className="mb-10 px-20">
+            <div className="mb-10 px-4 sm:px-8 lg:px-20 xl:px-32">
                 <motion.div
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
@@ -54,7 +54,7 @@ const Testimonios = () => {
                     className="overflow-hidden"
                 >
                     <motion.div
-                        className="flex items-center justify-center space-x-12"
+                        className="flex items-center justify-center space-x-6 sm:space-x-8 lg:space-x-12 w-full"
                         animate={{
                             x: `-${currentLogoIndex * 100}px`,
                         }}
@@ -68,7 +68,7 @@ const Testimonios = () => {
                             (cliente, index) => (
                                 <motion.div
                                     key={`${cliente.nombre}-${index}`}
-                                    className="flex-shrink-0 w-20 h-30 flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
+                                    className="flex-shrink-0 w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
                                 >
                                     <div className="filter grayscale hover:grayscale-0 transition-all duration-300">
                                         {cliente.logo}
@@ -81,7 +81,7 @@ const Testimonios = () => {
             </div>
 
             {/* Slider de Testimonios - Horizontal */}
-            <div className="relative max-w-4xl mx-auto">
+            {/* <div className="relative max-w-4xl mx-auto">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -102,7 +102,7 @@ const Testimonios = () => {
                         {testimonios.map((testimonio, index) => (
                             <motion.div key={index} className="w-full flex-shrink-0 px-4">
                                 <div className="bg-white p-8 lg:p-12 shadow-sm hover:shadow-md transition-all duration-300 rounded-lg">
-                                    {/* Rating */}
+
                                     <div className="flex items-center justify-center mb-6">
                                         {[...Array(testimonio.rating)].map((_, i) => (
                                             <Star
@@ -112,12 +112,10 @@ const Testimonios = () => {
                                         ))}
                                     </div>
 
-                                    {/* Testimonio */}
                                     <p className="text-gray-700 text-lg lg:text-xl leading-relaxed mb-8 text-center italic">
                                         &ldquo;{testimonio.texto}&rdquo;
                                     </p>
 
-                                    {/* Cliente info */}
                                     <div className="flex items-center justify-center">
                                         <CheckCircle
                                             className="text-gray-600 mr-3 flex-shrink-0"
@@ -136,7 +134,7 @@ const Testimonios = () => {
                     </motion.div>
                 </motion.div>
 
-                {/* Controles de navegación */}
+
                 <div className="flex items-center justify-center space-x-4 mt-8">
                     <button
                         onClick={prevTestimonio}
@@ -145,7 +143,6 @@ const Testimonios = () => {
                         <ChevronLeft className="w-5 h-5 text-gray-600 group-hover:text-gray-900" />
                     </button>
 
-                    {/* Indicadores */}
                     <div className="flex space-x-2">
                         {testimonios.map((_, index) => (
                             <button
@@ -166,7 +163,7 @@ const Testimonios = () => {
                         <ChevronRight className="w-5 h-5 text-gray-600 group-hover:text-gray-900" />
                     </button>
                 </div>
-            </div>
+            </div> */}
 
             {/* Call to Action */}
             <motion.div
@@ -176,16 +173,16 @@ const Testimonios = () => {
                 viewport={{ once: true }}
                 className="w-full text-center mt-20 p-8 lg:p-12 shadow-sm bg-gray-800 flex flex-col items-center justify-center gap-4"
             >
-                <h3 className="text-3xl lg:text-4xl font-bold text-gray-200 mb-4 font-display">
+                <h3 className="text-3xl lg:text-3xl font-bold text-gray-200 mb-4 font-display">
                     ¿Querés ser parte de nuestros clientes satisfechos?
                 </h3>
-                <p className="text-lg text-gray-200 mb-8 max-w-2xl mx-auto leading-relaxed">
+                <p className="text-md text-gray-200 mb-5 max-w-2xl mx-auto leading-relaxed">
                     Contactanos y descubrí por qué más de 500 empresas eligen NTDS para
                     sus uniformes
                 </p>
                 <Button
                     variant="lightWhite"
-                    size="lg"
+                    size="md"
                     className="tracking-wide inline-flex items-center space-x-3"
                     onClick={() => openWhatsApp()}
                 >

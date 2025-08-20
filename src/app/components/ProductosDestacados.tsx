@@ -12,7 +12,6 @@ import { productos } from '../data/productos';
 import Button from './ui/Button';
 import { useRouter } from 'next/navigation';
 
-
 const ProductosDestacados = () => {
     const router = useRouter();
     const goToPage = () => {
@@ -24,13 +23,13 @@ const ProductosDestacados = () => {
             className="bg-gray-50" 
             title='Productos destacados' 
             subtitle='Lo mejor de nuestro catálogo en diseño, calidad y funcionalidad.'
-            contentClassName='max-w-7xl mx-auto pb-20'
+            contentClassName='max-w-7xl mx-auto pb-20 px-10'
         >
             {/* Slider de productos */}
-            <div className="px-4 sm:px-6 lg:px-8">
+            <div className="">
                 <Swiper
                     modules={[Navigation, Pagination, Autoplay]}
-                    spaceBetween={24}
+                    spaceBetween={20}
                     slidesPerView={1}
                     navigation={{
                         nextEl: '.swiper-button-next-custom',
@@ -60,13 +59,13 @@ const ProductosDestacados = () => {
                             spaceBetween: 24,
                         },
                         1280: {
-                            slidesPerView: 4,
+                            slidesPerView: 3,
                             spaceBetween: 32,
                         },
                     }}
                     className="pb-12"
                 >
-                    {productos.map((producto, index) => (
+                    {productos.filter((producto) => producto.destacado).map((producto, index) => (
                         <SwiperSlide key={producto.id}>
                             <Product product={producto} index={index} />
                         </SwiperSlide>
@@ -93,7 +92,7 @@ const ProductosDestacados = () => {
                 >
                     <Button
                         variant="black"
-                        size="lg"
+                        size="md"
                         className="tracking-wide inline-flex items-center space-x-3"
                         onClick={goToPage}
                     >

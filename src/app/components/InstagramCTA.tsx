@@ -24,7 +24,7 @@ const InstagramCTA = () => {
     return (
         <Section
             id="instagram-cta"
-            className="bg-gradient-to-br from-gray-50 via-white to-gray-50 relative px-10" 
+            className="bg-gradient-to-br from-gray-50 via-white to-gray-50 relative md:px-18 px-9" 
             contentClassName="max-w-7xl mx-auto relative z-10 pb-20 pt-5"
         >
             {/* Elementos decorativos de fondo */}
@@ -70,12 +70,12 @@ const InstagramCTA = () => {
                         transition={{ duration: 0.8, delay: 0.2 }}
                     >
                         <motion.div
-                            className="relative p-4 bg-gray-900 rounded-2xl shadow-lg"
+                            className="relative p-3 md:p-4 bg-gray-900 rounded-2xl shadow-lg"
                             whileHover={{ scale: 1.1, rotate: 5 }}
                             whileTap={{ scale: 0.95 }}
                             transition={{ duration: 0.3 }}
                         >
-                            <Instagram className="w-8 h-8 text-white" />
+                            <Instagram className="w-5 h-5 text-white md:w-10 md:h-10" />
 
                             {/* Partículas flotantes */}
                             <motion.div
@@ -122,7 +122,7 @@ const InstagramCTA = () => {
                                 </motion.div> */}
                             </motion.div>
                             <motion.h3
-                                className="text-2xl font-bold text-gray-900 font-display"
+                                className="text-xl font-bold text-gray-900 font-display md:text-2xl"
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
                                 transition={{ duration: 0.6, delay: 0.5 }}
@@ -138,11 +138,9 @@ const InstagramCTA = () => {
                         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
                         transition={{ duration: 0.8, delay: 0.3 }}
                     >
-                        <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 font-display leading-tight">
-                            INSPIRACIÓN
-                            <br />
-                            <span className="bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 bg-clip-text text-transparent">
-                                DIARIA
+                        <h2 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-gray-900 mb-3 font-display leading-tight">
+                            <span className="bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 bg-clip-text text-transparent uppercase">
+                                Novedades
                             </span>
                         </h2>
                         <div className="w-20 h-1 bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg"></div>
@@ -150,54 +148,18 @@ const InstagramCTA = () => {
 
                     {/* Descripción */}
                     <motion.div
-                        className="space-y-4"
+                        className="space-y-3"
                         initial={{ opacity: 0, y: 20 }}
                         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
                         transition={{ duration: 0.8, delay: 0.5 }}
                     >
-                        <p className="text-xl text-gray-700 leading-relaxed">
+                        <p className="text-sm md:text-xl text-gray-700 leading-relaxed ">
                             Descubrí nuestros últimos diseños, proyectos exclusivos y el proceso creativo detrás de cada prenda.
                         </p>
-                        <p className="text-lg text-gray-600 leading-relaxed">
+                        <p className="text-sm md:text-lg text-gray-600 leading-relaxed ">
                             Únete a nuestra comunidad y mantente al día con tendencias, consejos de diseño y contenido exclusivo.
                         </p>
                     </motion.div>
-
-                    {/* Estadísticas de Instagram */}
-                    {/* <motion.div
-                        className="grid grid-cols-3 gap-6 py-6"
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-                        transition={{ duration: 0.8, delay: 0.7 }}
-                    >
-                        {[
-                            { icon: Camera, number: "500+", label: "POSTS" },
-                            { icon: Eye, number: "12K+", label: "SEGUIDORES" },
-                            { icon: Heart, number: "25K+", label: "LIKES" }
-                        ].map((stat, index) => (
-                            <motion.div
-                                key={index}
-                                className="text-center group"
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
-                                transition={{ duration: 0.6, delay: 0.8 + (index * 0.1) }}
-                                whileHover={{ y: -5 }}
-                            >
-                                <motion.div
-                                    className="flex items-center justify-center w-12 h-12 bg-gray-100 hover:bg-gradient-to-br hover:from-pink-100 hover:to-purple-100 rounded-lg mx-auto mb-3 transition-all duration-300"
-                                    whileHover={{ scale: 1.1, rotate: 5 }}
-                                >
-                                    <stat.icon className="text-gray-700 group-hover:text-purple-600 transition-colors" size={20} />
-                                </motion.div>
-                                <div className="text-2xl font-bold text-gray-900 mb-1 font-display">
-                                    {stat.number}
-                                </div>
-                                <div className="text-sm text-gray-500 font-medium tracking-wide">
-                                    {stat.label}
-                                </div>
-                            </motion.div>
-                        ))}
-                    </motion.div> */}
 
                     {/* Botón de acción */}
                     <motion.div
@@ -209,7 +171,7 @@ const InstagramCTA = () => {
                     >
                         <Button
                             variant="black"
-                            size="lg"
+                            size="md"
                             onClick={handleInstagramClick}
                             className="inline-flex items-center space-x-3 border-0 relative overflow-hidden group"
                         >
@@ -220,7 +182,7 @@ const InstagramCTA = () => {
                                 transition={{ duration: 0.6 }}
                             /> */}
                             <Instagram className="w-5 h-5 relative z-10" />
-                            <span className="relative z-10">SEGUIR EN INSTAGRAM</span>
+                            <span className="relative z-10">SEGUINOS</span>
                             <motion.div
                                 animate={{ x: isHovered ? 5 : 0 }}
                                 transition={{ duration: 0.3 }}

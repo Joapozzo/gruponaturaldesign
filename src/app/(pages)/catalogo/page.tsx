@@ -58,7 +58,7 @@ const CatalogPage = () => {
                                 <div className="flex items-start flex-col lg:items-end gap-4">
                                     <Button
                                         variant="lightWhiteOutline"
-                                        size="md"
+                                        size="sm"
                                         onClick={() => window.history.back()}
                                         className="inline-flex items-center space-x-2"
                                     >
@@ -91,8 +91,8 @@ const CatalogPage = () => {
                                 {/* Título principal */}
                                 <div className="flex items-center space-x-4 mb-2">
                                     <div>
-                                        <h1 className="text-4xl lg:text-5xl font-bold text-white font-display">
-                                            Catálogo Completo
+                                        <h1 className="text-4xl lg:text-6xl font-bold text-white font-display">
+                                            Catálogo
                                         </h1>
                                         <p className="text-lg text-gray-200 mt-1">
                                             Descubrí toda nuestra colección de uniformes y prendas

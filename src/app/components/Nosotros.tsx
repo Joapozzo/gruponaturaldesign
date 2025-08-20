@@ -74,13 +74,13 @@ const StatCard: React.FC<StatCardProps> = ({
                 whileHover={{ y: -5 }}
                 transition={{ duration: 0.3 }}
             >
-                <div className="flex items-center justify-center w-16 h-16 bg-gray-100 hover:bg-gray-200 rounded-lg mx-auto mb-4 transition-all duration-300 group-hover:shadow-md">
+                <div className="flex items-center justify-center w-14 h-14 bg-gray-100 hover:bg-gray-200 rounded-lg mx-auto mb-4 transition-all duration-300 group-hover:shadow-md">
                     <Icon className="text-gray-700 group-hover:text-gray-900 transition-colors" size={24} />
                 </div>
             </motion.div>
 
             <motion.div
-                className="text-4xl sm:text-5xl font-bold text-gray-900 mb-2 font-display"
+                className="text-lg md:text-xl font-bold text-gray-900 mb-2 font-display"
                 animate={isInView ? {
                     scale: [1, 1.05, 1],
                     opacity: [0.7, 1, 1]
@@ -90,7 +90,7 @@ const StatCard: React.FC<StatCardProps> = ({
                 {count}{suffix}
             </motion.div>
 
-            <div className="text-sm text-gray-500 font-medium tracking-wide uppercase">
+            <div className="text-xs md:text-md text-gray-500 font-medium tracking-wide uppercase">
                 {label}
             </div>
         </motion.div>
@@ -105,6 +105,7 @@ const Nosotros = () => {
     return (
         <Section
             id="nosotros"
+            className="bg-gradient-to-br from-gray-50 via-white to-gray-50 relative md:px-18 px-9"
             contentClassName="max-w-7xl mx-auto relative z-10 pb-20"
         >
             <div className="grid lg:grid-cols-2 gap-16 lg:gap-20 items-center">
@@ -123,7 +124,7 @@ const Nosotros = () => {
                         transition={{ duration: 0.8, delay: 0.2 }}
                         viewport={{ once: true }}
                     >
-                        <h2 className="text-4xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 font-display leading-tight">
+                        <h2 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-gray-900 mb-6 font-display leading-tight">
                             NATURAL DESIGN
                         </h2>
                         <div className="w-20 h-1 bg-gray-300 rounded-lg"></div>
@@ -131,7 +132,7 @@ const Nosotros = () => {
 
                     {/* Descripción principal */}
                     <motion.p
-                        className="text-xl text-gray-700 leading-relaxed"
+                        className="text-sm md:text-xl text-gray-700 leading-relaxed"
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.4 }}
@@ -148,17 +149,17 @@ const Nosotros = () => {
                         transition={{ duration: 0.8, delay: 0.6 }}
                         viewport={{ once: true }}
                     >
-                        <p className="text-lg text-gray-600 leading-relaxed">
+                        <p className="text-sm md:text-lg text-gray-600 leading-relaxed">
                             Un buen diseño puede mejorar la experiencia de tu equipo creando un entorno seguro y motivador. Más de 25 años de experiencia nos respaldan.
                         </p>
-                        <p className="text-lg text-gray-800 font-medium">
+                        <p className="text-sm md:text-lg text-gray-800 font-medium">
                             ¿Querés ser parte de nuestros clientes satisfechos? Contactanos y descubrí por qué más de 500 empresas ya nos eligieron.
                         </p>
                     </motion.div>
 
                     {/* Estadísticas */}
                     <motion.div
-                        className="grid grid-cols-3 gap-8 py-8"
+                        className="grid grid-cols-3 gap-8 py-4"
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.8 }}
@@ -197,7 +198,7 @@ const Nosotros = () => {
                     >
                         <Button
                             variant="black"
-                            size="lg"
+                            size="md"
                             onClick={() => scrollToSection('contacto')}
                             className="tracking-wide inline-flex items-center space-x-3"
                         >
@@ -207,7 +208,7 @@ const Nosotros = () => {
 
                         <Button
                             variant="grayOutline"
-                            size="lg"
+                            size="md"
                             onClick={() => scrollToSection('categorias')}
                             className="tracking-wide inline-flex items-center space-x-3"
                         >
@@ -291,7 +292,7 @@ const Nosotros = () => {
                     </div>
                 </motion.div>
             </div>
-            <BrandsSlider/>
+            <BrandsSlider />
         </Section>
     );
 };

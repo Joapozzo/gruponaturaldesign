@@ -37,7 +37,8 @@ export const productos: ProductType[] = [
         imagenes: [
             "/imgs/products/buzo-canguro-unisex-de-frisa-1.jpg",
             "/imgs/products/buzo-canguro-unisex-de-frisa-2.jpg"
-        ]
+        ],
+        destacado: true
     },
     {
         id: 4,
@@ -76,7 +77,8 @@ export const productos: ProductType[] = [
             "/imgs/products/campera-rompeviento-unisex-1.jpg",
             "/imgs/products/campera-rompeviento-unisex-2.jpg",
             "/imgs/products/campera-rompeviento-unisex-3.jpg",
-        ]
+        ],
+        destacado: true
     },
     {
         id: 7,
@@ -139,7 +141,8 @@ export const productos: ProductType[] = [
         precio: "A pedido",
         imagenes: [
             "/imgs/products/sweater-unisex-1.jpg",
-        ]
+        ],
+        destacado: true
     },
 
     // CAMISAS
@@ -176,7 +179,8 @@ export const productos: ProductType[] = [
         imagenes: [
             "/imgs/products/camisa-40-1-unisex-1.jpg",
             "/imgs/products/camisa-40-1-unisex-2.jpg"
-        ]
+        ],
+        destacado: true
     },
     {
         id: 15,
@@ -253,7 +257,8 @@ export const productos: ProductType[] = [
             "/imgs/products/pantalon-cargo-rigido-unisex-1.jpg",
             "/imgs/products/pantalon-cargo-rigido-unisex-2.jpg",
             "/imgs/products/pantalon-cargo-rigido-unisex-3.jpg"
-        ]
+        ],
+        destacado: true
     },
     {
         id: 21,
@@ -304,7 +309,8 @@ export const productos: ProductType[] = [
             "/imgs/products/pantalon-de-jean-dama-1.jpg",
             "/imgs/products/pantalon-de-jean-dama-2.jpg",
             "/imgs/products/pantalon-de-jean-dama-3.jpg"
-        ]
+        ],
+        destacado: true
     },
     {
         id: 25,
@@ -317,7 +323,8 @@ export const productos: ProductType[] = [
             "/imgs/products/pantalon-sastrero-dama-1.jpg",
             "/imgs/products/pantalon-sastrero-dama-2.jpg",
             "/imgs/products/pantalon-sastrero-dama-3.jpg",
-        ]
+        ],
+        destacado: true
     },
     {
         id: 26,
@@ -344,7 +351,8 @@ export const productos: ProductType[] = [
             "/imgs/products/pantalon-cargo-nautico-unisex-de-gabardina-2.jpg",
             "/imgs/products/pantalon-cargo-nautico-unisex-de-gabardina-3.jpg",
             "/imgs/products/pantalon-cargo-nautico-unisex-de-gabardina-4.jpg",
-        ]
+        ],
+        destacado: true
     },
 
     // CHOMBAS Y REMERAS
@@ -423,7 +431,8 @@ export const productos: ProductType[] = [
             "/imgs/products/remera-base-unisex-1.jpg",
             "/imgs/products/remera-base-unisex-2.jpg",
             "/imgs/products/remera-base-unisex-3.jpg"
-        ]
+        ],
+        destacado: true
     },
     {
         id: 34,
