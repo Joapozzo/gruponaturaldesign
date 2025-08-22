@@ -142,11 +142,17 @@ const ProductDetailPage = () => {
                         <div className="mb-4 lg:mb-0">
                             {/* Breadcrumb */}
                             <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-4">
-                                <Link href="/" className="hover:text-gray-900 transition-colors">
+                                <Link
+                                    href="/"
+                                    className="hover:text-gray-900 transition-colors"
+                                >
                                     Inicio
                                 </Link>
                                 <span>/</span>
-                                <a href="/catalogo" className="hover:text-gray-900 transition-colors">
+                                <a
+                                    href="/catalogo"
+                                    className="hover:text-gray-900 transition-colors"
+                                >
                                     Catálogo
                                 </a>
                                 {/* <span>/</span>
@@ -262,8 +268,8 @@ const ProductDetailPage = () => {
                                                 key={index}
                                                 onClick={() => setCurrentImageIndex(index)}
                                                 className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentImageIndex
-                                                    ? 'bg-white w-6'
-                                                    : 'bg-white/50 hover:bg-white/75'
+                                                        ? "bg-white w-6"
+                                                        : "bg-white/50 hover:bg-white/75"
                                                     }`}
                                             />
                                         ))}
@@ -280,8 +286,8 @@ const ProductDetailPage = () => {
                                         key={index}
                                         onClick={() => setCurrentImageIndex(index)}
                                         className={`aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 transition-all duration-300 ${index === currentImageIndex
-                                            ? 'border-gray-900 scale-95'
-                                            : 'border-transparent hover:border-gray-300'
+                                                ? "border-gray-900 scale-95"
+                                                : "border-transparent hover:border-gray-300"
                                             }`}
                                         whileHover={{ scale: 0.95 }}
                                         whileTap={{ scale: 0.9 }}
@@ -308,11 +314,11 @@ const ProductDetailPage = () => {
                     >
                         {/* Título y precio */}
                         <div>
-                            <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2 font-display leading-tight">
+                            <h1 className="text-3xl lg:text-3xl font-medium text-gray-900 mb-2 font-display leading-tight">
                                 {product.nombre}
                             </h1>
                             <div className="flex items-center space-x-4 mb-4">
-                                <span className="text-2xl font-bold text-gray-900">
+                                <span className="text-lg font-medium text-gray-500">
                                     {product.precio}
                                 </span>
                                 {product.destacado && (
@@ -326,7 +332,9 @@ const ProductDetailPage = () => {
 
                         {/* Descripción */}
                         <div className="bg-gray-50 rounded-lg">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-3">Descripción</h3>
+                            <h3 className="text-md font-medium text-gray-900 mb-3">
+                                Descripción
+                            </h3>
                             <p className="text-gray-700 leading-relaxed">
                                 {product.descripcion}
                             </p>
@@ -335,30 +343,44 @@ const ProductDetailPage = () => {
                         {/* Especificaciones */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="bg-white p-4 rounded-lg border border-gray-300">
-                                <h4 className="font-semibold text-gray-900 mb-2">Categoría</h4>
-                                <p className="text-gray-600">{product.categoriaIndumentaria}</p>
+                                <h4 className="font-medium text-gray-900 mb-2">
+                                    Categoría
+                                </h4>
+                                <p className="text-gray-600">
+                                    {product.categoriaIndumentaria}
+                                </p>
                             </div>
                             <div className="bg-white p-4 rounded-lg border border-gray-300">
-                                <h4 className="font-semibold text-gray-900 mb-2">Código</h4>
-                                <p className="text-gray-600">#{product.id.toString().padStart(4, '0')}</p>
+                                <h4 className="font-medium text-gray-900 mb-2">Código</h4>
+                                <p className="text-gray-600">
+                                    #{product.id.toString().padStart(4, "0")}
+                                </p>
                             </div>
                         </div>
 
                         {/* Características destacadas */}
                         <div className="bg-white rounded-lg border border-gray-300 p-4">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Características</h3>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                                Características
+                            </h3>
                             <ul className="space-y-2">
                                 <li className="flex items-center space-x-2">
                                     <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
-                                    <span className="text-gray-700">Bordado y estampado personalizable</span>
+                                    <span className="text-gray-700">
+                                        Bordado y estampado personalizable
+                                    </span>
                                 </li>
                                 <li className="flex items-center space-x-2">
                                     <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
-                                    <span className="text-gray-700">Variedad de talles disponibles</span>
+                                    <span className="text-gray-700">
+                                        Variedad de talles disponibles
+                                    </span>
                                 </li>
                                 <li className="flex items-center space-x-2">
                                     <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
-                                    <span className="text-gray-700">Calidad premium garantizada</span>
+                                    <span className="text-gray-700">
+                                        Calidad premium garantizada
+                                    </span>
                                 </li>
                                 <li className="flex items-center space-x-2">
                                     <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
@@ -404,10 +426,13 @@ const ProductDetailPage = () => {
                         <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
                             <div className="flex items-center space-x-2 mb-2">
                                 <Eye size={16} className="text-blue-600" />
-                                <span className="font-medium text-blue-900">¿Necesitás ver el producto en persona?</span>
+                                <span className="font-medium text-blue-900">
+                                    ¿Necesitás ver el producto en persona?
+                                </span>
                             </div>
                             <p className="text-blue-700 text-sm">
-                                Visitá nuestro showroom en Rivera Indarte 2143, Córdoba. Coordiná tu cita previa por WhatsApp.
+                                Visitá nuestro showroom en Rivera Indarte 2143, Córdoba.
+                                Coordiná tu cita previa por WhatsApp.
                             </p>
                         </div>
                     </motion.div>
@@ -434,7 +459,9 @@ const ProductDetailPage = () => {
                                     transition={{ duration: 0.5, delay: index * 0.1 }}
                                     viewport={{ once: true }}
                                     className="group cursor-pointer"
-                                    onClick={() => router.push(`/producto/${relatedProduct.id}`)}
+                                    onClick={() =>
+                                        router.push(`/producto/${relatedProduct.id}`)
+                                    }
                                 >
                                     <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden min-h-[450px]">
                                         <div className="aspect-square bg-gray-100 overflow-hidden">
@@ -458,7 +485,11 @@ const ProductDetailPage = () => {
                                                     {relatedProduct.precio}
                                                 </span>
                                                 {relatedProduct.destacado && (
-                                                    <Star size={16} className="text-yellow-500" fill="currentColor" />
+                                                    <Star
+                                                        size={16}
+                                                        className="text-yellow-500"
+                                                        fill="currentColor"
+                                                    />
                                                 )}
                                             </div>
                                         </div>

@@ -1,9 +1,22 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin, CheckCircle, AlertCircle } from 'lucide-react';
 import Button from './ui/Button';
+import { useContactForm } from '../hooks/useContactForm';
 
 const Contacto = () => {
+    const {
+        register,
+        handleSubmit,
+        errors,
+        isSubmitting,
+        submitForm,
+        isSuccess,
+        errorMessage,
+        canRetry,
+        retryAfter
+    } = useContactForm();
+
     return (
         <section id="contacto" className="py-20 bg-gray-200 overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -31,76 +44,169 @@ const Contacto = () => {
                         viewport={{ once: true }}
                         className="bg-gray-50 p-6 sm:p-10 rounded-lg"
                     >
-                        <h3 className="text-lg sm:text-2xl font-bold text-gray-900 mb-6 sm:mb-8">SOLICITAR COTIZACIÓN</h3>
-                        <div className="space-y-4 sm:space-y-6">
+                        <h3 className="text-lg sm:text-2xl font-bold text-gray-900 mb-6 sm:mb-8">
+                            SOLICITAR COTIZACIÓN
+                        </h3>
+
+                        {/* Mensajes de estado */}
+                        {isSuccess && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-center"
+                                data-success-message
+                            >
+                                <CheckCircle className="mr-3" size={20} />
+                                <span>¡Consulta enviada correctamente! Te responderemos a la brevedad.</span>
+                            </motion.div>
+                        )}
+
+                        {errorMessage && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className={`mb-6 p-4 border rounded-lg flex items-start ${!canRetry
+                                        ? 'bg-yellow-100 border-yellow-400 text-yellow-700'
+                                        : 'bg-red-100 border-red-400 text-red-700'
+                                    }`}
+                            >
+                                <AlertCircle className="mr-3 mt-0.5 flex-shrink-0" size={20} />
+                                <div className="flex-1">
+                                    <span>{errorMessage}</span>
+                                    {retryAfter && (
+                                        <p className="mt-2 text-sm font-medium">
+                                            Podrás intentar nuevamente en {Math.ceil(retryAfter / 60000)} minutos.
+                                        </p>
+                                    )}
+                                </div>
+                            </motion.div>
+                        )}
+
+                        <form onSubmit={handleSubmit(submitForm)} className="space-y-4 sm:space-y-6">
+                            {/* Campo honeypot oculto para detectar bots */}
+                            <input
+                                type="text"
+                                name="website"
+                                style={{ display: 'none' }}
+                                tabIndex={-1}
+                                autoComplete="off"
+                            />
                             <div>
                                 <label className="block text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3 tracking-wide">
-                                    NOMBRE COMPLETO
+                                    NOMBRE COMPLETO *
                                 </label>
                                 <input
+                                    {...register('nombreCompleto')}
                                     type="text"
-                                    className="w-full px-3 py-3 sm:px-4 sm:py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-sm sm:text-base"
+                                    className={`w-full px-3 py-3 sm:px-4 sm:py-4 border-2 ${errors.nombreCompleto ? 'border-red-500' : 'border-gray-200'
+                                        } focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-sm sm:text-base`}
                                     placeholder="Ej: Juan Carlos Pérez"
                                 />
+                                {errors.nombreCompleto && (
+                                    <p className="mt-1 text-sm text-red-600">{errors.nombreCompleto.message}</p>
+                                )}
                             </div>
+
                             <div>
                                 <label className="block text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3 tracking-wide">
-                                    EMAIL
+                                    EMAIL *
                                 </label>
                                 <input
+                                    {...register('email')}
                                     type="email"
-                                    className="w-full px-3 py-3 sm:px-4 sm:py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-sm sm:text-base"
+                                    className={`w-full px-3 py-3 sm:px-4 sm:py-4 border-2 ${errors.email ? 'border-red-500' : 'border-gray-200'
+                                        } focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-sm sm:text-base`}
                                     placeholder="ejemplo@empresa.com"
                                 />
+                                {errors.email && (
+                                    <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                                )}
                             </div>
+
                             <div>
                                 <label className="block text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3 tracking-wide">
-                                    EMPRESA
+                                    EMPRESA *
                                 </label>
                                 <input
+                                    {...register('empresa')}
                                     type="text"
-                                    className="w-full px-3 py-3 sm:px-4 sm:py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-sm sm:text-base"
+                                    className={`w-full px-3 py-3 sm:px-4 sm:py-4 border-2 ${errors.empresa ? 'border-red-500' : 'border-gray-200'
+                                        } focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-sm sm:text-base`}
                                     placeholder="Ej: Distribuidora San Martín S.A."
                                 />
+                                {errors.empresa && (
+                                    <p className="mt-1 text-sm text-red-600">{errors.empresa.message}</p>
+                                )}
                             </div>
+
                             <div>
                                 <label className="block text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3 tracking-wide">
-                                    TELÉFONO
+                                    TELÉFONO *
                                 </label>
                                 <input
+                                    {...register('telefono')}
                                     type="tel"
-                                    className="w-full px-3 py-3 sm:px-4 sm:py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-sm sm:text-base"
+                                    className={`w-full px-3 py-3 sm:px-4 sm:py-4 border-2 ${errors.telefono ? 'border-red-500' : 'border-gray-200'
+                                        } focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-sm sm:text-base`}
                                     placeholder="Ej: 351 123-4567"
                                 />
+                                {errors.telefono && (
+                                    <p className="mt-1 text-sm text-red-600">{errors.telefono.message}</p>
+                                )}
                             </div>
+
                             <div>
                                 <label className="block text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3 tracking-wide">
-                                    MENSAJE
+                                    MENSAJE *
                                 </label>
                                 <textarea
+                                    {...register('mensaje')}
                                     rows={5}
-                                    className="w-full px-3 py-3 sm:px-4 sm:py-4 border-2 border-gray-200 focus:border-red-500 outline-none transition-colors resize-none bg-white rounded-lg placeholder-gray-400 text-gray-900 text-sm sm:text-base"
+                                    className={`w-full px-3 py-3 sm:px-4 sm:py-4 border-2 ${errors.mensaje ? 'border-red-500' : 'border-gray-200'
+                                        } focus:border-red-500 outline-none transition-colors resize-none bg-white rounded-lg placeholder-gray-400 text-gray-900 text-sm sm:text-base`}
                                     placeholder="Necesito cotización para uniformes de trabajo. Me interesa conocer opciones de diseño y tiempos de entrega..."
                                 ></textarea>
+                                {errors.mensaje && (
+                                    <p className="mt-1 text-sm text-red-600">{errors.mensaje.message}</p>
+                                )}
                             </div>
+
                             <div className="flex items-start">
-                                <input 
-                                    type="checkbox" 
-                                    className="mr-2 sm:mr-3 w-3 h-3 sm:w-4 sm:h-4 text-red-500 mt-1 accent-red-500" 
+                                <input
+                                    {...register('aceptaTerminos')}
+                                    type="checkbox"
+                                    className={`mr-2 sm:mr-3 w-3 h-3 sm:w-4 sm:h-4 text-red-500 mt-1 accent-red-500 ${errors.aceptaTerminos ? 'border-red-500' : ''
+                                        }`}
                                 />
-                                <span className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                                    Acepto las políticas de privacidad y autorizo el tratamiento de mis datos personales para recibir información comercial
-                                </span>
+                                <div className="flex-1">
+                                    <span className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                                        Acepto las políticas de privacidad y autorizo el tratamiento de mis datos personales para recibir información comercial *
+                                    </span>
+                                    {errors.aceptaTerminos && (
+                                        <p className="mt-1 text-sm text-red-600">{errors.aceptaTerminos.message}</p>
+                                    )}
+                                </div>
                             </div>
+
                             <Button
-                                onClick={() => alert('Funcionalidad de envío - En implementación real se enviaría el formulario')}
-                                className="w-full"
+                                type="submit"
+                                disabled={isSubmitting || !canRetry}
+                                className={`w-full ${!canRetry ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 variant="black"
                                 size="lg"
                             >
-                                ENVIAR CONSULTA
+                                {isSubmitting ? (
+                                    <>
+                                        <div className="inline-block w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                        ENVIANDO...
+                                    </>
+                                ) : !canRetry ? (
+                                    'LÍMITE ALCANZADO'
+                                ) : (
+                                    'ENVIAR CONSULTA'
+                                )}
                             </Button>
-                        </div>
+                        </form>
                     </motion.div>
 
                     {/* Info de contacto */}
@@ -122,9 +228,6 @@ const Contacto = () => {
                                 </p>
                                 <p className="text-sm md:text-lg text-gray-600">
                                     <span className="font-semibold">Info:</span> +54 9 3516 29-2969
-                                </p>
-                                <p className="text-sm md:text-lg text-gray-600">
-                                    <span className="font-semibold">Fijo:</span> 351 - 7136316
                                 </p>
                             </div>
                             <p className="text-sm text-gray-500 mt-2">Lunes a Viernes de 8:00 a 18:00hs</p>
@@ -179,7 +282,7 @@ const Contacto = () => {
                 </div>
             </div>
         </section>
-    )
-}
+    );
+};
 
 export default Contacto;
