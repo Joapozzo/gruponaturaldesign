@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { CheckCircle, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { testimonios } from '../data/testimonios';
 import { logosClientes } from '../data/marcas';

@@ -71,23 +71,23 @@ const ProductDetailPage = () => {
         }
     };
 
-    const handleShare = async () => {
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: product?.nombre,
-                    text: product?.descripcion,
-                    url: window.location.href,
-                });
-            } catch (error) {
-                console.log('Error sharing:', error);
-            }
-        } else {
-            // Fallback: copiar al portapapeles
-            navigator.clipboard.writeText(window.location.href);
-            // Aquí podrías mostrar un toast de confirmación
-        }
-    };
+    // const handleShare = async () => {
+    //     if (navigator.share) {
+    //         try {
+    //             await navigator.share({
+    //                 title: product?.nombre,
+    //                 text: product?.descripcion,
+    //                 url: window.location.href,
+    //             });
+    //         } catch (error) {
+    //             console.log('Error sharing:', error);
+    //         }
+    //     } else {
+    //         // Fallback: copiar al portapapeles
+    //         navigator.clipboard.writeText(window.location.href);
+    //         // Aquí podrías mostrar un toast de confirmación
+    //     }
+    // };
 
     if (isLoading) {
         return (

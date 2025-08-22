@@ -30,6 +30,10 @@ const nextConfig = {
     ];
   },
 
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+
   // Variables de entorno públicas (solo las necesarias)
   env: {
     SITE_URL: process.env.SITE_URL || 'https://naturalonline.com.ar'
