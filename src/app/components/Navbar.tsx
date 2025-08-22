@@ -133,11 +133,13 @@ const Navbar = () => {
                                     transition={{ delay: index * 0.1 }}
                                     onClick={() => handleNavigation(item)}
                                     className={`text-xs font-medium transition-all duration-300 tracking-wide ${isHomePage
-                                            ? getSectionClasses(
-                                                item.id,
-                                                textClasses.active,
-                                                textClasses.inactive
-                                            )
+                                        ? getSectionClasses(
+                                            item.id,
+                                            textClasses.active,
+                                            textClasses.inactive
+                                        )
+                                        : (pathname === '/catalogo' && item.id === 'categorias')
+                                            ? textClasses.active
                                             : textClasses.default
                                         }`}
                                     aria-label={`Ir a sección ${item.label}`}
@@ -220,7 +222,9 @@ const Navbar = () => {
                                         transition={{ delay: index * 0.1 }}
                                         onClick={() => handleNavigation(item)}
                                         className={`block w-full text-left px-3 py-2 font-medium tracking-wide transition-all duration-300 rounded-lg ${!isHomePage
-                                                ? 'text-white hover:text-gray-200 hover:bg-gray-800/50'
+                                                ? (pathname === '/catalogo' && item.id === 'categorias')
+                                                    ? 'text-white bg-gray-800/50 transform scale-105'
+                                                    : 'text-white hover:text-gray-200 hover:bg-gray-800/50'
                                                 : isHomePage
                                                     ? getSectionClasses(
                                                         item.id,

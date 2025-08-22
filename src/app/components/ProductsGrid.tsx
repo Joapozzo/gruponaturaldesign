@@ -52,33 +52,34 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, isLoading = false }
     }
 
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6"
-        >
-            {products.map((product, index) => (
-                <motion.div
-                    key={product.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                        duration: 0.5,
-                        delay: index * 0.1,
-                        ease: "easeOut",
-                    }}
-                >
-                    <Product
-                        product={{
-                            ...product,
-                            imagenes: [product.imagenes[0]],
-                        }}
-                        index={index}
-                    />
-                </motion.div>
-            ))}
-        </motion.div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 items-center justify-center"
+      >
+        {products.map((product, index) => (
+          <motion.div
+            key={product.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.5,
+              delay: index * 0.1,
+              ease: "easeOut",
+            }}
+            className='flex items-center justify-center'
+          >
+            <Product
+              product={{
+                ...product,
+                imagenes: [product.imagenes[0]],
+              }}
+              index={index}
+            />
+          </motion.div>
+        ))}
+      </motion.div>
     );
 };
 

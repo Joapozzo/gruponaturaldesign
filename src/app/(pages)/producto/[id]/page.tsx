@@ -124,11 +124,11 @@ const ProductDetailPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 px-5">
+        <div className="min-h-screen bg-white px-4">
             {/* Header */}
             <Section
                 id="product-header"
-                className="bg-white border-b border-gray-100"
+                className="bg-gray-50"
                 contentClassName="max-w-7xl mx-auto"
                 noPadding
             >
@@ -331,7 +331,7 @@ const ProductDetailPage = () => {
                         </div>
 
                         {/* Descripción */}
-                        <div className="bg-gray-50 rounded-lg">
+                        <div className="bg-gray-50 rounded-lg p-3">
                             <h3 className="text-md font-medium text-gray-900 mb-3">
                                 Descripción
                             </h3>
