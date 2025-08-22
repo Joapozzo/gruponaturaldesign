@@ -4,12 +4,8 @@ import nodemailer from 'nodemailer';
 import { contactSchema } from '../../schemas/contactSchema';
 
 export async function POST(request: NextRequest) {
-  console.log('=== API CONTACT LLAMADA ===');
-
   try {
     const body = await request.json();
-    console.log('Body:', body);
-
     // Validar con Zod
     const validatedData = contactSchema.parse(body);
 
