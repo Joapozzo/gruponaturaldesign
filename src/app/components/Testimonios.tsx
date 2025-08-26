@@ -41,7 +41,7 @@ const Testimonios = () => {
             id="testimonios"
             // background="gray"
             title="Nuestros clientes"
-            subtitle="Más de 500 empresas confían en nosotros para vestir a sus equipos con calidad y profesionalismo"
+            subtitle="Más de 500 empresas confían en nosotros para vestir a sus equipos con calidad y profesionalismo."
             className='mb-20'
         >
             {/* Slider de Logos - Minimalista */}
@@ -178,7 +178,7 @@ const Testimonios = () => {
                 </h3>
                 <p className="text-md text-gray-200 mb-5 max-w-2xl mx-auto leading-relaxed">
                     Contactanos y descubrí por qué más de 500 empresas eligen NTDS para
-                    sus uniformes
+                    sus uniformes.
                 </p>
                 <Button
                     variant="lightWhite"

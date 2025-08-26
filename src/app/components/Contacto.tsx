@@ -31,7 +31,7 @@ const Contacto = () => {
                         Contactanos
                     </h2>
                     <p className="text-md md:text-lg text-gray-600">
-                        Estamos listos para asesorarte en tu próximo proyecto
+                        Estamos listos para asesorarte en tu próximo proyecto.
                     </p>
                 </motion.div>
 
