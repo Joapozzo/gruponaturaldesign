@@ -171,7 +171,7 @@ const Contacto = () => {
                                 )}
                             </div>
 
-                            <div className="flex items-start">
+                            {/* <div className="flex items-start">
                                 <input
                                     {...register('aceptaTerminos')}
                                     type="checkbox"
@@ -186,7 +186,7 @@ const Contacto = () => {
                                         <p className="mt-1 text-sm text-red-600">{errors.aceptaTerminos.message}</p>
                                     )}
                                 </div>
-                            </div>
+                            </div> */}
 
                             <Button
                                 type="submit"

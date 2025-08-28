@@ -47,7 +47,7 @@ export const useContactForm = (): UseContactFormReturn => {
             empresa: '',
             telefono: '',
             mensaje: '',
-            aceptaTerminos: false
+            aceptaTerminos: true
         }
     });
 
