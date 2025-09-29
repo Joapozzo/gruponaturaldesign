@@ -148,7 +148,17 @@ export default function RootLayout({
   return (
     <html lang="es-AR">
       <head>
-        {/* Datos estructurados JSON-LD para SEO */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17610803161"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'AW-17610803161');
+      `,
+          }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -208,16 +218,16 @@ export default function RootLayout({
 
         {/* Favicon para modo claro (light mode) */}
         <link rel="icon" href="/logos/logo-1.svg" type="image/svg+xml" media="(prefers-color-scheme: light)" />
-        
+
         {/* Favicon para modo oscuro (dark mode) */}
         <link rel="icon" href="/logos/logo-2.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" />
-        
+
         {/* Favicon por defecto (fallback) - usa el de modo claro */}
         <link rel="icon" href="/logos/logo-1.svg" type="image/svg+xml" />
-        
+
         {/* Apple touch icon - usa el de modo claro para mejor contraste */}
         <link rel="apple-touch-icon" href="/logos/logo-1.svg" />
-        
+
         <link rel="manifest" href="/manifest.json" />
 
         {/* Optimización de recursos */}
