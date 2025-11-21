@@ -286,18 +286,18 @@ async function processFile(filePath: string): Promise<any[]> {
                 const mainImageUrl = generateProductMainImageUrl(nombre);
 
                 // Crear el grupo con datos de la hoja 2 y productos individuales
-                const primerProducto = productosCoincidentes[0];
+                const primerProducto = productosCoincidentes[0] || {} as any;
                 const skuBaseSlug = nombreToSlug(nombre); // Slug URL-friendly para la navegación
                 const grupo = {
                     skuBase: nombre, // Nombre original para mostrar
                     skuBaseSlug: skuBaseSlug, // Slug para URLs
                     displayProduct: {
                         // Todos los campos del producto individual de la hoja 1
-                        ...primerProducto,
+                        ...(primerProducto || {}),
                         // Sobrescribir con datos de la hoja 2 (prioridad)
-                        Descripcion: String(rowAgrupado.DESCRICPION || '').trim() || primerProducto.Descripcion || nombre,
-                        DescripcionCorta: String(rowAgrupado.DESCRICPION || '').trim() || primerProducto.DescripcionCorta || nombre,
-                        Material: String(rowAgrupado.TEXTIL || '').trim() || primerProducto.Material || null,
+                        Descripcion: String(rowAgrupado.DESCRICPION || '').trim() || primerProducto?.Descripcion || nombre,
+                        DescripcionCorta: String(rowAgrupado.DESCRICPION || '').trim() || primerProducto?.DescripcionCorta || nombre,
+                        Material: String(rowAgrupado.TEXTIL || '').trim() || primerProducto?.Material || null,
                         // URLs de recursos externos
                         tablaTallesUrl: extractSheetUrl(rowAgrupado['TABLA DE TALLES']),
                         fotosDriveUrl: extractDriveUrl(rowAgrupado.FOTO),

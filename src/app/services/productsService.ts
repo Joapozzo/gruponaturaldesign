@@ -209,7 +209,7 @@ class ProductsService {
      */
     private mapRowToProduct(row: any): ProductWithImage {
         return {
-            Codigo: this.sanitizeString(row.Codigo),
+            Codigo: this.sanitizeString(row.Codigo) || '',
             Tipo: this.sanitizeString(row.Tipo),
             Descripcion: this.sanitizeString(row.Descripcion),
             UM: this.sanitizeString(row.UM),
@@ -257,7 +257,7 @@ class ProductsService {
             FechaAlta: this.sanitizeString(row.FechaAlta),
             // Agregar imagen placeholder hasta que tengamos las reales
             imagen: null,
-            imagenPlaceholder: null,
+            imagenPlaceholder: undefined,
             // Enlaces a recursos externos (ya extraídos en parseProductsFile)
             tablaTallesUrl: (row as any).tablaTallesUrl || null,
             fotosDriveUrl: (row as any).fotosDriveUrl || null,
@@ -462,7 +462,7 @@ class ProductsService {
      */
     private mapApiProductToProductWithImage(apiProduct: any): ProductWithImage {
         return {
-            Codigo: this.sanitizeString(apiProduct.Codigo),
+            Codigo: this.sanitizeString(apiProduct.Codigo) || '',
             Tipo: this.sanitizeString(apiProduct.Tipo),
             Descripcion: this.sanitizeString(apiProduct.Descripcion || apiProduct.descripcionDetallada),
             UM: this.sanitizeString(apiProduct.UM),
@@ -519,11 +519,11 @@ class ProductsService {
                     .filter((img: any) => img)
                     .map((img: any) => this.ensureRelativeImageUrl(String(img)))
                 : undefined,
-            imagenPlaceholder: null,
+            imagenPlaceholder: undefined,
             // Campos adicionales de la hoja 2
-            NOMBRE: this.sanitizeString(apiProduct.NOMBRE),
-            TALLES: this.sanitizeString(apiProduct.TALLES),
-            COLORES: this.sanitizeString(apiProduct.COLORES),
+            NOMBRE: this.sanitizeString(apiProduct.NOMBRE) || undefined,
+            TALLES: this.sanitizeString(apiProduct.TALLES) || undefined,
+            COLORES: this.sanitizeString(apiProduct.COLORES) || undefined,
         };
     }
 

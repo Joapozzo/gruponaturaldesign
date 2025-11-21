@@ -73,9 +73,11 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, isLoading = false }
             <Product
               product={{
                 ...product,
+                Codigo: product.id.toString(),
+                Descripcion: product.nombre,
                 imagenes: [product.imagenes[0]],
-              }}
-              index={index}
+              } as any}
+              index={index.toString()}
             />
           </motion.div>
         ))}

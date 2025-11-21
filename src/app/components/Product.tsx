@@ -37,17 +37,26 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
         router.push(`/producto/${product.Codigo}`);
     };
 
+    // Función helper para convertir Codigo a número
+    const getNumericId = (codigo: string): number => {
+        return !isNaN(Number(codigo)) 
+            ? Number(codigo) 
+            : codigo.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    };
+
     const handleAddToCart = (e: React.MouseEvent) => {
         e.stopPropagation();
         setIsAdding(true);
 
+        const numericId = getNumericId(product.Codigo);
+
         addToCart({
-            id: product.Codigo,
-            nombre: product.Descripcion,
-            descripcion: product.Descripcion,
-            imagen: product.imagen[0],
-            precio: parseFloat(product.precio.replace(/[^0-9.-]+/g, '')),
-            categoria: product.categoriaIndumentaria || product.categoria,
+            id: numericId,
+            nombre: product.Descripcion || product.NOMBRE || product.Codigo || '',
+            descripcion: product.Descripcion || product.NOMBRE || product.Codigo || '',
+            imagen: (Array.isArray(product.imagen) ? product.imagen[0] : product.imagen) || product.imagenes?.[0] || '',
+            precio: parseFloat((product.PrecioVenta?.toString() || '0').replace(/[^0-9.-]+/g, '')),
+            categoria: product.Rubro || product.Subrubro || '',
         }, 1);
 
         // Animación de feedback
@@ -71,7 +80,7 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
         <motion.div
             initial={!isMobile ? { opacity: 0, y: 50 } : { opacity: 1, y: 0 }}
             whileInView={!isMobile ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
-            transition={!isMobile ? { duration: 0.6, delay: index * 0.1 } : { duration: 0 }}
+            transition={!isMobile ? { duration: 0.6, delay: Number(index) * 0.1 } : { duration: 0 }}
             viewport={{ once: true }}
             className={`group relative overflow-hidden bg-white rounded-lg shadow-md transition-all duration-500 cursor-pointer mb-12 md:w-[370px] w-[340px] min-h-[550px] ${!isMobile ? 'hover:shadow-xl hover:scale-[1.02] hover:-translate-y-2' : ''
                 }`}
@@ -80,7 +89,7 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
             onClick={handleProductClick}
         >
             {/* Badge de destacado */}
-            {product.destacado && (
+            {(product as any).destacado && (
                 <motion.div
                     className="absolute top-6 left-4 z-10 text-white px-2 py-1 text-xs font-semibold flex items-center space-x-1 rounded-lg"
                     animate={{
@@ -97,8 +106,8 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
             {/* Imagen del producto */}
             <div className="relative h-100 overflow-hidden rounded-t-lg">
                 <motion.img
-                    src={product.imagen}
-                    alt={product.Descripcion}
+                    src={(Array.isArray(product.imagen) ? product.imagen[0] : product.imagen) || product.imagenes?.[0] || ''}
+                    alt={product.Descripcion || product.NOMBRE || product.Codigo || ''}
                     className="w-full h-full object-cover"
                     animate={!isMobile ? {
                         scale: isHovered ? 1.08 : 1,
@@ -149,7 +158,7 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
                                 }}
                                 transition={{ duration: 0.3 }}
                             >
-                                {product.categoriaIndumentaria || product.categoria}
+                                {product.Rubro || product.Subrubro || ''}
                             </motion.span>
                             <motion.div
                                 className="flex items-center space-x-1 text-xs font-semibold"
@@ -183,7 +192,7 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
                         } : {}}
                         transition={{ duration: 0.3 }}
                     >
-                        {product.categoriaIndumentaria || product.categoria}
+                        {product.Rubro || product.Subrubro || ''}
                     </motion.span>
                 </div>
                 <motion.h3
@@ -194,7 +203,7 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
                     } : {}}
                     transition={{ duration: 0.3 }}
                 >
-                    {product.nombre}
+                    {product.Descripcion || product.NOMBRE || product.Codigo}
                 </motion.h3>
 
                 <div className="flex items-center justify-between mt-3 gap-2">
@@ -208,7 +217,7 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
                     <motion.button
                         className={`flex items-center justify-center space-x-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-300 ${isAdding
                                 ? 'bg-green-600 text-white'
-                                : isInCart(product.id)
+                                : isInCart(getNumericId(product.Codigo))
                                     ? 'bg-gray-800 text-white'
                                     : 'bg-black text-white hover:bg-gray-800'
                             }`}
@@ -219,7 +228,7 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
                         transition={{ duration: 0.3 }}
                     >
                         <ShoppingCart className="w-4 h-4" />
-                        <span>{isAdding ? 'Agregado!' : isInCart(product.id) ? 'En carrito' : 'Agregar'}</span>
+                        <span>{isAdding ? 'Agregado!' : isInCart(getNumericId(product.Codigo)) ? 'En carrito' : 'Agregar'}</span>
                     </motion.button>
                 </div>
             </motion.div>
