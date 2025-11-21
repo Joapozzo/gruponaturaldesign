@@ -43,6 +43,9 @@ next-env.d.ts
 
 test-smpt.js
 
-client_secret_598815672182-s6077m1jmo6vl2mq5l69dne63bqpijag.apps.googleusercontent.com
+# Google OAuth credentials
+client_secret_*.json
+*client_secret*.json
+*.apps.googleusercontent.com.json
 
 /scripts
