@@ -301,14 +301,21 @@ const InstagramCTA = () => {
                             }}
                         />
 
-                        {/* Partículas flotantes */}
-                        {[...Array(6)].map((_, i) => (
+                        {/* Partículas flotantes - Valores fijos para evitar hydration mismatch */}
+                        {[
+                            { top: 31.8, left: 81.7, duration: 4.2, delay: 0.8 },
+                            { top: 66.2, left: 71.6, duration: 3.5, delay: 1.2 },
+                            { top: 58.1, left: 10.0, duration: 4.8, delay: 0.3 },
+                            { top: 85.6, left: 80.1, duration: 3.9, delay: 1.5 },
+                            { top: 59.0, left: 47.1, duration: 4.5, delay: 0.5 },
+                            { top: 48.0, left: 23.0, duration: 3.2, delay: 1.8 }
+                        ].map((particle, i) => (
                             <motion.div
                                 key={i}
                                 className="absolute w-2 h-2 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full opacity-40"
                                 style={{
-                                    top: `${Math.random() * 100}%`,
-                                    left: `${Math.random() * 100}%`,
+                                    top: `${particle.top}%`,
+                                    left: `${particle.left}%`,
                                 }}
                                 animate={{
                                     y: [0, -20, 0],
@@ -316,9 +323,9 @@ const InstagramCTA = () => {
                                     scale: [0.5, 1, 0.5]
                                 }}
                                 transition={{
-                                    duration: 3 + Math.random() * 2,
+                                    duration: particle.duration,
                                     repeat: Infinity,
-                                    delay: Math.random() * 2,
+                                    delay: particle.delay,
                                     ease: "easeInOut"
                                 }}
                             />

@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Star, Eye } from 'lucide-react';
+import { ArrowRight, Star, Eye, ShoppingCart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { ProductType } from '../types/producto';
+import { ProductWithImage } from '../types/producto';
+import { useCart } from './hooks/useCart';
 
 interface ProductProps {
-    product: ProductType;
-    index: number;
+    product: ProductWithImage;
+    index: string;
 }
 
 const Product: React.FC<ProductProps> = ({ product, index }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const [isAdding, setIsAdding] = useState(false);
     const router = useRouter();
-
+    const { addToCart, isInCart } = useCart();
+    
     // Detectar si es mobile
     useEffect(() => {
         const checkIsMobile = () => {
@@ -26,12 +29,29 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
     }, []);
 
     const handleProductClick = () => {
-        router.push(`/producto/${product.id}`);
+        router.push(`/producto/${product.Codigo}`);
     };
 
     const handleQuickView = (e: React.MouseEvent) => {
         e.stopPropagation();
-        router.push(`/producto/${product.id}`);
+        router.push(`/producto/${product.Codigo}`);
+    };
+
+    const handleAddToCart = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsAdding(true);
+
+        addToCart({
+            id: product.Codigo,
+            nombre: product.Descripcion,
+            descripcion: product.Descripcion,
+            imagen: product.imagen[0],
+            precio: parseFloat(product.precio.replace(/[^0-9.-]+/g, '')),
+            categoria: product.categoriaIndumentaria || product.categoria,
+        }, 1);
+
+        // Animación de feedback
+        setTimeout(() => setIsAdding(false), 1000);
     };
 
     // Solo permitir hover en desktop
@@ -49,9 +69,9 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
 
     return (
         <motion.div
-initial={!isMobile ? { opacity: 0, y: 50 } : { opacity: 1, y: 0 }}
-whileInView={!isMobile ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
-transition={!isMobile ? { duration: 0.6, delay: index * 0.1 } : { duration: 0 }}
+            initial={!isMobile ? { opacity: 0, y: 50 } : { opacity: 1, y: 0 }}
+            whileInView={!isMobile ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
+            transition={!isMobile ? { duration: 0.6, delay: index * 0.1 } : { duration: 0 }}
             viewport={{ once: true }}
             className={`group relative overflow-hidden bg-white rounded-lg shadow-md transition-all duration-500 cursor-pointer mb-12 md:w-[370px] w-[340px] min-h-[550px] ${!isMobile ? 'hover:shadow-xl hover:scale-[1.02] hover:-translate-y-2' : ''
                 }`}
@@ -77,8 +97,8 @@ transition={!isMobile ? { duration: 0.6, delay: index * 0.1 } : { duration: 0 }}
             {/* Imagen del producto */}
             <div className="relative h-100 overflow-hidden rounded-t-lg">
                 <motion.img
-                    src={product.imagenes ? product.imagenes[0] : product.imagenes}
-                    alt={product.nombre}
+                    src={product.imagen}
+                    alt={product.Descripcion}
                     className="w-full h-full object-cover"
                     animate={!isMobile ? {
                         scale: isHovered ? 1.08 : 1,
@@ -177,37 +197,29 @@ transition={!isMobile ? { duration: 0.6, delay: index * 0.1 } : { duration: 0 }}
                     {product.nombre}
                 </motion.h3>
 
-                <div className="flex items-center justify-between mt-2">
-                    <motion.button
-                        className="text-gray-600 text-sm font-light transition-all duration-300 flex items-center space-x-1 gap-3"
-                        animate={!isMobile ? {
-                            color: isHovered ? "#374151" : "#6b7280",
-                            borderBottom: isHovered ? "1px solid #9ca3af" : "1px solid transparent",
-                            paddingBottom: isHovered ? "4px" : "1px"
-                        } : {}}
-                        transition={{ duration: 0.4 }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleProductClick();
-                        }}
-                    >
-                        <motion.span
-                            animate={!isMobile ? {
-                                scale: isHovered ? 1.05 : 1
-                            } : {}}
-                            transition={{ duration: 0.3 }}
-                        >
+                <div className="flex items-center justify-between mt-3 gap-2">
+                    {/* <div className="flex flex-col">
+                        <span className="text-xs text-gray-500 font-medium">Precio</span>
+                        <span className="text-lg font-bold text-gray-900">
                             {product.precio}
-                        </motion.span>
-                        <motion.div
-                            animate={!isMobile ? {
-                                x: isHovered ? 3 : 0,
-                                rotate: isHovered ? 5 : 0
-                            } : {}}
-                            transition={{ duration: 0.3 }}
-                        >
-                            <ArrowRight size={12} />
-                        </motion.div>
+                        </span>
+                    </div> */}
+
+                    <motion.button
+                        className={`flex items-center justify-center space-x-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-300 ${isAdding
+                                ? 'bg-green-600 text-white'
+                                : isInCart(product.id)
+                                    ? 'bg-gray-800 text-white'
+                                    : 'bg-black text-white hover:bg-gray-800'
+                            }`}
+                        onClick={handleAddToCart}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        animate={isAdding ? { scale: [1, 1.1, 1] } : {}}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <ShoppingCart className="w-4 h-4" />
+                        <span>{isAdding ? 'Agregado!' : isInCart(product.id) ? 'En carrito' : 'Agregar'}</span>
                     </motion.button>
                 </div>
             </motion.div>

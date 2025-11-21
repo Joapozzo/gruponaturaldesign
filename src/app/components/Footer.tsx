@@ -22,14 +22,14 @@ const Footer = () => {
                                 />
                             </div>
                         </div>
-                        <p className="text-gray-400 mb-6 leading-relaxed">
+                        <p className="text-gray-400 mb-6 leading-relaxed text-sm md:text-base">
                             Natural Design. Calidad y diseño en uniformes empresariales. Más
                             de 25 años vistiendo empresas con profesionalismo y estilo.
                         </p>
                         <div className="flex space-x-6">
                             <a
                                 href="https://www.instagram.com/naturaldesign.ntds/"
-                                className="text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+                                className="text-gray-400 hover:text-white transition-colors flex items-center gap-2 text-sm md:text-base"
                             >
                                 <Instagram className='w-4' />
                                 <span className="font-medium">INSTAGRAM</span>
@@ -38,8 +38,8 @@ const Footer = () => {
                     </div>
 
                     <div>
-                        <h4 className="font-bold mb-6 text-lg">SERVICIOS</h4>
-                        <ul className="space-y-3 text-gray-400">
+                        <h4 className="font-bold mb-6 text-base md:text-lg">SERVICIOS</h4>
+                        <ul className="space-y-3 text-gray-400 text-sm md:text-base">
                             <li className="hover:text-white transition-colors cursor-pointer">
                                 Uniformes empresariales
                             </li>
@@ -56,8 +56,8 @@ const Footer = () => {
                     </div>
 
                     <div>
-                        <h4 className="font-bold mb-6 text-lg">CONTACTO</h4>
-                        <div className="space-y-3 text-gray-400">
+                        <h4 className="font-bold mb-6 text-base md:text-lg">CONTACTO</h4>
+                        <div className="space-y-3 text-gray-400 text-sm md:text-base">
                             <p className="flex items-center" onClick={() => openWhatsApp()}>
                                 {/* <Phone size={16} className="mr-2" /> */}
                                 <WhatsApp size={16} className="mr-2" />
@@ -81,7 +81,7 @@ const Footer = () => {
 
             {/* Copyright con contenedor centrado */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 text-center text-gray-400">
-                <p>&copy; 2025 Natural Design. Todos los derechos reservados.</p>
+                <p className="text-xs md:text-sm">&copy; 2025 Natural Design. Todos los derechos reservados.</p>
             </div>
         </footer>
     );

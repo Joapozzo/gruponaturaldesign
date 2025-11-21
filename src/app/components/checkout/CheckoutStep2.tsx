@@ -1,0 +1,535 @@
+'use client';
+
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { useCart } from '../hooks/useCart';
+import Button from '../ui/Button';
+import { CustomerData, ShippingData } from '@/app/types/cart';
+
+interface CheckoutStep2Props {
+  onNext: () => void;
+  onBack: () => void;
+}
+
+interface FormErrors {
+  nombre?: string;
+  apellido?: string;
+  email?: string;
+  telefono?: string;
+  documento?: string;
+  direccion?: string;
+  localidad?: string;
+  provincia?: string;
+  codigo_postal?: string;
+}
+
+export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
+  const { customerData, shippingData, setCustomerData, setShippingData } = useCart();
+
+  // Customer Data State
+  const [formData, setFormData] = useState<CustomerData>({
+    nombre: customerData?.nombre || '',
+    apellido: customerData?.apellido || '',
+    email: customerData?.email || '',
+    telefono: customerData?.telefono || '',
+    empresa: customerData?.empresa || '',
+    documento: customerData?.documento || '',
+    tipo_documento: customerData?.tipo_documento || 'DNI',
+  });
+
+  // Shipping Data State
+  const [shipping, setShipping] = useState<ShippingData>({
+    tipo: shippingData?.tipo || 'envio',
+    direccion: shippingData?.direccion || '',
+    localidad: shippingData?.localidad || '',
+    provincia: shippingData?.provincia || '',
+    codigo_postal: shippingData?.codigo_postal || '',
+    notas: shippingData?.notas || '',
+    fecha_entrega: shippingData?.fecha_entrega || '',
+  });
+
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  // Validation Functions
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePhone = (phone: string): boolean => {
+    const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+    return phoneRegex.test(phone) && phone.replace(/\D/g, '').length >= 8;
+  };
+
+  const validateField = (name: string, value: string): string | undefined => {
+    switch (name) {
+      case 'nombre':
+        if (!value.trim()) return 'Requerido';
+        if (value.trim().length < 2) return 'Mínimo 2 caracteres';
+        break;
+      case 'apellido':
+        if (!value.trim()) return 'Requerido';
+        if (value.trim().length < 2) return 'Mínimo 2 caracteres';
+        break;
+      case 'email':
+        if (!value.trim()) return 'Requerido';
+        if (!validateEmail(value)) return 'Email inválido';
+        break;
+      case 'telefono':
+        if (!value.trim()) return 'Requerido';
+        if (!validatePhone(value)) return 'Teléfono inválido';
+        break;
+      case 'documento':
+        if (value && value.replace(/\D/g, '').length < 7) {
+          return 'Mínimo 7 dígitos';
+        }
+        break;
+      case 'direccion':
+        if (shipping.tipo === 'envio' && !value.trim()) {
+          return 'Requerido para envío';
+        }
+        break;
+      case 'localidad':
+        if (shipping.tipo === 'envio' && !value.trim()) {
+          return 'Requerido para envío';
+        }
+        break;
+      case 'provincia':
+        if (shipping.tipo === 'envio' && !value.trim()) {
+          return 'Requerido para envío';
+        }
+        break;
+      case 'codigo_postal':
+        if (shipping.tipo === 'envio' && !value.trim()) {
+          return 'Requerido para envío';
+        }
+        break;
+    }
+    return undefined;
+  };
+
+  const handleCustomerChange = (field: keyof CustomerData, value: string) => {
+    setFormData({ ...formData, [field]: value });
+    if (touched[field]) {
+      const error = validateField(field, value);
+      setErrors({ ...errors, [field]: error });
+    }
+  };
+
+  const handleShippingChange = (field: keyof ShippingData, value: string) => {
+    setShipping({ ...shipping, [field]: value });
+    if (touched[field]) {
+      const error = validateField(field, value);
+      setErrors({ ...errors, [field]: error });
+    }
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched({ ...touched, [field]: true });
+    const value = field in formData ? (formData as any)[field] : (shipping as any)[field];
+    const error = validateField(field, value);
+    setErrors({ ...errors, [field]: error });
+  };
+
+  const validateAllFields = (): boolean => {
+    const newErrors: FormErrors = {};
+    let isValid = true;
+
+    ['nombre', 'apellido', 'email', 'telefono'].forEach((field) => {
+      const error = validateField(field, (formData as any)[field]);
+      if (error) {
+        newErrors[field as keyof FormErrors] = error;
+        isValid = false;
+      }
+    });
+
+    if (formData.documento) {
+      const error = validateField('documento', formData.documento);
+      if (error) {
+        newErrors.documento = error;
+        isValid = false;
+      }
+    }
+
+    if (shipping.tipo === 'envio') {
+      ['direccion', 'localidad', 'provincia', 'codigo_postal'].forEach((field) => {
+        const error = validateField(field, (shipping as any)[field]);
+        if (error) {
+          newErrors[field as keyof FormErrors] = error;
+          isValid = false;
+        }
+      });
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  const handleSubmit = () => {
+    const allFields = ['nombre', 'apellido', 'email', 'telefono', 'direccion', 'localidad', 'provincia', 'codigo_postal'];
+    const newTouched: Record<string, boolean> = {};
+    allFields.forEach((field) => {
+      newTouched[field] = true;
+    });
+    setTouched(newTouched);
+
+    if (validateAllFields()) {
+      setCustomerData(formData);
+      setShippingData(shipping);
+      onNext();
+    }
+  };
+
+  return (
+    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+      {/* LEFT SIDE - Formulario */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <h2 className="text-base lg:text-xl font-bold text-black mb-3 lg:mb-4">DATOS DEL CLIENTE</h2>
+
+        {/* Scrollable Form */}
+        <div className="max-h-[60vh] lg:max-h-[70vh] overflow-y-auto pr-2 space-y-4">
+          {/* Información Personal */}
+          <div className="bg-white border-l-2 border-black p-4 rounded-lg space-y-3">
+            <h3 className="text-sm font-bold text-black">INFORMACIÓN PERSONAL</h3>
+
+            {/* Nombre y Apellido */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Nombre <span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.nombre}
+                  onChange={(e) => handleCustomerChange('nombre', e.target.value)}
+                  onBlur={() => handleBlur('nombre')}
+                  className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                    errors.nombre && touched.nombre ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Juan"
+                />
+                {errors.nombre && touched.nombre && (
+                  <p className="text-red-600 text-xs mt-1">{errors.nombre}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Apellido <span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.apellido}
+                  onChange={(e) => handleCustomerChange('apellido', e.target.value)}
+                  onBlur={() => handleBlur('apellido')}
+                  className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                    errors.apellido && touched.apellido ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Pérez"
+                />
+                {errors.apellido && touched.apellido && (
+                  <p className="text-red-600 text-xs mt-1">{errors.apellido}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Email y Teléfono */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Email <span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleCustomerChange('email', e.target.value)}
+                  onBlur={() => handleBlur('email')}
+                  className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                    errors.email && touched.email ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="juan@ejemplo.com"
+                />
+                {errors.email && touched.email && (
+                  <p className="text-red-600 text-xs mt-1">{errors.email}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Teléfono <span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="tel"
+                  value={formData.telefono}
+                  onChange={(e) => handleCustomerChange('telefono', e.target.value)}
+                  onBlur={() => handleBlur('telefono')}
+                  className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                    errors.telefono && touched.telefono ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="+54 11 1234-5678"
+                />
+                {errors.telefono && touched.telefono && (
+                  <p className="text-red-600 text-xs mt-1">{errors.telefono}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Tipo Doc y Número (en una fila) */}
+            <div className="grid grid-cols-12 gap-3">
+              <div className="col-span-3">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Tipo</label>
+                <select
+                  value={formData.tipo_documento}
+                  onChange={(e) =>
+                    handleCustomerChange('tipo_documento', e.target.value as 'DNI' | 'CUIT' | 'CUIL')
+                  }
+                  className="w-full px-2 py-2 border border-gray-300 rounded-lg text-sm text-black bg-white focus:outline-none focus:border-red-600"
+                >
+                  <option value="DNI">DNI</option>
+                  <option value="CUIT">CUIT</option>
+                  <option value="CUIL">CUIL</option>
+                </select>
+              </div>
+
+              <div className="col-span-9">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Número de Documento
+                </label>
+                <input
+                  type="text"
+                  value={formData.documento}
+                  onChange={(e) => handleCustomerChange('documento', e.target.value)}
+                  onBlur={() => handleBlur('documento')}
+                  className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                    errors.documento && touched.documento ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="12345678"
+                />
+                {errors.documento && touched.documento && (
+                  <p className="text-red-600 text-xs mt-1">{errors.documento}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Empresa */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Empresa (Opcional)</label>
+              <input
+                type="text"
+                value={formData.empresa}
+                onChange={(e) => handleCustomerChange('empresa', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:outline-none focus:border-red-600"
+                placeholder="Mi Empresa S.A."
+              />
+            </div>
+          </div>
+
+          {/* Datos de Envío */}
+          <div className="bg-white border-l-2 border-black p-4 rounded-lg space-y-3">
+            <h3 className="text-sm font-bold text-black">DATOS DE ENVÍO</h3>
+
+            {/* Tipo de Entrega */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-2">
+                Tipo de Entrega <span className="text-red-600">*</span>
+              </label>
+              <div className="flex gap-4">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="shipping_type"
+                    value="envio"
+                    checked={shipping.tipo === 'envio'}
+                    onChange={(e) => handleShippingChange('tipo', e.target.value as 'envio' | 'retiro')}
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-black">Envío a domicilio</span>
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="shipping_type"
+                    value="retiro"
+                    checked={shipping.tipo === 'retiro'}
+                    onChange={(e) => handleShippingChange('tipo', e.target.value as 'envio' | 'retiro')}
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-black">Retiro en tienda</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Campos de envío (solo si tipo === 'envio') */}
+            {shipping.tipo === 'envio' && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-3"
+              >
+                {/* Dirección */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Dirección <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={shipping.direccion}
+                    onChange={(e) => handleShippingChange('direccion', e.target.value)}
+                    onBlur={() => handleBlur('direccion')}
+                    className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                      errors.direccion && touched.direccion ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="Av. Corrientes 1234"
+                  />
+                  {errors.direccion && touched.direccion && (
+                    <p className="text-red-600 text-xs mt-1">{errors.direccion}</p>
+                  )}
+                </div>
+
+                {/* Localidad y Provincia */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Localidad <span className="text-red-600">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={shipping.localidad}
+                      onChange={(e) => handleShippingChange('localidad', e.target.value)}
+                      onBlur={() => handleBlur('localidad')}
+                      className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                        errors.localidad && touched.localidad ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="Buenos Aires"
+                    />
+                    {errors.localidad && touched.localidad && (
+                      <p className="text-red-600 text-xs mt-1">{errors.localidad}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Provincia <span className="text-red-600">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={shipping.provincia}
+                      onChange={(e) => handleShippingChange('provincia', e.target.value)}
+                      onBlur={() => handleBlur('provincia')}
+                      className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                        errors.provincia && touched.provincia ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="Buenos Aires"
+                    />
+                    {errors.provincia && touched.provincia && (
+                      <p className="text-red-600 text-xs mt-1">{errors.provincia}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* CP y Fecha */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Código Postal <span className="text-red-600">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={shipping.codigo_postal}
+                      onChange={(e) => handleShippingChange('codigo_postal', e.target.value)}
+                      onBlur={() => handleBlur('codigo_postal')}
+                      className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                        errors.codigo_postal && touched.codigo_postal ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="1000"
+                    />
+                    {errors.codigo_postal && touched.codigo_postal && (
+                      <p className="text-red-600 text-xs mt-1">{errors.codigo_postal}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Fecha Preferida
+                    </label>
+                    <input
+                      type="date"
+                      value={shipping.fecha_entrega}
+                      onChange={(e) => handleShippingChange('fecha_entrega', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black bg-white focus:outline-none focus:border-red-600"
+                      min={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Notas */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Notas adicionales
+              </label>
+              <textarea
+                value={shipping.notas}
+                onChange={(e) => handleShippingChange('notas', e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:outline-none focus:border-red-600 resize-none"
+                placeholder="Ej: Timbre roto, llamar al llegar..."
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT SIDE - Resumen e Info */}
+      <div className="w-full lg:w-80 flex flex-col gap-4">
+        <h2 className="text-base lg:text-xl font-bold text-black">RESUMEN</h2>
+
+        {/* Info Box */}
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
+          <h3 className="text-sm font-bold text-black">¿QUÉ NECESITAMOS?</h3>
+          <div className="space-y-2 text-xs text-gray-700">
+            <div className="flex gap-2">
+              <span className="text-red-600 font-bold">*</span>
+              <p>Nombre y apellido completo</p>
+            </div>
+            <div className="flex gap-2">
+              <span className="text-red-600 font-bold">*</span>
+              <p>Email válido para enviar confirmación</p>
+            </div>
+            <div className="flex gap-2">
+              <span className="text-red-600 font-bold">*</span>
+              <p>Teléfono de contacto</p>
+            </div>
+            <div className="flex gap-2">
+              <span className="text-gray-400">○</span>
+              <p>Datos fiscales si facturás como empresa</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Shipping Info */}
+        <div className="bg-black text-white rounded-lg p-4 space-y-2">
+          <h3 className="text-sm font-bold">INFORMACIÓN DE ENVÍO</h3>
+          <div className="text-xs space-y-1 text-gray-300">
+            <p>• Envío coordinado por WhatsApp</p>
+            <p>• Tiempo estimado: 3-5 días hábiles</p>
+            <p>• Retiro en tienda sin cargo</p>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-col gap-3 mt-auto">
+          <Button variant="black" size="lg" fullWidth onClick={handleSubmit}>
+            CONTINUAR
+          </Button>
+          <Button variant="blackOutline" size="md" fullWidth onClick={onBack}>
+            VOLVER
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

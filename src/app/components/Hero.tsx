@@ -34,15 +34,17 @@ const Hero = () => {
     return (
       <section
         id="inicio"
-        className="relative h-screen flex items-center justify-center overflow-hidden -mt-22"
+        className="relative w-full h-screen flex items-center justify-center overflow-hidden"
       >
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 w-full h-full">
           <Image
             src={heroImage}
             alt="Hero NTDS"
-            className="w-full h-full object-cover object-top"
-            width={20000}
-            height={2000}
+            fill
+            priority
+            quality={90}
+            sizes="100vw"
+            className="object-cover object-top"
           />
           <div className="absolute inset-0 bg-black/30"></div>
         </div>
@@ -52,18 +54,15 @@ const Hero = () => {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1 }}
-            className="text-3xl md:text-5xl font-bold mb-4 leading-tight 2xl:text-8xl"
-            style={{
-              fontFamily: "Franklin Gothic Heavy, Arial Black, sans-serif",
-            }}
+            className="text-3xl md:text-5xl font-semibold mb-4 2xl:text-7xl"
           >
-            UNIFORMES DE DISEÑO
+            Uniformes de diseño
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.3 }}
-            className="text-xl md:text-xl mb-4 font-light tracking-wide 2xl:text-3xl"
+            className="text-xl md:text-xl mb-4 font-light tracking-wide 2xl:text-2xl"
           >
             Más de 25 años vistiendo empresas con calidad y compromiso.
           </motion.p>
@@ -96,7 +95,7 @@ const Hero = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.5 }}
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+          className="absolute bottom-20 left-1/2 transform -translate-x-1/2"
         >
           <ChevronDown className="text-white animate-bounce" size={40} />
         </motion.div>

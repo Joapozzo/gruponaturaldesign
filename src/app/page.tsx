@@ -8,12 +8,14 @@ import Testimonios from './components/Testimonios';
 import Faq from './components/Faq';
 import Contacto from './components/Contacto';
 import InstagramCTA from './components/InstagramCTA';
+import DesignHero from './components/DesignHero';
+import CallToAction from './components/CallToAction';
 
 const NTDS_Website = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      
+
       {/* CSS Variables */}
       <style jsx global>{`
         :root {
@@ -27,13 +29,15 @@ const NTDS_Website = () => {
         }
       `}</style>
       <Hero />
-      <ProductosDestacados/>
-      <Categorias/>
-      <InstagramCTA/>
-      <Nosotros/>
-      <Testimonios/>
-      <Faq/>
-      <Contacto/>
+      <ProductosDestacados />
+      <Categorias />
+      <DesignHero />
+      <CallToAction />
+      <InstagramCTA />
+      <Nosotros />
+      <Testimonios />
+      <Faq />
+      <Contacto />
     </div>
   );
 };

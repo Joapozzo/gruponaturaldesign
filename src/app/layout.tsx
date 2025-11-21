@@ -4,6 +4,9 @@ import "./globals.css";
 import WhatsAppButton from "./components/WhatsAppButton";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
+import PromoBanner from "./components/PromoBanner";
+import { Providers } from "./components/Providers";
+import AutoProductLoader from "./components/AutoProductLoader";
 
 // Fuentes según el manual de marca NTDS
 // Franklin Gothic Heavy no está en Google Fonts, usamos Poppins como fallback principal
@@ -241,17 +244,21 @@ export default function RootLayout({
         {/* Security headers */}
         <meta httpEquiv="Content-Security-Policy" content="upgrade-insecure-requests" />
       </head>
-      <Navbar />
       <body
         className={`${poppins.variable} ${montserrat.variable} antialiased`}
         style={{
           fontFamily: "var(--font-poppins), 'Franklin Gothic Heavy', 'Arial Black', sans-serif"
         }}
       >
-        {children}
+        <Navbar />
+        <PromoBanner />
+        <Providers>
+          <AutoProductLoader />
+          {children}
+        </Providers>
+        <Footer />
+        <WhatsAppButton />
       </body>
-      <Footer />
-      <WhatsAppButton />
     </html>
   );
 }

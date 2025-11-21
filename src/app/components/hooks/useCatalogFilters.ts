@@ -1,9 +1,13 @@
 import { useState, useMemo } from 'react';
-import { ProductType, CategoriaIndumentaria } from '../../types/producto'
+import { ProductType, CategoriaIndumentaria, GroupedProduct } from '../../types/producto'
 
 export interface FilterState {
     searchTerm: string;
-    selectedCategory: CategoriaIndumentaria | 'TODOS';
+    categoriaTipo: 'BASIC' | 'WORKWEAR' | 'TODOS';
+    subrubro: 'remera' | 'pantalon' | 'campera' | 'sweater' | 'camisa' | 'buzo' | 'TODOS';
+    genero: 'dama' | 'hombre' | 'unisex' | 'TODOS';
+    colores: string[];
+    talles: string[];
     onlyFeatured: boolean;
     sortBy: 'alfabetico' | 'categoria' | 'destacados';
 }
@@ -13,10 +17,22 @@ export interface UseCatalogFiltersProps {
     itemsPerPage?: number;
 }
 
+// Función para normalizar strings removiendo acentos
+const normalizeString = (str: string): string => {
+    return str
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+};
+
 export const useCatalogFilters = ({ productos, itemsPerPage = 12 }: UseCatalogFiltersProps) => {
     const [filters, setFilters] = useState<FilterState>({
         searchTerm: '',
-        selectedCategory: 'TODOS',
+        categoriaTipo: 'TODOS',
+        subrubro: 'TODOS',
+        genero: 'TODOS',
+        colores: [],
+        talles: [],
         onlyFeatured: false,
         sortBy: 'alfabetico',
     });
@@ -27,21 +43,18 @@ export const useCatalogFilters = ({ productos, itemsPerPage = 12 }: UseCatalogFi
     const filteredProducts = useMemo(() => {
         let filtered = [...productos];
 
-        // Filtro por término de búsqueda
+        // Filtro por término de búsqueda (insensible a acentos)
         if (filters.searchTerm) {
+            const normalizedSearchTerm = normalizeString(filters.searchTerm);
             filtered = filtered.filter(product =>
-                product.nombre.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
-                product.descripcion.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
-                product.categoria.toLowerCase().includes(filters.searchTerm.toLowerCase())
+                normalizeString(product.nombre).includes(normalizedSearchTerm) ||
+                normalizeString(product.descripcion).includes(normalizedSearchTerm) ||
+                normalizeString(product.categoria).includes(normalizedSearchTerm)
             );
         }
 
-        // Filtro por categoría
-        if (filters.selectedCategory !== 'TODOS') {
-            filtered = filtered.filter(product =>
-                product.categoriaIndumentaria === filters.selectedCategory
-            );
-        }
+        // Filtro por categoría tipo (BASIC/WORKWEAR) - mantener compatibilidad
+        // Este hook se mantiene para ProductType, pero los nuevos filtros están en useGroupedCatalogFilters
 
         // Filtro por destacados
         if (filters.onlyFeatured) {
@@ -75,7 +88,7 @@ export const useCatalogFilters = ({ productos, itemsPerPage = 12 }: UseCatalogFi
         return filteredProducts.slice(startIndex, startIndex + itemsPerPage);
     }, [filteredProducts, currentPage, itemsPerPage]);
 
-    // Obtener categorías únicas
+    // Obtener categorías únicas (mantener compatibilidad)
     const availableCategories = useMemo(() => {
         const categories = productos.map(p => p.categoriaIndumentaria);
         return Array.from(new Set(categories));
@@ -90,7 +103,11 @@ export const useCatalogFilters = ({ productos, itemsPerPage = 12 }: UseCatalogFi
     const clearFilters = () => {
         setFilters({
             searchTerm: '',
-            selectedCategory: 'TODOS',
+            categoriaTipo: 'TODOS',
+            subrubro: 'TODOS',
+            genero: 'TODOS',
+            colores: [],
+            talles: [],
             onlyFeatured: false,
             sortBy: 'alfabetico',
         });

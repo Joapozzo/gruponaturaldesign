@@ -115,7 +115,7 @@ const Section: React.FC<SectionProps> = ({
                 {(title || subtitle) && (
                     <motion.div className={headerClasses} {...animationProps}>
                         {title && (
-                            <h2 className="text-3xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4 sm:mb-6 font-display leading-tight">
+                            <h2 className="text-3xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-gray-900 mb-4 sm:mb-6 font-display leading-tight">
                                 {title}
                             </h2>
                         )}
