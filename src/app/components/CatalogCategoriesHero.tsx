@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Plus } from 'lucide-react';
 
 interface CatalogCategoriesHeroProps {
-    onCategorySelect: (category: 'BASIC' | 'WORKWEAR' | 'TODOS') => void;
-    selectedCategory?: 'BASIC' | 'WORKWEAR' | 'TODOS';
+    onCategorySelect: (category: string) => void;
+    selectedCategory?: string;
 }
 
 const CatalogCategoriesHero = ({ onCategorySelect, selectedCategory = 'TODOS' }: CatalogCategoriesHeroProps) => {

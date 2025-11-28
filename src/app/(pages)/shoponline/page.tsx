@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useGroupedProducts } from '@/app/hooks/useGroupedProducts';
 import { useGroupedCatalogFilters } from '@/app/components/hooks/useGroupedCatalogFilters';
@@ -12,7 +12,7 @@ import Pagination from '@/app/components/Pagination';
 import Section from '@/app/components/Section';
 import CatalogCategoriesHero from '@/app/components/CatalogCategoriesHero';
 
-const CatalogPage = () => {
+const CatalogContent = () => {
     const searchParams = useSearchParams();
     
     // Cargar productos agrupados
@@ -55,9 +55,13 @@ const CatalogPage = () => {
             updateFilter('subrubro', subrubro);
         }
         if (genero) {
-            updateFilter('genero', genero);
+            // Validar que el género sea uno de los valores permitidos
+            const validGenero = ['dama', 'hombre', 'unisex'].includes(genero.toLowerCase()) 
+                ? genero.toLowerCase() as 'dama' | 'hombre' | 'unisex'
+                : 'TODOS';
+            updateFilter('genero', validGenero);
         }
-    }, [searchParams]); // Remover updateFilter de dependencias para evitar loops
+    }, [searchParams, updateFilter]);
 
 
     return (
@@ -114,6 +118,14 @@ const CatalogPage = () => {
                 <ScrollToTop show={currentPage > 1} />
             </Section>
         </div>
+    );
+};
+
+const CatalogPage = () => {
+    return (
+        <Suspense fallback={<LoadingState />}>
+            <CatalogContent />
+        </Suspense>
     );
 };
 

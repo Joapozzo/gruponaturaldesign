@@ -3,8 +3,8 @@ import { ProductType, CategoriaIndumentaria, GroupedProduct } from '../../types/
 
 export interface FilterState {
     searchTerm: string;
-    categoriaTipo: 'BASIC' | 'WORKWEAR' | 'TODOS';
-    subrubro: 'remera' | 'pantalon' | 'campera' | 'sweater' | 'camisa' | 'buzo' | 'TODOS';
+    categoriaTipo: string; // Acepta cualquier string para buscar en Rubro, 'TODOS' es el valor por defecto
+    subrubro: string; // Acepta cualquier string para buscar en Subrubro, 'TODOS' es el valor por defecto
     genero: 'dama' | 'hombre' | 'unisex' | 'TODOS';
     colores: string[];
     talles: string[];
