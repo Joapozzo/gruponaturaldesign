@@ -78,7 +78,7 @@ const Hero = () => {
               size="md"
               className="tracking-wide"
             >
-              VER CATÁLOGO
+              VER SHOP ONLINE
             </Button>
             <Button
               variant="lightWhiteOutline"

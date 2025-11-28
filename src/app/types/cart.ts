@@ -26,6 +26,8 @@ export interface CustomerData {
     email: string;
     telefono: string;
     empresa?: string;
+    cuit?: string;
+    fecha_nacimiento?: string;
     documento?: string;
     tipo_documento?: 'DNI' | 'CUIT' | 'CUIL';
 }

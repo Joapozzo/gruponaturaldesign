@@ -36,7 +36,7 @@ const EmptyCart: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
             >
-                Explorá nuestro catálogo y agregá productos para comenzar tu pedido
+                Explorá nuestro shop online y agregá productos para comenzar tu pedido
             </motion.p>
             <motion.div
                 initial={{ opacity: 0, y: 20 }}

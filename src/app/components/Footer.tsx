@@ -40,17 +40,25 @@ const Footer = () => {
                     <div>
                         <h4 className="font-bold mb-6 text-base md:text-lg">SERVICIOS</h4>
                         <ul className="space-y-3 text-gray-400 text-sm md:text-base">
-                            <li className="hover:text-white transition-colors cursor-pointer">
-                                Uniformes empresariales
+                            <li>
+                                <a href="/shoponline" className="hover:text-white transition-colors">
+                                    Shop Online
+                                </a>
                             </li>
-                            <li className="hover:text-white transition-colors cursor-pointer">
-                                Merchandising
+                            <li>
+                                <a href="/personalizados" className="hover:text-white transition-colors">
+                                    Uniformes Personalizados
+                                </a>
                             </li>
-                            <li className="hover:text-white transition-colors cursor-pointer">
-                                Distribución
+                            <li>
+                                <a href="/#nosotros" className="hover:text-white transition-colors">
+                                    Nosotros
+                                </a>
                             </li>
-                            <li className="hover:text-white transition-colors cursor-pointer">
-                                Fichas técnicas
+                            <li>
+                                <a href="/#contacto" className="hover:text-white transition-colors">
+                                    Contacto
+                                </a>
                             </li>
                         </ul>
                     </div>
@@ -58,15 +66,18 @@ const Footer = () => {
                     <div>
                         <h4 className="font-bold mb-6 text-base md:text-lg">CONTACTO</h4>
                         <div className="space-y-3 text-gray-400 text-sm md:text-base">
-                            <p className="flex items-center" onClick={() => openWhatsApp()}>
+                            <p className="flex items-center cursor-pointer" onClick={() => openWhatsApp()}>
                                 {/* <Phone size={16} className="mr-2" /> */}
                                 <WhatsApp size={16} className="mr-2" />
                                 351 - 7136316
                             </p>
-                            <p className="flex items-center">
+                            <a 
+                                href="mailto:info@naturalonline.com.ar" 
+                                className="flex items-center hover:text-white transition-colors"
+                            >
                                 <Mail size={16} className="mr-2" />
                                 info@naturalonline.com.ar
-                            </p>
+                            </a>
                             <p className="flex items-center">
                                 <MapPin size={16} className="mr-2" />
                                 Rivera Indarte 2143, Córdoba
@@ -80,8 +91,15 @@ const Footer = () => {
             <div className="w-full border-t border-gray-800 mt-12"></div>
 
             {/* Copyright con contenedor centrado */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 text-center text-gray-400">
-                <p className="text-xs md:text-sm">&copy; 2025 Natural Design. Todos los derechos reservados.</p>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-gray-400">
+                    <p className="text-xs md:text-sm">&copy; 2025 Natural Design. Todos los derechos reservados.</p>
+                    <div className="flex flex-wrap justify-center gap-4 text-xs md:text-sm">
+                        <a href="/politicas-cambio-devolucion" className="hover:text-white transition-colors">
+                            Políticas de Cambio y Devolución
+                        </a>
+                    </div>
+                </div>
             </div>
         </footer>
     );

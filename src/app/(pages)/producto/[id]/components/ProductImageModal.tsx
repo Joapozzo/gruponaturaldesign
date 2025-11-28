@@ -33,16 +33,16 @@ export default function ProductImageModal({
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0.8, opacity: 0 }}
-                        className="relative max-w-4xl max-h-full"
+                        className="relative w-full h-full max-w-7xl flex items-center justify-center"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {images.length > 0 && images[currentImageIndex] ? (
                             <Image
                                 src={images[currentImageIndex]}
                                 alt={`${productName} - Imagen expandida`}
-                                className="max-w-full max-h-full object-contain rounded-lg"
-                                width={800}
-                                height={800}
+                                className="w-auto h-auto max-w-full max-h-[calc(100vh-2rem)] object-contain rounded-lg"
+                                width={1200}
+                                height={1200}
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-lg">

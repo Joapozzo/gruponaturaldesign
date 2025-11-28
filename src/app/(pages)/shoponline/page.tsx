@@ -1,5 +1,6 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useGroupedProducts } from '@/app/hooks/useGroupedProducts';
 import { useGroupedCatalogFilters } from '@/app/components/hooks/useGroupedCatalogFilters';
 import FilterControls from '@/app/components/FilterControls';
@@ -9,9 +10,11 @@ import LoadingState from '@/app/components/catalog/LoadingState';
 import ScrollToTop from '@/app/components/catalog/ScrollToTop';
 import Pagination from '@/app/components/Pagination';
 import Section from '@/app/components/Section';
-import HeroCatalogo from '@/app/components/HeroCatalogo';
+import CatalogCategoriesHero from '@/app/components/CatalogCategoriesHero';
 
 const CatalogPage = () => {
+    const searchParams = useSearchParams();
+    
     // Cargar productos agrupados
     const { groupedProducts, isLoading } = useGroupedProducts();
 
@@ -39,13 +42,30 @@ const CatalogPage = () => {
         itemsPerPage: 12,
     });
 
+    // Aplicar filtros desde URL params al cargar
+    useEffect(() => {
+        const rubro = searchParams.get('rubro');
+        const subrubro = searchParams.get('subrubro');
+        const genero = searchParams.get('genero');
+
+        if (rubro) {
+            updateFilter('categoriaTipo', rubro);
+        }
+        if (subrubro) {
+            updateFilter('subrubro', subrubro);
+        }
+        if (genero) {
+            updateFilter('genero', genero);
+        }
+    }, [searchParams]); // Remover updateFilter de dependencias para evitar loops
+
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <HeroCatalogo 
-                productCount={groupedProducts.length}
-                isLoading={isLoading}
+            {/* Categorías Hero - Reemplaza el HeroCatalogo */}
+            <CatalogCategoriesHero 
+                onCategorySelect={(category) => updateFilter('categoriaTipo', category)}
+                selectedCategory={filters.categoriaTipo}
             />
 
             {/* Contenido principal */}

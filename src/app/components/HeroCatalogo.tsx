@@ -53,13 +53,13 @@ const HeroCatalogo = ({ productCount = 0, isLoading = false }: HeroCatalogoProps
                                 Inicio
                             </Link>
                             <span>/</span>
-                            <span className="text-white font-medium">Catálogo</span>
+                            <span className="text-white font-medium">Shop Online</span>
                         </nav>
 
                         {/* Título y Descripción */}
                         <div className="flex flex-col gap-3">
                             <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white font-display leading-tight">
-                                Catálogo
+                                Shop Online
                             </h1>
                             <p className="text-lg sm:text-xl lg:text-2xl text-gray-200 max-w-3xl">
                                 Descubrí toda nuestra colección de uniformes y prendas profesionales

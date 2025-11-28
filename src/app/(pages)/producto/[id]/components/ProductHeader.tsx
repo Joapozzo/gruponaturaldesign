@@ -38,7 +38,7 @@ export default function ProductHeader({ groupedProduct, displayProduct }: Produc
                             </Link>
                             <span>/</span>
                             <Link href="/catalogo" className="hover:text-gray-900 transition-colors">
-                                Catálogo
+                                Shop Online
                             </Link>
                             <span>/</span>
                             <span className="text-gray-900 font-medium truncate max-w-xs">
@@ -47,9 +47,9 @@ export default function ProductHeader({ groupedProduct, displayProduct }: Produc
                         </nav>
 
                         {/* Badge de categoría */}
-                        <div className="inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium bg-gray-100 text-gray-800 mb-1 sm:mb-2">
+                        {/* <div className="inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium bg-gray-100 text-gray-800 mb-1 sm:mb-2">
                             {displayProduct.Rubro || 'Sin categoría'}
-                        </div>
+                        </div> */}
                     </div>
 
                     {/* Acciones */}

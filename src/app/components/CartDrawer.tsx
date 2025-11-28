@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShoppingCart, ArrowRight } from 'lucide-react';
 import { useCart } from './hooks/useCart';
@@ -27,8 +27,20 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
         updateQuantity,
         removeFromCart,
         clearCart,
+        isWholesale,
     } = useCart();
     const { isOpen: isConfirmModalOpen, loading, modalOptions, showModal, closeModal, handleConfirm } = useConfirmModal();
+
+    // Ordenar items por categoría para agrupar productos del mismo tipo
+    const sortedItems = useMemo(() => {
+        return [...items].sort((a, b) => {
+            const categoriaA = a.product.categoria || 'Sin categoría';
+            const categoriaB = b.product.categoria || 'Sin categoría';
+            
+            // Ordenar alfabéticamente por categoría
+            return categoriaA.localeCompare(categoriaB, 'es', { sensitivity: 'base' });
+        });
+    }, [items]);
 
     const handleGoToCart = () => {
         onClose();
@@ -109,7 +121,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                 <EmptyCart onClose={onClose} />
                             ) : (
                                 <div className="space-y-4">
-                                    {items.map((item) => (
+                                    {sortedItems.map((item) => (
                                         <CartItem
                                             key={item.product.id}
                                             item={item}
@@ -124,6 +136,23 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                         {/* Footer */}
                         {!isEmpty && (
                             <div className="border-t border-gray-200 p-6 space-y-4 bg-white shadow-lg flex-shrink-0">
+                                {/* Alerta Mayorista */}
+                                {isWholesale() && (
+                                    <div className="bg-gradient-to-r from-[#Ed3237] to-red-700 text-white p-4 rounded-lg border-2 border-[#Ed3237] mb-4">
+                                        <div className="flex items-start gap-2">
+                                            <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <div>
+                                                <h3 className="font-bold text-sm mb-1">🏢 PEDIDO MAYORISTA</h3>
+                                                <p className="text-xs text-white/95 leading-relaxed">
+                                                    Tu pedido de {itemCount} unidades ingresará automáticamente en formato mayorista. Un asesor se pondrá en contacto para ofrecerte la cotización personalizada.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Resumen - COMENTADO TEMPORALMENTE (sin precios por ahora) */}
                                 {/* <div className="space-y-2">
                                     <div className="flex justify-between text-gray-600">

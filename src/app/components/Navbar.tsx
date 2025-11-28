@@ -1,27 +1,34 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ShoppingCart, User, Search } from 'lucide-react';
+import { Menu, X, ShoppingCart, User, Search, ChevronDown, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { useNavigation } from '../hooks/useNavigation';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import CartDrawer from './CartDrawer';
 import { useCart } from './hooks/useCart';
+import { useShopCategories } from '../hooks/useShopCategories';
+import WholesaleBanner from './WholesaleBanner';
 
 const Navbar = () => {
     const {
         isMenuOpen,
         toggleMenu
     } = useNavigation();
-    const { itemCount } = useCart();
+    const { itemCount, isWholesale } = useCart();
+    const { categories, isLoading: categoriesLoading } = useShopCategories();
+    const router = useRouter();
 
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const [isShopSubmenuOpen, setIsShopSubmenuOpen] = useState(false);
+    const [isMobileShopSubmenuOpen, setIsMobileShopSubmenuOpen] = useState(false);
     const pathname = usePathname();
+    const shopMenuRef = useRef<HTMLDivElement>(null);
 
     const menuItems = [
         { id: 'inicio', label: 'INICIO', href: '/#inicio', paths: ['/', '/#inicio'] },
         { id: 'personalizados', label: 'UNIFORMES PERSONALIZADOS', href: '/personalizados', paths: ['/personalizados'] },
-        { id: 'catalogo', label: 'CATÁLOGO', href: '/catalogo', paths: ['/catalogo', '/producto'] },
+        { id: 'shoponline', label: 'SHOP ONLINE', href: '/shoponline', paths: ['/shoponline', '/producto'] },
         { id: 'nosotros', label: 'NOSOTROS', href: '/#nosotros', paths: ['/#nosotros'] },
         { id: 'clientes', label: 'CLIENTES', href: '/#testimonios', paths: ['/#testimonios'] },
         { id: 'contacto', label: 'CONTACTO', href: '/#contacto', paths: ['/#contacto'] }
@@ -32,6 +39,23 @@ const Navbar = () => {
         window.location.href = item.href;
     };
 
+    // Cerrar submenú al hacer click fuera
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (shopMenuRef.current && !shopMenuRef.current.contains(event.target as Node)) {
+                setIsShopSubmenuOpen(false);
+            }
+        };
+
+        if (isShopSubmenuOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isShopSubmenuOpen]);
+
     // Función para detectar si un link está activo - SIMPLE Y UNIFORME - SIEMPRE IGUAL
     const isLinkActive = (item: typeof menuItems[0]): boolean => {
         const currentPath = pathname || '';
@@ -39,15 +63,33 @@ const Navbar = () => {
         // Home
         if (currentPath === '/' && item.id === 'inicio') return true;
         
-        // Catálogo (incluye páginas de producto)
-        if (item.id === 'catalogo') {
-            return currentPath === '/catalogo' || currentPath.startsWith('/producto/');
+        // Shop Online (incluye páginas de producto)
+        if (item.id === 'shoponline') {
+            return currentPath === '/shoponline' || currentPath.startsWith('/producto/');
         }
         
         // Personalizados
         if (currentPath === '/personalizados' && item.id === 'personalizados') return true;
         
         return false;
+    };
+
+    // Función para navegar con filtro
+    const handleCategoryNavigation = (type: 'rubro' | 'subrubro' | 'genero', value: string) => {
+        const params = new URLSearchParams();
+        
+        if (type === 'rubro') {
+            params.set('rubro', value);
+        } else if (type === 'subrubro') {
+            params.set('subrubro', value);
+        } else if (type === 'genero') {
+            params.set('genero', value.toLowerCase());
+        }
+        
+        router.push(`/shoponline?${params.toString()}`);
+        setIsShopSubmenuOpen(false);
+        setIsMobileShopSubmenuOpen(false);
+        if (isMenuOpen) toggleMenu();
     };
 
     // Clases de texto UNIFORMES para todas las páginas - SIEMPRE IGUALES
@@ -64,7 +106,7 @@ const Navbar = () => {
                 initial={{ y: -100 }}
                 animate={{ y: 0 }}
                 transition={{ duration: 0.2, ease: 'easeInOut' }}
-                className="bg-white sticky top-0 w-full z-50 border-b border-gray-200 shadow-sm"
+                className="bg-white sticky top-0 w-full z-50 border-b border-gray-200 shadow-sm relative"
                 style={{ backgroundColor: '#FFFFFF' }}
             >
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -186,22 +228,139 @@ const Navbar = () => {
                     </div>
 
                     {/* Segunda fila: Links de navegación (Desktop) */}
-                    <div className="hidden lg:flex items-center justify-center space-x-8 py-3 border-t border-gray-100">
-                        {menuItems.map((item, index) => (
-                            <motion.button
-                                key={item.id}
-                                initial={{ y: -20, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ delay: index * 0.1 }}
-                                onClick={() => handleNavigation(item)}
-                                className={`text-xs font-medium transition-all duration-300 tracking-wide ${
-                                    isLinkActive(item) ? textClasses.active : textClasses.inactive
-                                }`}
-                                aria-label={`Ir a sección ${item.label}`}
-                            >
-                                {item.label}
-                            </motion.button>
-                        ))}
+                    <div className="hidden lg:block border-t border-gray-100">
+                        <div className="flex items-center justify-center space-x-8 py-3">
+                            {menuItems.map((item, index) => {
+                                if (item.id === 'shoponline') {
+                                    return (
+                                        <div
+                                            key={item.id}
+                                            ref={shopMenuRef}
+                                            className="relative"
+                                            onMouseEnter={() => setIsShopSubmenuOpen(true)}
+                                            onMouseLeave={() => setIsShopSubmenuOpen(false)}
+                                        >
+                                            <motion.button
+                                                initial={{ y: -20, opacity: 0 }}
+                                                animate={{ y: 0, opacity: 1 }}
+                                                transition={{ delay: index * 0.1 }}
+                                                onClick={() => handleNavigation(item)}
+                                                className={`text-xs font-medium transition-all duration-300 tracking-wide flex items-center gap-1 ${
+                                                    isLinkActive(item) ? textClasses.active : textClasses.inactive
+                                                }`}
+                                                aria-label={`Ir a ${item.label}`}
+                                            >
+                                                {item.label}
+                                                <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isShopSubmenuOpen ? 'rotate-180' : ''}`} />
+                                            </motion.button>
+                                        </div>
+                                    );
+                                }
+
+                                return (
+                                    <motion.button
+                                        key={item.id}
+                                        initial={{ y: -20, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        transition={{ delay: index * 0.1 }}
+                                        onClick={() => handleNavigation(item)}
+                                        className={`text-xs font-medium transition-all duration-300 tracking-wide ${
+                                            isLinkActive(item) ? textClasses.active : textClasses.inactive
+                                        }`}
+                                        aria-label={`Ir a sección ${item.label}`}
+                                    >
+                                        {item.label}
+                                    </motion.button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Submenú Horizontal Desktop - Extensión del navbar */}
+                        <AnimatePresence>
+                            {isShopSubmenuOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="absolute left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50"
+                                    style={{ top: '100%' }}
+                                    onMouseEnter={() => setIsShopSubmenuOpen(true)}
+                                    onMouseLeave={() => setIsShopSubmenuOpen(false)}
+                                >
+                                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            {/* Géneros */}
+                                            {categories.generos.length > 0 && (
+                                                <div>
+                                                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-200">GÉNERO</h3>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {categories.generos.map((genero) => (
+                                                            <button
+                                                                key={genero}
+                                                                onClick={() => handleCategoryNavigation('genero', genero.toLowerCase())}
+                                                                className="px-3 py-1.5 text-xs text-gray-700 hover:text-[#Ed3237] hover:bg-gray-50 rounded transition-all duration-200 whitespace-nowrap"
+                                                            >
+                                                                {genero}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Rubros */}
+                                            {categories.rubros.length > 0 && (
+                                                <div>
+                                                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-200">RUBROS</h3>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {categories.rubros.map((rubro) => (
+                                                            <button
+                                                                key={rubro}
+                                                                onClick={() => handleCategoryNavigation('rubro', rubro)}
+                                                                className="px-3 py-1.5 text-xs text-gray-700 hover:text-[#Ed3237] hover:bg-gray-50 rounded transition-all duration-200 whitespace-nowrap"
+                                                            >
+                                                                {rubro}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Subrubros */}
+                                            {categories.subrubros.length > 0 && (
+                                                <div>
+                                                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-200">CATEGORÍAS</h3>
+                                                    <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
+                                                        {categories.subrubros.map((subrubro) => (
+                                                            <button
+                                                                key={subrubro}
+                                                                onClick={() => handleCategoryNavigation('subrubro', subrubro)}
+                                                                className="px-3 py-1.5 text-xs text-gray-700 hover:text-[#Ed3237] hover:bg-gray-50 rounded transition-all duration-200 whitespace-nowrap"
+                                                            >
+                                                                {subrubro}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Ver todo */}
+                                        <div className="mt-4 pt-4 border-t border-gray-200 text-center">
+                                            <button
+                                                onClick={() => {
+                                                    router.push('/shoponline');
+                                                    setIsShopSubmenuOpen(false);
+                                                }}
+                                                className="px-6 py-2 text-xs font-semibold text-[#Ed3237] hover:bg-[#Ed3237] hover:text-white rounded transition-all duration-200"
+                                            >
+                                                VER TODO
+                                            </button>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
                 </div>
 
@@ -213,33 +372,153 @@ const Navbar = () => {
                             animate={{ opacity: 1, height: 'auto', y: 0 }}
                             exit={{ opacity: 0, height: 0, y: -20 }}
                             transition={{ duration: 0.4, ease: 'easeInOut' }}
-                            className="lg:hidden bg-white border-t border-gray-200"
+                            className="lg:hidden bg-white border-t border-gray-200 max-h-[calc(100vh-80px)] overflow-y-auto"
                             style={{ backgroundColor: '#FFFFFF' }}
                         >
-                            <div className="px-4 py-6 space-y-4">
-                                {menuItems.map((item, index) => (
-                                    <motion.button
-                                        key={item.id}
-                                        initial={{ x: -50, opacity: 0 }}
-                                        animate={{ x: 0, opacity: 1 }}
-                                        transition={{ delay: index * 0.1 }}
-                                        onClick={() => handleNavigation(item)}
-                                        className={`block w-full text-left px-3 py-2 font-medium tracking-wide transition-all duration-300 rounded-lg ${
-                                            isLinkActive(item)
-                                                ? 'text-[#Ed3237] bg-gray-50 font-semibold'
-                                                : 'text-[#000000] hover:text-[#Ed3237] hover:bg-gray-50'
-                                        }`}
-                                        aria-label={`Ir a sección ${item.label}`}
-                                    >
-                                        {item.label}
-                                    </motion.button>
-                                ))}
+                            <div className="px-4 py-6 space-y-2">
+                                {menuItems.map((item, index) => {
+                                    if (item.id === 'shoponline') {
+                                        return (
+                                            <div key={item.id}>
+                                                <motion.button
+                                                    initial={{ x: -50, opacity: 0 }}
+                                                    animate={{ x: 0, opacity: 1 }}
+                                                    transition={{ delay: index * 0.1 }}
+                                                    onClick={() => setIsMobileShopSubmenuOpen(!isMobileShopSubmenuOpen)}
+                                                    className={`w-full flex items-center justify-between px-3 py-2 font-medium tracking-wide transition-all duration-300 rounded-lg ${
+                                                        isLinkActive(item)
+                                                            ? 'text-[#Ed3237] bg-gray-50 font-semibold'
+                                                            : 'text-[#000000] hover:text-[#Ed3237] hover:bg-gray-50'
+                                                    }`}
+                                                    aria-label={`Ir a ${item.label}`}
+                                                >
+                                                    <span>{item.label}</span>
+                                                    <ChevronRight className={`w-4 h-4 transition-transform duration-300 ${isMobileShopSubmenuOpen ? 'rotate-90' : ''}`} />
+                                                </motion.button>
+
+                                                {/* Submenú Mobile - Horizontal con scroll */}
+                                                <AnimatePresence>
+                                                    {isMobileShopSubmenuOpen && (
+                                                        <motion.div
+                                                            initial={{ height: 0, opacity: 0 }}
+                                                            animate={{ height: 'auto', opacity: 1 }}
+                                                            exit={{ height: 0, opacity: 0 }}
+                                                            transition={{ duration: 0.3 }}
+                                                            className="overflow-hidden"
+                                                        >
+                                                            <div className="pl-6 pr-3 py-3 bg-gray-50 rounded-lg mt-1">
+                                                                {/* Géneros */}
+                                                                {categories.generos.length > 0 && (
+                                                                    <div className="mb-4">
+                                                                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">GÉNERO</h3>
+                                                                        <div className="overflow-x-auto -mx-2 px-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                                                                            <div className="flex gap-2 pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
+                                                                                {categories.generos.map((genero) => (
+                                                                                    <button
+                                                                                        key={genero}
+                                                                                        onClick={() => handleCategoryNavigation('genero', genero.toLowerCase())}
+                                                                                        className="flex-shrink-0 px-4 py-2 text-xs text-gray-700 hover:text-[#Ed3237] hover:bg-white rounded transition-all duration-200 whitespace-nowrap border border-gray-200"
+                                                                                    >
+                                                                                        {genero}
+                                                                                    </button>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Rubros */}
+                                                                {categories.rubros.length > 0 && (
+                                                                    <div className="mb-4 border-t border-gray-200 pt-4">
+                                                                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">RUBROS</h3>
+                                                                        <div className="overflow-x-auto -mx-2 px-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                                                                            <div className="flex gap-2 pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
+                                                                                {categories.rubros.map((rubro) => (
+                                                                                    <button
+                                                                                        key={rubro}
+                                                                                        onClick={() => handleCategoryNavigation('rubro', rubro)}
+                                                                                        className="flex-shrink-0 px-4 py-2 text-xs text-gray-700 hover:text-[#Ed3237] hover:bg-white rounded transition-all duration-200 whitespace-nowrap border border-gray-200"
+                                                                                    >
+                                                                                        {rubro}
+                                                                                    </button>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Subrubros */}
+                                                                {categories.subrubros.length > 0 && (
+                                                                    <div className="mb-4 border-t border-gray-200 pt-4">
+                                                                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">CATEGORÍAS</h3>
+                                                                        <div className="overflow-x-auto -mx-2 px-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                                                                            <div className="flex gap-2 pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
+                                                                                {categories.subrubros.map((subrubro) => (
+                                                                                    <button
+                                                                                        key={subrubro}
+                                                                                        onClick={() => handleCategoryNavigation('subrubro', subrubro)}
+                                                                                        className="flex-shrink-0 px-4 py-2 text-xs text-gray-700 hover:text-[#Ed3237] hover:bg-white rounded transition-all duration-200 whitespace-nowrap border border-gray-200"
+                                                                                    >
+                                                                                        {subrubro}
+                                                                                    </button>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Ver todo */}
+                                                                <div className="border-t border-gray-200 pt-4">
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            router.push('/shoponline');
+                                                                            setIsMobileShopSubmenuOpen(false);
+                                                                            if (isMenuOpen) toggleMenu();
+                                                                        }}
+                                                                        className="w-full text-center px-3 py-2 text-xs font-semibold text-[#Ed3237] hover:bg-[#Ed3237] hover:text-white rounded transition-all duration-200"
+                                                                    >
+                                                                        VER TODO
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+                                        );
+                                    }
+
+                                    return (
+                                        <motion.button
+                                            key={item.id}
+                                            initial={{ x: -50, opacity: 0 }}
+                                            animate={{ x: 0, opacity: 1 }}
+                                            transition={{ delay: index * 0.1 }}
+                                            onClick={() => handleNavigation(item)}
+                                            className={`block w-full text-left px-3 py-2 font-medium tracking-wide transition-all duration-300 rounded-lg ${
+                                                isLinkActive(item)
+                                                    ? 'text-[#Ed3237] bg-gray-50 font-semibold'
+                                                    : 'text-[#000000] hover:text-[#Ed3237] hover:bg-gray-50'
+                                            }`}
+                                            aria-label={`Ir a sección ${item.label}`}
+                                        >
+                                            {item.label}
+                                        </motion.button>
+                                    );
+                                })}
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
                 <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
             </motion.nav>
+
+            {/* Banner Mayorista - Solo si supera 20 unidades y no está en checkout */}
+            {isWholesale() && pathname !== '/checkout' && (
+                <div className="w-full shadow-md">
+                    <WholesaleBanner />
+                </div>
+            )}
         </>
     );
 };

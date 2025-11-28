@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Package, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
 import Image from 'next/image';
@@ -27,6 +27,27 @@ export default function ProductImageGallery({
     onPrev,
     onOpenModal,
 }: ProductImageGalleryProps) {
+    const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
+    const [isHovering, setIsHovering] = useState(false);
+    const imageRef = useRef<HTMLDivElement>(null);
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!imageRef.current) return;
+        const rect = imageRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        setMousePosition({ x, y });
+    };
+
+    const handleMouseLeave = () => {
+        setIsHovering(false);
+        setMousePosition(null);
+    };
+
+    const handleMouseEnter = () => {
+        setIsHovering(true);
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, x: -50 }}
@@ -44,23 +65,50 @@ export default function ProductImageGallery({
                 /* Fallback: mostrar galería local con miniaturas */
                 <div className="space-y-2 sm:space-y-3 lg:space-y-4">
                     {/* Imagen principal */}
-                    <div className="relative group">
+                    <div className="relative group max-w-md mx-auto">
                         <div
-                            className="aspect-[3/4] bg-gray-100 rounded-lg overflow-hidden cursor-pointer"
+                            ref={imageRef}
+                            className="relative aspect-[3/4] bg-gray-100 rounded-lg overflow-hidden cursor-zoom-in"
                             onClick={onOpenModal}
+                            onMouseMove={handleMouseMove}
+                            onMouseEnter={handleMouseEnter}
+                            onMouseLeave={handleMouseLeave}
                         >
                             {images.length > 0 && images[currentImageIndex] ? (
                                 <>
                                     <Image
                                         src={images[currentImageIndex]}
                                         alt={`${productName} - Imagen ${currentImageIndex + 1}`}
-                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                        className="w-full h-full object-contain"
                                         width={600}
                                         height={600}
                                     />
+                                    {/* Efecto de zoom en círculo */}
+                                    {isHovering && mousePosition && imageRef.current && (
+                                        <div
+                                            className="absolute pointer-events-none z-10 rounded-full border-2 border-white shadow-2xl overflow-hidden"
+                                            style={{
+                                                width: '150px',
+                                                height: '150px',
+                                                left: `${mousePosition.x}px`,
+                                                top: `${mousePosition.y}px`,
+                                                transform: 'translate(-50%, -50%)',
+                                            }}
+                                        >
+                                            <div
+                                                className="w-full h-full"
+                                                style={{
+                                                    backgroundImage: `url(${images[currentImageIndex]})`,
+                                                    backgroundSize: `${(imageRef.current.offsetWidth / 150) * 100}% auto`,
+                                                    backgroundPosition: `${(mousePosition.x / imageRef.current.offsetWidth) * 100}% ${(mousePosition.y / imageRef.current.offsetHeight) * 100}%`,
+                                                    backgroundRepeat: 'no-repeat',
+                                                }}
+                                            />
+                                        </div>
+                                    )}
                                     {/* Botón para expandir */}
                                     {images.length > 1 && (
-                                        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full p-1.5 sm:p-2 transition-all duration-300">
+                                        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full p-1.5 sm:p-2 transition-all duration-300 z-20">
                                             <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                                         </div>
                                     )}
@@ -72,7 +120,7 @@ export default function ProductImageGallery({
                                                     e.stopPropagation();
                                                     onPrev();
                                                 }}
-                                                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full p-1.5 sm:p-2 transition-all duration-300 opacity-0 group-hover:opacity-100"
+                                                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full p-1.5 sm:p-2 transition-all duration-300 opacity-0 group-hover:opacity-100 z-20"
                                                 aria-label="Imagen anterior"
                                             >
                                                 <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
@@ -82,7 +130,7 @@ export default function ProductImageGallery({
                                                     e.stopPropagation();
                                                     onNext();
                                                 }}
-                                                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full p-1.5 sm:p-2 transition-all duration-300 opacity-0 group-hover:opacity-100"
+                                                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full p-1.5 sm:p-2 transition-all duration-300 opacity-0 group-hover:opacity-100 z-20"
                                                 aria-label="Siguiente imagen"
                                             >
                                                 <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6 text-white" />

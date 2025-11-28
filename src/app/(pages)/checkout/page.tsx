@@ -7,6 +7,7 @@ import { useCart } from '@/app/components/hooks/useCart';
 import CheckoutStep1 from '@/app/components/checkout/CheckoutStep1';
 import CheckoutStep2 from '@/app/components/checkout/CheckoutStep2';
 import CheckoutStep3 from '@/app/components/checkout/CheckoutStep3';
+import WholesaleBanner from '@/app/components/WholesaleBanner';
 
 const STEPS = [
   { number: 1, title: 'Pedido' },
@@ -16,7 +17,7 @@ const STEPS = [
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, itemCount } = useCart();
+  const { items, itemCount, isWholesale } = useCart();
   const [currentStep, setCurrentStep] = useState(1);
 
   // Redirect if cart is empty
@@ -40,6 +41,13 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
+      {/* Banner Mayorista - Solo si supera 20 unidades */}
+      {isWholesale() && (
+        <div className="flex-shrink-0 w-full">
+          <WholesaleBanner />
+        </div>
+      )}
+
       {/* Header - Compact */}
       <div className="flex-shrink-0 border-b border-gray-200 py-3 sticky top-0 bg-white z-10">
         <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

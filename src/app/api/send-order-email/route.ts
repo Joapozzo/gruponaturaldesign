@@ -48,21 +48,44 @@ export async function POST(request: NextRequest) {
       itemCount,
     });
 
-    // Enviar email
-    const info = await transporter.sendMail({
+    // Enviar email al cliente
+    const clientEmail = await transporter.sendMail({
       from: `"GND - Natural Design" <${process.env.SMTP_USER}>`,
       to: to,
       subject: subject,
       html: emailHTML,
     });
 
-    console.log('✅ Email enviado exitosamente:', info.messageId);
+    // Enviar email de notificación interna
+    const internalEmailHTML = generateInternalEmailHTML({
+      customerData,
+      shippingData,
+      paymentData,
+      items,
+      itemCount,
+    });
+
+    const internalEmail = await transporter.sendMail({
+      from: `"GND - Natural Design" <${process.env.SMTP_USER}>`,
+      to: 'rovalencia@naturalonline.com.ar',
+      subject: `🛍️ Nuevo Pedido - ${customerData.nombre} ${customerData.apellido}`,
+      html: internalEmailHTML,
+    });
+
+    console.log('✅ Emails enviados exitosamente:', {
+      cliente: clientEmail.messageId,
+      interno: internalEmail.messageId,
+    });
 
     return NextResponse.json({
       success: true,
-      message: 'Email enviado exitosamente',
+      message: 'Emails enviados exitosamente',
       to,
-      messageId: info.messageId,
+      internalTo: 'rovalencia@naturalonline.com.ar',
+      messageIds: {
+        cliente: clientEmail.messageId,
+        interno: internalEmail.messageId,
+      },
     });
 
   } catch (error) {
@@ -434,10 +457,22 @@ function generateOrderEmailHTML(data: {
             <span class="info-value">${customerData.empresa}</span>
           </div>
           ` : ''}
+          ${customerData.cuit ? `
+          <div class="info-row">
+            <span class="info-label">🏛️ CUIT:</span>
+            <span class="info-value">${customerData.cuit}</span>
+          </div>
+          ` : ''}
           ${customerData.documento ? `
           <div class="info-row">
             <span class="info-label">🧾 ${customerData.tipo_documento}:</span>
             <span class="info-value">${customerData.documento}</span>
+          </div>
+          ` : ''}
+          ${customerData.fecha_nacimiento ? `
+          <div class="info-row">
+            <span class="info-label">🎂 Fecha de Nacimiento:</span>
+            <span class="info-value">${customerData.fecha_nacimiento}</span>
           </div>
           ` : ''}
         </div>
@@ -471,12 +506,6 @@ function generateOrderEmailHTML(data: {
             <span class="info-label">📮 Código Postal:</span>
             <span class="info-value">${shippingData.codigo_postal}</span>
           </div>
-          ${shippingData.fecha_entrega ? `
-          <div class="info-row">
-            <span class="info-label">🗓️ Fecha preferida:</span>
-            <span class="info-value">${shippingData.fecha_entrega}</span>
-          </div>
-          ` : ''}
           ` : `
           <div class="info-row">
             <span class="info-label">🏬 Tipo:</span>
@@ -588,4 +617,208 @@ function getPaymentMethodName(metodo: string): string {
     tarjeta: 'Tarjeta',
   };
   return methods[metodo] || metodo;
+}
+
+/**
+ * Genera el HTML del email interno de notificación
+ */
+function generateInternalEmailHTML(data: {
+  customerData: CustomerData;
+  shippingData: ShippingData;
+  paymentData: PaymentData;
+  items: CartItem[];
+  itemCount: number;
+}): string {
+  const { customerData, shippingData, paymentData, items, itemCount } = data;
+  const timestamp = new Date().toLocaleString('es-AR', {
+    dateStyle: 'full',
+    timeStyle: 'medium',
+  });
+
+  return `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nuevo Pedido - GND</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .header {
+      background: #000;
+      color: white;
+      padding: 20px;
+      border-radius: 8px 8px 0 0;
+      margin: -30px -30px 20px -30px;
+      text-align: center;
+    }
+    .section {
+      margin: 20px 0;
+      padding: 15px;
+      background: #f9f9f9;
+      border-left: 4px solid #Ed3237;
+      border-radius: 4px;
+    }
+    .section-title {
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 10px;
+      color: #000;
+    }
+    .info-row {
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    .info-label {
+      font-weight: bold;
+      display: inline-block;
+      min-width: 150px;
+    }
+    .product-item {
+      background: white;
+      padding: 15px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .footer {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 2px solid #eee;
+      text-align: center;
+      color: #666;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🛍️ NUEVO PEDIDO RECIBIDO</h1>
+      <p>Fecha: ${timestamp}</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">👤 DATOS DEL CLIENTE</div>
+      <div class="info-row">
+        <span class="info-label">Nombre:</span>
+        <span>${customerData.nombre} ${customerData.apellido}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Email:</span>
+        <span>${customerData.email}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Teléfono:</span>
+        <span>${customerData.telefono}</span>
+      </div>
+      ${customerData.empresa ? `
+      <div class="info-row">
+        <span class="info-label">Empresa:</span>
+        <span>${customerData.empresa}</span>
+      </div>
+      ` : ''}
+      ${customerData.cuit ? `
+      <div class="info-row">
+        <span class="info-label">CUIT:</span>
+        <span>${customerData.cuit}</span>
+      </div>
+      ` : ''}
+      ${customerData.documento ? `
+      <div class="info-row">
+        <span class="info-label">${customerData.tipo_documento}:</span>
+        <span>${customerData.documento}</span>
+      </div>
+      ` : ''}
+      ${customerData.fecha_nacimiento ? `
+      <div class="info-row">
+        <span class="info-label">Fecha de Nacimiento:</span>
+        <span>${customerData.fecha_nacimiento}</span>
+      </div>
+      ` : ''}
+    </div>
+
+    <div class="section">
+      <div class="section-title">📦 DATOS DE ENTREGA</div>
+      ${shippingData.tipo === 'envio' ? `
+      <div class="info-row">
+        <span class="info-label">Tipo:</span>
+        <span>Envío a domicilio</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Dirección:</span>
+        <span>${shippingData.direccion}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Localidad:</span>
+        <span>${shippingData.localidad}, ${shippingData.provincia}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Código Postal:</span>
+        <span>${shippingData.codigo_postal}</span>
+      </div>
+      ` : `
+      <div class="info-row">
+        <span class="info-label">Tipo:</span>
+        <span>Retiro en tienda</span>
+      </div>
+      `}
+      ${shippingData.notas ? `
+      <div class="info-row">
+        <span class="info-label">Notas:</span>
+        <span>${shippingData.notas}</span>
+      </div>
+      ` : ''}
+    </div>
+
+    <div class="section">
+      <div class="section-title">💰 FORMA DE PAGO</div>
+      <div class="info-row">
+        <span class="info-label">Método:</span>
+        <span>${getPaymentMethodName(paymentData.metodo)}</span>
+      </div>
+      ${paymentData.notas ? `
+      <div class="info-row">
+        <span class="info-label">Notas:</span>
+        <span>${paymentData.notas}</span>
+      </div>
+      ` : ''}
+    </div>
+
+    <div class="section">
+      <div class="section-title">🛒 PRODUCTOS (${itemCount} unidades)</div>
+      ${items.map((item, index) => `
+      <div class="product-item">
+        <strong>${index + 1}. ${item.product.nombre}</strong>
+        ${item.especificaciones ? `<br/><small style="color: #666;">${item.especificaciones}</small>` : ''}
+        <br/><span style="color: #Ed3237; font-weight: bold;">Cantidad: ${item.quantity} unidades</span>
+      </div>
+      `).join('')}
+    </div>
+
+    <div class="footer">
+      <p>Este es un email automático de notificación de nuevo pedido.</p>
+      <p>GND - Natural Design</p>
+    </div>
+  </div>
+</body>
+</html>
+  `.trim();
 }

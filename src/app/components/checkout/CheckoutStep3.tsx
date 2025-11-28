@@ -28,6 +28,7 @@ const PAYMENT_METHODS = [
     id: 'transferencia',
     name: 'Transferencia',
     description: 'Datos bancarios por WhatsApp',
+    badge: '-15% OFF',
     icon: <RiBankLine />,
   },
   {
@@ -40,6 +41,8 @@ const PAYMENT_METHODS = [
     id: 'tarjeta',
     name: 'Tarjeta',
     description: 'Crédito o débito',
+    badge: 'Hasta 3 cuotas sin interés',
+    badgeCondition: 'Compras superiores a $200.000',
     icon: <FaRegCreditCard />,
   },
 ];
@@ -85,8 +88,16 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
       message += `🏢 Empresa: ${customerData.empresa}\n`;
     }
   
+    if (customerData?.cuit) {
+      message += `🏛️ CUIT: ${customerData.cuit}\n`;
+    }
+  
     if (customerData?.documento) {
       message += `🧾 ${customerData.tipo_documento}: ${customerData.documento}\n`;
+    }
+  
+    if (customerData?.fecha_nacimiento) {
+      message += `🎂 Fecha de Nacimiento: ${customerData.fecha_nacimiento}\n`;
     }
   
     message += '\n──────────────────────\n\n';
@@ -101,9 +112,6 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
       message += `🗺️ Provincia: ${shippingData.provincia}\n`;
       message += `📮 Código Postal: ${shippingData.codigo_postal}\n`;
   
-      if (shippingData.fecha_entrega) {
-        message += `🗓️ Fecha preferida: ${shippingData.fecha_entrega}\n`;
-      }
     } else {
       message += `🏬 Tipo: Retiro en tienda\n`;
     }
@@ -187,7 +195,7 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
       setPaymentData(payment);
 
       const whatsappMessage = generateWhatsAppMessage();
-      const whatsappNumber = '5493517136316';
+      const whatsappNumber = '5493517136311'; // +54 9 3517 13-6311
       const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
 
       // Enviar email en segundo plano (no bloquea)
@@ -369,13 +377,23 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
               <div className="flex items-center gap-3">
                 <span className="text-2xl text-black">{method.icon}</span>
                 <div className="flex-1">
-                  <h4
-                    className={`font-semibold text-sm ${payment.metodo === method.id ? 'text-black' : 'text-gray-900'
-                      }`}
-                  >
-                    {method.name}
-                  </h4>
+                  <div className="flex items-center gap-2">
+                    <h4
+                      className={`font-semibold text-sm ${payment.metodo === method.id ? 'text-black' : 'text-gray-900'
+                        }`}
+                    >
+                      {method.name}
+                    </h4>
+                    {method.badge && (
+                      <span className="text-xs bg-red-600 text-white px-2 py-0.5 rounded font-bold">
+                        {method.badge}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-600">{method.description}</p>
+                  {method.badgeCondition && (
+                    <p className="text-xs text-gray-500 mt-0.5 italic">{method.badgeCondition}</p>
+                  )}
                 </div>
                 {payment.metodo === method.id && (
                   <div className="w-5 h-5 bg-black rounded-full flex items-center justify-center flex-shrink-0">
@@ -401,6 +419,21 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
           />
         </div>
 
+        {/* Payment Info Box */}
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs text-gray-700">
+          <p className="font-bold text-black mb-2">MEDIOS DE PAGO</p>
+          <ul className="space-y-1.5">
+            <li className="flex items-start gap-2">
+              <span className="text-red-600 font-bold">•</span>
+              <span><strong>Transferencia:</strong> -15% OFF</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-red-600 font-bold">•</span>
+              <span><strong>Tarjeta:</strong> Hasta 3 cuotas sin interés para compras superiores a $200.000</span>
+            </li>
+          </ul>
+        </div>
+
         {/* Info Box */}
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs text-gray-700">
           <p className="font-bold text-black mb-2">¿QUÉ SUCEDE DESPUÉS?</p>
@@ -414,7 +447,8 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
         {/* Action Buttons */}
         <div className="flex gap-3">
           <Button variant="blackOutline" size="md" onClick={onBack} disabled={isProcessing}>
-            <ArrowLeft />
+            <ArrowLeft className="mr-2" />
+            VOLVER
           </Button>
           <Button
             variant="black"

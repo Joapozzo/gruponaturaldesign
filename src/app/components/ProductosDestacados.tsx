@@ -77,7 +77,7 @@ const ProductosDestacados = () => {
                 id="productos"
                 className="bg-gray-50"
                 title='Productos destacados'
-                subtitle='Lo mejor de nuestro catálogo en diseño, calidad y funcionalidad.'
+                subtitle='Lo mejor de nuestro shop online en diseño, calidad y funcionalidad.'
                 contentClassName='max-w-7xl mx-auto px-10'
             >
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -97,7 +97,7 @@ const ProductosDestacados = () => {
                 id="productos"
                 className="bg-gray-50"
                 title='Productos destacados'
-                subtitle='Lo mejor de nuestro catálogo en diseño, calidad y funcionalidad.'
+                subtitle='Lo mejor de nuestro shop online en diseño, calidad y funcionalidad.'
                 contentClassName='max-w-7xl mx-auto px-10'
             >
                 <div className="text-center py-20 text-gray-500">
@@ -112,7 +112,7 @@ const ProductosDestacados = () => {
             id="productos"
             className="bg-gray-50"
             title='Productos destacados'
-            subtitle='Lo mejor de nuestro catálogo en diseño, calidad y funcionalidad.'
+            subtitle='Lo mejor de nuestro shop online en diseño, calidad y funcionalidad.'
             contentClassName='max-w-7xl mx-auto px-10'
         >
             {/* Slider de productos */}
@@ -209,7 +209,7 @@ const ProductosDestacados = () => {
                         className="tracking-wide inline-flex items-center space-x-3"
                         onClick={goToPage}
                     >
-                        <span>VER CATÁLOGO COMPLETO</span>
+                        <span>VER SHOP COMPLETO</span>
                         <ArrowRight className="w-5 h-5" />
                     </Button>
                 </motion.div>

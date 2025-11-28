@@ -22,7 +22,7 @@ export default function ProductNotFound() {
                     className="inline-flex items-center space-x-2"
                 >
                     <ArrowLeft size={16} />
-                    <span>Volver al Catálogo</span>
+                    <span>Volver al Shop Online</span>
                 </Button>
             </div>
         </div>

@@ -113,11 +113,17 @@ export const useCartStore = create<CartState>()(
 
             generateWhatsAppMessage: () => {
                 const state = get();
-                const { items, customerData, shippingData, subtotal, iva, total } = state;
+                const { items, customerData, shippingData, subtotal, iva, total, itemCount } = state;
 
                 if (!customerData) return '';
 
-                let message = `🛍️ *NUEVO PEDIDO - NTDS*\n\n`;
+                const isWholesale = itemCount > 20;
+
+                let message = `🛍️ *${isWholesale ? 'PEDIDO MAYORISTA' : 'NUEVO PEDIDO'} - NTDS*\n\n`;
+                if (isWholesale) {
+                    message += `🏢 *PEDIDO MAYORISTA* (${itemCount} unidades)\n`;
+                    message += `Este pedido requiere cotización personalizada mayorista.\n\n`;
+                }
                 message += `📋 *DATOS DEL CLIENTE*\n`;
                 message += `Nombre: ${customerData.nombre} ${customerData.apellido}\n`;
                 message += `Email: ${customerData.email}\n`;
@@ -151,9 +157,20 @@ export const useCartStore = create<CartState>()(
                 });
 
                 message += `💰 *RESUMEN*\n`;
-                message += `Subtotal: $${subtotal.toLocaleString('es-AR')}\n`;
-                if (iva > 0) message += `IVA (21%): $${iva.toLocaleString('es-AR')}\n`;
-                message += `*TOTAL: $${total.toLocaleString('es-AR')}*\n\n`;
+                message += `Total de unidades: ${itemCount}\n`;
+                if (isWholesale) {
+                    message += `\n🏢 *⚠️ PEDIDO MAYORISTA - REQUIERE COTIZACIÓN ⚠️*\n`;
+                    message += `Este pedido de ${itemCount} unidades supera el mínimo de 20 prendas.\n`;
+                    message += `Un asesor especializado se pondrá en contacto para ofrecer:\n`;
+                    message += `• Precios mayoristas personalizados\n`;
+                    message += `• Opciones de personalización (bordado/estampa)\n`;
+                    message += `• Formas de pago preferenciales\n`;
+                    message += `• Producción programada y logística a medida\n\n`;
+                } else {
+                    message += `Subtotal: $${subtotal.toLocaleString('es-AR')}\n`;
+                    if (iva > 0) message += `IVA (21%): $${iva.toLocaleString('es-AR')}\n`;
+                    message += `*TOTAL: $${total.toLocaleString('es-AR')}*\n\n`;
+                }
                 message += `_Pedido desde naturalonline.com.ar_`;
 
                 return message;

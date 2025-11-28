@@ -40,7 +40,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({ group, index, e
         }
     };
     const router = useRouter();
-    const { addToCart, isInCart } = useCart();
+    const { addToCart, isInCart, getCartItem } = useCart();
 
     // Helper para obtener color hexadecimal desde nombre de color
     const getColorHex = (colorName: string): string => {
@@ -101,6 +101,19 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({ group, index, e
     };
 
     const selectedVariantId = createProductId(selectedVariant.codigo);
+
+    // Crear especificaciones de la variante actual
+    const getCurrentSpecs = (): string => {
+        if (hasColorSizeData && selectedVariant.color && selectedVariant.talle) {
+            return `Color: ${selectedVariant.color} | Talle: ${selectedVariant.talle} | Código: ${selectedVariant.codigo}`;
+        }
+        return `Código: ${selectedVariant.codigo}`;
+    };
+
+    // Verificar si la variante exacta (mismo color y talle) está en el carrito
+    const cartItem = getCartItem(selectedVariantId);
+    const isExactVariantInCart = cartItem && cartItem.especificaciones === getCurrentSpecs();
+    const isInCartGeneric = isInCart(selectedVariantId);
 
     // Detectar si es mobile
     useEffect(() => {
@@ -276,7 +289,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({ group, index, e
             whileInView={!isMobile ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
             transition={!isMobile ? { duration: 0.6, delay: index * 0.1 } : { duration: 0 }}
             viewport={{ once: true }}
-            className={`group relative bg-white rounded-lg shadow-md transition-all duration-500 h-full flex flex-col self-start ${
+            className={`group relative bg-white rounded-lg shadow-md transition-all duration-500 h-auto flex flex-col self-start ${
                 !isMobile 
                     ? 'w-full mb-6 sm:mb-8 hover:shadow-xl hover:scale-[1.02] hover:-translate-y-2 min-h-[700px]' 
                     : 'w-full mb-3 min-h-[280px]'
@@ -467,26 +480,24 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({ group, index, e
                                                                     key={color}
                                                                     onClick={(e) => handleColorSelect(color, e)}
                                                                     className={`
-                                                                        relative flex items-center gap-1.5 sm:gap-2 rounded-lg
-                                                                        font-medium transition-all duration-200
-                                                                        px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm
+                                                                        relative flex items-center justify-center rounded-full
+                                                                        transition-all duration-200
+                                                                        ${isMobile ? 'w-8 h-8' : 'w-10 h-10'}
                                                                         ${isSelected
-                                                                            ? 'bg-black text-white ring-1 sm:ring-2 ring-black ring-offset-1'
-                                                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+                                                                            ? 'ring-2 ring-black ring-offset-2'
+                                                                            : 'hover:ring-2 hover:ring-gray-300 ring-offset-2'
                                                                         }
                                                                     `}
-                                                                    whileHover={{ scale: 1.05 }}
+                                                                    whileHover={{ scale: 1.1 }}
                                                                     whileTap={{ scale: 0.95 }}
+                                                                    title={color}
                                                                 >
                                                                     <div
-                                                                        className={`rounded-full border sm:border-2 ${
-                                                                            isMobile ? 'w-3.5 h-3.5' : 'w-4 h-4'
-                                                                        } ${
-                                                                            isSelected ? 'border-white' : 'border-gray-400'
+                                                                        className={`rounded-full w-full h-full border-2 ${
+                                                                            isSelected ? 'border-white' : 'border-gray-300'
                                                                         }`}
                                                                         style={{ backgroundColor: colorHex }}
                                                                     />
-                                                                    <span className="whitespace-nowrap">{color}</span>
                                                                     {isSelected && (
                                                                         <motion.div
                                                                             className="absolute -top-1 -right-1 bg-green-500 rounded-full p-0.5"
@@ -494,7 +505,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({ group, index, e
                                                                             animate={{ scale: 1 }}
                                                                             transition={{ duration: 0.2 }}
                                                                         >
-                                                                            <Check className="w-2.5 h-2.5 text-white" />
+                                                                            <Check className={isMobile ? 'w-2 h-2' : 'w-2.5 h-2.5'} />
                                                                         </motion.div>
                                                                     )}
                                                                 </motion.button>
@@ -652,7 +663,9 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({ group, index, e
                             } ${
                                 isAdding
                                     ? 'bg-green-600 text-white'
-                                    : isInCart(selectedVariantId)
+                                    : isExactVariantInCart
+                                    ? 'bg-red-600 text-white hover:bg-red-700'
+                                    : isInCartGeneric
                                     ? 'bg-gray-800 text-white'
                                     : (hasColorSizeData && isExpanded && (!selectedColor || !selectedSize))
                                     ? 'bg-gray-400 text-white cursor-not-allowed opacity-60'
@@ -671,7 +684,9 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({ group, index, e
                             <span>
                                 {isAdding
                                     ? 'Agregado!'
-                                    : isInCart(selectedVariantId)
+                                    : isExactVariantInCart
+                                    ? 'Sumar'
+                                    : isInCartGeneric
                                     ? 'En carrito'
                                     : (hasColorSizeData && isExpanded && (!selectedColor || !selectedSize))
                                     ? 'Selecciona opciones'

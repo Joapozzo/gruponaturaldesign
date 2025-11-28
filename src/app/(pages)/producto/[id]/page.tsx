@@ -17,7 +17,7 @@ import RelatedProducts from './components/RelatedProducts';
 import ProductImageModal from './components/ProductImageModal';
 import ProductLoadingState from './components/ProductLoadingState';
 import ProductNotFound from './components/ProductNotFound';
-import ProductVariantBadge from './components/ProductVariantBadge';
+// import ProductVariantBadge from './components/ProductVariantBadge';
 
 const ProductDetailPage = () => {
     // Hook principal para cargar el producto
@@ -28,7 +28,7 @@ const ProductDetailPage = () => {
         selectedColor,
         selectedSize,
         selectedVariant,
-        availableSizes,
+        orderedAvailableSizes,
         handleColorSelect,
         handleSizeSelect,
     } = useProductVariants(groupedProduct);
@@ -119,7 +119,7 @@ const ProductDetailPage = () => {
                             groupedProduct={groupedProduct}
                             selectedColor={selectedColor}
                             selectedSize={selectedSize}
-                            availableSizes={availableSizes}
+                            availableSizes={orderedAvailableSizes}
                             onColorSelect={handleColorSelect}
                             onSizeSelect={handleSizeSelect}
                         />

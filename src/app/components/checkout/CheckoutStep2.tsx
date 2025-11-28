@@ -33,6 +33,8 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
     email: customerData?.email || '',
     telefono: customerData?.telefono || '',
     empresa: customerData?.empresa || '',
+    cuit: customerData?.cuit || '',
+    fecha_nacimiento: customerData?.fecha_nacimiento || '',
     documento: customerData?.documento || '',
     tipo_documento: customerData?.tipo_documento || 'DNI',
   });
@@ -312,16 +314,47 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
               </div>
             </div>
 
-            {/* Empresa */}
+            {/* Empresa y CUIT */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Empresa (Opcional)</label>
+                <input
+                  type="text"
+                  value={formData.empresa}
+                  onChange={(e) => handleCustomerChange('empresa', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:outline-none focus:border-red-600"
+                  placeholder="Mi Empresa S.A."
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">CUIT (Opcional)</label>
+                <input
+                  type="text"
+                  value={formData.cuit}
+                  onChange={(e) => handleCustomerChange('cuit', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:outline-none focus:border-red-600"
+                  placeholder="20-12345678-9"
+                />
+              </div>
+            </div>
+
+            {/* Fecha de Nacimiento */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Empresa (Opcional)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Fecha de Nacimiento (Opcional)
+              </label>
               <input
-                type="text"
-                value={formData.empresa}
-                onChange={(e) => handleCustomerChange('empresa', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:outline-none focus:border-red-600"
-                placeholder="Mi Empresa S.A."
+                type="date"
+                value={formData.fecha_nacimiento}
+                onChange={(e) => handleCustomerChange('fecha_nacimiento', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black bg-white focus:outline-none focus:border-red-600"
+                max={new Date().toISOString().split('T')[0]}
               />
+              {formData.fecha_nacimiento && (
+                <p className="text-xs text-gray-600 mt-1">
+                  🎉 ¡Te enviaremos promociones especiales por tu cumpleaños!
+                </p>
+              )}
             </div>
           </div>
 
@@ -429,39 +462,24 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                   </div>
                 </div>
 
-                {/* CP y Fecha */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Código Postal <span className="text-red-600">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={shipping.codigo_postal}
-                      onChange={(e) => handleShippingChange('codigo_postal', e.target.value)}
-                      onBlur={() => handleBlur('codigo_postal')}
-                      className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
-                        errors.codigo_postal && touched.codigo_postal ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="1000"
-                    />
-                    {errors.codigo_postal && touched.codigo_postal && (
-                      <p className="text-red-600 text-xs mt-1">{errors.codigo_postal}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Fecha Preferida
-                    </label>
-                    <input
-                      type="date"
-                      value={shipping.fecha_entrega}
-                      onChange={(e) => handleShippingChange('fecha_entrega', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black bg-white focus:outline-none focus:border-red-600"
-                      min={new Date().toISOString().split('T')[0]}
-                    />
-                  </div>
+                {/* Código Postal */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Código Postal <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={shipping.codigo_postal}
+                    onChange={(e) => handleShippingChange('codigo_postal', e.target.value)}
+                    onBlur={() => handleBlur('codigo_postal')}
+                    className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                      errors.codigo_postal && touched.codigo_postal ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="1000"
+                  />
+                  {errors.codigo_postal && touched.codigo_postal && (
+                    <p className="text-red-600 text-xs mt-1">{errors.codigo_postal}</p>
+                  )}
                 </div>
               </motion.div>
             )}
@@ -511,12 +529,24 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
         </div>
 
         {/* Shipping Info */}
-        <div className="bg-black text-white rounded-lg p-4 space-y-2">
-          <h3 className="text-sm font-bold">INFORMACIÓN DE ENVÍO</h3>
-          <div className="text-xs space-y-1 text-gray-300">
-            <p>• Envío coordinado por WhatsApp</p>
-            <p>• Tiempo estimado: 3-5 días hábiles</p>
-            <p>• Retiro en tienda sin cargo</p>
+        <div className="bg-black text-white rounded-lg p-4 space-y-3">
+          <h3 className="text-sm font-bold mb-2">MEDIOS DE ENVÍO</h3>
+          <div className="text-xs space-y-2 text-gray-300">
+            <div>
+              <p className="font-semibold text-white mb-1">📍 Dentro de Ciudad de Cba:</p>
+              <p className="ml-2">Servicio de cadetería a coordinar con el vendedor</p>
+              <p className="ml-2 text-gray-400">El costo corre por cuenta del cliente</p>
+            </div>
+            <div>
+              <p className="font-semibold text-white mb-1">🚚 Interior de Cba. y Resto del país:</p>
+              <p className="ml-2">A través de Correo Andreani</p>
+              <p className="ml-2 text-gray-400">El costo corre por cuenta del cliente</p>
+            </div>
+            <div>
+              <p className="font-semibold text-white mb-1">🏬 PICK UP:</p>
+              <p className="ml-2">Coordina tu retiro por nuestro punto en Alta Cba.</p>
+              <p className="ml-2">Comunícate a través de WhatsApp al <a href="https://wa.me/5493517136311" target="_blank" rel="noopener noreferrer" className="text-red-400 hover:text-red-300 underline">+54 9 3517 13-6311</a> indicando tu nombre y número de pedido.</p>
+            </div>
           </div>
         </div>
 

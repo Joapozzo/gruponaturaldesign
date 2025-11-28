@@ -40,6 +40,9 @@ export const useCart = () => {
         getCartItem: (productId: number) =>
             store.items.find(item => item.product.id === productId),
 
+        // Detectar si el carrito es mayorista (más de 20 unidades)
+        isWholesale: () => store.itemCount > 20,
+
         // Checkout
         completeOrderViaWhatsApp: () => {
             const message = store.generateWhatsAppMessage();
