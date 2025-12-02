@@ -94,14 +94,9 @@ class ProductsService {
                         // Buscar todos los productos de la hoja 1 que contengan este NOMBRE en su Descripcion
                         const nombreUpper = nombre.toUpperCase();
 
-                        // Extraer palabras clave significativas del nombre (> 3 caracteres)
-                        const palabrasIgnorar = ['PARA', 'CON', 'SIN', 'TIPO', 'ESCOTE', 'CUELLO'];
-                        const palabrasClave = nombreUpper
-                            .split(/\s+/)
-                            .filter(palabra =>
-                                palabra.length > 3 &&
-                                !palabrasIgnorar.includes(palabra)
-                            );
+                        // Extraer las 2 primeras palabras significativas del nombre
+                        const palabrasNombre = nombreUpper.split(/\s+/).filter((p: string) => p.length > 2);
+                        const palabrasPrincipales = palabrasNombre.slice(0, 2);
 
                         const productosCoincidentes = productosIndividuales.filter((prod: any) => {
                             const prodDesc = String(prod.Descripcion || '').toUpperCase();
@@ -111,16 +106,33 @@ class ProductsService {
                                 return true;
                             }
 
-                            // Estrategia 2: Coincidencia por palabras clave (al menos 2 palabras deben coincidir)
-                            if (palabrasClave.length >= 2) {
-                                const palabrasCoincidentes = palabrasClave.filter(palabra =>
+                            // Estrategia 2: Las 2 primeras palabras principales deben estar en la descripción
+                            if (palabrasPrincipales.length >= 2) {
+                                const todasLasPalabrasCoinciden = palabrasPrincipales.every((palabra: string) =>
                                     prodDesc.includes(palabra)
                                 );
 
-                                const umbralCoincidencia = Math.max(2, Math.ceil(palabrasClave.length * 0.6));
-                                if (palabrasCoincidentes.length >= umbralCoincidencia) {
+                                if (todasLasPalabrasCoinciden) {
+                                    // Verificar género si está en el nombre
+                                    const tieneGenero = nombreUpper.includes('HOMBRE') || nombreUpper.includes('DAMA') || nombreUpper.includes('UNISEX');
+
+                                    if (tieneGenero) {
+                                        const generoCoincide =
+                                            (nombreUpper.includes('HOMBRE') && prodDesc.includes('HOMBRE')) ||
+                                            (nombreUpper.includes('DAMA') && prodDesc.includes('DAMA')) ||
+                                            (nombreUpper.includes('UNISEX') && prodDesc.includes('UNISEX'));
+
+                                        return generoCoincide;
+                                    }
+
                                     return true;
                                 }
+                            }
+
+                            // Estrategia 3: Buscar en columna Costo x LM
+                            const costoXLM = String(prod['Costo x LM'] || '').toUpperCase();
+                            if (costoXLM === nombreUpper || costoXLM.includes(nombreUpper)) {
+                                return true;
                             }
 
                             return false;

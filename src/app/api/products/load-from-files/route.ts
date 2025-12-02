@@ -227,18 +227,13 @@ async function processFile(filePath: string): Promise<any[]> {
 
             const nombreUpper = nombre.toUpperCase();
 
-            // Extraer palabras clave significativas del nombre (> 3 caracteres)
-            // Filtrar palabras comunes que no ayudan a identificar el producto
-            const palabrasIgnorar = ['PARA', 'CON', 'SIN', 'TIPO', 'ESCOTE', 'CUELLO'];
-            const palabrasClave = nombreUpper
-                .split(/\s+/)
-                .filter(palabra =>
-                    palabra.length > 3 &&
-                    !palabrasIgnorar.includes(palabra)
-                );
+            // Extraer las 2 primeras palabras significativas del nombre (identificadores principales)
+            // Ejemplo: "CAMISA DRILL HOMBRE" → ["CAMISA", "DRILL"]
+            // Ejemplo: "REMERA GENTLE ESCOTE EN V DAMA" → ["REMERA", "GENTLE"]
+            const palabrasNombre = nombreUpper.split(/\s+/).filter(p => p.length > 2);
+            const palabrasPrincipales = palabrasNombre.slice(0, 2); // Las 2 primeras palabras
 
             // Buscar todos los productos de la hoja 1 que contengan este NOMBRE
-            // Buscar en Descripcion Y en todas las demás columnas (por si hay una columna con el nombre agrupado)
             const productosCoincidentes = productosIndividuales.filter((prod: any) => {
                 const prodDesc = String(prod.Descripcion || '').toUpperCase();
 
@@ -247,28 +242,37 @@ async function processFile(filePath: string): Promise<any[]> {
                     return true;
                 }
 
-                // Estrategia 2: Coincidencia por palabras clave (al menos 2 palabras deben coincidir)
-                // Esto permite que "REMERA GENTLE ESCOTE EN V DAMA" coincida con "Remera Gentle Dama"
-                if (palabrasClave.length >= 2) {
-                    const palabrasCoincidentes = palabrasClave.filter(palabra =>
+                // Estrategia 2: Las 2 primeras palabras principales deben estar en la descripción
+                // Esto permite matching flexible:
+                // "REMERA GENTLE ESCOTE EN V DAMA" matchea con "Remera Gentle Dama"
+                // "CAMISA DRILL HOMBRE" matchea con "Camisa Drill Hombre"
+                if (palabrasPrincipales.length >= 2) {
+                    const todasLasPalabrasCoinciden = palabrasPrincipales.every(palabra =>
                         prodDesc.includes(palabra)
                     );
 
-                    // Si coinciden al menos 2 palabras clave (o el 60% de las palabras)
-                    const umbralCoincidencia = Math.max(2, Math.ceil(palabrasClave.length * 0.6));
-                    if (palabrasCoincidentes.length >= umbralCoincidencia) {
+                    if (todasLasPalabrasCoinciden) {
+                        // Verificar género si está en el nombre
+                        const tieneGenero = nombreUpper.includes('HOMBRE') || nombreUpper.includes('DAMA') || nombreUpper.includes('UNISEX');
+
+                        if (tieneGenero) {
+                            // Si el nombre tiene género, verificar que coincida
+                            const generoCoincide =
+                                (nombreUpper.includes('HOMBRE') && prodDesc.includes('HOMBRE')) ||
+                                (nombreUpper.includes('DAMA') && prodDesc.includes('DAMA')) ||
+                                (nombreUpper.includes('UNISEX') && prodDesc.includes('UNISEX'));
+
+                            return generoCoincide;
+                        }
+
                         return true;
                     }
                 }
 
-                // Estrategia 3: Buscar en todas las demás columnas
-                for (const key in prod) {
-                    if (key !== 'Descripcion') {
-                        const value = String(prod[key] || '').toUpperCase();
-                        if (value === nombreUpper || value.includes(nombreUpper)) {
-                            return true;
-                        }
-                    }
+                // Estrategia 3: Buscar en columna Costo x LM (a veces tiene el nombre del producto)
+                const costoXLM = String(prod['Costo x LM'] || '').toUpperCase();
+                if (costoXLM === nombreUpper || costoXLM.includes(nombreUpper)) {
+                    return true;
                 }
 
                 return false;

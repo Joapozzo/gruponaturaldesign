@@ -17,10 +17,10 @@ const CatalogContent = () => {
     
     // Cargar productos agrupados
     const { groupedProducts, isLoading } = useGroupedProducts();
-
     // Estado para productos expandidos
     const [expandedSku, setExpandedSku] = useState<string | null>(null);
-
+    // console.log('groupedProducts', groupedProducts);
+    
     // Hook de filtros
     const {
         filters,
@@ -41,6 +41,7 @@ const CatalogContent = () => {
         groupedProducts,
         itemsPerPage: 12,
     });
+    // console.log('groupedProducts', paginatedProducts);
 
     // Aplicar filtros desde URL params al cargar
     useEffect(() => {

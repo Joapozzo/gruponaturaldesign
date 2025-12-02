@@ -19,39 +19,37 @@ const normalizeString = (str: string): string => {
 
 // Lista blanca de productos permitidos por categoría
 // Si dice "HOMBRE Y DAMA" son dos productos distintos
+// ACTUALIZADA para coincidir con los productos reales del Excel
 const ALLOWED_PRODUCTS = {
     WORKWEAR: [
-        'CAMISA DRILL HOMBRE',
-        'CAMISA DRILL DAMA',
-        'BUZO STANDARD UNISEX',
-        'CARGO BALANCE HOMBRE',
-        'CARGO BALANCE DAMA',
-        'CARGO BOLT HOMBRE',
-        'CARGO IMPACTED UNISEX',
-        'CHOMBA RIVET UNISEX',
-        'REMERA BASE UNISEX',
-        'JEAN FLOW HOMBRE',
-        'JEAN FLOW DAMA',
-        'ROMPEVIENTO RANGER UNISEX'
+        'CAMISA DRILL',
+        'BUZO STANDARD',
+        'CARGO BALANCE',
+        'CARGO BOLT',
+        'CARGO IMPACTED',
+        'CHOMBA RIVET',
+        'REMERA BASE',
+        'JEAN FLOW',
+        'ROMPEVIENTO RANGER'
     ],
     BASIC: [
-        'CAMISA EXECUTIVE HOMBRE',
-        'CAMISA EXECUTIVE DAMA',
+        'CAMISA EXECUTIVE',
         'REMERA GENTLE',
         'CARDIGAN CHARM',
-        'SWEATER ESSENCE',
-        'CHINO CONFORT FIT HOMBRE',
-        'CHINO CONFORT FIT DAMA',
-        'CHOMBA FLOWING HOMBRE'
+        'CHINO SIGNATURE',  // Era "CHINO CONFORT FIT" en la lista anterior
+        'CHOMBA FLOWING',
+        'BOMBER ESSENCE'    // Era "SWEATER ESSENCE" en la lista anterior
     ]
 };
 
 // Función para verificar si un producto está en la lista blanca
+// TEMPORALMENTE DESHABILITADA - No se usa actualmente
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const isProductAllowed = (productName: string, category: string): boolean => {
     if (!productName) return false;
-    
+
     const normalizedName = normalizeString(productName);
-    
+
     // Obtener lista de productos permitidos
     let allowedList: string[] = [];
     if (category === 'TODOS') {
@@ -62,37 +60,51 @@ const isProductAllowed = (productName: string, category: string): boolean => {
     } else {
         allowedList = ALLOWED_PRODUCTS[category as keyof typeof ALLOWED_PRODUCTS] || [];
     }
-    
+
     // Verificar coincidencia: el nombre del producto debe contener el nombre permitido
     // o el nombre permitido debe contener el nombre del producto (para manejar variaciones)
     const isAllowed = allowedList.some(allowed => {
         const normalizedAllowed = normalizeString(allowed);
-        
+
         // Coincidencia exacta
         if (normalizedName === normalizedAllowed) return true;
-        
+
         // El nombre del producto contiene el permitido (ej: "CAMISA DRILL HOMBRE" contiene "CAMISA DRILL")
         if (normalizedName.includes(normalizedAllowed)) return true;
-        
+
         // El nombre permitido contiene el nombre del producto (ej: para nombres más cortos en el Excel)
         if (normalizedAllowed.includes(normalizedName)) return true;
-        
-        // Matching por palabras clave principales (más flexible)
-        // Extraer palabras clave del nombre permitido (primera y segunda palabra)
+
+        // Matching por palabras clave principales (MÁS FLEXIBLE)
+        // Extraer las primeras 2 palabras significativas del nombre permitido
         const allowedWords = normalizedAllowed.split(' ').filter(w => w.length > 2);
-        if (allowedWords.length >= 2) {
-            const firstTwoWords = allowedWords.slice(0, 2).join(' ');
-            if (normalizedName.includes(firstTwoWords)) return true;
+        const productWords = normalizedName.split(' ').filter(w => w.length > 2);
+
+        // Si ambos tienen al menos 2 palabras, verificar que las primeras 2 coincidan
+        if (allowedWords.length >= 2 && productWords.length >= 2) {
+            const allowedFirstTwo = allowedWords.slice(0, 2);
+            const productFirstTwo = productWords.slice(0, 2);
+
+            // Verificar que las 2 primeras palabras del permitido estén en las primeras palabras del producto
+            const match = allowedFirstTwo.every(word => productFirstTwo.includes(word));
+            if (match) return true;
         }
-        
+
+        // Fallback: si el nombre permitido tiene al menos 2 palabras, verificar que estén en el producto
+        if (allowedWords.length >= 2) {
+            const firstTwoWords = allowedWords.slice(0, 2);
+            const allWordsPresent = firstTwoWords.every(word => normalizedName.includes(word));
+            if (allWordsPresent) return true;
+        }
+
         return false;
     });
-    
+
     // Debug temporal: mostrar productos que no coinciden
     if (!isAllowed && process.env.NODE_ENV === 'development') {
-        console.log(`Producto no permitido: "${productName}" (categoría: ${category})`);
+        console.log(`❌ Producto no permitido: "${productName}" (categoría: ${category})`);
     }
-    
+
     return isAllowed;
 };
 
@@ -130,39 +142,76 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
 
     // Productos filtrados
     const filteredProducts = useMemo(() => {
+        console.log('🔍 INICIANDO FILTRADO - Total productos:', groupedProducts.length);
+        console.log('📦 Productos originales:', groupedProducts.map(p => ({
+            nombre: p.displayProduct.NOMBRE || p.skuBase,
+            rubro: p.displayProduct.Rubro,
+            subrubro: p.displayProduct.Subrubro
+        })));
         let filtered = [...groupedProducts];
 
-        // PRIMERO: Filtro por categoría tipo (BASIC/WORKWEAR) con lista blanca de productos
-        // Esto debe ir ANTES del filtro de imágenes para no perder productos válidos
+        // PRIMERO: Filtro por categoría tipo (BASIC/WORKWEAR)
+        // TEMPORALMENTE DESHABILITADO: Lista blanca muy restrictiva, permite todos los productos con rubro válido
         filtered = filtered.filter(product => {
             const productName = product.displayProduct.NOMBRE || product.skuBase || product.displayProduct.Descripcion || '';
-            const rubro = normalizeString(product.displayProduct.Rubro || '');
+            const rubroOriginal = product.displayProduct.Rubro || '';
+            const rubro = normalizeString(rubroOriginal);
+
+            // Normalizar "producto office" o "office" a "basic" en el rubro
+            // El rubro puede ser "PRODUCTO OFFICE", "producto office", "office", etc.
+            // normalizeString ya convierte a minúsculas, así que "PRODUCTO OFFICE" -> "producto office"
+            // Verificar tanto en el rubro normalizado como en el original (por si acaso)
+            const isOffice = rubro.includes('office') || rubroOriginal.toLowerCase().includes('office');
+            const isBasic = rubro.includes('basic') || rubroOriginal.toLowerCase().includes('basic');
+            const isWorkwear = rubro.includes('workwear') || rubroOriginal.toLowerCase().includes('workwear');
             
-            // Normalizar "office" a "basic" en el rubro
-            const rubroNormalized = rubro === 'office' ? 'basic' : rubro;
+            // Si contiene "office", tratarlo como "basic"
+            const rubroNormalized = isOffice ? 'basic' : (isBasic ? 'basic' : (isWorkwear ? 'workwear' : rubro));
             
+            // Debug: mostrar normalización para productos office
+            if (isOffice) {
+                console.log(`✅ Producto OFFICE detectado: "${productName}" - Rubro original: "${rubroOriginal}" - Rubro normalizado: "${rubro}" -> "${rubroNormalized}"`);
+            }
+
             if (filters.categoriaTipo !== 'TODOS') {
                 const categoriaTipoNormalized = normalizeString(filters.categoriaTipo);
-                
+
                 // Verificar si el rubro coincide con la categoría
-                const rubroMatches = rubroNormalized.includes(categoriaTipoNormalized) || categoriaTipoNormalized.includes(rubroNormalized);
-                
-                if (!rubroMatches) return false;
-                
-                // Verificar si el producto está en la lista blanca de la categoría seleccionada
-                return isProductAllowed(productName, filters.categoriaTipo);
+                // Si el rubro es "basic" (incluye office) y la categoría es "BASIC", coincide
+                // Si el rubro es "workwear" y la categoría es "WORKWEAR", coincide
+                const rubroMatches = 
+                    (rubroNormalized === 'basic' && categoriaTipoNormalized === 'basic') ||
+                    (rubroNormalized === 'workwear' && categoriaTipoNormalized === 'workwear') ||
+                    rubroNormalized.includes(categoriaTipoNormalized) || 
+                    categoriaTipoNormalized.includes(rubroNormalized);
+
+                if (!rubroMatches) {
+                    console.log(`❌ Producto rechazado (rubro no coincide): "${productName}" - Rubro original: "${product.displayProduct.Rubro}" - Rubro normalizado: "${rubroNormalized}" - Categoría filtro: "${filters.categoriaTipo}"`);
+                    return false;
+                }
+
+                // TEMPORALMENTE: No usar lista blanca, solo verificar rubro
+                return true;
             } else {
-                // Si es TODOS, verificar que el producto esté en alguna lista blanca
-                // y que el rubro sea workwear o basic/office
-                const isWorkwear = rubroNormalized.includes('workwear');
-                const isBasic = rubroNormalized.includes('basic') || rubro === 'office';
-                
-                if (!isWorkwear && !isBasic) return false;
-                
-                // Verificar si el producto está en la lista blanca
-                return isProductAllowed(productName, 'TODOS');
+                // Si es TODOS, verificar que el rubro sea workwear o basic/office
+                const isValidRubro = isWorkwear || isBasic || isOffice;
+
+                if (!isValidRubro) {
+                    console.log(`❌ Producto rechazado (rubro no válido): "${productName}" - Rubro original: "${rubroOriginal}" - Rubro normalizado: "${rubro}" - isOffice: ${isOffice} - isBasic: ${isBasic} - isWorkwear: ${isWorkwear}`);
+                    return false;
+                }
+
+                // Debug: confirmar que se acepta
+                if (isOffice) {
+                    console.log(`✅ Producto OFFICE aceptado: "${productName}" - Rubro: "${rubroOriginal}" -> "${rubroNormalized}"`);
+                }
+
+                // TEMPORALMENTE: No usar lista blanca, solo verificar rubro
+                return true;
             }
         });
+
+        console.log('✅ Después de filtro de categoría:', filtered.length);
 
         // Filtro por término de búsqueda (insensible a acentos)
         if (filters.searchTerm) {
@@ -181,27 +230,22 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
         }
 
         // FILTRO: Solo mostrar productos que tienen imágenes disponibles
-        // Este filtro va al final para no interferir con la lista blanca
-        // Si el producto está en la lista blanca, ser más permisivo con las imágenes
+        // hasProductImages siempre retorna true, así que este filtro no debería eliminar nada
+        // Pero lo mantenemos por si en el futuro cambia la lógica
         filtered = filtered.filter(product => {
             const productName = product.displayProduct.NOMBRE || product.skuBase || product.displayProduct.Descripcion || '';
-            const rubro = normalizeString(product.displayProduct.Rubro || '');
-            const rubroNormalized = rubro === 'office' ? 'basic' : rubro;
-            const isWorkwear = rubroNormalized.includes('workwear');
-            const isBasic = rubroNormalized.includes('basic') || rubro === 'office';
-            
-            // Si está en la lista blanca, ser más permisivo
-            if (isWorkwear || isBasic) {
-                const category = isWorkwear ? 'WORKWEAR' : 'BASIC';
-                if (isProductAllowed(productName, category)) {
-                    // Si está en la lista blanca, siempre mostrar (incluso sin imágenes)
-                    return true;
-                }
+            const hasImages = hasProductImages(productName, product.availableColors);
+            if (!hasImages) {
+                console.log(`❌ Producto rechazado (sin imágenes): "${productName}" - Colores: ${product.availableColors?.length || 0}`);
             }
-            
-            // Para otros productos, verificar imágenes normalmente
-            return hasProductImages(productName, product.availableColors);
+            return hasImages;
         });
+
+        console.log('✅ Después de filtro de imágenes:', filtered.length);
+        console.log('📦 Productos después de filtro de imágenes:', filtered.map(p => ({
+            nombre: p.displayProduct.NOMBRE || p.skuBase,
+            rubro: p.displayProduct.Rubro
+        })));
 
         // Filtro por subrubro
         if (filters.subrubro !== 'TODOS') {
