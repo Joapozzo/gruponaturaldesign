@@ -16,14 +16,14 @@ const CatalogCategoriesHero = ({ onCategorySelect, selectedCategory = 'TODOS' }:
             id: 'basic',
             nombre: 'BASIC',
             descripcion: 'Prendas esenciales y versátiles para uso diario y profesional.',
-            imagen: '/imgs/cat-1.jpg',
+            imagen: '/imgs/basic.jpg',
             filterValue: 'BASIC' as const
         },
         {
             id: 'workwear',
             nombre: 'WORKWEAR',
             descripcion: 'Indumentaria especializada para trabajo y entornos industriales.',
-            imagen: '/imgs/cat-2.jpg',
+            imagen: '/imgs/workwear.jpg',
             filterValue: 'WORKWEAR' as const
         }
     ];
@@ -69,7 +69,7 @@ const CatalogCategoriesHero = ({ onCategorySelect, selectedCategory = 'TODOS' }:
                                 <motion.img
                                     src={categoria.imagen}
                                     alt={categoria.nombre}
-                                    className="w-full h-full object-cover transition-all duration-700"
+                                    className="w-full h-full object-cover transition-all duration-700 object-top"
                                     animate={{
                                         scale: hoveredCategory === categoria.id || isSelected ? 1.05 : 1,
                                         filter: hoveredCategory === categoria.id || isSelected ? 'brightness(0.7)' : 'brightness(0.9)'

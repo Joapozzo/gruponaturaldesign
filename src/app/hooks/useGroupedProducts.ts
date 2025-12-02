@@ -75,6 +75,7 @@ export function useGroupedProducts(options: UseGroupedProductsOptions = {}) {
         error: query.error,
         totalGroups: query.data?.length || 0,
         refetch: query.refetch,
+        isFetched: query.isFetched,
     };
 }
 

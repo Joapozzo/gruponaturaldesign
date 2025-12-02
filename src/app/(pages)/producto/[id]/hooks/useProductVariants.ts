@@ -65,8 +65,22 @@ export function useProductVariants(groupedProduct: GroupedProduct | null) {
     const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
 
     // Inicializar con la primera variante cuando se carga el producto
+    // Si hay colores disponibles, seleccionar el primer color
     useEffect(() => {
         if (groupedProduct && groupedProduct.variants.length > 0) {
+            // Si hay colores disponibles, seleccionar el primer color
+            if (groupedProduct.availableColors && groupedProduct.availableColors.length > 0) {
+                const firstColor = groupedProduct.availableColors[0];
+                const firstVariantWithColor = groupedProduct.variants.find(v => v.color === firstColor);
+                if (firstVariantWithColor) {
+                    setSelectedVariant(firstVariantWithColor);
+                    setSelectedColor(firstColor);
+                    setSelectedSize(firstVariantWithColor.talle || null);
+                    return;
+                }
+            }
+            
+            // Fallback: primera variante
             const firstVariant = groupedProduct.variants[0];
             setSelectedVariant(firstVariant);
             setSelectedColor(firstVariant.color || null);

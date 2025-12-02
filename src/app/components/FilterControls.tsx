@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, X } from 'lucide-react';
+import { Search, Filter, X, ArrowUpDown } from 'lucide-react';
 import Button from './ui/Button';
 import { FilterState } from './hooks/useCatalogFilters';
 import FilterModal from './FilterModal';
@@ -40,7 +40,25 @@ const FilterControls: React.FC<FilterControlsProps> = ({
         (filters.subrubro !== 'TODOS' ? 1 : 0) +
         (filters.genero !== 'TODOS' ? 1 : 0) +
         filters.colores.length +
-        filters.talles.length;
+        filters.talles.length +
+        (filters.sortBy !== 'alfabetico-asc' ? 1 : 0);
+
+    const getSortByLabel = (sortBy: FilterState['sortBy']): string => {
+        switch (sortBy) {
+            case 'alfabetico-asc':
+                return 'A - Z';
+            case 'alfabetico-desc':
+                return 'Z - A';
+            case 'precio-asc':
+                return 'Precio: Menor a Mayor';
+            case 'precio-desc':
+                return 'Precio: Mayor a Menor';
+            case 'destacados':
+                return 'Destacados';
+            default:
+                return 'A - Z';
+        }
+    };
 
     return (
         <>
@@ -94,6 +112,32 @@ const FilterControls: React.FC<FilterControlsProps> = ({
                                 onChange={(e) => onUpdateFilter('searchTerm', e.target.value)}
                                 className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 focus:border-gray-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900"
                             />
+                        </div>
+                    </div>
+
+                    {/* Ordenar por */}
+                    <div className="flex flex-col justify-end">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Ordenar por
+                        </label>
+                        <div className="relative">
+                            <ArrowUpDown className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+                            <select
+                                value={filters.sortBy}
+                                onChange={(e) => onUpdateFilter('sortBy', e.target.value as FilterState['sortBy'])}
+                                className="w-full pl-10 pr-10 py-3 border-2 border-gray-200 focus:border-gray-500 outline-none transition-colors bg-white rounded-lg text-gray-900 appearance-none cursor-pointer"
+                            >
+                                <option value="alfabetico-asc">A - Z</option>
+                                <option value="alfabetico-desc">Z - A</option>
+                                <option value="precio-asc">Precio: Menor a Mayor</option>
+                                <option value="precio-desc">Precio: Mayor a Menor</option>
+                                <option value="destacados">Destacados</option>
+                            </select>
+                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
                         </div>
                     </div>
 
@@ -207,6 +251,18 @@ const FilterControls: React.FC<FilterControlsProps> = ({
                                     </button>
                                 </span>
                             ))}
+
+                            {filters.sortBy !== 'alfabetico-asc' && (
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    Orden: {getSortByLabel(filters.sortBy)}
+                                    <button
+                                        onClick={() => onUpdateFilter('sortBy', 'alfabetico-asc')}
+                                        className="ml-2 hover:text-gray-600"
+                                    >
+                                        <X size={12} />
+                                    </button>
+                                </span>
+                            )}
                         </div>
                     </motion.div>
                 )}

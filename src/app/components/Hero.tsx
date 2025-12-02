@@ -1,25 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
-import { useNavigation } from '../hooks/useNavigation';
 import Image from 'next/image';
 import Button from './ui/Button';
-import { useWhatsApp } from './hooks/useWhatsApp';
+import { useNavigation } from '../hooks/useNavigation';
 
 const Hero = () => {
-    const mensajeCotizacion =
-        "¡Hola! Me interesa solicitar una cotización de un proyecto.";
-    const {
-        scrollToSection,
-    } = useNavigation();
-
     const [heroImage, setHeroImage] = useState('/imgs/hero.jpg');
-    const { openWhatsApp } = useWhatsApp({ defaultMessage: mensajeCotizacion });
+    const { scrollToSection } = useNavigation();
 
     useEffect(() => {
         const updateImage = () => {
             if (window.innerWidth < 640) {
-                setHeroImage('/imgs/nosotros.jpg');
+                setHeroImage('/imgs/hero.jpg');
             } else {
                 setHeroImage('/imgs/hero.jpg');
             }
@@ -54,48 +47,64 @@ const Hero = () => {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1 }}
-            className="text-3xl md:text-5xl font-semibold mb-4 2xl:text-7xl"
+            className="text-3xl md:text-5xl font-light mb-6 2xl:text-7xl"
           >
-            Uniformes de diseño
+            <span className="font-bold">Vesti</span> a tu equipo con<br />Grupo Natural Design
           </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.3 }}
-            className="text-xl md:text-xl mb-4 font-light tracking-wide 2xl:text-2xl"
-          >
-            Más de 25 años vistiendo empresas con calidad y compromiso.
-          </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.6 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
+            transition={{ duration: 1, delay: 0.3 }}
+            className="mb-8"
           >
             <Button
-              variant="black"
+              variant="lightWhiteOutline"
               onClick={() => scrollToSection("categorias")}
               size="md"
-              className="tracking-wide"
+              className="font-light tracking-wide"
             >
-              VER SHOP ONLINE
-            </Button>
-            <Button
-              variant="lightWhiteOutline"
-              onClick={() => openWhatsApp()}
-              size="md"
-              className="tracking-wide"
-            >
-              SOLICITAR COTIZACIÓN
+              Comenza ya
             </Button>
           </motion.div>
         </div>
+
+        {/* Links en la parte inferior */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.6 }}
+          className="absolute bottom-8 left-0 right-0 w-full px-4 md:px-8"
+        >
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 max-w-5xl mx-auto">
+            <motion.a
+              href="/shoponline"
+              className="text-white hover:text-gray-300 transition-colors duration-300 text-sm md:text-base font-light tracking-wide cursor-pointer"
+              whileHover={{ scale: 1.05 }}
+            >
+              SHOP ONLINE
+            </motion.a>
+            <motion.a
+              href="/shoponline"
+              className="text-white hover:text-gray-300 transition-colors duration-300 text-sm md:text-base font-light tracking-wide cursor-pointer"
+              whileHover={{ scale: 1.05 }}
+            >
+              NEW COLLECTION
+            </motion.a>
+            <motion.a
+              href="/shoponline"
+              className="text-white hover:text-gray-300 transition-colors duration-300 text-sm md:text-base font-light tracking-wide cursor-pointer"
+              whileHover={{ scale: 1.05 }}
+            >
+              ESSENTIALS FOR WORK
+            </motion.a>
+          </div>
+        </motion.div>
 
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.5 }}
-          className="absolute bottom-20 left-1/2 transform -translate-x-1/2"
+          className="absolute bottom-32 md:bottom-36 left-1/2 transform -translate-x-1/2"
         >
           <ChevronDown className="text-white animate-bounce" size={40} />
         </motion.div>

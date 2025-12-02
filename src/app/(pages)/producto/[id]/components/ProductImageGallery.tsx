@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Package, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
 import Image from 'next/image';
@@ -29,7 +29,39 @@ export default function ProductImageGallery({
 }: ProductImageGalleryProps) {
     const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
     const [isHovering, setIsHovering] = useState(false);
+    const [validImages, setValidImages] = useState<string[]>([]);
+    const [imageLoadStatus, setImageLoadStatus] = useState<{ [key: string]: 'loading' | 'loaded' | 'error' }>({});
     const imageRef = useRef<HTMLDivElement>(null);
+
+    // Filtrar imágenes válidas (que existen)
+    useEffect(() => {
+        // Inicializar todas las imágenes como "intentando cargar"
+        const status: { [key: string]: 'loading' | 'loaded' | 'error' } = {};
+        images.forEach(img => {
+            status[img] = 'loading'; // loading = intentando, loaded = existe, error = no existe
+        });
+        setImageLoadStatus(status);
+        setValidImages(images); // Mantener todas las imágenes para mantener índices
+    }, [images]);
+
+    const handleImageLoad = (imgSrc: string) => {
+        setImageLoadStatus(prev => ({ ...prev, [imgSrc]: 'loaded' }));
+    };
+
+    const handleImageError = (imgSrc: string) => {
+        setImageLoadStatus(prev => ({ ...prev, [imgSrc]: 'error' }));
+    };
+
+    // Filtrar imágenes válidas (solo las que cargaron exitosamente o están intentando)
+    const displayImages = validImages.filter(img => {
+        const status = imageLoadStatus[img];
+        return status === 'loading' || status === 'loaded'; // Mostrar si está intentando o existe
+    });
+
+    // Ajustar el índice actual si la imagen actual no existe
+    const adjustedIndex = displayImages.length > 0 && currentImageIndex < displayImages.length
+        ? currentImageIndex
+        : displayImages.length > 0 ? 0 : 0;
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!imageRef.current) return;
@@ -74,17 +106,19 @@ export default function ProductImageGallery({
                             onMouseEnter={handleMouseEnter}
                             onMouseLeave={handleMouseLeave}
                         >
-                            {images.length > 0 && images[currentImageIndex] ? (
+                            {displayImages.length > 0 && displayImages[adjustedIndex] ? (
                                 <>
                                     <Image
-                                        src={images[currentImageIndex]}
-                                        alt={`${productName} - Imagen ${currentImageIndex + 1}`}
+                                        src={displayImages[adjustedIndex]}
+                                        alt={`${productName} - Imagen ${adjustedIndex + 1}`}
                                         className="w-full h-full object-contain"
                                         width={600}
                                         height={600}
+                                        onLoad={() => handleImageLoad(displayImages[adjustedIndex])}
+                                        onError={() => handleImageError(displayImages[adjustedIndex])}
                                     />
                                     {/* Efecto de zoom en círculo */}
-                                    {isHovering && mousePosition && imageRef.current && (
+                                    {isHovering && mousePosition && imageRef.current && displayImages[adjustedIndex] && (
                                         <div
                                             className="absolute pointer-events-none z-10 rounded-full border-2 border-white shadow-2xl overflow-hidden"
                                             style={{
@@ -98,7 +132,7 @@ export default function ProductImageGallery({
                                             <div
                                                 className="w-full h-full"
                                                 style={{
-                                                    backgroundImage: `url(${images[currentImageIndex]})`,
+                                                    backgroundImage: `url(${displayImages[adjustedIndex]})`,
                                                     backgroundSize: `${(imageRef.current.offsetWidth / 150) * 100}% auto`,
                                                     backgroundPosition: `${(mousePosition.x / imageRef.current.offsetWidth) * 100}% ${(mousePosition.y / imageRef.current.offsetHeight) * 100}%`,
                                                     backgroundRepeat: 'no-repeat',
@@ -107,7 +141,7 @@ export default function ProductImageGallery({
                                         </div>
                                     )}
                                     {/* Botón para expandir */}
-                                    {images.length > 1 && (
+                                    {displayImages.length > 1 && (
                                         <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full p-1.5 sm:p-2 transition-all duration-300 z-20">
                                             <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                                         </div>
@@ -147,14 +181,22 @@ export default function ProductImageGallery({
                     </div>
 
                     {/* Miniaturas de imágenes */}
-                    {images.length > 1 && (
+                    {displayImages.length > 1 && (
                         <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2">
-                            {images.map((img, index) => (
+                            {displayImages.map((img, index) => (
                                 <motion.button
-                                    key={index}
-                                    onClick={() => onImageChange(index)}
+                                    key={`${img}-${index}`}
+                                    onClick={() => {
+                                        // Encontrar el índice original en images para mantener consistencia
+                                        const originalIndex = validImages.indexOf(img);
+                                        if (originalIndex !== -1) {
+                                            onImageChange(originalIndex);
+                                        } else {
+                                            onImageChange(index);
+                                        }
+                                    }}
                                     className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all duration-300 ${
-                                        currentImageIndex === index
+                                        adjustedIndex === index
                                             ? 'border-black ring-2 ring-black ring-offset-2'
                                             : 'border-gray-200 hover:border-gray-400'
                                     }`}
@@ -168,9 +210,11 @@ export default function ProductImageGallery({
                                         className="w-full h-full object-cover"
                                         width={120}
                                         height={120}
+                                        onLoad={() => handleImageLoad(img)}
+                                        onError={() => handleImageError(img)}
                                     />
                                     {/* Overlay cuando está seleccionada */}
-                                    {currentImageIndex === index && (
+                                    {adjustedIndex === index && (
                                         <div className="absolute inset-0 bg-black/20" />
                                     )}
                                 </motion.button>

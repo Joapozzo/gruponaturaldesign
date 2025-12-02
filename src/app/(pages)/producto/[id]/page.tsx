@@ -23,6 +23,9 @@ const ProductDetailPage = () => {
     // Hook principal para cargar el producto
     const { groupedProduct, relatedProducts, isLoading } = useProductDetail();
 
+    // Calcular productName antes de usarlo en los hooks
+    const productName = groupedProduct?.skuBase || groupedProduct?.displayProduct?.NOMBRE || 'Sin nombre';
+
     // Hook para manejar variantes (debe llamarse siempre, incluso si no hay producto)
     const {
         selectedColor,
@@ -46,7 +49,10 @@ const ProductDetailPage = () => {
     } = useProductImages(
         selectedVariant?.producto.imagenes,
         selectedVariant?.producto.imagen,
-        5
+        5,
+        productName,
+        selectedColor,
+        groupedProduct?.availableColors
     );
 
     // Hook para manejar el carrito (debe llamarse siempre)
@@ -67,7 +73,6 @@ const ProductDetailPage = () => {
 
     // Obtener datos del producto
     const displayProduct = groupedProduct.displayProduct;
-    const productName = groupedProduct.skuBase || displayProduct.NOMBRE || 'Sin nombre';
 
     return (
         <div className="min-h-screen bg-white px-3 sm:px-4">

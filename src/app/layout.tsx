@@ -26,6 +26,9 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
+  // Base URL para resolver URLs relativas en metadata
+  metadataBase: new URL('https://naturalonline.com.ar'),
+  
   // Título optimizado para SEO
   title: {
     default: "NTDS - Uniformes Empresariales de diseño | Natural Design",
@@ -141,6 +144,19 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
+
+  // Favicon e iconos - Natural Design Logo
+  icons: {
+    icon: [
+      { url: 'https://naturalonline.com.ar/logos/logo-1.svg', type: 'image/svg+xml' },
+      { url: 'https://naturalonline.com.ar/logos/logo-1.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: light)' },
+      { url: 'https://naturalonline.com.ar/logos/logo-2.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: dark)' },
+    ],
+    apple: [
+      { url: 'https://naturalonline.com.ar/logos/logo-1.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: 'https://naturalonline.com.ar/logos/logo-1.svg',
+  },
 };
 
 export default function RootLayout({
@@ -219,17 +235,15 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
-        {/* Favicon para modo claro (light mode) */}
-        <link rel="icon" href="/logos/logo-1.svg" type="image/svg+xml" media="(prefers-color-scheme: light)" />
-
-        {/* Favicon para modo oscuro (dark mode) */}
-        <link rel="icon" href="/logos/logo-2.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" />
-
-        {/* Favicon por defecto (fallback) - usa el de modo claro */}
-        <link rel="icon" href="/logos/logo-1.svg" type="image/svg+xml" />
-
-        {/* Apple touch icon - usa el de modo claro para mejor contraste */}
-        <link rel="apple-touch-icon" href="/logos/logo-1.svg" />
+        {/* Favicon - Natural Design Logo */}
+        <link rel="icon" href="https://naturalonline.com.ar/logos/logo-1.svg" type="image/svg+xml" />
+        <link rel="icon" href="https://naturalonline.com.ar/logos/logo-1.svg" type="image/svg+xml" media="(prefers-color-scheme: light)" />
+        <link rel="icon" href="https://naturalonline.com.ar/logos/logo-2.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" />
+        <link rel="shortcut icon" href="https://naturalonline.com.ar/logos/logo-1.svg" type="image/svg+xml" />
+        
+        {/* Apple touch icon */}
+        <link rel="apple-touch-icon" href="https://naturalonline.com.ar/logos/logo-1.svg" />
+        <link rel="apple-touch-icon" sizes="180x180" href="https://naturalonline.com.ar/logos/logo-1.svg" />
 
         <link rel="manifest" href="/manifest.json" />
 

@@ -15,14 +15,14 @@ const Categorias = () => {
             id: 'shop-online',
             nombre: 'SHOP ONLINE',
             descripcion: 'Explora nuestra amplia colección de uniformes profesionales disponibles para compra inmediata.',
-            imagen: '/imgs/cat-1.jpg',
+            imagen: '/imgs/shop-online.jpg',
             route: '/catalogo'
         },
         {
             id: 'uniformes-diseno',
             nombre: 'UNIFORMES DE DISEÑO',
             descripcion: 'Diseños personalizados y exclusivos creados especialmente para tu empresa.',
-            imagen: '/imgs/cat-2.jpg',
+            imagen: '/imgs/personalizados.jpg',
             route: '/personalizados'
         }
     ];

@@ -6,6 +6,7 @@ import { ArrowRight, Eye, ShoppingCart, Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { GroupedProduct, ProductVariant } from '../types/producto';
 import { useCart } from './hooks/useCart';
+import { getFirstProductImage, getProductImagesByColor } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
 
 interface ProductCardGroupedProps {
     group: GroupedProduct;
@@ -73,18 +74,78 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({ group, index, e
     const product = selectedVariant.producto;
 
     // Obtener imágenes del producto (usar array de imágenes si está disponible)
-    const PLACEHOLDER_IMAGE = '/imgs/producto-placeholder.jpg';
-    const productImages = product.imagenes && product.imagenes.length > 0 
-        ? product.imagenes.filter(img => img && img.trim() !== '' && !img.includes('.png')) // Filtrar URLs vacías y .png
-        : product.imagen && product.imagen.trim() !== '' && !product.imagen.includes('.png')
-            ? [product.imagen] 
-            : [];
+    const PLACEHOLDER_IMAGE = '/imgs/producto-placeholder.png';
+    const productName = product.NOMBRE || group.skuBase;
+    const [mainImage, setMainImage] = useState<string>(PLACEHOLDER_IMAGE);
+    const [hasValidImage, setHasValidImage] = useState<boolean>(true);
+    const [imageLoadAttempts, setImageLoadAttempts] = useState<number>(0);
     
-    // Asegurar que mainImage nunca sea .png
-    let mainImage = productImages.length > 0 ? productImages[0] : PLACEHOLDER_IMAGE;
-    if (mainImage.includes('.png')) {
-        mainImage = PLACEHOLDER_IMAGE;
-    }
+    // Actualizar imagen cuando cambia el color seleccionado o el producto
+    useEffect(() => {
+        setHasValidImage(true);
+        setImageLoadAttempts(0);
+        
+        // Prioridad 1: Imagen del color seleccionado
+        if (selectedColor && productName) {
+            const colorImages = getProductImagesByColor(productName, selectedColor);
+            if (colorImages.length > 0) {
+                setMainImage(colorImages[0]);
+                return;
+            }
+        }
+        
+        // Prioridad 2: Primera imagen disponible del producto (cualquier color)
+        if (productName) {
+            setMainImage(getFirstProductImage(productName));
+            return;
+        }
+        
+        // Prioridad 3: Imágenes del producto si existen
+        const productImages = product.imagenes && product.imagenes.length > 0 
+            ? product.imagenes.filter(img => img && img.trim() !== '' && !img.includes('.png'))
+            : product.imagen && product.imagen.trim() !== '' && !product.imagen.includes('.png')
+                ? [product.imagen] 
+                : [];
+        if (productImages.length > 0) {
+            setMainImage(productImages[0]);
+            return;
+        }
+        
+        // Fallback: placeholder
+        setMainImage(PLACEHOLDER_IMAGE);
+    }, [selectedColor, productName, product.imagen, product.imagenes]);
+    
+    // Manejar error de carga de imagen
+    const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+        const target = e.target as HTMLImageElement;
+        
+        // Intentar con otros colores disponibles
+        if (productName && group.availableColors && group.availableColors.length > 0 && imageLoadAttempts < group.availableColors.length) {
+            const currentColorIndex = selectedColor 
+                ? group.availableColors.indexOf(selectedColor)
+                : -1;
+            
+            // Intentar con el siguiente color
+            const nextColorIndex = (currentColorIndex + 1 + imageLoadAttempts) % group.availableColors.length;
+            const nextColor = group.availableColors[nextColorIndex];
+            
+            if (nextColor) {
+                const colorImages = getProductImagesByColor(productName, nextColor);
+                if (colorImages.length > 0) {
+                    setImageLoadAttempts(prev => prev + 1);
+                    target.src = colorImages[0];
+                    return;
+                }
+            }
+        }
+        
+        // Si ya intentamos con todos los colores o no hay más opciones, marcar como sin imagen
+        if (imageLoadAttempts >= (group.availableColors?.length || 1)) {
+            setHasValidImage(false);
+        } else {
+            setImageLoadAttempts(prev => prev + 1);
+        }
+    };
 
     // Detectar si tiene data de color/talle
     const hasColorSizeData = group.variants.some(v => v.color && v.talle);
@@ -283,6 +344,11 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({ group, index, e
         ? `$${product.PrecioVenta.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`
         : 'Consultar';
 
+    // Si no hay imagen válida después de intentar con todos los colores, no mostrar el producto
+    if (!hasValidImage && imageLoadAttempts >= (group.availableColors?.length || 1)) {
+        return null;
+    }
+
     return (
         <motion.div
             initial={!isMobile ? { opacity: 0, y: 50 } : { opacity: 1, y: 0 }}
@@ -316,43 +382,24 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({ group, index, e
             <div className={`relative overflow-hidden rounded-t-lg bg-gray-100 cursor-pointer flex-shrink-0 ${
                 isMobile ? 'h-[180px]' : 'h-[550px]'
             }`} onClick={handleProductClick}>
-                <motion.img
-                    src={mainImage}
-                    alt={product.Descripcion || product.NOMBRE || 'Producto'}
-                    className="w-full h-full object-cover"
-                    animate={!isMobile ? {
-                        scale: isHovered ? 1.08 : 1,
-                        filter: isHovered ? "brightness(0.85)" : "brightness(1)",
-                    } : {}}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
-                    onError={(e) => {
-                        // Prevenir bucle infinito: solo manejar el error UNA VEZ
-                        const target = e.target as HTMLImageElement;
-                        // Marcar que ya se manejó el error para evitar bucles
-                        if (target.dataset.errorHandled === 'true') {
-                            // Si ya se manejó, simplemente ocultar la imagen
-                            target.style.display = 'none';
-                            return;
-                        }
-                        
-                        // Marcar como manejado ANTES de intentar cambiar
-                        target.dataset.errorHandled = 'true';
-                        
-                        // Si la imagen actual no es el placeholder, intentar cargarlo
-                        const currentSrc = target.src || '';
-                        if (!currentSrc.includes('producto-placeholder')) {
-                            // Intentar cargar el placeholder UNA SOLA VEZ
-                            target.src = '/imgs/producto-placeholder.jpg';
-                            // Si el placeholder también falla, simplemente ocultar (sin más onError)
-                            target.onerror = () => {
-                                target.style.display = 'none';
-                            };
-                        } else {
-                            // Si ya es el placeholder y falla, ocultarlo directamente
-                            target.style.display = 'none';
-                        }
-                    }}
-                />
+                {hasValidImage ? (
+                    <motion.img
+                        src={mainImage}
+                        alt={product.Descripcion || product.NOMBRE || 'Producto'}
+                        className="w-full h-full object-cover"
+                        animate={!isMobile ? {
+                            scale: isHovered ? 1.08 : 1,
+                            filter: isHovered ? "brightness(0.85)" : "brightness(1)",
+                        } : {}}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        onError={handleImageError}
+                        onLoad={() => setHasValidImage(true)}
+                    />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                        <span className="text-gray-400 text-sm">Sin imagen</span>
+                    </div>
+                )}
 
                 {/* Overlay gradient */}
                 <motion.div

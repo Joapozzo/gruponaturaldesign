@@ -9,7 +9,7 @@ export interface FilterState {
     colores: string[];
     talles: string[];
     onlyFeatured: boolean;
-    sortBy: 'alfabetico' | 'categoria' | 'destacados';
+    sortBy: 'alfabetico-asc' | 'alfabetico-desc' | 'precio-asc' | 'precio-desc' | 'destacados';
 }
 
 export interface UseCatalogFiltersProps {
@@ -34,7 +34,7 @@ export const useCatalogFilters = ({ productos, itemsPerPage = 12 }: UseCatalogFi
         colores: [],
         talles: [],
         onlyFeatured: false,
-        sortBy: 'alfabetico',
+        sortBy: 'alfabetico-asc',
     });
 
     const [currentPage, setCurrentPage] = useState(1);
@@ -63,11 +63,34 @@ export const useCatalogFilters = ({ productos, itemsPerPage = 12 }: UseCatalogFi
 
         // Ordenamiento
         switch (filters.sortBy) {
-            case 'alfabetico':
+            case 'alfabetico-asc':
                 filtered.sort((a, b) => a.nombre.localeCompare(b.nombre));
                 break;
-            case 'categoria':
-                filtered.sort((a, b) => a.categoriaIndumentaria.localeCompare(b.categoriaIndumentaria));
+            case 'alfabetico-desc':
+                filtered.sort((a, b) => b.nombre.localeCompare(a.nombre));
+                break;
+            case 'precio-asc':
+                // Ordenar por precio ascendente (menor a mayor)
+                // Por ahora, si no hay precio numérico, mantener orden alfabético
+                filtered.sort((a, b) => {
+                    const precioA = parseFloat(a.precio) || 0;
+                    const precioB = parseFloat(b.precio) || 0;
+                    if (precioA === 0 && precioB === 0) {
+                        return a.nombre.localeCompare(b.nombre);
+                    }
+                    return precioA - precioB;
+                });
+                break;
+            case 'precio-desc':
+                // Ordenar por precio descendente (mayor a menor)
+                filtered.sort((a, b) => {
+                    const precioA = parseFloat(a.precio) || 0;
+                    const precioB = parseFloat(b.precio) || 0;
+                    if (precioA === 0 && precioB === 0) {
+                        return a.nombre.localeCompare(b.nombre);
+                    }
+                    return precioB - precioA;
+                });
                 break;
             case 'destacados':
                 filtered.sort((a, b) => {
@@ -109,7 +132,7 @@ export const useCatalogFilters = ({ productos, itemsPerPage = 12 }: UseCatalogFi
             colores: [],
             talles: [],
             onlyFeatured: false,
-            sortBy: 'alfabetico',
+            sortBy: 'alfabetico-asc',
         });
         setCurrentPage(1);
     };

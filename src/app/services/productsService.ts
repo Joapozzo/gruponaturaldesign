@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import { ProductWithImage, ProductFilters, GroupedProduct, ProductVariant } from '../types/producto';
 import { getVariantInfo } from '../data/variantMapping';
+import { getProductSizeChart } from '../data/sizeMappings';
 
 class ProductsService {
 
@@ -41,23 +42,30 @@ class ProductsService {
                     });
 
                     // Hoja 2: Productos agrupados por nombre (con descripciones)
-                    // La segunda hoja tiene una estructura especial: primera fila son los nombres de columnas
-                    // Las columnas están en: PRODUCTOS WORKWEAR (NOMBRE), __EMPTY (DESCRICPION), __EMPTY_1 (TALLES), etc.
+                    // IMPORTANTE: Todos los productos están en la columna "PRODUCTOS WORKWEAR"
+                    // Los productos BASIC vienen después de una fila separadora que dice "PRODUCTOS BASIC"
                     let productosAgrupados: any[] = [];
                     if (workbook.SheetNames.length > 1) {
                         const sheet2 = workbook.Sheets[workbook.SheetNames[1]];
                         // Leer como JSON
                         const rawData = XLSX.utils.sheet_to_json(sheet2, { defval: null });
-                        
-                        // La primera fila contiene los nombres de columnas
-                        // Las siguientes filas contienen los datos
+
+                        // Todos los productos están en la columna "PRODUCTOS WORKWEAR"
+                        // Filtrar solo productos válidos (no headers ni separadores)
                         productosAgrupados = rawData
                             .filter((row: any, index: number) => {
-                                // Saltar la primera fila (encabezados)
-                                if (index === 0) return false;
-                                // Filtrar filas que tengan datos válidos
+                                if (index === 0) return false; // Saltar primera fila (headers internos)
+
                                 const nombre = String(row['PRODUCTOS WORKWEAR'] || '').trim();
-                                return nombre && nombre !== 'NOMBRE' && nombre !== 'PRODUCTOS WORKWEAR';
+
+                                // Filtrar:
+                                // - Filas vacías
+                                // - Headers ("NOMBRE", "PRODUCTOS WORKWEAR")
+                                // - Separadores de categorías ("PRODUCTOS BASIC", "PRODUCTOS OFFICE")
+                                const esHeader = nombre === 'NOMBRE' || nombre === 'PRODUCTOS WORKWEAR';
+                                const esSeparador = nombre === 'PRODUCTOS BASIC' || nombre === 'PRODUCTOS OFFICE';
+
+                                return nombre && !esHeader && !esSeparador;
                             })
                             .map((row: any) => ({
                                 // Mapear las columnas a nombres más legibles
@@ -85,19 +93,56 @@ class ProductsService {
                         
                         // Buscar todos los productos de la hoja 1 que contengan este NOMBRE en su Descripcion
                         const nombreUpper = nombre.toUpperCase();
+
+                        // Extraer palabras clave significativas del nombre (> 3 caracteres)
+                        const palabrasIgnorar = ['PARA', 'CON', 'SIN', 'TIPO', 'ESCOTE', 'CUELLO'];
+                        const palabrasClave = nombreUpper
+                            .split(/\s+/)
+                            .filter(palabra =>
+                                palabra.length > 3 &&
+                                !palabrasIgnorar.includes(palabra)
+                            );
+
                         const productosCoincidentes = productosIndividuales.filter((prod: any) => {
                             const prodDesc = String(prod.Descripcion || '').toUpperCase();
-                            return prodDesc.includes(nombreUpper);
+
+                            // Estrategia 1: Coincidencia exacta del nombre completo
+                            if (prodDesc.includes(nombreUpper)) {
+                                return true;
+                            }
+
+                            // Estrategia 2: Coincidencia por palabras clave (al menos 2 palabras deben coincidir)
+                            if (palabrasClave.length >= 2) {
+                                const palabrasCoincidentes = palabrasClave.filter(palabra =>
+                                    prodDesc.includes(palabra)
+                                );
+
+                                const umbralCoincidencia = Math.max(2, Math.ceil(palabrasClave.length * 0.6));
+                                if (palabrasCoincidentes.length >= umbralCoincidencia) {
+                                    return true;
+                                }
+                            }
+
+                            return false;
                         });
 
                         // Para cada producto coincidente, combinar con datos de la hoja 2
                         productosCoincidentes.forEach((productoIndividual: any) => {
+                            // Obtener imagen de talles correspondiente automáticamente
+                            const tablaTallesImage = getProductSizeChart({
+                                NOMBRE: nombre,
+                                Descripcion: productoIndividual.Descripcion,
+                                Subrubro: productoIndividual.Subrubro,
+                                DescripcionCorta: productoIndividual.DescripcionCorta
+                            });
+
                             const productoCombinado = {
                                 ...productoIndividual,
                                 Descripcion: descripcion || productoIndividual.Descripcion || nombre,
                                 DescripcionCorta: descripcion || productoIndividual.DescripcionCorta || nombre,
                                 Material: this.sanitizeString(rowAgrupado.TEXTIL || productoIndividual.Material),
                                 tablaTallesUrl: this.extractSheetUrl(rowAgrupado['TABLA DE TALLES'] || productoIndividual['Ult. Actualizacion'] || productoIndividual['Ult Actualizacion']),
+                                tablaTallesImage: tablaTallesImage, // Imagen de talles local
                                 fotosDriveUrl: this.extractDriveUrl(rowAgrupado.FOTO || productoIndividual['Costo x LM']),
                                 indicacionesBordadosUrl: this.extractDocUrl(rowAgrupado['DATO DE BORDADO'] || productoIndividual['Lista Material']),
                                 NOMBRE: nombre,
@@ -260,6 +305,7 @@ class ProductsService {
             imagenPlaceholder: undefined,
             // Enlaces a recursos externos (ya extraídos en parseProductsFile)
             tablaTallesUrl: (row as any).tablaTallesUrl || null,
+            tablaTallesImage: (row as any).tablaTallesImage || null, // Imagen de talles local
             fotosDriveUrl: (row as any).fotosDriveUrl || null,
             indicacionesBordadosUrl: (row as any).indicacionesBordadosUrl || null,
         };
@@ -510,6 +556,7 @@ class ProductsService {
             FechaAlta: this.sanitizeString(apiProduct.FechaAlta),
             // Enlaces a recursos externos
             tablaTallesUrl: this.sanitizeString(apiProduct.tablaTallesUrl),
+            tablaTallesImage: this.sanitizeString(apiProduct.tablaTallesImage), // Imagen de talles local
             fotosDriveUrl: this.sanitizeString(apiProduct.fotosDriveUrl),
             indicacionesBordadosUrl: this.sanitizeString(apiProduct.indicacionesBordadosUrl),
             // Imágenes (usar las que vienen del API, pero asegurar que sean rutas relativas)
@@ -583,7 +630,7 @@ class ProductsService {
         });
 
         // Remover colores comunes al final
-        const colores = ['NEGRO', 'BLANCO', 'AZUL', 'GRIS', 'ROJO', 'VERDE', 'AMARILLO', 'NARANJA', 'ROSA', 'VIOLETA', 'BEIGE', 'MARRON', 'AZUL MARINO'];
+        const colores = ['NEGRO', 'BLANCO', 'AZUL', 'GRIS', 'ROJO', 'VERDE', 'AMARILLO', 'NARANJA', 'ROSA', 'VIOLETA', 'BEIGE', 'MARRON', 'AZUL MARINO', 'CELESTE', 'CEMENTO', 'GRIS TOPO', 'GRISTOPO', 'GRIS MELANGE', 'GRIS PERLA'];
         colores.forEach(color => {
             const regex = new RegExp(`\\s*${color}\\s*$`, 'i');
             nombre = nombre.replace(regex, '');
@@ -947,7 +994,8 @@ class ProductsService {
         // Colores compuestos primero (deben ir antes que los simples para que coincidan correctamente)
         const coloresCompuestos = [
             'LAVADO OSCURO', 'LAVADO CLARO', 'LAVADO MEDIO',
-            'AZUL MARINO', 'GRIS PERLA', 'GRIS MELANGE', 'GRIS TOPO',
+            'AZUL MARINO', 'GRIS PERLA', 'GRIS MELANGE', 'GRIS TOPO', 'GRISTOPO',
+            'CELESTE', 'CEMENTO', // Agregar CELESTE y CEMENTO
             'NEGRO', 'BLANCO', 'AZUL', 'GRIS', 'ROJO', 'VERDE', 
             'AMARILLO', 'NARANJA', 'ROSA', 'VIOLETA', 'BEIGE', 'MARRON'
         ];

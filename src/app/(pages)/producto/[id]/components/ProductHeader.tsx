@@ -37,7 +37,7 @@ export default function ProductHeader({ groupedProduct, displayProduct }: Produc
                                 Inicio
                             </Link>
                             <span>/</span>
-                            <Link href="/catalogo" className="hover:text-gray-900 transition-colors">
+                            <Link href="/shoponline" className="hover:text-gray-900 transition-colors">
                                 Shop Online
                             </Link>
                             <span>/</span>

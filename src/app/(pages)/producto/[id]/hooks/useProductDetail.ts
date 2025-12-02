@@ -142,32 +142,49 @@ export function useProductDetail() {
     
     const [groupedProduct, setGroupedProduct] = useState<GroupedProduct | null>(null);
     const [relatedProducts, setRelatedProducts] = useState<GroupedProduct[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
 
-    const { groupedProducts, isLoading: productsLoading } = useGroupedProducts();
+    const { groupedProducts, isLoading: productsLoading, isError: productsError, isFetched: productsFetched } = useGroupedProducts();
 
     useEffect(() => {
-        if (!productsLoading && groupedProducts.length > 0) {
-            // Buscar el producto por slug o por nombre original
-            const foundProduct = groupedProducts.find(g => {
-                const slug = g.skuBaseSlug || nombreToSlug(g.skuBase);
-                return slug === skuBase || g.skuBase === skuBase;
-            });
-
-            if (foundProduct) {
-                setGroupedProduct(foundProduct);
-
-                // Obtener productos relacionados usando la función de outfit matching
-                const related = findRelatedProductsForOutfit(
-                    foundProduct,
-                    groupedProducts,
-                    12
-                );
-                setRelatedProducts(related);
-            }
-            setIsLoading(false);
+        // Mientras los productos estén cargando O no se hayan fetcheado aún, no hacer nada
+        if (productsLoading || !productsFetched) {
+            return;
         }
-    }, [skuBase, groupedProducts, productsLoading]);
+
+        // Si hay un error o no hay productos después de que termine la carga, 
+        // significa que no se encontró el producto o hubo un error
+        if (productsError || groupedProducts.length === 0) {
+            setGroupedProduct(null);
+            setRelatedProducts([]);
+            return;
+        }
+
+        // Una vez que los productos terminaron de cargar, buscar el producto
+        // Buscar el producto por slug o por nombre original
+        const foundProduct = groupedProducts.find(g => {
+            const slug = g.skuBaseSlug || nombreToSlug(g.skuBase);
+            return slug === skuBase || g.skuBase === skuBase;
+        });
+
+        if (foundProduct) {
+            setGroupedProduct(foundProduct);
+
+            // Obtener productos relacionados usando la función de outfit matching
+            const related = findRelatedProductsForOutfit(
+                foundProduct,
+                groupedProducts,
+                12
+            );
+            setRelatedProducts(related);
+        } else {
+            // Si no se encontró el producto, limpiar el estado
+            setGroupedProduct(null);
+            setRelatedProducts([]);
+        }
+    }, [skuBase, groupedProducts, productsLoading, productsError, productsFetched]);
+
+    // isLoading es true mientras los productos estén cargando O no se hayan fetcheado aún
+    const isLoading = productsLoading || !productsFetched;
 
     return {
         groupedProduct,

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { GroupedProduct } from '../../types/producto';
 import { FilterState } from './useCatalogFilters';
+import { hasProductImages } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
 
 export interface UseGroupedCatalogFiltersProps {
     groupedProducts: GroupedProduct[];
@@ -14,6 +15,85 @@ const normalizeString = (str: string): string => {
         .toLowerCase()
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '');
+};
+
+// Lista blanca de productos permitidos por categoría
+// Si dice "HOMBRE Y DAMA" son dos productos distintos
+const ALLOWED_PRODUCTS = {
+    WORKWEAR: [
+        'CAMISA DRILL HOMBRE',
+        'CAMISA DRILL DAMA',
+        'BUZO STANDARD UNISEX',
+        'CARGO BALANCE HOMBRE',
+        'CARGO BALANCE DAMA',
+        'CARGO BOLT HOMBRE',
+        'CARGO IMPACTED UNISEX',
+        'CHOMBA RIVET UNISEX',
+        'REMERA BASE UNISEX',
+        'JEAN FLOW HOMBRE',
+        'JEAN FLOW DAMA',
+        'ROMPEVIENTO RANGER UNISEX'
+    ],
+    BASIC: [
+        'CAMISA EXECUTIVE HOMBRE',
+        'CAMISA EXECUTIVE DAMA',
+        'REMERA GENTLE',
+        'CARDIGAN CHARM',
+        'SWEATER ESSENCE',
+        'CHINO CONFORT FIT HOMBRE',
+        'CHINO CONFORT FIT DAMA',
+        'CHOMBA FLOWING HOMBRE'
+    ]
+};
+
+// Función para verificar si un producto está en la lista blanca
+const isProductAllowed = (productName: string, category: string): boolean => {
+    if (!productName) return false;
+    
+    const normalizedName = normalizeString(productName);
+    
+    // Obtener lista de productos permitidos
+    let allowedList: string[] = [];
+    if (category === 'TODOS') {
+        // Si es TODOS, verificar en ambas listas
+        const workwearList = ALLOWED_PRODUCTS.WORKWEAR || [];
+        const basicList = ALLOWED_PRODUCTS.BASIC || [];
+        allowedList = [...workwearList, ...basicList];
+    } else {
+        allowedList = ALLOWED_PRODUCTS[category as keyof typeof ALLOWED_PRODUCTS] || [];
+    }
+    
+    // Verificar coincidencia: el nombre del producto debe contener el nombre permitido
+    // o el nombre permitido debe contener el nombre del producto (para manejar variaciones)
+    const isAllowed = allowedList.some(allowed => {
+        const normalizedAllowed = normalizeString(allowed);
+        
+        // Coincidencia exacta
+        if (normalizedName === normalizedAllowed) return true;
+        
+        // El nombre del producto contiene el permitido (ej: "CAMISA DRILL HOMBRE" contiene "CAMISA DRILL")
+        if (normalizedName.includes(normalizedAllowed)) return true;
+        
+        // El nombre permitido contiene el nombre del producto (ej: para nombres más cortos en el Excel)
+        if (normalizedAllowed.includes(normalizedName)) return true;
+        
+        // Matching por palabras clave principales (más flexible)
+        // Extraer palabras clave del nombre permitido (primera y segunda palabra)
+        const allowedWords = normalizedAllowed.split(' ').filter(w => w.length > 2);
+        if (allowedWords.length >= 2) {
+            const firstTwoWords = allowedWords.slice(0, 2).join(' ');
+            if (normalizedName.includes(firstTwoWords)) return true;
+        }
+        
+        return false;
+    });
+    
+    // Debug temporal: mostrar productos que no coinciden
+    if (!isAllowed && process.env.NODE_ENV === 'development') {
+        console.log(`Producto no permitido: "${productName}" (categoría: ${category})`);
+    }
+    
+    return isAllowed;
 };
 
 // Función para extraer género del código o nombre del producto
@@ -43,7 +123,7 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
         colores: [],
         talles: [],
         onlyFeatured: false,
-        sortBy: 'alfabetico',
+        sortBy: 'alfabetico-asc',
     });
 
     const [currentPage, setCurrentPage] = useState(1);
@@ -51,6 +131,38 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
     // Productos filtrados
     const filteredProducts = useMemo(() => {
         let filtered = [...groupedProducts];
+
+        // PRIMERO: Filtro por categoría tipo (BASIC/WORKWEAR) con lista blanca de productos
+        // Esto debe ir ANTES del filtro de imágenes para no perder productos válidos
+        filtered = filtered.filter(product => {
+            const productName = product.displayProduct.NOMBRE || product.skuBase || product.displayProduct.Descripcion || '';
+            const rubro = normalizeString(product.displayProduct.Rubro || '');
+            
+            // Normalizar "office" a "basic" en el rubro
+            const rubroNormalized = rubro === 'office' ? 'basic' : rubro;
+            
+            if (filters.categoriaTipo !== 'TODOS') {
+                const categoriaTipoNormalized = normalizeString(filters.categoriaTipo);
+                
+                // Verificar si el rubro coincide con la categoría
+                const rubroMatches = rubroNormalized.includes(categoriaTipoNormalized) || categoriaTipoNormalized.includes(rubroNormalized);
+                
+                if (!rubroMatches) return false;
+                
+                // Verificar si el producto está en la lista blanca de la categoría seleccionada
+                return isProductAllowed(productName, filters.categoriaTipo);
+            } else {
+                // Si es TODOS, verificar que el producto esté en alguna lista blanca
+                // y que el rubro sea workwear o basic/office
+                const isWorkwear = rubroNormalized.includes('workwear');
+                const isBasic = rubroNormalized.includes('basic') || rubro === 'office';
+                
+                if (!isWorkwear && !isBasic) return false;
+                
+                // Verificar si el producto está en la lista blanca
+                return isProductAllowed(productName, 'TODOS');
+            }
+        });
 
         // Filtro por término de búsqueda (insensible a acentos)
         if (filters.searchTerm) {
@@ -68,13 +180,28 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
             });
         }
 
-        // Filtro por categoría tipo (BASIC/WORKWEAR)
-        if (filters.categoriaTipo !== 'TODOS') {
-            filtered = filtered.filter(product => {
-                const rubro = normalizeString(product.displayProduct.Rubro || '');
-                return rubro.includes(normalizeString(filters.categoriaTipo));
-            });
-        }
+        // FILTRO: Solo mostrar productos que tienen imágenes disponibles
+        // Este filtro va al final para no interferir con la lista blanca
+        // Si el producto está en la lista blanca, ser más permisivo con las imágenes
+        filtered = filtered.filter(product => {
+            const productName = product.displayProduct.NOMBRE || product.skuBase || product.displayProduct.Descripcion || '';
+            const rubro = normalizeString(product.displayProduct.Rubro || '');
+            const rubroNormalized = rubro === 'office' ? 'basic' : rubro;
+            const isWorkwear = rubroNormalized.includes('workwear');
+            const isBasic = rubroNormalized.includes('basic') || rubro === 'office';
+            
+            // Si está en la lista blanca, ser más permisivo
+            if (isWorkwear || isBasic) {
+                const category = isWorkwear ? 'WORKWEAR' : 'BASIC';
+                if (isProductAllowed(productName, category)) {
+                    // Si está en la lista blanca, siempre mostrar (incluso sin imágenes)
+                    return true;
+                }
+            }
+            
+            // Para otros productos, verificar imágenes normalmente
+            return hasProductImages(productName, product.availableColors);
+        });
 
         // Filtro por subrubro
         if (filters.subrubro !== 'TODOS') {
@@ -117,18 +244,44 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
 
         // Ordenamiento
         switch (filters.sortBy) {
-            case 'alfabetico':
+            case 'alfabetico-asc':
                 filtered.sort((a, b) => {
                     const nombreA = (a.displayProduct.NOMBRE || a.displayProduct.Descripcion || '').toLowerCase();
                     const nombreB = (b.displayProduct.NOMBRE || b.displayProduct.Descripcion || '').toLowerCase();
                     return nombreA.localeCompare(nombreB);
                 });
                 break;
-            case 'categoria':
+            case 'alfabetico-desc':
                 filtered.sort((a, b) => {
-                    const rubroA = (a.displayProduct.Rubro || '').toLowerCase();
-                    const rubroB = (b.displayProduct.Rubro || '').toLowerCase();
-                    return rubroA.localeCompare(rubroB);
+                    const nombreA = (a.displayProduct.NOMBRE || a.displayProduct.Descripcion || '').toLowerCase();
+                    const nombreB = (b.displayProduct.NOMBRE || b.displayProduct.Descripcion || '').toLowerCase();
+                    return nombreB.localeCompare(nombreA);
+                });
+                break;
+            case 'precio-asc':
+                // Ordenar por precio ascendente (menor a mayor)
+                filtered.sort((a, b) => {
+                    const precioA = a.displayProduct.PrecioVenta || 0;
+                    const precioB = b.displayProduct.PrecioVenta || 0;
+                    if (precioA === 0 && precioB === 0) {
+                        const nombreA = (a.displayProduct.NOMBRE || a.displayProduct.Descripcion || '').toLowerCase();
+                        const nombreB = (b.displayProduct.NOMBRE || b.displayProduct.Descripcion || '').toLowerCase();
+                        return nombreA.localeCompare(nombreB);
+                    }
+                    return precioA - precioB;
+                });
+                break;
+            case 'precio-desc':
+                // Ordenar por precio descendente (mayor a menor)
+                filtered.sort((a, b) => {
+                    const precioA = a.displayProduct.PrecioVenta || 0;
+                    const precioB = b.displayProduct.PrecioVenta || 0;
+                    if (precioA === 0 && precioB === 0) {
+                        const nombreA = (a.displayProduct.NOMBRE || a.displayProduct.Descripcion || '').toLowerCase();
+                        const nombreB = (b.displayProduct.NOMBRE || b.displayProduct.Descripcion || '').toLowerCase();
+                        return nombreA.localeCompare(nombreB);
+                    }
+                    return precioB - precioA;
                 });
                 break;
             case 'destacados':
@@ -214,7 +367,7 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
             colores: [],
             talles: [],
             onlyFeatured: false,
-            sortBy: 'alfabetico',
+            sortBy: 'alfabetico-asc',
         });
         setCurrentPage(1);
     };
@@ -235,7 +388,7 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
                filters.colores.length > 0 ||
                filters.talles.length > 0 ||
                filters.onlyFeatured ||
-               filters.sortBy !== 'alfabetico';
+               filters.sortBy !== 'alfabetico-asc';
     }, [filters]);
 
     return {

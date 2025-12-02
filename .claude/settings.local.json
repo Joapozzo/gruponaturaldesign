@@ -2,7 +2,16 @@
   "permissions": {
     "allow": [
       "Bash(npm install:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(node diagnostico-excel.js:*)",
+      "Bash(timeout 10 curl:*)",
+      "Bash(curl:*)",
+      "Bash(cat:*)",
+      "Bash(node test-api.js:*)",
+      "Bash(taskkill:*)",
+      "Bash(node debug-missing.js:*)",
+      "Bash(node find-exact-names.js:*)",
+      "Bash(node -e:*)"
     ],
     "deny": [],
     "ask": []

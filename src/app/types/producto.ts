@@ -67,6 +67,7 @@ export interface ProductWithImage extends ProductSFactory {
     imagenPlaceholder?: string; // Placeholder mientras no tengamos la imagen real
     // Enlaces a recursos externos
     tablaTallesUrl?: string | null; // URL a tabla de talles (Google Sheet)
+    tablaTallesImage?: string | null; // URL local de la imagen de talles (/imgs/talles/)
     fotosDriveUrl?: string | null; // URL a carpeta de Drive con fotos del producto
     indicacionesBordadosUrl?: string | null; // URL a documento con indicaciones de bordados
     // Campos adicionales de la hoja 2

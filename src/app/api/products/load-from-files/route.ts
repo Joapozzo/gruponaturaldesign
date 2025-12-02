@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
 import { readFile, readdir } from 'fs/promises';
 import { join } from 'path';
+import { getProductSizeChart } from '@/app/data/sizeMappings';
 
 // URL base de las imágenes (SIEMPRE LOCAL - usar rutas relativas)
 // IGNORAR variable de entorno, siempre usar rutas relativas locales
@@ -156,16 +157,29 @@ async function processFile(filePath: string): Promise<any[]> {
         const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
 
         // HOJA 2: Productos agrupados (HOJA_PRODUCTOS_SUBIR)
+        // IMPORTANTE: Todos los productos están en la columna "PRODUCTOS WORKWEAR"
+        // Los productos BASIC vienen después de una fila separadora que dice "PRODUCTOS BASIC"
         let productosAgrupados: any[] = [];
         if (workbook.SheetNames.length > 1) {
             const sheet2 = workbook.Sheets[workbook.SheetNames[1]];
             const rawData = XLSX.utils.sheet_to_json(sheet2, { defval: null });
 
+            // Todos los productos están en la columna "PRODUCTOS WORKWEAR"
+            // Filtrar solo productos válidos (no headers ni separadores)
             productosAgrupados = rawData
                 .filter((row: any, index: number) => {
-                    if (index === 0) return false; // Saltar primera fila
+                    if (index === 0) return false; // Saltar primera fila (headers internos)
+
                     const nombre = String(row['PRODUCTOS WORKWEAR'] || '').trim();
-                    return nombre && nombre !== 'NOMBRE' && nombre !== 'PRODUCTOS WORKWEAR';
+
+                    // Filtrar:
+                    // - Filas vacías
+                    // - Headers ("NOMBRE", "PRODUCTOS WORKWEAR")
+                    // - Separadores de categorías ("PRODUCTOS BASIC", "PRODUCTOS OFFICE")
+                    const esHeader = nombre === 'NOMBRE' || nombre === 'PRODUCTOS WORKWEAR';
+                    const esSeparador = nombre === 'PRODUCTOS BASIC' || nombre === 'PRODUCTOS OFFICE';
+
+                    return nombre && !esHeader && !esSeparador;
                 })
                 .map((row: any) => ({
                     NOMBRE: String(row['PRODUCTOS WORKWEAR'] || '').trim(),
@@ -213,16 +227,41 @@ async function processFile(filePath: string): Promise<any[]> {
 
             const nombreUpper = nombre.toUpperCase();
 
+            // Extraer palabras clave significativas del nombre (> 3 caracteres)
+            // Filtrar palabras comunes que no ayudan a identificar el producto
+            const palabrasIgnorar = ['PARA', 'CON', 'SIN', 'TIPO', 'ESCOTE', 'CUELLO'];
+            const palabrasClave = nombreUpper
+                .split(/\s+/)
+                .filter(palabra =>
+                    palabra.length > 3 &&
+                    !palabrasIgnorar.includes(palabra)
+                );
+
             // Buscar todos los productos de la hoja 1 que contengan este NOMBRE
             // Buscar en Descripcion Y en todas las demás columnas (por si hay una columna con el nombre agrupado)
             const productosCoincidentes = productosIndividuales.filter((prod: any) => {
-                // Buscar en Descripcion (búsqueda original)
                 const prodDesc = String(prod.Descripcion || '').toUpperCase();
+
+                // Estrategia 1: Coincidencia exacta del nombre completo
                 if (prodDesc.includes(nombreUpper)) {
                     return true;
                 }
 
-                // Buscar en todas las demás columnas (para encontrar la columna con el nombre agrupado)
+                // Estrategia 2: Coincidencia por palabras clave (al menos 2 palabras deben coincidir)
+                // Esto permite que "REMERA GENTLE ESCOTE EN V DAMA" coincida con "Remera Gentle Dama"
+                if (palabrasClave.length >= 2) {
+                    const palabrasCoincidentes = palabrasClave.filter(palabra =>
+                        prodDesc.includes(palabra)
+                    );
+
+                    // Si coinciden al menos 2 palabras clave (o el 60% de las palabras)
+                    const umbralCoincidencia = Math.max(2, Math.ceil(palabrasClave.length * 0.6));
+                    if (palabrasCoincidentes.length >= umbralCoincidencia) {
+                        return true;
+                    }
+                }
+
+                // Estrategia 3: Buscar en todas las demás columnas
                 for (const key in prod) {
                     if (key !== 'Descripcion') {
                         const value = String(prod[key] || '').toUpperCase();
@@ -288,18 +327,34 @@ async function processFile(filePath: string): Promise<any[]> {
                 // Crear el grupo con datos de la hoja 2 y productos individuales
                 const primerProducto = productosCoincidentes[0] || {} as any;
                 const skuBaseSlug = nombreToSlug(nombre); // Slug URL-friendly para la navegación
+
+                // Normalizar Rubro: "office" -> "basic"
+                const rubroOriginal = String(primerProducto?.Rubro || '').trim();
+                const rubroNormalizado = rubroOriginal.toLowerCase() === 'office' ? 'BASIC' : rubroOriginal;
+
+                // Obtener imagen de talles correspondiente automáticamente
+                const tablaTallesImage = getProductSizeChart({
+                    NOMBRE: nombre,
+                    Descripcion: primerProducto?.Descripcion,
+                    Subrubro: primerProducto?.Subrubro,
+                    DescripcionCorta: primerProducto?.DescripcionCorta
+                });
+
                 const grupo = {
                     skuBase: nombre, // Nombre original para mostrar
                     skuBaseSlug: skuBaseSlug, // Slug para URLs
                     displayProduct: {
                         // Todos los campos del producto individual de la hoja 1
                         ...(primerProducto || {}),
+                        // Normalizar Rubro: "office" -> "BASIC"
+                        Rubro: rubroNormalizado,
                         // Sobrescribir con datos de la hoja 2 (prioridad)
                         Descripcion: String(rowAgrupado.DESCRICPION || '').trim() || primerProducto?.Descripcion || nombre,
                         DescripcionCorta: String(rowAgrupado.DESCRICPION || '').trim() || primerProducto?.DescripcionCorta || nombre,
                         Material: String(rowAgrupado.TEXTIL || '').trim() || primerProducto?.Material || null,
                         // URLs de recursos externos
                         tablaTallesUrl: extractSheetUrl(rowAgrupado['TABLA DE TALLES']),
+                        tablaTallesImage: tablaTallesImage, // Imagen de talles local
                         fotosDriveUrl: extractDriveUrl(rowAgrupado.FOTO),
                         indicacionesBordadosUrl: extractDocUrl(rowAgrupado['DATO DE BORDADO']),
                         // URLs de imágenes en Ferozo
@@ -347,6 +402,10 @@ async function processFile(filePath: string): Promise<any[]> {
                             }
                         }
 
+                        // Normalizar Rubro en cada variante también
+                        const variantRubroOriginal = String(prod.Rubro || '').trim();
+                        const variantRubroNormalizado = variantRubroOriginal.toLowerCase() === 'office' ? 'BASIC' : variantRubroOriginal;
+
                         return {
                             codigo: prod.Codigo,
                             variantNumber: idx + 1,
@@ -354,10 +413,11 @@ async function processFile(filePath: string): Promise<any[]> {
                                 ...prod,
                                 Descripcion: prod.Descripcion,
                                 DescripcionCorta: prod.DescripcionCorta || prod.Descripcion,
-                                Rubro: prod.Rubro,
+                                Rubro: variantRubroNormalizado,
                                 Subrubro: prod.Subrubro,
                                 Material: String(rowAgrupado.TEXTIL || prod.Material || '').trim(),
                                 tablaTallesUrl: extractSheetUrl(rowAgrupado['TABLA DE TALLES'] || prod['Ult. Actualizacion'] || prod['Ult Actualizacion']),
+                                tablaTallesImage: tablaTallesImage, // Usar la misma imagen de talles para todas las variantes
                                 fotosDriveUrl: extractDriveUrl(rowAgrupado.FOTO || prod['Costo x LM']),
                                 indicacionesBordadosUrl: extractDocUrl(rowAgrupado['DATO DE BORDADO'] || prod['Lista Material']),
                                 // URLs de imágenes en Ferozo
