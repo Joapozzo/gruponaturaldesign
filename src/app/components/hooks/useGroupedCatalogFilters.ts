@@ -142,12 +142,9 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
 
     // Productos filtrados
     const filteredProducts = useMemo(() => {
-        console.log('🔍 INICIANDO FILTRADO - Total productos:', groupedProducts.length);
-        console.log('📦 Productos originales:', groupedProducts.map(p => ({
-            nombre: p.displayProduct.NOMBRE || p.skuBase,
-            rubro: p.displayProduct.Rubro,
-            subrubro: p.displayProduct.Subrubro
-        })));
+        if (process.env.NODE_ENV === 'development') {
+            console.log('🔍 INICIANDO FILTRADO - Total productos:', groupedProducts.length);
+        }
         let filtered = [...groupedProducts];
 
         // PRIMERO: Filtro por categoría tipo (BASIC/WORKWEAR)
@@ -168,8 +165,8 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
             // Si contiene "office", tratarlo como "basic"
             const rubroNormalized = isOffice ? 'basic' : (isBasic ? 'basic' : (isWorkwear ? 'workwear' : rubro));
             
-            // Debug: mostrar normalización para productos office
-            if (isOffice) {
+            // Debug: mostrar normalización para productos office (solo en desarrollo)
+            if (isOffice && process.env.NODE_ENV === 'development') {
                 console.log(`✅ Producto OFFICE detectado: "${productName}" - Rubro original: "${rubroOriginal}" - Rubro normalizado: "${rubro}" -> "${rubroNormalized}"`);
             }
 
@@ -186,7 +183,9 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
                     categoriaTipoNormalized.includes(rubroNormalized);
 
                 if (!rubroMatches) {
-                    console.log(`❌ Producto rechazado (rubro no coincide): "${productName}" - Rubro original: "${product.displayProduct.Rubro}" - Rubro normalizado: "${rubroNormalized}" - Categoría filtro: "${filters.categoriaTipo}"`);
+                    if (process.env.NODE_ENV === 'development') {
+                        console.log(`❌ Producto rechazado (rubro no coincide): "${productName}" - Rubro original: "${product.displayProduct.Rubro}" - Rubro normalizado: "${rubroNormalized}" - Categoría filtro: "${filters.categoriaTipo}"`);
+                    }
                     return false;
                 }
 
@@ -197,12 +196,14 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
                 const isValidRubro = isWorkwear || isBasic || isOffice;
 
                 if (!isValidRubro) {
-                    console.log(`❌ Producto rechazado (rubro no válido): "${productName}" - Rubro original: "${rubroOriginal}" - Rubro normalizado: "${rubro}" - isOffice: ${isOffice} - isBasic: ${isBasic} - isWorkwear: ${isWorkwear}`);
+                    if (process.env.NODE_ENV === 'development') {
+                        console.log(`❌ Producto rechazado (rubro no válido): "${productName}" - Rubro original: "${rubroOriginal}" - Rubro normalizado: "${rubro}" - isOffice: ${isOffice} - isBasic: ${isBasic} - isWorkwear: ${isWorkwear}`);
+                    }
                     return false;
                 }
 
-                // Debug: confirmar que se acepta
-                if (isOffice) {
+                // Debug: confirmar que se acepta (solo en desarrollo)
+                if (isOffice && process.env.NODE_ENV === 'development') {
                     console.log(`✅ Producto OFFICE aceptado: "${productName}" - Rubro: "${rubroOriginal}" -> "${rubroNormalized}"`);
                 }
 
@@ -211,7 +212,11 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
             }
         });
 
-        console.log('✅ Después de filtro de categoría:', filtered.length);
+        if (process.env.NODE_ENV === 'development') {
+            if (process.env.NODE_ENV === 'development') {
+            console.log('✅ Después de filtro de categoría:', filtered.length);
+        }
+        }
 
         // Filtro por término de búsqueda (insensible a acentos)
         if (filters.searchTerm) {
@@ -235,17 +240,15 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
         filtered = filtered.filter(product => {
             const productName = product.displayProduct.NOMBRE || product.skuBase || product.displayProduct.Descripcion || '';
             const hasImages = hasProductImages(productName, product.availableColors);
-            if (!hasImages) {
+            if (!hasImages && process.env.NODE_ENV === 'development') {
                 console.log(`❌ Producto rechazado (sin imágenes): "${productName}" - Colores: ${product.availableColors?.length || 0}`);
             }
             return hasImages;
         });
 
-        console.log('✅ Después de filtro de imágenes:', filtered.length);
-        console.log('📦 Productos después de filtro de imágenes:', filtered.map(p => ({
-            nombre: p.displayProduct.NOMBRE || p.skuBase,
-            rubro: p.displayProduct.Rubro
-        })));
+        if (process.env.NODE_ENV === 'development') {
+            console.log('✅ Después de filtro de imágenes:', filtered.length);
+        }
 
         // Filtro por subrubro
         if (filters.subrubro !== 'TODOS') {

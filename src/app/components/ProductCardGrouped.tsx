@@ -84,7 +84,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
 
     // Verificar si la variante exacta (mismo color y talle) está en el carrito
     const cartItem = getCartItem(selectedVariantId);
-    const isExactVariantInCart = cartItem && cartItem.especificaciones === getCurrentSpecs();
+    const isExactVariantInCart = !!(cartItem && cartItem.especificaciones === getCurrentSpecs());
     const isInCartGeneric = isInCart(selectedVariantId);
 
     // Función para generar slug desde nombre
