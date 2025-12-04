@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { useCart } from '../hooks/useCart';
 import Button from '../ui/Button';
 import { CustomerData, ShippingData } from '@/app/types/cart';
@@ -24,7 +25,15 @@ interface FormErrors {
 }
 
 export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
-  const { customerData, shippingData, setCustomerData, setShippingData } = useCart();
+  const router = useRouter();
+  const { customerData, shippingData, setCustomerData, setShippingData, itemCount } = useCart();
+
+  // Redirigir si es compra mayorista (19+ artículos)
+  useEffect(() => {
+    if (itemCount >= 19) {
+      router.push('/mayorista');
+    }
+  }, [itemCount, router]);
 
   // Customer Data State
   const [formData, setFormData] = useState<CustomerData>({
@@ -169,6 +178,12 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
   };
 
   const handleSubmit = () => {
+    // Validar que no sea compra mayorista antes de continuar
+    if (itemCount >= 19) {
+      router.push('/mayorista');
+      return;
+    }
+
     const allFields = ['nombre', 'apellido', 'email', 'telefono', 'direccion', 'localidad', 'provincia', 'codigo_postal'];
     const newTouched: Record<string, boolean> = {};
     allFields.forEach((field) => {

@@ -224,7 +224,7 @@ const Contacto = () => {
                             </div>
                             <div className="space-y-2">
                                 <p className="text-sm md:text-lg text-gray-600">
-                                    <span className="font-semibold">Ventas:</span> +54 9 3517 13-6316
+                                    <span className="font-semibold">Ventas:</span> +54 9 3517 13-6311
                                 </p>
                                 <p className="text-sm md:text-lg text-gray-600">
                                     <span className="font-semibold">Info:</span> +54 9 3516 29-2969

@@ -1,10 +1,11 @@
 'use client';
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShoppingCart, ArrowRight } from 'lucide-react';
 import { useCart } from './hooks/useCart';
 import Button from './ui/Button';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import ConfirmModal from './modal/ConfirmModal';
 import { useConfirmModal } from './hooks/useModal';
 import CartItem from './CardItem';
@@ -17,6 +18,13 @@ interface CartDrawerProps {
 
 const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
     const router = useRouter();
+    const pathname = usePathname();
+    const isInCheckout = pathname?.startsWith('/checkout');
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
     const {
         items,
         itemCount,
@@ -24,12 +32,19 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
         // iva,       // Comentado temporalmente - sin precios por ahora
         // total,     // Comentado temporalmente - sin precios por ahora
         isEmpty,
-        updateQuantity,
+        updateQuantity: originalUpdateQuantity,
         removeFromCart,
         clearCart,
-        isWholesale,
+        canAddToCart,
     } = useCart();
     const { isOpen: isConfirmModalOpen, loading, modalOptions, showModal, closeModal, handleConfirm } = useConfirmModal();
+
+    // Cerrar automáticamente si estamos en checkout
+    React.useEffect(() => {
+        if (isInCheckout && isOpen) {
+            onClose();
+        }
+    }, [isInCheckout, isOpen, onClose]);
 
     // Ordenar items por categoría para agrupar productos del mismo tipo
     const sortedItems = useMemo(() => {
@@ -43,8 +58,16 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
     }, [items]);
 
     const handleGoToCart = () => {
+        // Si tiene 19+ artículos, redirigir a mayorista
+        if (itemCount >= 19) {
+            onClose();
+            router.push('/mayorista');
+            return;
+        }
         onClose();
-        router.push('/checkout');
+        if (!isInCheckout) {
+            router.push('/checkout');
+        }
     };
 
     const handleClearCart = () => {
@@ -63,7 +86,27 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
         });
     };
 
-    return (
+    // Wrapper para updateQuantity con validación
+    const updateQuantity = (productId: number, newQuantity: number) => {
+        const currentItem = items.find(item => item.product.id === productId);
+        const currentQuantity = currentItem?.quantity || 0;
+        const quantityDelta = newQuantity - currentQuantity;
+
+        // Si está aumentando, validar límites
+        if (quantityDelta > 0) {
+            const validation = canAddToCart(productId, quantityDelta);
+            if (!validation.canAdd) {
+                // Redirigir a página mayorista
+                onClose();
+                router.push('/mayorista');
+                return;
+            }
+        }
+
+        originalUpdateQuantity(productId, newQuantity);
+    };
+
+    const drawerContent = (
         <AnimatePresence>
             {isOpen && (
                 <>
@@ -73,7 +116,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm w-screen h-screen"
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm w-screen h-screen"
+                        style={{ zIndex: 99999 }}
                         onClick={onClose}
                     />
 
@@ -83,7 +127,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                         animate={{ x: 0 }}
                         exit={{ x: '100%' }}
                         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                        className="fixed right-0 top-0 h-screen w-full sm:w-[480px] bg-white shadow-2xl z-50 flex flex-col overflow-hidden"
+                        className="fixed right-0 top-0 h-screen w-full sm:w-[480px] bg-white shadow-2xl flex flex-col overflow-hidden"
+                        style={{ zIndex: 100000 }}
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-white flex-shrink-0">
@@ -125,8 +170,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                         <CartItem
                                             key={item.product.id}
                                             item={item}
-                                            onUpdateQuantity={updateQuantity}
-                                            onRemove={removeFromCart}
+                                            onUpdateQuantity={isInCheckout ? () => {} : updateQuantity}
+                                            onRemove={isInCheckout ? () => {} : removeFromCart}
                                         />
                                     ))}
                                 </div>
@@ -136,22 +181,6 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                         {/* Footer */}
                         {!isEmpty && (
                             <div className="border-t border-gray-200 p-6 space-y-4 bg-white shadow-lg flex-shrink-0">
-                                {/* Alerta Mayorista */}
-                                {isWholesale() && (
-                                    <div className="bg-gradient-to-r from-[#Ed3237] to-red-700 text-white p-4 rounded-lg border-2 border-[#Ed3237] mb-4">
-                                        <div className="flex items-start gap-2">
-                                            <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            <div>
-                                                <h3 className="font-bold text-sm mb-1">🏢 PEDIDO MAYORISTA</h3>
-                                                <p className="text-xs text-white/95 leading-relaxed">
-                                                    Tu pedido de {itemCount} unidades ingresará automáticamente en formato mayorista. Un asesor se pondrá en contacto para ofrecerte la cotización personalizada.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
 
                                 {/* Resumen - COMENTADO TEMPORALMENTE (sin precios por ahora) */}
                                 {/* <div className="space-y-2">
@@ -181,27 +210,75 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                     </div>
                                 </div>
 
+                                {/* Alerta Mayorista centralizada - Si tiene 19+ artículos */}
+                                {itemCount >= 19 && (
+                                    <div className="bg-gradient-to-r from-[#Ed3237] to-red-700 text-white p-4 rounded-lg border-2 border-[#Ed3237]">
+                                        <div className="flex items-start gap-2 mb-3">
+                                            <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <div className="flex-1">
+                                                <h3 className="font-bold text-sm mb-1">🏢 COMPRA MAYORISTA</h3>
+                                                <p className="text-xs text-white/95 leading-relaxed mb-3">
+                                                    Tu pedido de {itemCount} unidades requiere compra mayorista. Las compras mayoristas deben realizarse directamente a través de nuestro sistema mayorista.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Botones de acción */}
                                 <div className="space-y-3">
-                                    <Button
-                                        variant="black"
-                                        size="lg"
-                                        fullWidth
-                                        onClick={handleGoToCart}
-                                        className="inline-flex items-center justify-center space-x-2 tracking-wide"
-                                    >
-                                        <span>GENERAR PEDIDO</span>
-                                        <ArrowRight className="w-5 h-5" />
-                                    </Button>
+                                    {itemCount >= 19 ? (
+                                        <>
+                                            <button
+                                                onClick={() => {
+                                                    onClose();
+                                                    router.push('/mayorista');
+                                                }}
+                                                className="w-full bg-[#Ed3237] text-white px-4 py-3 rounded-lg font-semibold text-sm hover:bg-red-700 transition-colors inline-flex items-center justify-center space-x-2 tracking-wide"
+                                            >
+                                                <span>IR A COMPRA MAYORISTA</span>
+                                                <ArrowRight className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    onClose();
+                                                    router.push('/shoponline');
+                                                }}
+                                                className="w-full text-sm text-gray-600 hover:text-[#Ed3237] transition-colors py-2 font-medium tracking-wide border border-gray-300 rounded-lg hover:border-[#Ed3237]"
+                                            >
+                                                Seguir con compra minorista
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <Button
+                                            variant="black"
+                                            size="lg"
+                                            fullWidth
+                                            onClick={handleGoToCart}
+                                            className="inline-flex items-center justify-center space-x-2 tracking-wide"
+                                        >
+                                            <span>GENERAR PEDIDO</span>
+                                            <ArrowRight className="w-5 h-5" />
+                                        </Button>
+                                    )}
 
-                                    <motion.button
-                                        onClick={handleClearCart}
-                                        className="w-full text-sm text-gray-600 hover:text-red-600 transition-colors py-2 font-medium tracking-wide"
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                    >
-                                        Vaciar carrito
-                                    </motion.button>
+                                    {!isInCheckout && (
+                                        <motion.button
+                                            onClick={handleClearCart}
+                                            className="w-full text-sm text-gray-600 hover:text-red-600 transition-colors py-2 font-medium tracking-wide"
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                        >
+                                            Vaciar carrito
+                                        </motion.button>
+                                    )}
+                                    {isInCheckout && (
+                                        <div className="w-full text-xs text-gray-500 text-center py-2 font-medium tracking-wide">
+                                            No se puede modificar el carrito durante el checkout
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Info adicional - COMENTADO TEMPORALMENTE */}
@@ -227,6 +304,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
             )}
         </AnimatePresence>
     );
+
+    if (!mounted) return null;
+
+    return createPortal(drawerContent, document.body);
 };
 
 export default CartDrawer;

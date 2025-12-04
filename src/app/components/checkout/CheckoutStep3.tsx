@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../hooks/useCart';
@@ -62,6 +62,13 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
     // iva,       // Comentado - sin precios por ahora
     // total,     // Comentado - sin precios por ahora
   } = useCart();
+
+  // Redirigir si es compra mayorista (19+ artículos)
+  useEffect(() => {
+    if (itemCount >= 19) {
+      router.push('/mayorista');
+    }
+  }, [itemCount, router]);
 
   const [payment, setPayment] = useState<PaymentData>({
     metodo: paymentData?.metodo || 'transferencia',
@@ -189,6 +196,12 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
   };
 
   const handleSubmitOrder = async () => {
+    // Validar que no sea compra mayorista antes de procesar
+    if (itemCount >= 19) {
+      router.push('/mayorista');
+      return;
+    }
+
     setIsProcessing(true);
 
     try {

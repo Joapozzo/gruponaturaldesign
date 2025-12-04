@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useNavigation } from '../hooks/useNavigation';
 import { usePathname, useRouter } from 'next/navigation';
 import CartDrawer from './CartDrawer';
+import SearchModal from './SearchModal';
 import { useCart } from './hooks/useCart';
 import { useShopCategories } from '../hooks/useShopCategories';
 import WholesaleBanner from './WholesaleBanner';
@@ -20,10 +21,14 @@ const Navbar = () => {
     const router = useRouter();
 
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isShopSubmenuOpen, setIsShopSubmenuOpen] = useState(false);
     const [isMobileShopSubmenuOpen, setIsMobileShopSubmenuOpen] = useState(false);
     const pathname = usePathname();
     const shopMenuRef = useRef<HTMLDivElement>(null);
+    
+    // Verificar si estamos en checkout para ocultar/deshabilitar el carrito
+    const isInCheckout = pathname?.startsWith('/checkout');
 
     const menuItems = [
         { id: 'inicio', label: 'INICIO', href: '/#inicio', paths: ['/', '/#inicio'] },
@@ -106,7 +111,7 @@ const Navbar = () => {
                 initial={{ y: -100 }}
                 animate={{ y: 0 }}
                 transition={{ duration: 0.2, ease: 'easeInOut' }}
-                className="bg-white sticky top-0 w-full z-50 border-b border-gray-200 shadow-sm relative"
+                className="bg-white sticky top-[48px] w-full z-50 border-b border-gray-200 shadow-sm relative"
                 style={{ backgroundColor: '#FFFFFF' }}
             >
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -117,6 +122,7 @@ const Navbar = () => {
                             <motion.button
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.95 }}
+                                onClick={() => setIsSearchOpen(true)}
                                 className={`transition-all duration-300 ${textClasses.inactive}`}
                                 aria-label="Buscar productos"
                             >
@@ -151,24 +157,26 @@ const Navbar = () => {
                             >
                                 <User className="w-6 h-6" />
                             </motion.button>
-                            <motion.button
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => setIsCartOpen(true)}
-                                className={`relative transition-all duration-300 ${textClasses.inactive}`}
-                                aria-label="Carrito de compras"
-                            >
-                                <ShoppingCart className="w-6 h-6" />
-                                {itemCount > 0 && (
-                                    <motion.span
-                                        initial={{ scale: 0 }}
-                                        animate={{ scale: 1 }}
-                                        className="absolute -top-2 -right-2 bg-[#Ed3237] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold"
-                                    >
-                                        {itemCount}
-                                    </motion.span>
-                                )}
-                            </motion.button>
+                            {!isInCheckout && (
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => setIsCartOpen(true)}
+                                    className={`relative transition-all duration-300 ${textClasses.inactive}`}
+                                    aria-label="Carrito de compras"
+                                >
+                                    <ShoppingCart className="w-6 h-6" />
+                                    {itemCount > 0 && (
+                                        <motion.span
+                                            initial={{ scale: 0 }}
+                                            animate={{ scale: 1 }}
+                                            className="absolute -top-2 -right-2 bg-[#Ed3237] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold"
+                                        >
+                                            {itemCount}
+                                        </motion.span>
+                                    )}
+                                </motion.button>
+                            )}
                         </div>
 
                         {/* Mobile: Logo centrado con acciones a la derecha */}
@@ -190,24 +198,26 @@ const Navbar = () => {
                                 />
                             </motion.div>
                             <div className='flex items-center space-x-3 flex-1 justify-end'>
-                                <motion.button
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={() => setIsCartOpen(true)}
-                                    className={`relative transition-all duration-300 ${textClasses.inactive}`}
-                                    aria-label="Carrito de compras"
-                                >
-                                    <ShoppingCart className="w-6 h-6" />
-                                    {itemCount > 0 && (
-                                        <motion.span
-                                            initial={{ scale: 0 }}
-                                            animate={{ scale: 1 }}
-                                            className="absolute -top-2 -right-2 bg-[#Ed3237] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold"
-                                        >
-                                            {itemCount}
-                                        </motion.span>
-                                    )}
-                                </motion.button>
+                                {!isInCheckout && (
+                                    <motion.button
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => setIsCartOpen(true)}
+                                        className={`relative transition-all duration-300 ${textClasses.inactive}`}
+                                        aria-label="Carrito de compras"
+                                    >
+                                        <ShoppingCart className="w-6 h-6" />
+                                        {itemCount > 0 && (
+                                            <motion.span
+                                                initial={{ scale: 0 }}
+                                                animate={{ scale: 1 }}
+                                                className="absolute -top-2 -right-2 bg-[#Ed3237] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold"
+                                            >
+                                                {itemCount}
+                                            </motion.span>
+                                        )}
+                                    </motion.button>
+                                )}
                                 <motion.button
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.95 }}
@@ -376,6 +386,22 @@ const Navbar = () => {
                             style={{ backgroundColor: '#FFFFFF' }}
                         >
                             <div className="px-4 py-6 space-y-2">
+                                {/* Botón de búsqueda en mobile */}
+                                <motion.button
+                                    initial={{ x: -50, opacity: 0 }}
+                                    animate={{ x: 0, opacity: 1 }}
+                                    transition={{ delay: 0 }}
+                                    onClick={() => {
+                                        setIsSearchOpen(true);
+                                        toggleMenu();
+                                    }}
+                                    className="w-full flex items-center gap-3 px-3 py-2 font-medium tracking-wide transition-all duration-300 rounded-lg text-[#000000] hover:text-[#Ed3237] hover:bg-gray-50 border border-gray-200"
+                                    aria-label="Buscar productos"
+                                >
+                                    <Search className="w-5 h-5" />
+                                    <span>BUSCAR PRODUCTOS</span>
+                                </motion.button>
+                                
                                 {menuItems.map((item, index) => {
                                     if (item.id === 'shoponline') {
                                         return (
@@ -510,7 +536,10 @@ const Navbar = () => {
                         </motion.div>
                     )}
                 </AnimatePresence>
-                <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+                {!isInCheckout && (
+                    <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+                )}
+                <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
             </motion.nav>
 
             {/* Banner Mayorista - Solo si supera 20 unidades y no está en checkout */}

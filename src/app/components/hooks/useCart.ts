@@ -40,8 +40,35 @@ export const useCart = () => {
         getCartItem: (productId: number) =>
             store.items.find(item => item.product.id === productId),
 
-        // Detectar si el carrito es mayorista (más de 20 unidades)
-        isWholesale: () => store.itemCount > 20,
+        // Detectar si el carrito es mayorista (19 o más unidades)
+        isWholesale: () => store.itemCount >= 19,
+
+        // Validar si se puede agregar un producto
+        canAddToCart: (productId: number, quantity: number = 1): { canAdd: boolean; reason?: string } => {
+            const currentItemCount = store.itemCount;
+            const existingItem = store.items.find(item => item.product.id === productId);
+            const currentProductQuantity = existingItem?.quantity || 0;
+            const newProductQuantity = currentProductQuantity + quantity;
+            const newTotalCount = currentItemCount + quantity;
+
+            // Verificar límite de 10 unidades del mismo producto
+            if (newProductQuantity > 10) {
+                return { 
+                    canAdd: false, 
+                    reason: '10 unidades del mismo artículo'
+                };
+            }
+
+            // Verificar límite de 19 artículos totales
+            if (newTotalCount >= 19) {
+                return { 
+                    canAdd: false, 
+                    reason: '19 artículos totales'
+                };
+            }
+
+            return { canAdd: true };
+        },
 
         // Checkout
         completeOrderViaWhatsApp: () => {

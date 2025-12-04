@@ -51,7 +51,7 @@ export default function ProductAddToCart({
 
             {/* Botón Quiero comprar por mayor */}
             <motion.button
-                onClick={() => router.push('/quiero-comprar-por-mayor')}
+                onClick={() => router.push('/mayorista')}
                 className="w-full flex items-center justify-center space-x-2 sm:space-x-3 px-4 sm:px-6 py-3 sm:py-4 rounded-lg font-semibold text-sm sm:text-base lg:text-lg transition-all duration-300 bg-white border-2 border-[#Ed3237] text-[#Ed3237] hover:bg-[#Ed3237] hover:text-white"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}

@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import { Poppins, Montserrat } from "next/font/google";
 import "./globals.css";
-import WhatsAppButton from "./components/WhatsAppButton";
-import Footer from "./components/Footer";
-import Navbar from "./components/Navbar";
-import PromoBanner from "./components/PromoBanner";
+import ConditionalLayout from "./components/ConditionalLayout";
 import { Providers } from "./components/Providers";
 import AutoProductLoader from "./components/AutoProductLoader";
 
@@ -264,14 +261,12 @@ export default function RootLayout({
           fontFamily: "var(--font-poppins), 'Franklin Gothic Heavy', 'Arial Black', sans-serif"
         }}
       >
-        <Navbar />
-        <PromoBanner />
         <Providers>
           <AutoProductLoader />
-          {children}
+          <ConditionalLayout>
+            {children}
+          </ConditionalLayout>
         </Providers>
-        <Footer />
-        <WhatsAppButton />
       </body>
     </html>
   );

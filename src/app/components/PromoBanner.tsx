@@ -9,7 +9,7 @@ const PromoBanner = () => {
   const repeatedText = Array(10).fill(promoText).join(" • ");
 
   return (
-    <div className="w-full bg-black text-white py-3 overflow-hidden relative">
+    <div className="w-full bg-black text-white py-3 overflow-hidden sticky top-0 z-[20]">
       <motion.div
         className="flex whitespace-nowrap"
         animate={{
@@ -36,4 +36,3 @@ const PromoBanner = () => {
 };
 
 export default PromoBanner;
-

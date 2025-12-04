@@ -3,7 +3,7 @@ import React from 'react';
 import { Eye } from 'lucide-react';
 
 export default function ProductShowroomInfo() {
-    const whatsappNumber = '5493517136316';
+    const whatsappNumber = '5493517136311';
     const whatsappMessage = encodeURIComponent('¡Hola! Me gustaría coordinar una cita para ver productos en el showroom.');
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
 

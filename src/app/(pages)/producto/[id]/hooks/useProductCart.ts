@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { GroupedProduct, ProductVariant } from '@/app/types/producto';
 import { useCart } from '@/app/components/hooks/useCart';
 import { createProductId, createProductSpecs } from '../helpers/productHelpers';
@@ -11,16 +12,27 @@ export function useProductCart(
     displayProduct: any,
     selectedVariant: ProductVariant | null
 ) {
-    const { addToCart, isInCart } = useCart();
+    const router = useRouter();
+    const { addToCart, isInCart, canAddToCart } = useCart();
     const [isAdding, setIsAdding] = useState(false);
 
     const handleAddToCart = () => {
         if (!selectedVariant || !groupedProduct) return;
 
+        const productId = createProductId(selectedVariant.codigo);
+        
+        // Validar límites antes de agregar
+        const validation = canAddToCart(productId, 1);
+        
+        if (!validation.canAdd) {
+            // Redirigir a página mayorista
+            router.push('/mayorista');
+            return;
+        }
+
         setIsAdding(true);
 
         const product = selectedVariant.producto;
-        const productId = createProductId(selectedVariant.codigo);
         const specs = createProductSpecs(
             selectedVariant.color,
             selectedVariant.talle,

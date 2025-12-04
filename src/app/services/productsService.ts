@@ -477,6 +477,10 @@ class ProductsService {
             const response = await fetch('/api/products');
             
             if (!response.ok) {
+                // Si es 404, la API no existe, retornar null silenciosamente
+                if (response.status === 404) {
+                    return null;
+                }
                 throw new Error(`Error ${response.status}: ${response.statusText}`);
             }
 
@@ -876,6 +880,10 @@ class ProductsService {
             const response = await fetch('/api/products');
             
             if (!response.ok) {
+                // Si es 404, la API no existe, retornar null silenciosamente
+                if (response.status === 404) {
+                    return null;
+                }
                 throw new Error(`Error ${response.status}: ${response.statusText}`);
             }
 

@@ -1,10 +1,12 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { useCart } from '../hooks/useCart';
 import Button from '../ui/Button';
-import { Trash, Trash2 } from 'lucide-react';
+import { Trash2, ArrowRight } from 'lucide-react';
 // import { formatPrice } from '@/app/utils/precio'; // Comentado - sin precios por ahora
 
 interface CheckoutStep1Props {
@@ -13,12 +15,36 @@ interface CheckoutStep1Props {
 }
 
 export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
-  const { items, updateQuantity, removeFromCart, itemCount, isWholesale } = useCart();
+  const router = useRouter();
+  const { items, updateQuantity, removeFromCart, itemCount, isWholesale, canAddToCart } = useCart();
   // const { subtotal, iva, total } = useCart(); // Comentado - sin precios por ahora
+
+  // Redirigir si es compra mayorista (19+ artículos)
+  useEffect(() => {
+    if (itemCount >= 19) {
+      router.push('/mayorista');
+    }
+  }, [itemCount, router]);
 
   const handleQuantityChange = (productId: number, newQuantity: number) => {
     if (newQuantity < 1) return;
     if (newQuantity > 99) return;
+    
+    // Obtener cantidad actual del producto
+    const currentItem = items.find(item => item.product.id === productId);
+    const currentQuantity = currentItem?.quantity || 0;
+    const quantityDelta = newQuantity - currentQuantity;
+    
+    // Si está aumentando, validar límites
+    if (quantityDelta > 0) {
+      const validation = canAddToCart(productId, quantityDelta);
+      if (!validation.canAdd) {
+        // Redirigir a página mayorista
+        router.push('/mayorista');
+        return;
+      }
+    }
+    
     updateQuantity(productId, newQuantity);
   };
 
@@ -105,32 +131,73 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
       <div className="w-full lg:w-80 flex flex-col gap-4">
         <h2 className="text-base lg:text-xl font-bold text-black">ACCIONES</h2>
 
-        {/* Alerta Mayorista */}
-        {isWholesale() && (
+        {/* Alerta Mayorista - Si tiene 19+ artículos, mostrar mensaje y botón para volver */}
+        {itemCount >= 19 ? (
           <div className="bg-gradient-to-r from-[#Ed3237] to-red-700 text-white p-4 rounded-lg border-2 border-[#Ed3237]">
-            <div className="flex items-start gap-2 mb-2">
+            <div className="flex items-start gap-2 mb-4">
               <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div>
-                <h3 className="font-bold text-sm mb-1">PEDIDO MAYORISTA</h3>
-                <p className="text-xs text-white/95 leading-relaxed">
-                  Tu pedido de {itemCount} unidades ingresará automáticamente en formato mayorista. Un asesor se pondrá en contacto para ofrecerte la cotización personalizada.
+                <h3 className="font-bold text-sm mb-1">COMPRA MAYORISTA</h3>
+                <p className="text-xs text-white/95 leading-relaxed mb-3">
+                  Tu pedido de {itemCount} unidades requiere compra mayorista. Las compras mayoristas deben realizarse directamente a través de nuestro sistema mayorista.
                 </p>
+                <button
+                  onClick={() => router.push('/mayorista')}
+                  className="w-full bg-white text-[#Ed3237] px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gray-100 transition-colors inline-flex items-center justify-center space-x-2 mb-2"
+                >
+                  <span>IR A COMPRA MAYORISTA</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => {
+                    // Reducir cantidad hasta estar bajo el límite
+                    // Por ahora, simplemente redirigir al catálogo para que puedan reducir manualmente
+                    router.push('/shoponline');
+                  }}
+                  className="w-full text-sm text-white hover:text-gray-200 transition-colors py-2 font-medium border border-white/30 rounded-lg hover:border-white/50"
+                >
+                  Seguir con compra minorista
+                </button>
               </div>
             </div>
           </div>
+        ) : (
+          <>
+            {/* Action Buttons - Solo si no es mayorista */}
+            <div className="flex flex-col gap-3">
+              <Button variant="black" size="lg" fullWidth onClick={onNext}>
+                CONTINUAR
+              </Button>
+              <Button variant="blackOutline" size="md" fullWidth onClick={onBack}>
+                SEGUIR COMPRANDO
+              </Button>
+            </div>
+          </>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex flex-col gap-3">
-          <Button variant="black" size="lg" fullWidth onClick={onNext}>
-            CONTINUAR
-          </Button>
-          <Button variant="blackOutline" size="md" fullWidth onClick={onBack}>
-            SEGUIR COMPRANDO
-          </Button>
-        </div>
+        {/* Botón para volver a compra minorista si están cerca del límite */}
+        {itemCount >= 15 && itemCount < 19 && (
+          <div className="bg-yellow-50 border-2 border-yellow-400 text-yellow-900 p-4 rounded-lg">
+            <p className="text-xs font-semibold mb-2">
+              ⚠️ Estás cerca del límite de compra minorista
+            </p>
+            <p className="text-xs mb-3">
+              Si necesitas más de 19 prendas, considera usar nuestro sistema mayorista con mejores precios y beneficios.
+            </p>
+            <Button
+              variant="black"
+              size="sm"
+              fullWidth
+              onClick={() => router.push('/mayorista')}
+              className="inline-flex items-center justify-center space-x-2"
+            >
+              <span>VER OPCIONES MAYORISTAS</span>
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
 
         {/* Políticas */}
         <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">

@@ -48,6 +48,7 @@ const CatalogContent = () => {
         const rubro = searchParams.get('rubro');
         const subrubro = searchParams.get('subrubro');
         const genero = searchParams.get('genero');
+        const search = searchParams.get('search');
 
         if (rubro) {
             updateFilter('categoriaTipo', rubro);
@@ -61,6 +62,9 @@ const CatalogContent = () => {
                 ? genero.toLowerCase() as 'dama' | 'hombre' | 'unisex'
                 : 'TODOS';
             updateFilter('genero', validGenero);
+        }
+        if (search) {
+            updateFilter('searchTerm', search);
         }
     }, [searchParams, updateFilter]);
 

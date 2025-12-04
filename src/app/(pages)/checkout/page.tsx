@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { ChevronRight, Home } from 'lucide-react';
 import { useCart } from '@/app/components/hooks/useCart';
 import CheckoutStep1 from '@/app/components/checkout/CheckoutStep1';
 import CheckoutStep2 from '@/app/components/checkout/CheckoutStep2';
@@ -48,8 +49,27 @@ export default function CheckoutPage() {
         </div>
       )}
 
+      {/* Breadcrumb Navigation - Fixed */}
+      <div className="sticky top-0 bg-white border-b border-gray-200 z-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <nav className="flex items-center gap-2 text-sm">
+            <motion.button
+              onClick={() => router.push('/#inicio')}
+              className="flex items-center gap-1 text-gray-600 hover:text-[#Ed3237] transition-colors font-medium"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Home className="w-4 h-4" />
+              <span>Home</span>
+            </motion.button>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+            <span className="text-black font-semibold">Checkout</span>
+          </nav>
+        </div>
+      </div>
+
       {/* Header - Compact */}
-      <div className="flex-shrink-0 border-b border-gray-200 py-3 sticky top-0 bg-white z-10">
+      <div className="flex-shrink-0 border-b border-gray-200 py-3 sticky top-[45px] bg-white z-10">
         <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-lg font-bold text-black">CHECKOUT</h1>
 

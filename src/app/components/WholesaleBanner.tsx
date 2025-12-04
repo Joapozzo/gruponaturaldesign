@@ -73,7 +73,7 @@ export default function WholesaleBanner({ fullScreen = false }: WholesaleBannerP
                             </p>
                         </div>
                         <Link
-                            href="/quiero-comprar-por-mayor"
+                            href="/mayorista"
                             className="flex items-center gap-1.5 bg-white text-[#Ed3237] px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors whitespace-nowrap text-[10px] sm:text-xs lg:text-sm shadow-md flex-shrink-0"
                         >
                             <span>Saber más</span>
