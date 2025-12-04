@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
@@ -16,35 +15,16 @@ interface CheckoutStep1Props {
 
 export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
   const router = useRouter();
-  const { items, updateQuantity, removeFromCart, itemCount, isWholesale, canAddToCart } = useCart();
+  const { items, updateQuantity, removeFromCart, itemCount } = useCart();
   // const { subtotal, iva, total } = useCart(); // Comentado - sin precios por ahora
 
-  // Redirigir si es compra mayorista (19+ artículos)
-  useEffect(() => {
-    if (itemCount >= 19) {
-      router.push('/mayorista');
-    }
-  }, [itemCount, router]);
+  // No redirigir automáticamente - mostrar alerta cuando llegue a 20 unidades
 
   const handleQuantityChange = (productId: number, newQuantity: number) => {
     if (newQuantity < 1) return;
     if (newQuantity > 99) return;
     
-    // Obtener cantidad actual del producto
-    const currentItem = items.find(item => item.product.id === productId);
-    const currentQuantity = currentItem?.quantity || 0;
-    const quantityDelta = newQuantity - currentQuantity;
-    
-    // Si está aumentando, validar límites
-    if (quantityDelta > 0) {
-      const validation = canAddToCart(productId, quantityDelta);
-      if (!validation.canAdd) {
-        // Redirigir a página mayorista
-        router.push('/mayorista');
-        return;
-      }
-    }
-    
+    // Permitir actualizar sin restricciones - las restricciones se muestran visualmente
     updateQuantity(productId, newQuantity);
   };
 
@@ -52,10 +32,10 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
     <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
       {/* LEFT SIDE - Resumen del Pedido con controles */}
       <div className="flex-1 flex flex-col min-w-0">
-        <h2 className="text-base lg:text-xl font-bold text-black mb-3 lg:mb-4">RESUMEN DEL PEDIDO</h2>
+        <h2 className="text-sm lg:text-base font-bold text-black mb-2">RESUMEN DEL PEDIDO</h2>
 
-        {/* Cart Items - Scrollable */}
-        <div className="max-h-[60vh] lg:max-h-[70vh] overflow-y-auto space-y-2 lg:space-y-3 pr-2">
+        {/* Cart Items - Compact Row Layout */}
+        <div className="space-y-1.5 pr-2">
           {items.map((item) => (
             <motion.div
               key={item.product.id}
@@ -63,27 +43,27 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, x: -50 }}
-              className="bg-white border-l-2 border-black p-3 relative group hover:shadow-sm transition-shadow rounded-lg"
+              className="bg-white border-l-2 border-black p-1.5 lg:p-2.5 relative group hover:shadow-sm transition-shadow rounded"
             >
-              <div className="flex flex-col sm:flex-row gap-3">
-                {/* Product Image */}
-                <div className="relative w-full sm:w-16 h-32 sm:h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+              <div className="flex items-center gap-2">
+                {/* Product Image - Más alta en mobile, más grande en desktop */}
+                <div className="relative w-12 h-16 lg:w-16 lg:h-20 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
                   <Image src={item.product.imagen} alt={item.product.nombre} fill className="object-cover" />
                 </div>
 
-                {/* Product Info */}
-                <div className="flex-1 min-w-0 pr-6 sm:pr-0">
-                  <h3 className="font-semibold text-black text-sm">{item.product.nombre}</h3>
+                {/* Product Info - Compacto en mobile, más grande en desktop */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-black text-xs lg:text-sm leading-tight line-clamp-1">{item.product.nombre}</h3>
                   {item.especificaciones && (
-                    <p className="text-xs text-gray-600 mt-1 line-clamp-2">{item.especificaciones}</p>
+                    <p className="text-[10px] lg:text-xs text-gray-600 mt-0.5 line-clamp-1">{item.especificaciones}</p>
                   )}
                 </div>
 
-                {/* Quantity Controls - Inline */}
-                <div className="flex items-center justify-center sm:justify-end gap-2 mt-2 sm:mt-0">
+                {/* Quantity Controls - Compactos en mobile, más grandes en desktop */}
+                <div className="flex items-center gap-1 lg:gap-1.5">
                   <button
                     onClick={() => handleQuantityChange(item.product.id, item.quantity - 1)}
-                    className="w-8 h-8 bg-black text-white hover:bg-red-600 transition-colors font-bold rounded-lg disabled:opacity-30"
+                    className="w-6 h-6 lg:w-7 lg:h-7 bg-black text-white hover:bg-red-600 transition-colors font-bold rounded text-xs disabled:opacity-30 flex items-center justify-center"
                     disabled={item.quantity <= 1}
                   >
                     -
@@ -95,44 +75,44 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
                       const val = parseInt(e.target.value) || 1;
                       handleQuantityChange(item.product.id, val);
                     }}
-                    className="w-14 text-center border border-black py-1 text-lg font-bold text-black focus:outline-none focus:border-red-600 rounded-lg"
+                    className="w-10 h-6 lg:w-12 lg:h-7 text-center border border-black py-0 text-xs lg:text-sm font-bold text-black focus:outline-none focus:border-red-600 rounded [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     min="1"
                     max="99"
                   />
                   <button
                     onClick={() => handleQuantityChange(item.product.id, item.quantity + 1)}
-                    className="w-8 h-8 bg-black text-white hover:bg-red-600 transition-colors font-bold rounded-lg disabled:opacity-30"
+                    className="w-6 h-6 lg:w-7 lg:h-7 bg-black text-white hover:bg-red-600 transition-colors font-bold rounded text-xs disabled:opacity-30 flex items-center justify-center"
                     disabled={item.quantity >= 99}
                   >
                     +
                   </button>
-                  {/* Remove Button */}
+                  {/* Remove Button - Más pequeño */}
                   <button
                     onClick={() => removeFromCart(item.product.id)}
-                    className="text-red-600 hover:text-black transition-colors opacity-0 group-hover:opacity-100 z-10"
+                    className="w-6 h-6 lg:w-7 lg:h-7 text-red-600 hover:text-black hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100 z-10 flex items-center justify-center rounded"
                     aria-label="Eliminar"
                   >
-                    <Trash2 />
+                    <Trash2 className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
                   </button>
                 </div>
               </div>
             </motion.div>
           ))}
 
-          {/* Summary - Inside scroll area at bottom */}
-          <div className="sticky bottom-0 bg-black text-white p-3 lg:p-4 flex justify-between items-center rounded-lg mt-3">
-            <span className="font-bold text-sm lg:text-base">TOTAL DE PRODUCTOS</span>
-            <span className="text-xl lg:text-2xl font-bold text-red-600">{itemCount}</span>
+          {/* Summary - Minimalista */}
+          <div className="p-2 flex justify-between items-center mt-2 border-t border-gray-200">
+            <span className="text-xs text-gray-600 font-medium">TOTAL DE PRODUCTOS</span>
+            <span className="text-sm font-semibold text-black">{itemCount}</span>
           </div>
         </div>
       </div>
 
       {/* RIGHT SIDE - Acciones y Políticas */}
       <div className="w-full lg:w-80 flex flex-col gap-4">
-        <h2 className="text-base lg:text-xl font-bold text-black">ACCIONES</h2>
+        {/* <h2 className="text-base lg:text-xl font-bold text-black">ACCIONES</h2> */}
 
-        {/* Alerta Mayorista - Si tiene 19+ artículos, mostrar mensaje y botón para volver */}
-        {itemCount >= 19 ? (
+        {/* Alerta Mayorista - Si tiene 20+ artículos, mostrar mensaje y botón para volver */}
+        {itemCount >= 20 ? (
           <div className="bg-gradient-to-r from-[#Ed3237] to-red-700 text-white p-4 rounded-lg border-2 border-[#Ed3237]">
             <div className="flex items-start gap-2 mb-4">
               <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,12 +145,12 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
           </div>
         ) : (
           <>
-            {/* Action Buttons - Solo si no es mayorista */}
-            <div className="flex flex-col gap-3">
-              <Button variant="black" size="lg" fullWidth onClick={onNext}>
+            {/* Action Buttons - Row en mobile, col en desktop */}
+            <div className="flex flex-row lg:flex-col gap-2 lg:gap-3">
+              <Button variant="black" size="lg" fullWidth onClick={onNext} className="flex-1 lg:flex-none">
                 CONTINUAR
               </Button>
-              <Button variant="blackOutline" size="md" fullWidth onClick={onBack}>
+              <Button variant="blackOutline" size="md" fullWidth onClick={onBack} className="flex-1 lg:flex-none">
                 SEGUIR COMPRANDO
               </Button>
             </div>
@@ -178,13 +158,13 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
         )}
 
         {/* Botón para volver a compra minorista si están cerca del límite */}
-        {itemCount >= 15 && itemCount < 19 && (
+        {itemCount >= 15 && itemCount < 20 && (
           <div className="bg-yellow-50 border-2 border-yellow-400 text-yellow-900 p-4 rounded-lg">
             <p className="text-xs font-semibold mb-2">
               ⚠️ Estás cerca del límite de compra minorista
             </p>
             <p className="text-xs mb-3">
-              Si necesitas más de 19 prendas, considera usar nuestro sistema mayorista con mejores precios y beneficios.
+              Si necesitas más de 20 prendas, considera usar nuestro sistema mayorista con mejores precios y beneficios.
             </p>
             <Button
               variant="black"
@@ -230,11 +210,6 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
           </div>
         </div>
 
-        {/* Contact Info */}
-        <div className="p-3 bg-black text-white rounded-lg text-xs">
-          <p className="font-bold mb-1">¿Necesitas ayuda?</p>
-          <p className="text-gray-300">Contactanos por WhatsApp para cualquier consulta</p>
-        </div>
       </div>
     </div>
   );

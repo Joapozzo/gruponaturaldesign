@@ -28,12 +28,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
   const router = useRouter();
   const { customerData, shippingData, setCustomerData, setShippingData, itemCount } = useCart();
 
-  // Redirigir si es compra mayorista (19+ artículos)
-  useEffect(() => {
-    if (itemCount >= 19) {
-      router.push('/mayorista');
-    }
-  }, [itemCount, router]);
+  // No redirigir automáticamente - mostrar alerta cuando llegue a 20 unidades
 
   // Customer Data State
   const [formData, setFormData] = useState<CustomerData>({
@@ -179,8 +174,9 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
 
   const handleSubmit = () => {
     // Validar que no sea compra mayorista antes de continuar
-    if (itemCount >= 19) {
-      router.push('/mayorista');
+    if (itemCount >= 20) {
+      // No redirigir automáticamente, solo impedir continuar
+      // El usuario debe usar el botón de mayorista si lo desea
       return;
     }
 

@@ -40,8 +40,8 @@ export const useCart = () => {
         getCartItem: (productId: number) =>
             store.items.find(item => item.product.id === productId),
 
-        // Detectar si el carrito es mayorista (19 o más unidades)
-        isWholesale: () => store.itemCount >= 19,
+        // Detectar si el carrito es mayorista (20 o más unidades)
+        isWholesale: () => store.itemCount >= 20,
 
         // Validar si se puede agregar un producto
         canAddToCart: (productId: number, quantity: number = 1): { canAdd: boolean; reason?: string } => {
@@ -59,11 +59,11 @@ export const useCart = () => {
                 };
             }
 
-            // Verificar límite de 19 artículos totales
-            if (newTotalCount >= 19) {
+            // Verificar límite de 20 artículos totales
+            if (newTotalCount >= 20) {
                 return { 
                     canAdd: false, 
-                    reason: '19 artículos totales'
+                    reason: '20 artículos totales'
                 };
             }
 

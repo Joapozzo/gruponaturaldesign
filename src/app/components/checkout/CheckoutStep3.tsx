@@ -63,12 +63,7 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
     // total,     // Comentado - sin precios por ahora
   } = useCart();
 
-  // Redirigir si es compra mayorista (19+ artículos)
-  useEffect(() => {
-    if (itemCount >= 19) {
-      router.push('/mayorista');
-    }
-  }, [itemCount, router]);
+  // No redirigir automáticamente - mostrar alerta cuando llegue a 20 unidades
 
   const [payment, setPayment] = useState<PaymentData>({
     metodo: paymentData?.metodo || 'transferencia',
@@ -197,8 +192,9 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
 
   const handleSubmitOrder = async () => {
     // Validar que no sea compra mayorista antes de procesar
-    if (itemCount >= 19) {
-      router.push('/mayorista');
+    if (itemCount >= 20) {
+      // No redirigir automáticamente, solo impedir procesar
+      // El usuario debe usar el botón de mayorista si lo desea
       return;
     }
 

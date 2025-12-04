@@ -27,7 +27,7 @@ export default function WholesaleBanner({ fullScreen = false }: WholesaleBannerP
                     <div className="absolute inset-0 bg-black/30"></div>
                 </div>
 
-                <div className="relative z-10 text-center text-white px-4 max-w-5xl mx-auto pt-20">
+                <div className="relative z-1 text-center text-white px-4 max-w-5xl mx-auto pt-20">
                     <motion.h1
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}

@@ -58,10 +58,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
     }, [items]);
 
     const handleGoToCart = () => {
-        // Si tiene 19+ artículos, redirigir a mayorista
-        if (itemCount >= 19) {
-            onClose();
-            router.push('/mayorista');
+        // Si tiene 20+ artículos, impedir checkout minorista
+        if (itemCount >= 20) {
+            // No hacer nada, el botón de mayorista ya está visible
             return;
         }
         onClose();
@@ -86,23 +85,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
         });
     };
 
-    // Wrapper para updateQuantity con validación
+    // Wrapper para updateQuantity - permite actualizar sin restricciones
+    // Las restricciones se muestran visualmente cuando se alcanzan 20 unidades
     const updateQuantity = (productId: number, newQuantity: number) => {
-        const currentItem = items.find(item => item.product.id === productId);
-        const currentQuantity = currentItem?.quantity || 0;
-        const quantityDelta = newQuantity - currentQuantity;
-
-        // Si está aumentando, validar límites
-        if (quantityDelta > 0) {
-            const validation = canAddToCart(productId, quantityDelta);
-            if (!validation.canAdd) {
-                // Redirigir a página mayorista
-                onClose();
-                router.push('/mayorista');
-                return;
-            }
-        }
-
         originalUpdateQuantity(productId, newQuantity);
     };
 
@@ -210,8 +195,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                     </div>
                                 </div>
 
-                                {/* Alerta Mayorista centralizada - Si tiene 19+ artículos */}
-                                {itemCount >= 19 && (
+                                {/* Alerta Mayorista centralizada - Si tiene 20+ artículos */}
+                                {itemCount >= 20 && (
                                     <div className="bg-gradient-to-r from-[#Ed3237] to-red-700 text-white p-4 rounded-lg border-2 border-[#Ed3237]">
                                         <div className="flex items-start gap-2 mb-3">
                                             <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -229,7 +214,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
 
                                 {/* Botones de acción */}
                                 <div className="space-y-3">
-                                    {itemCount >= 19 ? (
+                                    {itemCount >= 20 ? (
                                         <>
                                             <button
                                                 onClick={() => {

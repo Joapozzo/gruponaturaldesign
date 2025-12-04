@@ -256,11 +256,11 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                               {productName}
                             </h3>
                             <p className="text-xs text-gray-500 mt-1">{product.displayProduct.Rubro || product.displayProduct.Subrubro || ''}</p>
-                            {product.totalVariants > 1 && (
+                            {/* {product.totalVariants > 1 && (
                               <span className="inline-block mt-1 px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded">
                                 {product.totalVariants} variantes
                               </span>
-                            )}
+                            )} */}
                           </div>
                         </motion.div>
                       );

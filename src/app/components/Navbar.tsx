@@ -111,7 +111,7 @@ const Navbar = () => {
                 initial={{ y: -100 }}
                 animate={{ y: 0 }}
                 transition={{ duration: 0.2, ease: 'easeInOut' }}
-                className="bg-white sticky top-[48px] w-full z-50 border-b border-gray-200 shadow-sm relative"
+                className="bg-white sticky top-[40px] w-full z-50 border-b border-gray-200 shadow-sm relative"
                 style={{ backgroundColor: '#FFFFFF' }}
             >
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -149,14 +149,13 @@ const Navbar = () => {
 
                         {/* Actions a la derecha (Desktop) */}
                         <div className="hidden lg:flex items-center space-x-4 flex-1 justify-end">
-                            <motion.button
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.95 }}
-                                className={`transition-all duration-300 ${textClasses.inactive}`}
-                                aria-label="Mi cuenta"
+                            <button
+                                disabled
+                                className="text-gray-400 opacity-50 cursor-not-allowed pointer-events-none"
+                                aria-label="Mi cuenta (no disponible)"
                             >
                                 <User className="w-6 h-6" />
-                            </motion.button>
+                            </button>
                             {!isInCheckout && (
                                 <motion.button
                                     whileHover={{ scale: 1.1 }}

@@ -117,7 +117,7 @@ export const useCartStore = create<CartState>()(
 
                 if (!customerData) return '';
 
-                const isWholesale = itemCount >= 19;
+                const isWholesale = itemCount >= 20;
 
                 let message = `🛍️ *${isWholesale ? 'PEDIDO MAYORISTA' : 'NUEVO PEDIDO'} - NTDS*\n\n`;
                 if (isWholesale) {
@@ -160,7 +160,7 @@ export const useCartStore = create<CartState>()(
                 message += `Total de unidades: ${itemCount}\n`;
                 if (isWholesale) {
                     message += `\n🏢 *⚠️ PEDIDO MAYORISTA - REQUIERE COTIZACIÓN ⚠️*\n`;
-                    message += `Este pedido de ${itemCount} unidades requiere compra mayorista (mínimo 19 prendas).\n`;
+                    message += `Este pedido de ${itemCount} unidades requiere compra mayorista (mínimo 20 prendas).\n`;
                     message += `Un asesor especializado se pondrá en contacto para ofrecer:\n`;
                     message += `• Precios mayoristas personalizados\n`;
                     message += `• Opciones de personalización (bordado/estampa)\n`;

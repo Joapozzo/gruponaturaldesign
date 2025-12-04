@@ -1,0 +1,14 @@
+`gnd-front/.dockerignore`:
+```
+node_modules
+npm-debug.log
+.next
+.env
+.env.local
+.git
+.gitignore
+README.md
+.DS_Store
+coverage
+out
+build

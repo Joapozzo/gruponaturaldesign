@@ -9,7 +9,7 @@ const PromoBanner = () => {
   const repeatedText = Array(10).fill(promoText).join(" • ");
 
   return (
-    <div className="w-full bg-black text-white py-3 overflow-hidden sticky top-0 z-[20]">
+    <div className="w-full bg-black text-white py-3 overflow-hidden sticky top-0 z-50">
       <motion.div
         className="flex whitespace-nowrap"
         animate={{
@@ -24,10 +24,10 @@ const PromoBanner = () => {
           },
         }}
       >
-        <span className="text-sm md:text-base font-semibold tracking-wider px-4">
+        <span className="text-xs md:text-xs font-semibold tracking-wider px-4">
           {repeatedText}
         </span>
-        <span className="text-sm md:text-base font-semibold tracking-wider px-4">
+        <span className="text-xs md:text-xs font-semibold tracking-wider px-4">
           {repeatedText}
         </span>
       </motion.div>
