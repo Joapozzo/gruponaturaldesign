@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion';
-import { Plus, Minus, Trash2, Package } from 'lucide-react';
+import { Trash2, Package } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useConfirmModal } from './hooks/useModal';
 import ConfirmModal from './modal/ConfirmModal';
 import { nombreToSlug, parseProductSpecs } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
+import QuantityControlsUI from './ui/QuantityControls';
 
 interface CartItemProps {
     item: {
@@ -148,36 +149,14 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, c
                 {/* Precio y controles */}
                 <div className="flex items-center justify-between mt-3">
                     {/* Controles de cantidad */}
-                    <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
-                        <motion.button
-                            onClick={handleDecrement}
-                            disabled={quantity <= 1}
-                            className={`w-7 h-7 flex items-center justify-center rounded-md transition-all ${quantity <= 1
-                                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                : 'bg-white text-black hover:bg-gray-50 shadow-sm'
-                                }`}
-                            whileHover={quantity > 1 ? { scale: 1.1 } : {}}
-                            whileTap={quantity > 1 ? { scale: 0.95 } : {}}
-                            aria-label="Disminuir cantidad"
-                        >
-                            <Minus className="w-3 h-3" />
-                        </motion.button>
-                        <span className="w-8 text-center font-bold text-sm text-black">
-                            {quantity}
-                        </span>
-                        <motion.button
-                            onClick={handleIncrement}
-                            disabled={product.stock ? quantity >= product.stock : !canAddMore}
-                            className={`w-7 h-7 flex items-center justify-center rounded-md transition-all ${(product.stock && quantity >= product.stock) || !canAddMore
-                                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                : 'bg-white text-black hover:bg-gray-50 shadow-sm'
-                                }`}
-                            whileHover={!(product.stock && quantity >= product.stock) && canAddMore ? { scale: 1.1 } : {}}
-                            whileTap={!(product.stock && quantity >= product.stock) && canAddMore ? { scale: 0.95 } : {}}
-                            aria-label="Aumentar cantidad"
-                        >
-                            <Plus className="w-3 h-3" />
-                        </motion.button>
+                    <div className="flex justify-center">
+                        <QuantityControlsUI
+                            quantity={quantity}
+                            onIncrement={handleIncrement}
+                            onDecrement={handleDecrement}
+                            canAddMore={product.stock ? quantity < product.stock : canAddMore}
+                            maxReached={product.stock ? quantity >= product.stock : false}
+                        />
                     </div>
 
                     {/* Subtotal - COMENTADO TEMPORALMENTE (sin precios por ahora) */}

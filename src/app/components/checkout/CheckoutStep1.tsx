@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { useCart } from '../hooks/useCart';
 import Button from '../ui/Button';
 import { Trash2, ArrowRight, Package } from 'lucide-react';
+import QuantityControlsUI from '@/app/components/ui/QuantityControls';
 // import { formatPrice } from '@/app/utils/precio'; // Comentado - sin precios por ahora
 
 interface CheckoutStep1Props {
@@ -100,37 +101,21 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
                   )}
                 </div>
 
-                {/* Quantity Controls - Compactos en mobile, más grandes en desktop */}
-                <div className="flex items-center gap-1 lg:gap-1.5">
-                  <button
-                    onClick={() => handleQuantityChange(item.product.id, item.quantity - 1)}
-                    className="w-6 h-6 lg:w-7 lg:h-7 bg-black text-white hover:bg-red-600 transition-colors font-bold rounded text-xs disabled:opacity-30 flex items-center justify-center"
-                    disabled={item.quantity <= 1}
-                  >
-                    -
-                  </button>
-                  <input
-                    type="number"
-                    value={item.quantity}
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value) || 1;
-                      handleQuantityChange(item.product.id, val);
-                    }}
-                    className="w-10 h-6 lg:w-12 lg:h-7 text-center border border-black py-0 text-xs lg:text-sm font-bold text-black focus:outline-none focus:border-red-600 rounded [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    min="1"
-                    max="99"
-                  />
-                  <button
-                    onClick={() => handleQuantityChange(item.product.id, item.quantity + 1)}
-                    className="w-6 h-6 lg:w-7 lg:h-7 bg-black text-white hover:bg-red-600 transition-colors font-bold rounded text-xs disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
-                    disabled={item.quantity >= 99 || !canAddToCart(item.product.id, 1).canAdd}
-                  >
-                    +
-                  </button>
-                  {/* Remove Button - Más pequeño */}
+                {/* Quantity Controls - Estilo CartDrawer sin outline */}
+                <div className="flex items-center gap-2">
+                  <div className="flex justify-center">
+                    <QuantityControlsUI
+                      quantity={item.quantity}
+                      onIncrement={() => handleQuantityChange(item.product.id, item.quantity + 1)}
+                      onDecrement={() => handleQuantityChange(item.product.id, item.quantity - 1)}
+                      canAddMore={canAddToCart(item.product.id, 1).canAdd}
+                      maxReached={item.quantity >= 99}
+                    />
+                  </div>
+                  {/* Remove Button - Siempre visible */}
                   <button
                     onClick={() => removeFromCart(item.product.id)}
-                    className="w-6 h-6 lg:w-7 lg:h-7 text-red-600 hover:text-black hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100 z-10 flex items-center justify-center rounded"
+                    className="w-7 h-8 sm:h-7 text-red-600 hover:text-black hover:bg-gray-100 transition-colors flex items-center justify-center rounded opacity-100"
                     aria-label="Eliminar"
                   >
                     <Trash2 className="w-3.5 h-3.5 lg:w-4 lg:h-4" />

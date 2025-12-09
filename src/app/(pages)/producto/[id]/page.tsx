@@ -10,7 +10,7 @@ import ProductImageGallery from './components/ProductImageGallery';
 import ProductInfo from './components/ProductInfo';
 import ProductVariantSelector from './components/ProductVariantSelector';
 import ProductSpecs from './components/ProductSpecs';
-import ProductAddToCart from './components/ProductAddToCart';
+import QuantityControlsProductPage from './components/QuantityControlsProductPage';
 import ProductResources from './components/ProductResources';
 import ProductShowroomInfo from './components/ProductShowroomInfo';
 import RelatedProducts from './components/RelatedProducts';
@@ -56,7 +56,15 @@ const ProductDetailPageContent = () => {
     );
 
     // Hook para manejar el carrito (debe llamarse siempre)
-    const { handleAddToCart, isAdding, inCart } = useProductCart(
+    const { 
+        handleIncrement, 
+        handleDecrement, 
+        isAdding, 
+        inCart, 
+        currentQuantity,
+        canAddMore,
+        maxReached,
+    } = useProductCart(
         groupedProduct,
         groupedProduct?.displayProduct,
         selectedVariant
@@ -136,11 +144,16 @@ const ProductDetailPageContent = () => {
                             displayProduct={displayProduct}
                         />
 
-                        {/* Botón agregar al carrito */}
-                        <ProductAddToCart
-                            onAddToCart={handleAddToCart}
+                        {/* Controles de cantidad */}
+                        <QuantityControlsProductPage
+                            currentQuantity={currentQuantity}
                             isAdding={isAdding}
                             isInCart={inCart}
+                            canAddMore={canAddMore}
+                            maxReached={maxReached}
+                            onIncrement={handleIncrement}
+                            onDecrement={handleDecrement}
+                            disabled={selectedVariant?.producto?._isVirtual === true}
                         />
 
                         {/* Enlaces a recursos externos */}

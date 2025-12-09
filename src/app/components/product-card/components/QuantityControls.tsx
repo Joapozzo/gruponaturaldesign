@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Minus, Plus } from 'lucide-react';
+import QuantityControlsUI from '@/app/components/ui/QuantityControls';
 
 interface QuantityControlsProps {
     productId: number;
@@ -96,49 +97,14 @@ export default function QuantityControls({
                     Límite alcanzado
                 </span>
             )}
-            <div className={`flex items-center justify-center gap-1.5 rounded-lg border-2 ${
-                maxReached ? 'border-gray-300' : 'border-black'
-            } ${isMobile ? 'w-full' : 'w-full sm:w-auto'}`}>
-                {/* Botón Decremento */}
-                <motion.button
-                    className={`flex items-center justify-center rounded-l-lg font-bold transition-all duration-300 ${
-                        isMobile ? 'px-2 py-1.5 text-xs' : 'px-3 py-2 text-sm'
-                    } ${
-                        currentQuantity <= 1
-                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : 'bg-black text-white hover:bg-red-600'
-                    }`}
-                    onClick={onDecrement}
-                    disabled={currentQuantity <= 1}
-                    whileHover={currentQuantity > 1 ? { scale: 1.1 } : {}}
-                    whileTap={currentQuantity > 1 ? { scale: 0.9 } : {}}
-                >
-                    <Minus className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
-                </motion.button>
-
-                {/* Cantidad */}
-                <div className={`flex items-center justify-center font-bold ${
-                    maxReached ? 'text-gray-500' : 'text-black'
-                } ${isMobile ? 'px-3 py-1.5 text-xs min-w-[2rem]' : 'px-4 py-2 text-sm min-w-[3rem]'}`}>
-                    {currentQuantity}
-                </div>
-
-                {/* Botón Incremento */}
-                <motion.button
-                    className={`flex items-center justify-center rounded-r-lg font-bold transition-all duration-300 ${
-                        isMobile ? 'px-2 py-1.5 text-xs' : 'px-3 py-2 text-sm'
-                    } ${
-                        !canAddMore || maxReached
-                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : 'bg-black text-white hover:bg-red-600'
-                    }`}
-                    onClick={onIncrement}
-                    disabled={!canAddMore || maxReached}
-                    whileHover={canAddMore && !maxReached ? { scale: 1.1 } : {}}
-                    whileTap={canAddMore && !maxReached ? { scale: 0.9 } : {}}
-                >
-                    <Plus className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
-                </motion.button>
+            <div className={`flex justify-center ${isMobile ? 'w-full' : 'w-full sm:w-auto'}`}>
+                <QuantityControlsUI
+                    quantity={currentQuantity}
+                    onIncrement={(e) => onIncrement(e || ({} as React.MouseEvent))}
+                    onDecrement={(e) => onDecrement(e || ({} as React.MouseEvent))}
+                    canAddMore={canAddMore}
+                    maxReached={maxReached}
+                />
             </div>
         </div>
     );

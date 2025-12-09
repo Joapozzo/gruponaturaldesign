@@ -13,7 +13,7 @@ export function useProductCart(
     selectedVariant: ProductVariant | null
 ) {
     const router = useRouter();
-    const { addToCart, isInCart, canAddToCart } = useCart();
+    const { addToCart, isInCart, canAddToCart, getProductQuantity, updateQuantity, itemCount } = useCart();
     const [isAdding, setIsAdding] = useState(false);
 
     const handleAddToCart = () => {
@@ -78,11 +78,45 @@ export function useProductCart(
 
     const productId = selectedVariant ? createProductId(selectedVariant.codigo) : 0;
     const inCart = isInCart(productId);
+    const currentQuantity = getProductQuantity(productId);
+
+    // Calcular canAddMore y maxReached
+    const handleIncrement = () => {
+        if (!selectedVariant || !groupedProduct) return;
+
+        const validation = canAddToCart(productId, 1);
+        if (!validation.canAdd) {
+            return;
+        }
+
+        if (currentQuantity === 0) {
+            handleAddToCart();
+        } else {
+            updateQuantity(productId, currentQuantity + 1);
+        }
+    };
+
+    const handleDecrement = () => {
+        if (currentQuantity <= 1) {
+            return;
+        }
+        updateQuantity(productId, currentQuantity - 1);
+    };
+
+    const validation = canAddToCart(productId, 1);
+    const canAddMore = validation.canAdd;
+    const maxReached = itemCount >= 20;
 
     return {
         handleAddToCart,
+        handleIncrement,
+        handleDecrement,
         isAdding,
         inCart,
+        currentQuantity,
+        canAddMore,
+        maxReached,
+        productId,
     };
 }
 

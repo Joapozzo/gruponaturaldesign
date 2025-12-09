@@ -20,7 +20,7 @@ export default function ProductAddToCart({
     const router = useRouter();
 
     return (
-        <div className="space-y-3 sm:space-y-4">
+        <div className="space-y-3 sm:space-y-4 mt-4">
             <motion.button
                 onClick={onAddToCart}
                 disabled={disabled || isAdding}
