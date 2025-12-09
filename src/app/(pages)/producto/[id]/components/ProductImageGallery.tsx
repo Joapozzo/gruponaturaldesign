@@ -106,7 +106,7 @@ export default function ProductImageGallery({
                             onMouseEnter={handleMouseEnter}
                             onMouseLeave={handleMouseLeave}
                         >
-                            {displayImages.length > 0 && displayImages[adjustedIndex] ? (
+                            {displayImages.length > 0 && displayImages[adjustedIndex] && imageLoadStatus[displayImages[adjustedIndex]] !== 'error' ? (
                                 <>
                                     <Image
                                         src={displayImages[adjustedIndex]}
@@ -114,8 +114,11 @@ export default function ProductImageGallery({
                                         className="w-full h-full object-cover"
                                         fill
                                         sizes="(max-width: 768px) 100vw, 50vw"
+                                        unoptimized={true}
                                         onLoad={() => handleImageLoad(displayImages[adjustedIndex])}
-                                        onError={() => handleImageError(displayImages[adjustedIndex])}
+                                        onError={() => {
+                                            handleImageError(displayImages[adjustedIndex]);
+                                        }}
                                     />
                                     {/* Efecto de zoom en círculo */}
                                     {isHovering && mousePosition && imageRef.current && displayImages[adjustedIndex] && (
@@ -174,7 +177,7 @@ export default function ProductImageGallery({
                                 </>
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                                    <Package className="w-20 h-20 text-gray-400" />
+                                    <Package className="w-16 h-16 sm:w-20 sm:h-20 text-gray-400" />
                                 </div>
                             )}
                         </div>
@@ -204,15 +207,22 @@ export default function ProductImageGallery({
                                     whileTap={{ scale: 0.95 }}
                                     aria-label={`Ver imagen ${index + 1}`}
                                 >
-                                    <Image
-                                        src={img}
-                                        alt={`${productName} - Miniatura ${index + 1}`}
-                                        className="w-full h-full object-cover"
-                                        width={120}
-                                        height={120}
-                                        onLoad={() => handleImageLoad(img)}
-                                        onError={() => handleImageError(img)}
-                                    />
+                                    {imageLoadStatus[img] === 'error' ? (
+                                        <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                                            <Package className="w-6 h-6 text-gray-400" />
+                                        </div>
+                                    ) : (
+                                        <Image
+                                            src={img}
+                                            alt={`${productName} - Miniatura ${index + 1}`}
+                                            className="w-full h-full object-cover"
+                                            width={120}
+                                            height={120}
+                                            unoptimized={true}
+                                            onLoad={() => handleImageLoad(img)}
+                                            onError={() => handleImageError(img)}
+                                        />
+                                    )}
                                     {/* Overlay cuando está seleccionada */}
                                     {adjustedIndex === index && (
                                         <div className="absolute inset-0 bg-black/20" />

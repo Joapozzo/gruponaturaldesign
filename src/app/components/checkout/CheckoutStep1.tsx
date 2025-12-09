@@ -6,7 +6,7 @@ import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { useCart } from '../hooks/useCart';
 import Button from '../ui/Button';
-import { Trash2, ArrowRight } from 'lucide-react';
+import { Trash2, ArrowRight, Package } from 'lucide-react';
 // import { formatPrice } from '@/app/utils/precio'; // Comentado - sin precios por ahora
 
 interface CheckoutStep1Props {
@@ -73,7 +73,23 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
               <div className="flex items-center gap-2">
                 {/* Product Image - Más alta en mobile, más grande en desktop */}
                 <div className="relative w-12 h-16 lg:w-16 lg:h-20 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
-                  <Image src={item.product.imagen} alt={item.product.nombre} fill className="object-cover" />
+                  {item.product.imagen ? (
+                    <Image
+                      src={item.product.imagen}
+                      alt={item.product.nombre}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 48px, 64px"
+                      unoptimized={true}
+                      onError={() => {
+                        // El error se maneja mostrando el Package icon
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                      <Package className="w-6 h-6 lg:w-8 lg:h-8 text-gray-400" />
+                    </div>
+                  )}
                 </div>
 
                 {/* Product Info - Compacto en mobile, más grande en desktop */}

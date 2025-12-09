@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Plus, Minus, Trash2 } from 'lucide-react';
+import { Plus, Minus, Trash2, Package } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useConfirmModal } from './hooks/useModal';
@@ -94,18 +94,23 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, c
                 className="relative w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden cursor-pointer"
                 onClick={handleProductClick}
             >
-                <Image
-                    src={product.imagen || '/imgs/producto-placeholder.png'}
-                    alt={product.nombre}
-                    fill
-                    className="object-cover"
-                    sizes="80px"
-                    unoptimized={true}
-                    onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = '/imgs/producto-placeholder.png';
-                    }}
-                />
+                {product.imagen ? (
+                    <Image
+                        src={product.imagen}
+                        alt={product.nombre}
+                        fill
+                        className="object-cover"
+                        sizes="80px"
+                        unoptimized={true}
+                        onError={() => {
+                            // El error se maneja mostrando el Package icon
+                        }}
+                    />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                        <Package className="w-8 h-8 text-gray-400" />
+                    </div>
+                )}
             </div>
 
             {/* Info del producto */}

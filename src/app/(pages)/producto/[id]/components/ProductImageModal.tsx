@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Package } from 'lucide-react';
 import Image from 'next/image';
@@ -19,6 +19,12 @@ export default function ProductImageModal({
     currentImageIndex,
     productName,
 }: ProductImageModalProps) {
+    const [imageError, setImageError] = useState(false);
+
+    // Resetear error cuando cambia la imagen
+    React.useEffect(() => {
+        setImageError(false);
+    }, [currentImageIndex, isOpen]);
     return (
         <AnimatePresence>
             {isOpen && (
@@ -36,13 +42,17 @@ export default function ProductImageModal({
                         className="relative w-full h-full max-w-7xl flex items-center justify-center"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {images.length > 0 && images[currentImageIndex] ? (
+                        {images.length > 0 && images[currentImageIndex] && !imageError ? (
                             <Image
                                 src={images[currentImageIndex]}
                                 alt={`${productName} - Imagen expandida`}
                                 className="w-auto h-auto max-w-full max-h-[calc(100vh-2rem)] object-contain rounded-lg"
                                 width={1200}
                                 height={1200}
+                                unoptimized={true}
+                                onError={() => {
+                                    setImageError(true);
+                                }}
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-lg">
