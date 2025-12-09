@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GroupedProduct, ProductVariant } from '@/app/types/producto';
 import { useCart } from '@/app/components/hooks/useCart';
-import { createProductId, createProductSpecs } from '../helpers/productHelpers';
+import { createProductId, createProductSpecs, nombreToSlug, getProductImages } from '../helpers/productHelpers';
 
 /**
  * Hook para manejar la lógica del carrito
@@ -40,14 +40,32 @@ export function useProductCart(
             selectedVariant.variantNumber
         );
 
+        // Obtener la imagen correcta basada en el color seleccionado
+        // Usar la misma lógica que useProductImages para obtener la imagen actual
+        const productName = groupedProduct.skuBase || displayProduct.NOMBRE || '';
+        const currentImages = getProductImages(
+            product.imagenes,
+            product.imagen,
+            1, // Solo necesitamos la primera imagen
+            productName,
+            selectedVariant.color,
+            groupedProduct.availableColors
+        );
+        
+        // Usar la primera imagen de las imágenes actuales (ya filtradas por color)
+        const productImage = currentImages && currentImages.length > 0 
+            ? currentImages[0] 
+            : product.imagen || (product.imagenes && product.imagenes.length > 0 ? product.imagenes[0] : '') || '';
+
         addToCart(
             {
                 id: productId,
                 nombre: groupedProduct.skuBase || displayProduct.NOMBRE || 'Sin nombre',
                 descripcion: displayProduct.Descripcion || displayProduct.DescripcionCorta || '',
-                imagen: product.imagen || (product.imagenes && product.imagenes.length > 0 ? product.imagenes[0] : '') || '',
+                imagen: productImage,
                 precio: product.PrecioVenta || 0,
                 categoria: product.Rubro || 'Sin categoría',
+                skuBaseSlug: groupedProduct.skuBaseSlug || nombreToSlug(groupedProduct.skuBase),
             },
             1,
             specs

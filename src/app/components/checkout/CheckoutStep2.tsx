@@ -7,6 +7,7 @@ import { useCart } from '../hooks/useCart';
 import Button from '../ui/Button';
 import { CustomerData, ShippingData } from '@/app/types/cart';
 
+
 interface CheckoutStep2Props {
   onNext: () => void;
   onBack: () => void;
@@ -195,7 +196,38 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+    <>
+      {/* Estilos para autocompletado del navegador */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          input:-webkit-autofill,
+          input:-webkit-autofill:hover,
+          input:-webkit-autofill:focus,
+          input:-webkit-autofill:active,
+          textarea:-webkit-autofill,
+          textarea:-webkit-autofill:hover,
+          textarea:-webkit-autofill:focus,
+          textarea:-webkit-autofill:active,
+          select:-webkit-autofill,
+          select:-webkit-autofill:hover,
+          select:-webkit-autofill:focus,
+          select:-webkit-autofill:active {
+            -webkit-text-fill-color: #000000 !important;
+            -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+            box-shadow: 0 0 0px 1000px #ffffff inset !important;
+            transition: background-color 5000s ease-in-out 0s;
+          }
+          
+          input:autofill,
+          textarea:autofill,
+          select:autofill {
+            color: #000000 !important;
+            background-color: #ffffff !important;
+          }
+        `
+      }} />
+      
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
       {/* LEFT SIDE - Formulario */}
       <div className="flex-1 flex flex-col min-w-0">
         <h2 className="text-base lg:text-xl font-bold text-black mb-3 lg:mb-4">DATOS DEL CLIENTE</h2>
@@ -220,6 +252,10 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                   className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
                     errors.nombre && touched.nombre ? 'border-red-500' : 'border-gray-300'
                   }`}
+                  style={{
+                    color: '#000000',
+                    backgroundColor: '#ffffff',
+                  }}
                   placeholder="Juan"
                 />
                 {errors.nombre && touched.nombre && (
@@ -239,6 +275,10 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                   className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
                     errors.apellido && touched.apellido ? 'border-red-500' : 'border-gray-300'
                   }`}
+                  style={{
+                    color: '#000000',
+                    backgroundColor: '#ffffff',
+                  }}
                   placeholder="Pérez"
                 />
                 {errors.apellido && touched.apellido && (
@@ -261,6 +301,10 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                   className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
                     errors.email && touched.email ? 'border-red-500' : 'border-gray-300'
                   }`}
+                  style={{
+                    color: '#000000',
+                    backgroundColor: '#ffffff',
+                  }}
                   placeholder="juan@ejemplo.com"
                 />
                 {errors.email && touched.email && (
@@ -280,6 +324,10 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                   className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
                     errors.telefono && touched.telefono ? 'border-red-500' : 'border-gray-300'
                   }`}
+                  style={{
+                    color: '#000000',
+                    backgroundColor: '#ffffff',
+                  }}
                   placeholder="+54 11 1234-5678"
                 />
                 {errors.telefono && touched.telefono && (
@@ -317,6 +365,10 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                   className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
                     errors.documento && touched.documento ? 'border-red-500' : 'border-gray-300'
                   }`}
+                  style={{
+                    color: '#000000',
+                    backgroundColor: '#ffffff',
+                  }}
                   placeholder="12345678"
                 />
                 {errors.documento && touched.documento && (
@@ -334,6 +386,10 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                   value={formData.empresa}
                   onChange={(e) => handleCustomerChange('empresa', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:outline-none focus:border-red-600"
+                  style={{
+                    color: '#000000',
+                    backgroundColor: '#ffffff',
+                  }}
                   placeholder="Mi Empresa S.A."
                 />
               </div>
@@ -344,6 +400,10 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                   value={formData.cuit}
                   onChange={(e) => handleCustomerChange('cuit', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:outline-none focus:border-red-600"
+                  style={{
+                    color: '#000000',
+                    backgroundColor: '#ffffff',
+                  }}
                   placeholder="20-12345678-9"
                 />
               </div>
@@ -359,6 +419,10 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                 value={formData.fecha_nacimiento}
                 onChange={(e) => handleCustomerChange('fecha_nacimiento', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black bg-white focus:outline-none focus:border-red-600"
+                style={{
+                  color: '#000000',
+                  backgroundColor: '#ffffff',
+                }}
                 max={new Date().toISOString().split('T')[0]}
               />
               {formData.fecha_nacimiento && (
@@ -425,6 +489,10 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                     className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
                       errors.direccion && touched.direccion ? 'border-red-500' : 'border-gray-300'
                     }`}
+                    style={{
+                      color: '#000000',
+                      backgroundColor: '#ffffff',
+                    }}
                     placeholder="Av. Corrientes 1234"
                   />
                   {errors.direccion && touched.direccion && (
@@ -446,6 +514,10 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                       className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
                         errors.localidad && touched.localidad ? 'border-red-500' : 'border-gray-300'
                       }`}
+                      style={{
+                        color: '#000000',
+                        backgroundColor: '#ffffff',
+                      }}
                       placeholder="Buenos Aires"
                     />
                     {errors.localidad && touched.localidad && (
@@ -465,6 +537,10 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                       className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
                         errors.provincia && touched.provincia ? 'border-red-500' : 'border-gray-300'
                       }`}
+                      style={{
+                        color: '#000000',
+                        backgroundColor: '#ffffff',
+                      }}
                       placeholder="Buenos Aires"
                     />
                     {errors.provincia && touched.provincia && (
@@ -486,6 +562,10 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                     className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
                       errors.codigo_postal && touched.codigo_postal ? 'border-red-500' : 'border-gray-300'
                     }`}
+                    style={{
+                      color: '#000000',
+                      backgroundColor: '#ffffff',
+                    }}
                     placeholder="1000"
                   />
                   {errors.codigo_postal && touched.codigo_postal && (
@@ -505,6 +585,10 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                 onChange={(e) => handleShippingChange('notas', e.target.value)}
                 rows={2}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:outline-none focus:border-red-600 resize-none"
+                style={{
+                  color: '#000000',
+                  backgroundColor: '#ffffff',
+                }}
                 placeholder="Ej: Timbre roto, llamar al llegar..."
               />
             </div>
@@ -572,5 +656,6 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
         </div>
       </div>
     </div>
+    </>
   );
 }

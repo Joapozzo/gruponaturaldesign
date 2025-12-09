@@ -9,6 +9,7 @@ export interface CartProduct {
     stock?: number;
     um_id?: number;
     lista_precio_id?: number;
+    skuBaseSlug?: string; // Slug del producto para navegación (opcional)
 }
 
 // Item en el carrito

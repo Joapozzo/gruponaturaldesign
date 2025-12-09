@@ -16,7 +16,7 @@ const Categorias = () => {
             nombre: 'SHOP ONLINE',
             descripcion: 'Explora nuestra amplia colección de uniformes profesionales disponibles para compra inmediata.',
             imagen: '/imgs/shop-online.jpg',
-            route: '/catalogo'
+            route: '/shoponline'
         },
         {
             id: 'uniformes-diseno',

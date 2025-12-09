@@ -100,7 +100,7 @@ export default function ProductImageGallery({
                     <div className="relative group max-w-md mx-auto">
                         <div
                             ref={imageRef}
-                            className="relative aspect-[3/4] bg-gray-100 rounded-lg overflow-hidden cursor-zoom-in"
+                            className="relative aspect-[3/4] bg-white rounded-lg overflow-hidden cursor-zoom-in"
                             onClick={onOpenModal}
                             onMouseMove={handleMouseMove}
                             onMouseEnter={handleMouseEnter}
@@ -111,9 +111,9 @@ export default function ProductImageGallery({
                                     <Image
                                         src={displayImages[adjustedIndex]}
                                         alt={`${productName} - Imagen ${adjustedIndex + 1}`}
-                                        className="w-full h-full object-contain"
-                                        width={600}
-                                        height={600}
+                                        className="w-full h-full object-cover"
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, 50vw"
                                         onLoad={() => handleImageLoad(displayImages[adjustedIndex])}
                                         onError={() => handleImageError(displayImages[adjustedIndex])}
                                     />

@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 import { GroupedProduct } from '../types/producto';
 import { useCart } from './hooks/useCart';
 import { useProductCardState } from './product-card/hooks/useProductCardState';
@@ -11,7 +12,7 @@ import ProductCardImage from './product-card/components/ProductCardImage';
 import ColorSelector from './product-card/components/ColorSelector';
 import SizeSelector from './product-card/components/SizeSelector';
 import VariantSelector from './product-card/components/VariantSelector';
-import AddToCartButton from './product-card/components/AddToCartButton';
+import QuantityControls from './product-card/components/QuantityControls';
 
 interface ProductCardGroupedProps {
     group: GroupedProduct;
@@ -27,7 +28,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
     onExpandChange,
 }) => {
     const router = useRouter();
-    const { addToCart, isInCart, getCartItem } = useCart();
+    const { addToCart, getCartItem, updateQuantity, getProductQuantity, canAddToCart } = useCart();
 
     // Hook para manejar el estado del card
     const {
@@ -84,8 +85,23 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
 
     // Verificar si la variante exacta (mismo color y talle) está en el carrito
     const cartItem = getCartItem(selectedVariantId);
-    const isExactVariantInCart = !!(cartItem && cartItem.especificaciones === getCurrentSpecs());
-    const isInCartGeneric = isInCart(selectedVariantId);
+    const currentSpecs = getCurrentSpecs();
+    const isExactVariantInCart = !!(cartItem && cartItem.especificaciones === currentSpecs);
+    
+    // Obtener cantidad actual del producto en el carrito
+    // Si tiene especificaciones, solo contar la variante exacta
+    let currentQuantity = 0;
+    if (cartItem && cartItem.especificaciones === currentSpecs) {
+        currentQuantity = cartItem.quantity;
+    } else if (!hasColorSizeData) {
+        // Si no tiene especificaciones, usar la cantidad del producto genérico
+        currentQuantity = getProductQuantity(selectedVariantId);
+    }
+    
+    // Validar si se puede agregar más unidades
+    const quantityValidation = canAddToCart(selectedVariantId, 1);
+    const canAddMore = quantityValidation.canAdd;
+    const maxReached = !canAddMore;
 
     // Función para generar slug desde nombre
     const nombreToSlug = (nombre: string): string => {
@@ -110,7 +126,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
         router.push(`/producto/${slug}`);
     };
 
-    const handleAddToCart = (e: React.MouseEvent) => {
+    const handleIncrement = (e: React.MouseEvent) => {
         e.stopPropagation();
 
         // Si hay múltiples opciones y no se ha mostrado el selector, mostrarlo
@@ -131,6 +147,18 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
             }
         }
 
+        // Validar si se puede agregar más
+        const validation = canAddToCart(selectedVariantId, 1);
+        if (!validation.canAdd) {
+            // Mostrar toast con el mensaje de error
+            if (validation.reason) {
+                toast.error(validation.reason, {
+                    duration: 4000,
+                });
+            }
+            return;
+        }
+
         setIsAdding(true);
 
         // Crear especificaciones según si tiene data de color/talle
@@ -138,27 +166,54 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
             ? `Color: ${selectedVariant.color} | Talle: ${selectedVariant.talle} | Código: ${selectedVariant.codigo}`
             : `Código: ${selectedVariant.codigo}`;
 
-        // Agregar la variante seleccionada al carrito con especificaciones
-        addToCart(
-            {
-                id: selectedVariantId,
-                nombre: product.Descripcion || product.NOMBRE || 'Sin descripción',
-                descripcion: product.DescripcionCorta || product.Descripcion || '',
-                imagen: mainImage || '',
-                precio: product.PrecioVenta || 0,
-                categoria: product.Rubro || 'Sin categoría',
-            },
-            1,
-            specs
-        );
+        const nombreToSlug = (nombre: string): string => {
+            return nombre
+                .toLowerCase()
+                .trim()
+                .replace(/\s+/g, '-')
+                .replace(/[^\w\-]+/g, '')
+                .replace(/\-\-+/g, '-')
+                .replace(/^-+/, '')
+                .replace(/-+$/, '');
+        };
 
-        // Animación de feedback
-        setTimeout(() => {
+        // Si ya está en el carrito, incrementar cantidad
+        if (currentQuantity > 0) {
+            updateQuantity(selectedVariantId, currentQuantity + 1);
             setIsAdding(false);
-            if (onExpandChange) {
-                onExpandChange(null);
-            }
-        }, 1000);
+            // No cerrar el producto cuando ya está en el carrito
+        } else {
+            // Si no está en el carrito, agregarlo
+            addToCart(
+                {
+                    id: selectedVariantId,
+                    nombre: group.skuBase || product.Descripcion || product.NOMBRE || 'Sin descripción',
+                    descripcion: product.DescripcionCorta || product.Descripcion || '',
+                    imagen: mainImage || '',
+                    precio: product.PrecioVenta || 0,
+                    categoria: product.Rubro || 'Sin categoría',
+                    skuBaseSlug: group.skuBaseSlug || nombreToSlug(group.skuBase),
+                },
+                1,
+                specs
+            );
+
+            // Animación de feedback - NO cerrar el producto, mantenerlo abierto
+            setTimeout(() => {
+                setIsAdding(false);
+            }, 1000);
+        }
+    };
+
+    const handleDecrement = (e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        if (currentQuantity <= 1) {
+            return;
+        }
+
+        // Decrementar cantidad
+        updateQuantity(selectedVariantId, currentQuantity - 1);
     };
 
     // Formatear precio
@@ -284,17 +339,21 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                         </span>
                     </div>
 
-                    <AddToCartButton
+                    <QuantityControls
+                        productId={selectedVariantId}
+                        currentQuantity={currentQuantity}
                         isAdding={isAdding}
                         isExactVariantInCart={isExactVariantInCart}
-                        isInCartGeneric={isInCartGeneric}
                         hasColorSizeData={hasColorSizeData || false}
                         isExpanded={isExpanded}
                         selectedColor={selectedColor}
                         selectedSize={selectedSize}
                         totalVariants={group.totalVariants}
                         isMobile={isMobile}
-                        onClick={handleAddToCart}
+                        onIncrement={handleIncrement}
+                        onDecrement={handleDecrement}
+                        canAddMore={canAddMore}
+                        maxReached={maxReached}
                     />
                 </div>
             </motion.div>

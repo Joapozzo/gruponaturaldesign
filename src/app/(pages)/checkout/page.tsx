@@ -128,7 +128,7 @@ export default function CheckoutPage() {
               transition={{ duration: 0.2 }}
             >
               {currentStep === 1 && (
-                <CheckoutStep1 onNext={handleNextStep} onBack={() => router.push('/catalogo')} />
+                <CheckoutStep1 onNext={handleNextStep} onBack={() => router.push('/shoponline')} />
               )}
               {currentStep === 2 && (
                 <CheckoutStep2 onNext={handleNextStep} onBack={handlePrevStep} />

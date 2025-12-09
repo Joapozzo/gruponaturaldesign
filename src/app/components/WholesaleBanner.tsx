@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
-import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 
 interface WholesaleBannerProps {
@@ -10,10 +10,39 @@ interface WholesaleBannerProps {
 }
 
 export default function WholesaleBanner({ fullScreen = false }: WholesaleBannerProps) {
+    const router = useRouter();
+    const pathname = usePathname();
+    
+    const handleSaberMasClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        
+        if (pathname === '/mayorista') {
+            // Si ya estamos en la página, hacer scroll al hero
+            setTimeout(() => {
+                const heroElement = document.getElementById('wholesale-hero');
+                if (heroElement) {
+                    heroElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            }, 50);
+        } else {
+            // Si no estamos en la página, navegar con hash para que haga scroll automático
+            router.push('/mayorista#wholesale-hero');
+            // También intentar hacer scroll después de un delay por si el hash no funciona
+            setTimeout(() => {
+                const heroElement = document.getElementById('wholesale-hero');
+                if (heroElement) {
+                    heroElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 300);
+        }
+    };
+    
     if (fullScreen) {
         // Versión full screen para página de mayoristas - Estilo como Hero.tsx
         return (
-            <section className="relative w-full h-screen flex items-center justify-center overflow-hidden">
+            <section id="wholesale-hero" className="relative w-full h-screen flex items-center justify-center overflow-hidden">
                 <div className="absolute inset-0 w-full h-full">
                     <Image
                         src="/imgs/hero.jpg"
@@ -72,13 +101,13 @@ export default function WholesaleBanner({ fullScreen = false }: WholesaleBannerP
                                 ¡Excelente! Por la cantidad, tu compra ingresa automáticamente en nuestro formato Mayorista, con descuentos especiales, opciones de personalización (bordado/estampa) y formas de pago preferenciales.
                             </p>
                         </div>
-                        <Link
-                            href="/mayorista"
+                        <button
+                            onClick={handleSaberMasClick}
                             className="flex items-center gap-1.5 bg-white text-[#Ed3237] px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors whitespace-nowrap text-[10px] sm:text-xs lg:text-sm shadow-md flex-shrink-0"
                         >
                             <span>Saber más</span>
                             <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
-                        </Link>
+                        </button>
                     </div>
                 </div>
             </div>

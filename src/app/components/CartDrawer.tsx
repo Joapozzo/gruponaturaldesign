@@ -3,6 +3,7 @@ import React, { useMemo, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShoppingCart, ArrowRight } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useCart } from './hooks/useCart';
 import Button from './ui/Button';
 import { useRouter, usePathname } from 'next/navigation';
@@ -85,9 +86,31 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
         });
     };
 
-    // Wrapper para updateQuantity - permite actualizar sin restricciones
-    // Las restricciones se muestran visualmente cuando se alcanzan 20 unidades
+    // Wrapper para updateQuantity - valida límite de 20 artículos totales
     const updateQuantity = (productId: number, newQuantity: number) => {
+        if (newQuantity < 1) {
+            originalUpdateQuantity(productId, 1);
+            return;
+        }
+
+        // Calcular la diferencia de cantidad
+        const existingItem = items.find(item => item.product.id === productId);
+        const currentQuantity = existingItem?.quantity || 0;
+        const quantityDifference = newQuantity - currentQuantity;
+
+        // Validar si se puede agregar más unidades
+        if (quantityDifference > 0) {
+            const validation = canAddToCart(productId, quantityDifference);
+            if (!validation.canAdd) {
+                if (validation.reason) {
+                    toast.error(validation.reason, {
+                        duration: 4000,
+                    });
+                }
+                return;
+            }
+        }
+
         originalUpdateQuantity(productId, newQuantity);
     };
 
@@ -151,14 +174,19 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                 <EmptyCart onClose={onClose} />
                             ) : (
                                 <div className="space-y-4">
-                                    {sortedItems.map((item) => (
-                                        <CartItem
-                                            key={item.product.id}
-                                            item={item}
-                                            onUpdateQuantity={isInCheckout ? () => {} : updateQuantity}
-                                            onRemove={isInCheckout ? () => {} : removeFromCart}
-                                        />
-                                    ))}
+                                    {sortedItems.map((item) => {
+                                        // Verificar si se puede agregar más unidades de este producto
+                                        const canAddMore = canAddToCart(item.product.id, 1).canAdd;
+                                        return (
+                                            <CartItem
+                                                key={item.product.id}
+                                                item={item}
+                                                onUpdateQuantity={isInCheckout ? () => {} : updateQuantity}
+                                                onRemove={isInCheckout ? () => {} : removeFromCart}
+                                                canAddMore={canAddMore}
+                                            />
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>

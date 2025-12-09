@@ -67,7 +67,7 @@ const ProductosDestacados = () => {
     }, [expandedSku]);
 
     const goToPage = () => {
-        router.push(`/catalogo`);
+        router.push(`/shoponline`);
     };
 
     // Mostrar loading o estado vacío

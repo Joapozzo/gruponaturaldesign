@@ -78,12 +78,54 @@ function extractDriveUrl(cellValue: any): string | null {
 }
 
 /**
+ * Simplifica el nombre del producto para generar el slug de las imágenes
+ * Remueve frases descriptivas comunes que no están en los nombres de carpetas
+ * Ejemplo: "REMERA GENTLE ESCOTE EN V DAMA" → "REMERA GENTLE DAMA"
+ */
+function simplifyProductNameForImages(nombre: string): string {
+    let simplified = nombre;
+    
+    // Frases descriptivas comunes que se deben remover para las carpetas de imágenes
+    const phrasesToRemove = [
+        'ESCOTE EN V',
+        'ESCOTE EN U',
+        'MANGA CORTA',
+        'MANGA LARGA',
+        'CORTE',
+        'ENTALLADO',
+        'CLASICO',
+        'SPORT',
+        'BASIC',
+        'PARA',
+        'CON',
+        'DE',
+        'LA',
+        'EL',
+    ];
+    
+    // Remover frases descriptivas
+    phrasesToRemove.forEach(phrase => {
+        const regex = new RegExp(`\\b${phrase}\\b`, 'gi');
+        simplified = simplified.replace(regex, '');
+    });
+    
+    // Limpiar espacios múltiples
+    simplified = simplified.replace(/\s+/g, ' ').trim();
+    
+    return simplified;
+}
+
+/**
  * Convierte un nombre de producto a slug (para URLs de imágenes)
- * Ejemplo: "CARDIGAN CHARM DAMA ESCOTE EN V" → "cardigan-charm-dama-escote-en-v"
+ * Ejemplo: "CARDIGAN CHARM DAMA ESCOTE EN V" → "cardigan-charm-dama"
  * Normaliza "RAGER" a "RANGER" para coincidir con las carpetas de imágenes
+ * Simplifica nombres largos removiendo frases descriptivas
  */
 function nombreToSlug(nombre: string): string {
-    return nombre
+    // Primero simplificar el nombre para que coincida con las carpetas de imágenes
+    const simplified = simplifyProductNameForImages(nombre);
+    
+    return simplified
         .toLowerCase()
         .trim()
         .replace(/\brager\b/g, 'ranger')  // Normalizar "rager" a "ranger" para las carpetas de imágenes
@@ -281,47 +323,73 @@ async function processFile(filePath: string): Promise<any[]> {
 
             // Si encontramos productos coincidentes, crear el grupo
             if (productosCoincidentes.length > 0) {
-                // Extraer talles y colores únicos de las descripciones individuales
-                const tallesSet = new Set<string>();
-                const coloresSet = new Set<string>();
+                // FUNCIÓN AUXILIAR: Parsear talles de la hoja 2
+                // Ejemplo: "40/42/44/46/48/50/52/54/56" -> ["40", "42", "44", "46", "48", "50", "52", "54", "56"]
+                const parseTallesFromHoja2 = (tallesStr: string): string[] => {
+                    if (!tallesStr) return [];
+                    return tallesStr
+                        .split(/[\/\s,]+/)
+                        .map(t => t.trim())
+                        .filter(t => t.length > 0)
+                        .map(t => t.toUpperCase());
+                };
 
-                productosCoincidentes.forEach((prod: any) => {
-                    const desc = String(prod.Descripcion || '').toUpperCase();
+                // FUNCIÓN AUXILIAR: Parsear colores de la hoja 2
+                // Ejemplo: "CELESTE / GRIS / BLANCO" -> ["CELESTE", "GRIS", "BLANCO"]
+                const parseColoresFromHoja2 = (coloresStr: string): string[] => {
+                    if (!coloresStr) return [];
+                    return coloresStr
+                        .split(/[\/\s,]+/)
+                        .map(c => c.trim())
+                        .filter(c => c.length > 0)
+                        .map(c => c.toUpperCase());
+                };
 
-                    // Extraer talle - buscar números de talle al final de la descripción
-                    // Primero buscar talles numéricos (34, 36, 38, 40, 42, 44, 46, 48, 50, 52)
-                    const talleNumerico = desc.match(/\b(3[4-9]|[4-5][0-2])\b/);
-                    if (talleNumerico) {
-                        tallesSet.add(talleNumerico[0]);
-                    } else {
-                        // Si no hay talle numérico, buscar talles de letras
-                        const talles = ['2XS', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
-                        for (const talle of talles) {
-                            if (desc.includes(` ${talle} `) || desc.endsWith(` ${talle}`)) {
-                                tallesSet.add(talle);
+                // PRIORIDAD 1: Usar talles y colores de la hoja 2 si están disponibles
+                const tallesHoja2 = parseTallesFromHoja2(String(rowAgrupado.TALLES || '').trim());
+                const coloresHoja2 = parseColoresFromHoja2(String(rowAgrupado.COLORES || '').trim());
+
+                // PRIORIDAD 2: Si no hay en hoja 2, extraer de las descripciones individuales
+                const tallesSet = new Set<string>(tallesHoja2);
+                const coloresSet = new Set<string>(coloresHoja2);
+
+                // Si no hay talles/colores en hoja 2, extraer de productos existentes
+                if (tallesSet.size === 0 || coloresSet.size === 0) {
+                    productosCoincidentes.forEach((prod: any) => {
+                        const desc = String(prod.Descripcion || '').toUpperCase();
+
+                        // Extraer talle - buscar números de talle al final de la descripción
+                        // Incluir 54 y 56 en el regex
+                        const talleNumerico = desc.match(/\b(3[4-9]|[4-5][0-9]|5[0-6])\b/);
+                        if (talleNumerico) {
+                            tallesSet.add(talleNumerico[0]);
+                        } else {
+                            // Si no hay talle numérico, buscar talles de letras
+                            const talles = ['2XS', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
+                            for (const talle of talles) {
+                                if (desc.includes(` ${talle} `) || desc.endsWith(` ${talle}`)) {
+                                    tallesSet.add(talle);
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Extraer color - buscar colores compuestos primero, luego simples
+                        const coloresCompuestos = [
+                            'LAVADO OSCURO', 'LAVADO CLARO', 'LAVADO MEDIO',
+                            'AZUL MARINO', 'GRIS PERLA', 'GRIS MELANGE', 'GRIS TOPO',
+                            'NEGRO', 'BLANCO', 'AZUL', 'GRIS', 'ROJO', 'VERDE',
+                            'AMARILLO', 'NARANJA', 'ROSA', 'VIOLETA', 'BEIGE', 'MARRON', 'CELESTE'
+                        ];
+
+                        for (const color of coloresCompuestos) {
+                            if (desc.includes(color)) {
+                                coloresSet.add(color);
                                 break;
                             }
                         }
-                    }
-
-                    // Extraer color - buscar colores compuestos primero, luego simples
-                    // Colores compuestos (deben ir primero para que coincidan antes que los simples)
-                    const coloresCompuestos = [
-                        'LAVADO OSCURO', 'LAVADO CLARO', 'LAVADO MEDIO',
-                        'AZUL MARINO', 'GRIS PERLA', 'GRIS MELANGE', 'GRIS TOPO',
-                        'NEGRO', 'BLANCO', 'AZUL', 'GRIS', 'ROJO', 'VERDE',
-                        'AMARILLO', 'NARANJA', 'ROSA', 'VIOLETA', 'BEIGE', 'MARRON'
-                    ];
-
-                    let colorEncontrado = false;
-                    for (const color of coloresCompuestos) {
-                        if (desc.includes(color)) {
-                            coloresSet.add(color);
-                            colorEncontrado = true;
-                            break;
-                        }
-                    }
-                });
+                    });
+                }
 
                 // Generar URLs de imágenes en Ferozo basadas en el nombre del producto
                 // Generar hasta 10 imágenes (el frontend filtrará las que no existan)
@@ -377,7 +445,8 @@ async function processFile(filePath: string): Promise<any[]> {
                         let color: string | undefined;
 
                         // Extraer talle - buscar números de talle al final de la descripción
-                        const talleNumerico = desc.match(/\b(3[4-9]|[4-5][0-2])\b/);
+                        // Incluir 54 y 56 en el regex
+                        const talleNumerico = desc.match(/\b(3[4-9]|[4-5][0-9]|5[0-6])\b/);
                         if (talleNumerico) {
                             talle = talleNumerico[0];
                         } else {

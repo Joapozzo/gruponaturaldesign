@@ -17,7 +17,7 @@ export default function CheckoutLayout({
   useEffect(() => {
     // Si el carrito está vacío, redirigir al catálogo
     if (itemCount === 0 && pathname === '/checkout') {
-      router.push('/catalogo');
+      router.push('/shoponline');
       return;
     }
 
@@ -32,7 +32,7 @@ export default function CheckoutLayout({
           '¿Estás seguro de que quieres salir del checkout? Tu pedido se guardará.'
         );
         if (confirmExit) {
-          router.push('/catalogo');
+          router.push('/shoponline');
         }
       }
     };

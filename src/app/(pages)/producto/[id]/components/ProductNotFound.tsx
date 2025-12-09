@@ -18,7 +18,7 @@ export default function ProductNotFound() {
                 <Button
                     variant="black"
                     size="lg"
-                    onClick={() => router.push('/catalogo')}
+                    onClick={() => router.push('/shoponline')}
                     className="inline-flex items-center space-x-2"
                 >
                     <ArrowLeft size={16} />

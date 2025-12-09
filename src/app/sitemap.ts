@@ -17,7 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: 0.8,
         },
         {
-            url: `${baseUrl}/catalogo`,
+            url: `${baseUrl}/shoponline`,
             lastModified: new Date(),
             changeFrequency: 'weekly',
             priority: 0.9,

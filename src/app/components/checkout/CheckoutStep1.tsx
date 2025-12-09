@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import toast from 'react-hot-toast';
 import { useCart } from '../hooks/useCart';
 import Button from '../ui/Button';
 import { Trash2, ArrowRight } from 'lucide-react';
@@ -15,17 +16,41 @@ interface CheckoutStep1Props {
 
 export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
   const router = useRouter();
-  const { items, updateQuantity, removeFromCart, itemCount } = useCart();
+  const { items, updateQuantity: originalUpdateQuantity, removeFromCart, itemCount, canAddToCart } = useCart();
   // const { subtotal, iva, total } = useCart(); // Comentado - sin precios por ahora
 
   // No redirigir automáticamente - mostrar alerta cuando llegue a 20 unidades
 
   const handleQuantityChange = (productId: number, newQuantity: number) => {
-    if (newQuantity < 1) return;
-    if (newQuantity > 99) return;
+    if (newQuantity < 1) {
+      originalUpdateQuantity(productId, 1);
+      return;
+    }
+    if (newQuantity > 99) {
+      originalUpdateQuantity(productId, 99);
+      return;
+    }
     
-    // Permitir actualizar sin restricciones - las restricciones se muestran visualmente
-    updateQuantity(productId, newQuantity);
+    // Calcular la diferencia de cantidad
+    const existingItem = items.find(item => item.product.id === productId);
+    const currentQuantity = existingItem?.quantity || 0;
+    const quantityDifference = newQuantity - currentQuantity;
+
+    // Validar si se puede agregar más unidades
+    if (quantityDifference > 0) {
+      const validation = canAddToCart(productId, quantityDifference);
+      if (!validation.canAdd) {
+        if (validation.reason) {
+          toast.error(validation.reason, {
+            duration: 4000,
+          });
+        }
+        return;
+      }
+    }
+
+    // Permitir actualizar si es decremento o si pasó la validación
+    originalUpdateQuantity(productId, newQuantity);
   };
 
   return (
@@ -81,8 +106,8 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
                   />
                   <button
                     onClick={() => handleQuantityChange(item.product.id, item.quantity + 1)}
-                    className="w-6 h-6 lg:w-7 lg:h-7 bg-black text-white hover:bg-red-600 transition-colors font-bold rounded text-xs disabled:opacity-30 flex items-center justify-center"
-                    disabled={item.quantity >= 99}
+                    className="w-6 h-6 lg:w-7 lg:h-7 bg-black text-white hover:bg-red-600 transition-colors font-bold rounded text-xs disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
+                    disabled={item.quantity >= 99 || !canAddToCart(item.product.id, 1).canAdd}
                   >
                     +
                   </button>

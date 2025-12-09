@@ -18,7 +18,7 @@ const FeaturesBanner = () => {
     {
       icon: Store,
       title: "PICK UP STORE",
-      description: "Retirá tu pedido gratis en nuestros locales"
+      description: "Coordiná para retirar tu pedido"
     },
     {
       icon: Truck,

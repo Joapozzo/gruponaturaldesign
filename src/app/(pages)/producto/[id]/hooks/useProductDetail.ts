@@ -160,10 +160,146 @@ export function useProductDetail() {
         }
 
         // Una vez que los productos terminaron de cargar, buscar el producto
-        // Buscar el producto por slug o por nombre original
+        // Normalizar el slug de búsqueda (sin query params)
+        const normalizedSearchSlug = skuBase.toLowerCase().trim();
+        
+        // Remover posibles sufijos de color/talle del slug para búsqueda más flexible
+        // Ej: "chomba-flowing-hombre-negro-2xl" -> "chomba-flowing-hombre"
+        const removeColorSizeSuffix = (slug: string): string => {
+            // Lista de colores y talles comunes para remover
+            const suffixes = [
+                'negro', 'blanco', 'azul', 'gris', 'rojo', 'verde', 'amarillo', 'naranja', 'rosa', 'violeta', 'beige', 'marron',
+                'lavado-oscuro', 'lavado-claro', 'cemento', 'carbon', 'navy', 'khaki',
+                '2xs', 'xs', 's', 'm', 'l', 'xl', '2xl', 'xxl', '3xl', 'xxxl', '4xl', 'xxxxl', '5xl',
+                '38', '40', '42', '44', '46', '48', '50', '52', '54', '56'
+            ];
+            
+            let cleaned = slug;
+            let previousLength = cleaned.length;
+            
+            // Remover sufijos de manera iterativa hasta que no haya más cambios
+            do {
+                previousLength = cleaned.length;
+                for (const suffix of suffixes) {
+                    // Remover el sufijo si está al final (con guión)
+                    const regex = new RegExp(`-${suffix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+                    cleaned = cleaned.replace(regex, '');
+                }
+            } while (cleaned.length < previousLength);
+            
+            return cleaned;
+        };
+        
+        const cleanedSearchSlug = removeColorSizeSuffix(normalizedSearchSlug);
+        
+        // Buscar el producto por múltiples criterios para mayor flexibilidad
+        // PRIORIDAD: Búsquedas exactas primero, luego búsquedas flexibles
         const foundProduct = groupedProducts.find(g => {
             const slug = g.skuBaseSlug || nombreToSlug(g.skuBase);
-            return slug === skuBase || g.skuBase === skuBase;
+            const skuBaseLower = g.skuBase.toLowerCase();
+            
+            // 1. Buscar por slug exacto (coincidencia perfecta)
+            if (slug.toLowerCase() === normalizedSearchSlug) return true;
+            
+            // 2. Buscar por skuBase exacto (coincidencia perfecta)
+            if (skuBaseLower === normalizedSearchSlug) return true;
+            
+            // 3. Buscar por nombre del producto (NOMBRE) exacto
+            if (g.displayProduct.NOMBRE) {
+                const nombreSlug = nombreToSlug(g.displayProduct.NOMBRE);
+                if (nombreSlug.toLowerCase() === normalizedSearchSlug) return true;
+            }
+            
+            // 4. Búsquedas con slug limpiado (sin sufijos de color/talle)
+            // Solo si el slug limpiado coincide exactamente
+            if (slug.toLowerCase() === cleanedSearchSlug && cleanedSearchSlug !== normalizedSearchSlug) {
+                return true;
+            }
+            
+            if (skuBaseLower === cleanedSearchSlug && cleanedSearchSlug !== normalizedSearchSlug) {
+                return true;
+            }
+            
+            if (g.displayProduct.NOMBRE) {
+                const nombreSlug = nombreToSlug(g.displayProduct.NOMBRE);
+                if (nombreSlug.toLowerCase() === cleanedSearchSlug && cleanedSearchSlug !== normalizedSearchSlug) {
+                    return true;
+                }
+            }
+            
+            // 5. Buscar por descripción (solo si coincide exactamente con el slug)
+            if (g.displayProduct.Descripcion) {
+                const descSlug = nombreToSlug(g.displayProduct.Descripcion);
+                if (descSlug.toLowerCase() === normalizedSearchSlug) return true;
+                if (descSlug.toLowerCase() === cleanedSearchSlug && cleanedSearchSlug !== normalizedSearchSlug) {
+                    return true;
+                }
+            }
+            
+            // 6. Búsqueda por palabras clave: extraer palabras principales del slug
+            // IMPORTANTE: "hombre" y "dama" son distintivos y NO deben filtrarse
+            // Solo filtrar palabras realmente comunes que no son distintivas
+            const commonWords = ['de', 'la', 'el', 'y', 'con', 'para', 'por', 'un', 'una', 'del', 'las', 'los'];
+            const searchWords = cleanedSearchSlug.split('-')
+                .filter(w => w.length > 2 && !commonWords.includes(w.toLowerCase()));
+            const skuBaseWords = skuBaseLower.split(/\s+/)
+                .filter(w => w.length > 2 && !commonWords.includes(w.toLowerCase()));
+            const slugWords = slug.toLowerCase().split('-')
+                .filter(w => w.length > 2 && !commonWords.includes(w.toLowerCase()));
+            
+            // Si no hay palabras distintivas, no hacer búsqueda por palabras clave
+            if (searchWords.length === 0) {
+                return false;
+            }
+            
+            // Verificar que palabras distintivas como "hombre" o "dama" coincidan exactamente
+            // Esto previene que "camisa-drill-dama" coincida con "camisa-drill-hombre"
+            const genderWords = ['hombre', 'dama', 'unisex'];
+            const searchHasGender = searchWords.some(w => genderWords.includes(w.toLowerCase()));
+            const productHasGender = skuBaseWords.some(w => genderWords.includes(w.toLowerCase())) ||
+                                    slugWords.some(w => genderWords.includes(w.toLowerCase()));
+            
+            // Si el slug de búsqueda tiene una palabra de género, el producto DEBE tener la misma
+            if (searchHasGender && productHasGender) {
+                const searchGender = searchWords.find(w => genderWords.includes(w.toLowerCase()));
+                const productGender = skuBaseWords.find(w => genderWords.includes(w.toLowerCase())) ||
+                                     slugWords.find(w => genderWords.includes(w.toLowerCase()));
+                if (searchGender?.toLowerCase() !== productGender?.toLowerCase()) {
+                    return false; // Géneros diferentes, no coinciden
+                }
+            } else if (searchHasGender && !productHasGender) {
+                return false; // El slug tiene género pero el producto no
+            } else if (!searchHasGender && productHasGender) {
+                return false; // El producto tiene género pero el slug no
+            }
+            
+            // Contar palabras que coinciden exactamente (no parcialmente)
+            const exactMatches = searchWords.filter(word => 
+                skuBaseWords.some(skuWord => skuWord === word) ||
+                slugWords.some(slugWord => slugWord === word)
+            );
+            
+            // Requerir que TODAS las palabras distintivas coincidan exactamente
+            if (exactMatches.length === searchWords.length && searchWords.length >= 2) {
+                return true;
+            }
+            
+            // 7. Búsqueda inversa: verificar si el skuBase está contenido en el slug de búsqueda
+            // Solo si es una coincidencia significativa (más de 10 caracteres)
+            const skuBaseSlugClean = nombreToSlug(g.skuBase).toLowerCase();
+            if (normalizedSearchSlug.includes(skuBaseSlugClean) || cleanedSearchSlug.includes(skuBaseSlugClean)) {
+                // Verificar que no sea un match parcial muy corto y que sea una coincidencia significativa
+                if (skuBaseSlugClean.length >= 10) {
+                    // Verificar que no haya conflictos de género
+                    const hasGenderConflict = (normalizedSearchSlug.includes('dama') && skuBaseSlugClean.includes('hombre')) ||
+                                            (normalizedSearchSlug.includes('hombre') && skuBaseSlugClean.includes('dama'));
+                    if (!hasGenderConflict) {
+                        return true;
+                    }
+                }
+            }
+            
+            return false;
         });
 
         if (foundProduct) {

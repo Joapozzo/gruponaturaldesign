@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { Suspense } from 'react';
 import Section from '@/app/components/Section';
 import { useProductDetail } from './hooks/useProductDetail';
 import { useProductImages } from './hooks/useProductImages';
@@ -19,7 +19,7 @@ import ProductLoadingState from './components/ProductLoadingState';
 import ProductNotFound from './components/ProductNotFound';
 // import ProductVariantBadge from './components/ProductVariantBadge';
 
-const ProductDetailPage = () => {
+const ProductDetailPageContent = () => {
     // Hook principal para cargar el producto
     const { groupedProduct, relatedProducts, isLoading } = useProductDetail();
 
@@ -71,6 +71,7 @@ const ProductDetailPage = () => {
         return <ProductNotFound />;
     }
 
+    
     // Obtener datos del producto
     const displayProduct = groupedProduct.displayProduct;
 
@@ -163,6 +164,14 @@ const ProductDetailPage = () => {
                 productName={productName}
             />
         </div>
+    );
+};
+
+const ProductDetailPage = () => {
+    return (
+        <Suspense fallback={<ProductLoadingState />}>
+            <ProductDetailPageContent />
+        </Suspense>
     );
 };
 

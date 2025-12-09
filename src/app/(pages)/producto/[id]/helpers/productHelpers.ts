@@ -3,12 +3,55 @@
  */
 
 /**
+ * Simplifica el nombre del producto para generar el slug de las imágenes
+ * Remueve frases descriptivas comunes que no están en los nombres de carpetas
+ * Ejemplo: "REMERA GENTLE ESCOTE EN V DAMA" → "REMERA GENTLE DAMA"
+ */
+function simplifyProductNameForImages(nombre: string): string {
+    let simplified = nombre;
+    
+    // Frases descriptivas comunes que se deben remover para las carpetas de imágenes
+    const phrasesToRemove = [
+        'ESCOTE EN V',
+        'ESCOTE EN U',
+        'MANGA CORTA',
+        'MANGA LARGA',
+        'CORTE',
+        'ENTALLADO',
+        'CLASICO',
+        'SPORT',
+        'BASIC',
+        'PARA',
+        'CON',
+        'DE',
+        'LA',
+        'EL',
+    ];
+    
+    // Remover frases descriptivas
+    phrasesToRemove.forEach(phrase => {
+        const regex = new RegExp(`\\b${phrase}\\b`, 'gi');
+        simplified = simplified.replace(regex, '');
+    });
+    
+    // Limpiar espacios múltiples
+    simplified = simplified.replace(/\s+/g, ' ').trim();
+    
+    return simplified;
+}
+
+/**
  * Convierte un nombre a slug URL-friendly
+ * Simplifica nombres largos removiendo frases descriptivas para coincidir con carpetas de imágenes
  */
 export function nombreToSlug(nombre: string): string {
-    return nombre
+    // Primero simplificar el nombre para que coincida con las carpetas de imágenes
+    const simplified = simplifyProductNameForImages(nombre);
+    
+    return simplified
         .toLowerCase()
         .trim()
+        .replace(/\brager\b/g, 'ranger')  // Normalizar "rager" a "ranger" para las carpetas de imágenes
         .replace(/\s+/g, '-')
         .replace(/[^\w\-]+/g, '')
         .replace(/\-\-+/g, '-')
@@ -259,6 +302,26 @@ export function createProductSpecs(
     return hasColorSize
         ? `Color: ${color} | Talle: ${talle} | Código: ${codigo}`
         : `Variante #${variantNumber} | Código: ${codigo}`;
+}
+
+/**
+ * Parsea las especificaciones del carrito para extraer color y talle
+ */
+export function parseProductSpecs(especificaciones?: string): { color?: string; talle?: string; codigo?: string } {
+    if (!especificaciones) return {};
+    
+    const result: { color?: string; talle?: string; codigo?: string } = {};
+    
+    // Formato: "Color: LAVADO OSCURO | Talle: 50 | Código: L-WW-PAN-JFL8"
+    const colorMatch = especificaciones.match(/Color:\s*([^|]+)/i);
+    const talleMatch = especificaciones.match(/Talle:\s*([^|]+)/i);
+    const codigoMatch = especificaciones.match(/Código:\s*([^|]+)/i);
+    
+    if (colorMatch) result.color = colorMatch[1].trim();
+    if (talleMatch) result.talle = talleMatch[1].trim();
+    if (codigoMatch) result.codigo = codigoMatch[1].trim();
+    
+    return result;
 }
 
 /**

@@ -17,8 +17,8 @@ const HeroPersonalizados = () => {
             {/* Imagen de fondo */}
             <div className="absolute inset-0 w-full h-full">
                 <div
-                    className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat"
-                    style={{ backgroundImage: "url('/imgs/cat-3.jpg')" }}
+                    className="absolute inset-0 w-full h-full bg-top bg-center bg-no-repeat"
+                    style={{ backgroundImage: "url('/imgs/personalizados-hero.png')" }}
                 />
                 <div className="absolute inset-0 bg-black/50"></div>
             </div>
@@ -48,13 +48,13 @@ const HeroPersonalizados = () => {
                                 Inicio
                             </Link>
                             <span>/</span>
-                            <span className="text-white font-medium">Uniformes Personalizados</span>
+                            <span className="text-white font-medium">Uniformes personalizados</span>
                         </nav>
 
                         {/* Título y Descripción */}
                         <div className="flex flex-col gap-3">
                             <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white font-display leading-tight">
-                                Uniformes Personalizados
+                                Uniformes personalizados
                             </h1>
                             <p className="text-lg sm:text-xl lg:text-2xl text-gray-200 max-w-3xl">
                                 Tu marca, nuestro diseño. Más de 500 empresas confían en nosotros.

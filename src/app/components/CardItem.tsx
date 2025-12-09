@@ -1,8 +1,10 @@
 import { motion } from 'framer-motion';
 import { Plus, Minus, Trash2 } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useConfirmModal } from './hooks/useModal';
 import ConfirmModal from './modal/ConfirmModal';
+import { nombreToSlug, parseProductSpecs } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
 
 interface CartItemProps {
     item: {
@@ -20,11 +22,33 @@ interface CartItemProps {
     };
     onUpdateQuantity: (productId: number, quantity: number) => void;
     onRemove: (productId: number) => void;
+    canAddMore?: boolean;
 }
 
-const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove }) => {
+const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, canAddMore = true }) => {
     const { product, quantity, /* subtotal, */ especificaciones } = item; // subtotal comentado temporalmente
     const { isOpen: isConfirmModalOpen, loading, modalOptions, showModal, closeModal, handleConfirm } = useConfirmModal();
+    const router = useRouter();
+    
+    // Parsear especificaciones para obtener color y talle
+    const { color, talle } = parseProductSpecs(especificaciones);
+    
+    // Construir URL del producto con query params
+    const handleProductClick = () => {
+        // Usar skuBaseSlug si está disponible, sino generar desde nombre
+        const productSlug = (product as any).skuBaseSlug || nombreToSlug(product.nombre);
+        const params = new URLSearchParams();
+        
+        if (color) params.set('color', color.toLowerCase());
+        if (talle) params.set('talle', talle);
+        
+        const queryString = params.toString();
+        const url = queryString 
+            ? `/producto/${productSlug}?${queryString}`
+            : `/producto/${productSlug}`;
+        
+        router.push(url);
+    };
 
     const handleIncrement = () => {
         if (product.stock && quantity >= product.stock) {
@@ -65,21 +89,33 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove })
             transition={{ duration: 0.3 }}
             className="flex gap-4 p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all duration-300"
         >
-            {/* Imagen */}
-            <div className="relative w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+            {/* Imagen - Clickable */}
+            <div 
+                className="relative w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden cursor-pointer"
+                onClick={handleProductClick}
+            >
                 <Image
-                    src={product.imagen}
+                    src={product.imagen || '/imgs/producto-placeholder.png'}
                     alt={product.nombre}
                     fill
                     className="object-cover"
+                    sizes="80px"
+                    unoptimized={true}
+                    onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = '/imgs/producto-placeholder.png';
+                    }}
                 />
             </div>
 
             {/* Info del producto */}
             <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-start mb-2">
-                    <div className="flex-1 pr-2">
-                        <h4 className="font-bold text-black text-sm leading-tight mb-1 line-clamp-2">
+                    <div 
+                        className="flex-1 pr-2 cursor-pointer"
+                        onClick={handleProductClick}
+                    >
+                        <h4 className="font-bold text-black text-sm leading-tight mb-1 line-clamp-2 hover:text-[#Ed3237] transition-colors">
                             {product.nombre}
                         </h4>
                         <p className="text-xs text-gray-500 font-medium tracking-wide uppercase">
@@ -126,13 +162,13 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove })
                         </span>
                         <motion.button
                             onClick={handleIncrement}
-                            disabled={product.stock ? quantity >= product.stock : false}
-                            className={`w-7 h-7 flex items-center justify-center rounded-md transition-all ${product.stock && quantity >= product.stock
+                            disabled={product.stock ? quantity >= product.stock : !canAddMore}
+                            className={`w-7 h-7 flex items-center justify-center rounded-md transition-all ${(product.stock && quantity >= product.stock) || !canAddMore
                                 ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                                 : 'bg-white text-black hover:bg-gray-50 shadow-sm'
                                 }`}
-                            whileHover={!(product.stock && quantity >= product.stock) ? { scale: 1.1 } : {}}
-                            whileTap={!(product.stock && quantity >= product.stock) ? { scale: 0.95 } : {}}
+                            whileHover={!(product.stock && quantity >= product.stock) && canAddMore ? { scale: 1.1 } : {}}
+                            whileTap={!(product.stock && quantity >= product.stock) && canAddMore ? { scale: 0.95 } : {}}
                             aria-label="Aumentar cantidad"
                         >
                             <Plus className="w-3 h-3" />

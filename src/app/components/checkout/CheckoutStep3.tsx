@@ -78,81 +78,91 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
   };
 
   const generateWhatsAppMessage = (): string => {
-    let message = '🛍️ *NUEVO PEDIDO*\n\n';
+    let message = '*NUEVO PEDIDO*\n\n';
   
-    // 🧍 CLIENTE
-    message += '👤 *CLIENTE*\n';
-    message += `🪪 Nombre: ${customerData?.nombre} ${customerData?.apellido}\n`;
-    message += `📧 Email: ${customerData?.email}\n`;
-    message += `📞 Teléfono: ${customerData?.telefono}\n`;
+    // CLIENTE
+    message += '*CLIENTE*\n';
+    message += `Nombre: ${customerData?.nombre} ${customerData?.apellido}\n`;
+    message += `Email: ${customerData?.email}\n`;
+    message += `Telefono: ${customerData?.telefono}\n`;
   
     if (customerData?.empresa) {
-      message += `🏢 Empresa: ${customerData.empresa}\n`;
+      message += `Empresa: ${customerData.empresa}\n`;
     }
   
     if (customerData?.cuit) {
-      message += `🏛️ CUIT: ${customerData.cuit}\n`;
+      message += `CUIT: ${customerData.cuit}\n`;
     }
   
     if (customerData?.documento) {
-      message += `🧾 ${customerData.tipo_documento}: ${customerData.documento}\n`;
+      message += `${customerData.tipo_documento}: ${customerData.documento}\n`;
     }
   
     if (customerData?.fecha_nacimiento) {
-      message += `🎂 Fecha de Nacimiento: ${customerData.fecha_nacimiento}\n`;
+      message += `Fecha de Nacimiento: ${customerData.fecha_nacimiento}\n`;
     }
   
-    message += '\n──────────────────────\n\n';
+    message += '\n--------------------------------\n\n';
   
-    // 📦 ENTREGA
-    message += '📦 *ENTREGA*\n';
+    // ENTREGA
+    message += '*ENTREGA*\n';
   
     if (shippingData?.tipo === 'envio') {
-      message += `🚚 Tipo: Envío a domicilio\n`;
-      message += `🏠 Dirección: ${shippingData.direccion}\n`;
-      message += `📍 Localidad: ${shippingData.localidad}\n`;
-      message += `🗺️ Provincia: ${shippingData.provincia}\n`;
-      message += `📮 Código Postal: ${shippingData.codigo_postal}\n`;
+      message += `Tipo: Envio a domicilio\n`;
+      message += `Direccion: ${shippingData.direccion}\n`;
+      message += `Localidad: ${shippingData.localidad}\n`;
+      message += `Provincia: ${shippingData.provincia}\n`;
+      message += `Codigo Postal: ${shippingData.codigo_postal}\n`;
   
     } else {
-      message += `🏬 Tipo: Retiro en tienda\n`;
+      message += `Tipo: Retiro en tienda\n`;
     }
   
     if (shippingData?.notas) {
-      message += `📝 Notas: ${shippingData.notas}\n`;
+      message += `Notas: ${shippingData.notas}\n`;
     }
   
-    message += '\n──────────────────────\n\n';
+    message += '\n--------------------------------\n\n';
   
-    // 💰 PAGO
-    message += '💰 *PAGO*\n';
+    // PAGO
+    message += '*PAGO*\n';
     const paymentMethod = PAYMENT_METHODS.find((m) => m.id === payment.metodo);
-    message += `💳 Método: ${paymentMethod?.name}\n`;
+    message += `Metodo: ${paymentMethod?.name}\n`;
   
     if (payment.notas) {
-      message += `🗒️ Notas: ${payment.notas}\n`;
+      message += `Notas: ${payment.notas}\n`;
     }
   
-    message += '\n──────────────────────\n\n';
+    message += '\n--------------------------------\n\n';
   
-    // 🛒 PRODUCTOS
-    message += '🛒 *PRODUCTOS*\n';
+    // PRODUCTOS
+    message += '*PRODUCTOS*\n\n';
     items.forEach((item, index) => {
-      message += `\n${index + 1}. 📦 ${item.product.nombre}\n`;
+      message += `${index + 1}. ${item.product.nombre}\n`;
 
       if (item.especificaciones) {
-        message += `   📋 *SKU/Especificaciones:*\n`;
-        message += `   ${item.especificaciones}\n`;
+        message += `   SKU/Especificaciones:\n`;
+        // Formatear especificaciones en líneas separadas
+        const specs = item.especificaciones.split(' | ');
+        specs.forEach(spec => {
+          const trimmedSpec = spec.trim();
+          if (trimmedSpec) {
+            message += `   • ${trimmedSpec}\n`;
+          }
+        });
       }
 
-      message += `   🔢 Cantidad: ${item.quantity} unidades\n`;
+      message += `   Cantidad: ${item.quantity} unidades\n`;
+      if (index < items.length - 1) {
+        message += '\n';
+      }
     });
   
-    message += '\n──────────────────────\n\n';
+    message += '--------------------------------\n\n';
   
-    // 📊 RESUMEN
-    message += '📊 *RESUMEN*\n';
-    message += `🧮 *Total de productos:* ${itemCount} unidades\n`;
+    // RESUMEN
+    message += '*RESUMEN*\n';
+    message += `Total de productos: ${itemCount} unidades\n`;
   
     return encodeURIComponent(message);
   };

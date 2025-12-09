@@ -58,7 +58,7 @@ const ProyectosPersonalizados = () => {
                                 y: -3,
                                 transition: { duration: 0.2 }
                             }}
-                            className="bg-white rounded-md shadow-sm hover:shadow-md transition-all duration-300 p-3 md:p-4 flex items-center justify-center aspect-square group cursor-pointer"
+                            className="bg-gray-200 rounded-md shadow-sm hover:shadow-md transition-all duration-300 p-3 md:p-4 flex items-center justify-center aspect-square group cursor-pointer"
                         >
                             <div className="w-full h-full flex items-center justify-center opacity-60 group-hover:opacity-100 transition-opacity duration-300">
                                 {cliente.logo}

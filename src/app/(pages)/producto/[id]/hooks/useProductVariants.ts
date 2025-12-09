@@ -1,29 +1,48 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { GroupedProduct, ProductVariant } from '@/app/types/producto';
 
 /**
  * Orden estándar de talles en letras
+ * IMPORTANTE: 2XS debe ir primero, luego XS, S, M, L, XL, 2XL, 3XL, 4XL
  */
 const SIZE_ORDER: { [key: string]: number } = {
-    'xxs': 1,
+    '2xs': 1,      // 2XS debe ir primero
+    'xxs': 1,      // XXS es lo mismo que 2XS
     'xs': 2,
     's': 3,
     'm': 4,
     'l': 5,
     'xl': 6,
     '2xl': 7,
-    'xxl': 7,
+    'xxl': 7,      // XXL es lo mismo que 2XL
     '3xl': 8,
-    'xxxl': 8,
+    'xxxl': 8,     // XXXL es lo mismo que 3XL
     '4xl': 9,
-    'xxxxl': 9,
+    'xxxxl': 9,    // XXXXL es lo mismo que 4XL
     '5xl': 10,
 };
 
 /**
+ * Función para normalizar el nombre del talle antes de buscar en SIZE_ORDER
+ * Convierte variantes como "2XS", "XXS" a "2xs" para búsqueda consistente
+ */
+function normalizeSizeForOrder(size: string): string {
+    const normalized = size.toLowerCase().trim();
+    
+    // Normalizar variantes comunes
+    if (normalized === 'xxs') return '2xs';
+    if (normalized === 'xxl') return '2xl';
+    if (normalized === 'xxxl') return '3xl';
+    if (normalized === 'xxxxl') return '4xl';
+    
+    return normalized;
+}
+
+/**
  * Función para ordenar talles de manera lógica
  * - Números: de menor a mayor (36, 38, 40, 42)
- * - Letras: orden estándar (xs, s, m, l, xl, 2xl, 3xl)
+ * - Letras: orden estándar (2xs, xs, s, m, l, xl, 2xl, 3xl, 4xl)
  */
 function sortSizes(sizes: string[]): string[] {
     return [...sizes].sort((a, b) => {
@@ -43,9 +62,12 @@ function sortSizes(sizes: string[]): string[] {
         if (aIsNumber && !bIsNumber) return -1;
         if (!aIsNumber && bIsNumber) return 1;
 
-        // Si ambos son letras, usar el orden predefinido
-        const aOrder = SIZE_ORDER[aLower] || 999;
-        const bOrder = SIZE_ORDER[bLower] || 999;
+        // Si ambos son letras, normalizar y usar el orden predefinido
+        const aNormalized = normalizeSizeForOrder(aLower);
+        const bNormalized = normalizeSizeForOrder(bLower);
+        
+        const aOrder = SIZE_ORDER[aNormalized] || 999;
+        const bOrder = SIZE_ORDER[bNormalized] || 999;
 
         if (aOrder !== bOrder) {
             return aOrder - bOrder;
@@ -60,15 +82,56 @@ function sortSizes(sizes: string[]): string[] {
  * Hook para manejar la selección de variantes (color y talle)
  */
 export function useProductVariants(groupedProduct: GroupedProduct | null) {
+    const searchParams = useSearchParams();
+    const router = useRouter();
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
     const [selectedSize, setSelectedSize] = useState<string | null>(null);
     const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
 
     // Inicializar con la primera variante cuando se carga el producto
-    // Si hay colores disponibles, seleccionar el primer color
+    // Leer query params de la URL si existen
     useEffect(() => {
         if (groupedProduct && groupedProduct.variants.length > 0) {
-            // Si hay colores disponibles, seleccionar el primer color
+            // Leer color y talle de los query params
+            const urlColor = searchParams.get('color');
+            const urlTalle = searchParams.get('talle');
+            
+            // Si hay color en la URL, buscar variante con ese color
+            if (urlColor && groupedProduct.availableColors) {
+                // Buscar color que coincida (case insensitive)
+                const matchingColor = groupedProduct.availableColors.find(
+                    c => c.toLowerCase() === urlColor.toLowerCase()
+                );
+                
+                if (matchingColor) {
+                    // Si también hay talle en la URL, buscar variante exacta
+                    if (urlTalle) {
+                        const exactVariant = groupedProduct.variants.find(
+                            v => v.color?.toLowerCase() === matchingColor.toLowerCase() && 
+                                 v.talle?.toLowerCase() === urlTalle.toLowerCase()
+                        );
+                        if (exactVariant) {
+                            setSelectedVariant(exactVariant);
+                            setSelectedColor(matchingColor);
+                            setSelectedSize(exactVariant.talle || null);
+                            return;
+                        }
+                    }
+                    
+                    // Si solo hay color, seleccionar primera variante con ese color
+                    const variantWithColor = groupedProduct.variants.find(
+                        v => v.color?.toLowerCase() === matchingColor.toLowerCase()
+                    );
+                    if (variantWithColor) {
+                        setSelectedVariant(variantWithColor);
+                        setSelectedColor(matchingColor);
+                        setSelectedSize(variantWithColor.talle || null);
+                        return;
+                    }
+                }
+            }
+            
+            // Si hay colores disponibles pero no hay query params, seleccionar el primer color
             if (groupedProduct.availableColors && groupedProduct.availableColors.length > 0) {
                 const firstColor = groupedProduct.availableColors[0];
                 const firstVariantWithColor = groupedProduct.variants.find(v => v.color === firstColor);
@@ -86,11 +149,21 @@ export function useProductVariants(groupedProduct: GroupedProduct | null) {
             setSelectedColor(firstVariant.color || null);
             setSelectedSize(firstVariant.talle || null);
         }
-    }, [groupedProduct]);
+    }, [groupedProduct, searchParams]);
 
     // Obtener talles disponibles para el color seleccionado
+    // PRIORIDAD 1: Usar availableSizes del groupedProduct (viene de la hoja 2)
+    // PRIORIDAD 2: Si no hay, calcular de las variantes existentes
     const getAvailableSizesForColor = (color: string): string[] => {
         if (!groupedProduct) return [];
+        
+        // Si hay availableSizes en el groupedProduct (de la hoja 2), usarlos
+        // Esto muestra TODOS los talles disponibles según la hoja 2, incluso si no hay producto físico
+        if (groupedProduct.availableSizes && groupedProduct.availableSizes.length > 0) {
+            return groupedProduct.availableSizes;
+        }
+        
+        // Fallback: calcular de las variantes existentes
         const sizes = groupedProduct.variants
             .filter(v => v.color === color && v.talle)
             .map(v => v.talle!);
@@ -110,6 +183,9 @@ export function useProductVariants(groupedProduct: GroupedProduct | null) {
             setSelectedVariant(variantWithColor);
             setSelectedSize(variantWithColor.talle || null);
         }
+        
+        // Actualizar URL con el nuevo color
+        updateURL(color, null);
     };
 
     const handleSizeSelect = (size: string) => {
@@ -124,6 +200,24 @@ export function useProductVariants(groupedProduct: GroupedProduct | null) {
                 setSelectedVariant(variant);
             }
         }
+        
+        // Actualizar URL con el nuevo talle
+        updateURL(selectedColor, size);
+    };
+    
+    // Función para actualizar la URL sin recargar la página
+    const updateURL = (color: string | null, talle: string | null) => {
+        const params = new URLSearchParams();
+        if (color) params.set('color', color.toLowerCase());
+        if (talle) params.set('talle', talle);
+        
+        const queryString = params.toString();
+        const newUrl = queryString 
+            ? `${window.location.pathname}?${queryString}`
+            : window.location.pathname;
+        
+        // Actualizar URL sin recargar
+        router.replace(newUrl, { scroll: false });
     };
 
     return {

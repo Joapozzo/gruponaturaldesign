@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const PromoBanner = () => {
-  const promoText = "10% OFF TRANSFERENCIA / HASTA 6 CUOTAS / ENVIOS A TODO EL PAIS";
+  const promoText = "HASTA 3 CUOTAS SIN INTERES Y 15% OFF TRANSFERENCIA";
   
   // Repetimos el texto varias veces para el efecto infinito
   const repeatedText = Array(10).fill(promoText).join(" • ");

@@ -46,24 +46,13 @@ export const useCart = () => {
         // Validar si se puede agregar un producto
         canAddToCart: (productId: number, quantity: number = 1): { canAdd: boolean; reason?: string } => {
             const currentItemCount = store.itemCount;
-            const existingItem = store.items.find(item => item.product.id === productId);
-            const currentProductQuantity = existingItem?.quantity || 0;
-            const newProductQuantity = currentProductQuantity + quantity;
             const newTotalCount = currentItemCount + quantity;
 
-            // Verificar límite de 10 unidades del mismo producto
-            if (newProductQuantity > 10) {
-                return { 
-                    canAdd: false, 
-                    reason: '10 unidades del mismo artículo'
-                };
-            }
-
             // Verificar límite de 20 artículos totales
-            if (newTotalCount >= 20) {
+            if (newTotalCount > 20) {
                 return { 
                     canAdd: false, 
-                    reason: '20 artículos totales'
+                    reason: 'Límite alcanzado: máximo 20 artículos totales'
                 };
             }
 

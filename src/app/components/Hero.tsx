@@ -49,7 +49,7 @@ const Hero = () => {
             transition={{ duration: 1 }}
             className="text-3xl md:text-5xl font-light mb-6 2xl:text-7xl"
           >
-            <span className="font-bold">Vesti</span> a tu equipo con<br />Grupo Natural Design
+            <span className="font-bold">Vestí</span> a tu equipo con<br />Grupo Natural Design
           </motion.h1>
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -61,44 +61,12 @@ const Hero = () => {
               variant="lightWhiteOutline"
               onClick={() => scrollToSection("categorias")}
               size="md"
-              className="font-light tracking-wide"
+              className="font-light tracking-wide mx-auto"
             >
               Comenza ya
             </Button>
           </motion.div>
         </div>
-
-        {/* Links en la parte inferior */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.6 }}
-          className="absolute bottom-8 left-0 right-0 w-full px-4 md:px-8"
-        >
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 max-w-5xl mx-auto">
-            <motion.a
-              href="/shoponline"
-              className="text-white hover:text-gray-300 transition-colors duration-300 text-sm md:text-base font-light tracking-wide cursor-pointer"
-              whileHover={{ scale: 1.05 }}
-            >
-              SHOP ONLINE
-            </motion.a>
-            <motion.a
-              href="/shoponline"
-              className="text-white hover:text-gray-300 transition-colors duration-300 text-sm md:text-base font-light tracking-wide cursor-pointer"
-              whileHover={{ scale: 1.05 }}
-            >
-              NEW COLLECTION
-            </motion.a>
-            <motion.a
-              href="/shoponline"
-              className="text-white hover:text-gray-300 transition-colors duration-300 text-sm md:text-base font-light tracking-wide cursor-pointer"
-              whileHover={{ scale: 1.05 }}
-            >
-              ESSENTIALS FOR WORK
-            </motion.a>
-          </div>
-        </motion.div>
 
         <motion.div
           initial={{ opacity: 0 }}

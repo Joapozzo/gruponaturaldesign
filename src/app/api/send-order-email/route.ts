@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { CustomerData, ShippingData, PaymentData, CartItem } from '@/app/types/cart';
 
 interface EmailRequestBody {
@@ -98,6 +100,23 @@ export async function POST(request: NextRequest) {
 }
 
 /**
+ * Lee el logo y lo convierte a base64
+ */
+function getLogoBase64(): string {
+  try {
+    const logoPath = join(process.cwd(), 'public', 'logos', 'logo-2.svg');
+    const logoFile = readFileSync(logoPath, 'utf-8');
+    // Convertir SVG a base64
+    const base64 = Buffer.from(logoFile).toString('base64');
+    return `data:image/svg+xml;base64,${base64}`;
+  } catch (error) {
+    console.error('Error al leer el logo:', error);
+    // Fallback a URL externa si falla
+    return 'https://naturalonline.com.ar/logos/logo-2.svg';
+  }
+}
+
+/**
  * Genera el HTML del email de confirmación
  */
 function generateOrderEmailHTML(data: {
@@ -108,6 +127,7 @@ function generateOrderEmailHTML(data: {
   itemCount: number;
 }): string {
   const { customerData, shippingData, paymentData, items, itemCount } = data;
+  const logoBase64 = getLogoBase64();
 
   return `
 <!DOCTYPE html>
@@ -418,7 +438,7 @@ function generateOrderEmailHTML(data: {
     <div class="header">
       <div class="header-content">
         <div class="logo-container">
-          <img src="https://naturalonline.com.ar/logos/logo-2.svg" alt="GND - Natural Design" class="logo" />
+          <img src="${logoBase64}" alt="GND - Natural Design" class="logo" />
         </div>
         <div class="check-icon">
           <svg viewBox="0 0 24 24">
@@ -599,7 +619,7 @@ function generateOrderEmailHTML(data: {
         </div>
       </div>
 
-      <img src="https://naturalonline.com.ar/logos/logo-2.svg" alt="GND - Natural Design" class="footer-logo" />
+      <img src="${logoBase64}" alt="GND - Natural Design" class="footer-logo" />
       <div class="brand">GND - NATURAL DESIGN</div>
       <div class="brand-subtitle">Uniformes Empresariales</div>
     </div>

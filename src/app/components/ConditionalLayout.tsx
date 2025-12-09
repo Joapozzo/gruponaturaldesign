@@ -10,10 +10,11 @@ import PromoBanner from './PromoBanner';
 export default function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isInCheckout = pathname?.startsWith('/checkout');
+  const isInAdmin = pathname?.startsWith('/admin');
   const isWholesalePage = pathname === '/mayorista';
 
-  // Si estamos en checkout, no renderizar Navbar, Footer, etc.
-  if (isInCheckout) {
+  // Si estamos en checkout o admin, no renderizar Navbar, Footer, etc.
+  if (isInCheckout || isInAdmin) {
     return <>{children}</>;
   }
 

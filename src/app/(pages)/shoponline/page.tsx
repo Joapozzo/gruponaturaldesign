@@ -78,7 +78,7 @@ const CatalogContent = () => {
             />
 
             {/* Contenido principal */}
-            <Section id="catalog-content" className="" contentClassName="max-w-7xl mx-auto px-4 mb-20">
+            <Section id="catalog-content" className="" contentClassName="max-w-8xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20 mb-20">
                 {/* Controles de filtro */}
                 <FilterControls
                     filters={filters}

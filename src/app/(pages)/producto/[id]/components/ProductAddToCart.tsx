@@ -43,7 +43,7 @@ export default function ProductAddToCart({
                     {isAdding
                         ? 'AGREGADO AL CARRITO!'
                         : isInCart
-                            ? 'YA EN CARRITO'
+                            ? 'VER CARRITO'
                             : 'AGREGAR AL CARRITO'
                     }
                 </span>

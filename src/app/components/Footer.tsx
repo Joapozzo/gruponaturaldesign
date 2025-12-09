@@ -47,7 +47,7 @@ const Footer = () => {
                             </li>
                             <li>
                                 <a href="/personalizados" className="hover:text-white transition-colors">
-                                    Uniformes Personalizados
+                                    Uniformes personalizados
                                 </a>
                             </li>
                             <li>

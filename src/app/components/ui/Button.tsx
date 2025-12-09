@@ -105,7 +105,7 @@ const Button: React.FC<ButtonProps> = ({
     };
 
     // Clases base
-    const baseClasses = 'font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 active:scale-95 cursor-pointer select-none';
+    const baseClasses = 'font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 active:scale-95 cursor-pointer select-none flex items-center justify-center';
 
     // Clases para disabled
     const disabledClasses = 'opacity-50 cursor-not-allowed hover:scale-100 active:scale-100';
