@@ -93,22 +93,6 @@ const Contacto = () => {
                             />
                             <div>
                                 <label className="block text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3 tracking-wide">
-                                    NOMBRE COMPLETO *
-                                </label>
-                                <input
-                                    {...register('nombreCompleto')}
-                                    type="text"
-                                    className={`w-full px-3 py-3 sm:px-4 sm:py-4 border-2 ${errors.nombreCompleto ? 'border-red-500' : 'border-gray-200'
-                                        } focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-sm sm:text-base`}
-                                    placeholder="Ej: Juan Carlos Pérez"
-                                />
-                                {errors.nombreCompleto && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.nombreCompleto.message}</p>
-                                )}
-                            </div>
-
-                            <div>
-                                <label className="block text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3 tracking-wide">
                                     EMAIL *
                                 </label>
                                 <input
@@ -224,10 +208,7 @@ const Contacto = () => {
                             </div>
                             <div className="space-y-2">
                                 <p className="text-sm md:text-lg text-gray-600">
-                                    <span className="font-semibold">Ventas:</span> +54 9 3517 13-6311
-                                </p>
-                                <p className="text-sm md:text-lg text-gray-600">
-                                    <span className="font-semibold">Info:</span> +54 9 3516 29-2969
+                                    <span className="font-semibold">Ventas:</span> +54 9 3517 13 - 6316
                                 </p>
                             </div>
                             <p className="text-sm text-gray-500 mt-2">Lunes a Viernes de 8:00 a 18:00hs</p>
@@ -238,7 +219,7 @@ const Contacto = () => {
                                 <Mail className="text-red-500 mr-4" size={24} />
                                 <h4 className="text-md md:text-xl font-bold text-gray-900">EMAIL</h4>
                             </div>
-                            <p className="text-sm md:text-lg text-gray-600">info@naturalonline.com.ar</p>
+                            <p className="text-sm md:text-lg text-gray-600">ventas@naturalonline.com.ar</p>
                             <p className="text-xs text-gray-500 mt-2">Respuesta en menos de 24hs</p>
                         </div>
 

@@ -152,22 +152,24 @@ export function useProductVariants(groupedProduct: GroupedProduct | null) {
     }, [groupedProduct, searchParams]);
 
     // Obtener talles disponibles para el color seleccionado
-    // PRIORIDAD 1: Usar availableSizes del groupedProduct (viene de la hoja 2)
-    // PRIORIDAD 2: Si no hay, calcular de las variantes existentes
+    // IMPORTANTE: Solo mostrar talles que realmente existen para ese color específico
     const getAvailableSizesForColor = (color: string): string[] => {
-        if (!groupedProduct) return [];
+        if (!groupedProduct || !color) return [];
         
-        // Si hay availableSizes en el groupedProduct (de la hoja 2), usarlos
-        // Esto muestra TODOS los talles disponibles según la hoja 2, incluso si no hay producto físico
-        if (groupedProduct.availableSizes && groupedProduct.availableSizes.length > 0) {
-            return groupedProduct.availableSizes;
-        }
-        
-        // Fallback: calcular de las variantes existentes
+        // Filtrar variantes por color y extraer talles únicos
+        // Solo incluir variantes que tienen stock > 0 o que existen físicamente
         const sizes = groupedProduct.variants
-            .filter(v => v.color === color && v.talle)
-            .map(v => v.talle!);
-        return Array.from(new Set(sizes));
+            .filter(v => {
+                // Filtrar por color exacto (case insensitive)
+                const colorMatch = v.color?.toLowerCase() === color.toLowerCase();
+                // Solo incluir si tiene talle definido
+                const hasTalle = !!v.talle;
+                return colorMatch && hasTalle;
+            })
+            .map(v => v.talle!)
+            .filter((talle, index, self) => self.indexOf(talle) === index); // Eliminar duplicados
+        
+        return sizes;
     };
 
     const availableSizes = selectedColor ? getAvailableSizesForColor(selectedColor) : [];
@@ -189,20 +191,21 @@ export function useProductVariants(groupedProduct: GroupedProduct | null) {
     };
 
     const handleSizeSelect = (size: string) => {
-        setSelectedSize(size);
-
-        // Buscar la variante exacta con color y talle
-        if (selectedColor && groupedProduct) {
-            const variant = groupedProduct.variants.find(
-                v => v.color === selectedColor && v.talle === size
-            );
-            if (variant) {
-                setSelectedVariant(variant);
-            }
-        }
+        // Verificar que el talle existe para el color seleccionado
+        if (!selectedColor || !groupedProduct) return;
         
-        // Actualizar URL con el nuevo talle
-        updateURL(selectedColor, size);
+        // Buscar la variante exacta con color y talle
+        const variant = groupedProduct.variants.find(
+            v => v.color?.toLowerCase() === selectedColor.toLowerCase() && v.talle === size
+        );
+        
+        // Solo actualizar si la variante existe
+        if (variant) {
+            setSelectedSize(size);
+            setSelectedVariant(variant);
+            // Actualizar URL con el nuevo talle
+            updateURL(selectedColor, size);
+        }
     };
     
     // Función para actualizar la URL sin recargar la página

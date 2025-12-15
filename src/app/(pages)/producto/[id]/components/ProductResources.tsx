@@ -122,6 +122,9 @@ export default function ProductResources({ product }: ProductResourcesProps) {
                                     <p className="text-xs text-gray-600 hidden sm:block">
                                         Guía de personalización
                                     </p>
+                                    <p className="text-xs text-red-500">
+                                        <span className="font-bold text-red-500">¡Atención!</span> Los bordados tienen costo adicional.
+                                    </p>
                                 </div>
                             </div>
                             <ImageIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 group-hover:text-[#Ed3237] transition-colors flex-shrink-0" />
@@ -154,6 +157,7 @@ export default function ProductResources({ product }: ProductResourcesProps) {
                                     className="w-auto h-auto max-w-full max-h-[calc(100vh-2rem)] object-contain rounded-lg"
                                     width={1200}
                                     height={1600}
+                                    unoptimized={true}
                                 />
                             </div>
 
@@ -193,6 +197,7 @@ export default function ProductResources({ product }: ProductResourcesProps) {
                                     className="w-auto h-auto max-w-full max-h-[calc(100vh-2rem)] object-contain rounded-lg"
                                     width={1200}
                                     height={1200}
+                                    unoptimized={true}
                                 />
                             </div>
 

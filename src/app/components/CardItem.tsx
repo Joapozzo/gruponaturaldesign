@@ -6,6 +6,8 @@ import { useConfirmModal } from './hooks/useModal';
 import ConfirmModal from './modal/ConfirmModal';
 import { nombreToSlug, parseProductSpecs } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
 import QuantityControlsUI from './ui/QuantityControls';
+import { formatPrice, formatPriceWithoutIVA } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
+import { canAddQuantity, getStockMessage } from '@/app/services/stockService';
 
 interface CartItemProps {
     item: {
@@ -27,7 +29,7 @@ interface CartItemProps {
 }
 
 const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, canAddMore = true }) => {
-    const { product, quantity, /* subtotal, */ especificaciones } = item; // subtotal comentado temporalmente
+    const { product, quantity, subtotal, especificaciones } = item;
     const { isOpen: isConfirmModalOpen, loading, modalOptions, showModal, closeModal, handleConfirm } = useConfirmModal();
     const router = useRouter();
     
@@ -52,8 +54,9 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, c
     };
 
     const handleIncrement = () => {
-        if (product.stock && quantity >= product.stock) {
-            alert(`Stock máximo disponible: ${product.stock} unidades`);
+        // Validar stock disponible usando el servicio (lógica separada y delicada)
+        if (!canAddQuantity(product.stock, quantity, 1)) {
+            // No mostrar el número exacto de stock, solo un mensaje genérico
             return;
         }
         onUpdateQuantity(product.id, quantity + 1);
@@ -154,18 +157,23 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, c
                             quantity={quantity}
                             onIncrement={handleIncrement}
                             onDecrement={handleDecrement}
-                            canAddMore={product.stock ? quantity < product.stock : canAddMore}
-                            maxReached={product.stock ? quantity >= product.stock : false}
+                            canAddMore={canAddQuantity(product.stock, quantity, 1) && canAddMore}
+                            maxReached={!canAddQuantity(product.stock, quantity, 1)}
                         />
                     </div>
 
-                    {/* Subtotal - COMENTADO TEMPORALMENTE (sin precios por ahora) */}
-                    {/* <div className="text-right">
+                    {/* Subtotal con precio sin IVA */}
+                    <div className="text-right">
                         <p className="text-xs text-gray-500 mb-0.5">Subtotal</p>
                         <p className="text-base font-bold text-black">
-                            ${(subtotal || 0).toLocaleString('es-AR')}
+                            {formatPrice(subtotal)}
                         </p>
-                    </div> */}
+                        {subtotal > 0 && (
+                            <p className="text-xs text-gray-500 mt-0.5">
+                                {formatPriceWithoutIVA(subtotal)}
+                            </p>
+                        )}
+                    </div>
                 </div>
 
                 {/* Indicador de stock bajo */}
@@ -176,7 +184,7 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, c
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}
                     >
-                        ⚠️ Solo quedan {product.stock} unidades
+                        ⚠️ Solo quedan {product.stock} {product.stock === 1 ? 'unidad' : 'unidades'}
                     </motion.p>
                 )}
             </div>

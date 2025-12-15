@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
-import { GroupedProduct } from '../../types/producto';
+import { GroupedProductV2 } from '../../types/producto-v2';
 import { FilterState } from './useCatalogFilters';
 import { hasProductImages } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
 
 export interface UseGroupedCatalogFiltersProps {
-    groupedProducts: GroupedProduct[];
+    products: GroupedProductV2[];
     itemsPerPage?: number;
 }
 
@@ -109,9 +109,9 @@ const isProductAllowed = (productName: string, category: string): boolean => {
 };
 
 // Función para extraer género del código o nombre del producto
-const extractGender = (product: GroupedProduct): string | null => {
-    const nombre = normalizeString(product.displayProduct.NOMBRE || product.displayProduct.Descripcion || '');
-    const codigo = normalizeString(product.displayProduct.Codigo || '');
+const extractGender = (product: GroupedProductV2): string | null => {
+    const nombre = normalizeString(product.displayProduct.nombreBase || product.displayProduct.item || '');
+    const codigo = normalizeString(product.displayProduct.codigo || '');
     
     if (nombre.includes('dama') || codigo.includes('dama') || codigo.includes('d')) {
         return 'dama';
@@ -126,7 +126,7 @@ const extractGender = (product: GroupedProduct): string | null => {
     return null;
 };
 
-export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }: UseGroupedCatalogFiltersProps) => {
+export const useGroupedCatalogFilters = ({ products, itemsPerPage = 12 }: UseGroupedCatalogFiltersProps) => {
     const [filters, setFilters] = useState<FilterState>({
         searchTerm: '',
         categoriaTipo: 'TODOS',
@@ -143,72 +143,38 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
     // Productos filtrados
     const filteredProducts = useMemo(() => {
         if (process.env.NODE_ENV === 'development') {
-            console.log('🔍 INICIANDO FILTRADO - Total productos:', groupedProducts.length);
+            console.log('🔍 INICIANDO FILTRADO - Total productos:', products.length);
         }
-        let filtered = [...groupedProducts];
+        let filtered = [...products];
 
         // PRIMERO: Filtro por categoría tipo (BASIC/WORKWEAR)
-        // TEMPORALMENTE DESHABILITADO: Lista blanca muy restrictiva, permite todos los productos con rubro válido
         filtered = filtered.filter(product => {
-            const productName = product.displayProduct.NOMBRE || product.skuBase || product.displayProduct.Descripcion || '';
-            const rubroOriginal = product.displayProduct.Rubro || '';
-            const rubro = normalizeString(rubroOriginal);
-
-            // Normalizar "producto office" o "office" a "basic" en el rubro
-            // El rubro puede ser "PRODUCTO OFFICE", "producto office", "office", etc.
-            // normalizeString ya convierte a minúsculas, así que "PRODUCTO OFFICE" -> "producto office"
-            // Verificar tanto en el rubro normalizado como en el original (por si acaso)
-            const isOffice = rubro.includes('office') || rubroOriginal.toLowerCase().includes('office');
-            const isBasic = rubro.includes('basic') || rubroOriginal.toLowerCase().includes('basic');
-            const isWorkwear = rubro.includes('workwear') || rubroOriginal.toLowerCase().includes('workwear');
-            
-            // Si contiene "office", tratarlo como "basic"
-            const rubroNormalized = isOffice ? 'basic' : (isBasic ? 'basic' : (isWorkwear ? 'workwear' : rubro));
-            
-            // Debug: mostrar normalización para productos office (solo en desarrollo)
-            if (isOffice && process.env.NODE_ENV === 'development') {
-                console.log(`✅ Producto OFFICE detectado: "${productName}" - Rubro original: "${rubroOriginal}" - Rubro normalizado: "${rubro}" -> "${rubroNormalized}"`);
-            }
+            const productName = product.displayProduct.nombreBase || product.skuBase || product.displayProduct.item || '';
+            const rubroNormalizado = product.displayProduct.rubroNormalizado; // Ya viene normalizado: 'WORKWEAR' o 'BASIC'
 
             if (filters.categoriaTipo !== 'TODOS') {
-                const categoriaTipoNormalized = normalizeString(filters.categoriaTipo);
+                // Comparación directa (case-insensitive) ya que ambos deberían ser 'WORKWEAR' o 'BASIC'
+                const categoriaTipoUpper = filters.categoriaTipo.toUpperCase();
+                const rubroNormalizadoUpper = (rubroNormalizado || '').toUpperCase();
 
-                // Verificar si el rubro coincide con la categoría
-                // Si el rubro es "basic" (incluye office) y la categoría es "BASIC", coincide
-                // Si el rubro es "workwear" y la categoría es "WORKWEAR", coincide
-                const rubroMatches = 
-                    (rubroNormalized === 'basic' && categoriaTipoNormalized === 'basic') ||
-                    (rubroNormalized === 'workwear' && categoriaTipoNormalized === 'workwear') ||
-                    rubroNormalized.includes(categoriaTipoNormalized) || 
-                    categoriaTipoNormalized.includes(rubroNormalized);
+                // Verificar si el rubro coincide exactamente con la categoría
+                const rubroMatches = rubroNormalizadoUpper === categoriaTipoUpper;
 
                 if (!rubroMatches) {
                     if (process.env.NODE_ENV === 'development') {
-                        console.log(`❌ Producto rechazado (rubro no coincide): "${productName}" - Rubro original: "${product.displayProduct.Rubro}" - Rubro normalizado: "${rubroNormalized}" - Categoría filtro: "${filters.categoriaTipo}"`);
+                        console.log(`❌ Producto rechazado (rubro no coincide): "${productName}" - Rubro normalizado: "${rubroNormalizado}" - Categoría filtro: "${filters.categoriaTipo}"`);
                     }
                     return false;
                 }
 
-                // TEMPORALMENTE: No usar lista blanca, solo verificar rubro
                 return true;
             } else {
-                // Si es TODOS, verificar que el rubro sea workwear o basic/office
-                const isValidRubro = isWorkwear || isBasic || isOffice;
-
-                if (!isValidRubro) {
-                    if (process.env.NODE_ENV === 'development') {
-                        console.log(`❌ Producto rechazado (rubro no válido): "${productName}" - Rubro original: "${rubroOriginal}" - Rubro normalizado: "${rubro}" - isOffice: ${isOffice} - isBasic: ${isBasic} - isWorkwear: ${isWorkwear}`);
-                    }
-                    return false;
+                // Si es TODOS, verificar que el rubro sea workwear o basic
+                const isValidRubro = rubroNormalizado === 'WORKWEAR' || rubroNormalizado === 'BASIC';
+                if (!isValidRubro && process.env.NODE_ENV === 'development') {
+                    console.log(`⚠️ Producto con rubro inválido: "${productName}" - Rubro normalizado: "${rubroNormalizado}"`);
                 }
-
-                // Debug: confirmar que se acepta (solo en desarrollo)
-                if (isOffice && process.env.NODE_ENV === 'development') {
-                    console.log(`✅ Producto OFFICE aceptado: "${productName}" - Rubro: "${rubroOriginal}" -> "${rubroNormalized}"`);
-                }
-
-                // TEMPORALMENTE: No usar lista blanca, solo verificar rubro
-                return true;
+                return isValidRubro;
             }
         });
 
@@ -222,10 +188,10 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
         if (filters.searchTerm) {
             const normalizedSearchTerm = normalizeString(filters.searchTerm);
             filtered = filtered.filter(product => {
-                const nombre = normalizeString(product.displayProduct.NOMBRE || product.displayProduct.Descripcion || '');
-                const descripcion = normalizeString(product.displayProduct.Descripcion || '');
-                const rubro = normalizeString(product.displayProduct.Rubro || '');
-                const subrubro = normalizeString(product.displayProduct.Subrubro || '');
+                const nombre = normalizeString(product.displayProduct.nombreBase || product.displayProduct.item || '');
+                const descripcion = normalizeString(product.displayProduct.item || '');
+                const rubro = normalizeString(product.displayProduct.rubro || '');
+                const subrubro = normalizeString(product.displayProduct.subrubro || '');
                 
                 return nombre.includes(normalizedSearchTerm) ||
                        descripcion.includes(normalizedSearchTerm) ||
@@ -234,17 +200,16 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
             });
         }
 
-        // FILTRO: Solo mostrar productos que tienen imágenes disponibles
-        // hasProductImages siempre retorna true, así que este filtro no debería eliminar nada
-        // Pero lo mantenemos por si en el futuro cambia la lógica
-        filtered = filtered.filter(product => {
-            const productName = product.displayProduct.NOMBRE || product.skuBase || product.displayProduct.Descripcion || '';
-            const hasImages = hasProductImages(productName, product.availableColors);
-            if (!hasImages && process.env.NODE_ENV === 'development') {
-                console.log(`❌ Producto rechazado (sin imágenes): "${productName}" - Colores: ${product.availableColors?.length || 0}`);
-            }
-            return hasImages;
-        });
+        // FILTRO: Temporalmente deshabilitado - mostrar todos los productos aunque no tengan imágenes
+        // (Las imágenes se agregarán después cuando se renombren las carpetas)
+        // filtered = filtered.filter(product => {
+        //     const productName = product.displayProduct.nombreBase || product.skuBase || product.displayProduct.item || '';
+        //     const hasImages = product.displayProduct.imagenes && product.displayProduct.imagenes.length > 0;
+        //     if (!hasImages && process.env.NODE_ENV === 'development') {
+        //         console.log(`❌ Producto rechazado (sin imágenes): "${productName}" - Imágenes: ${product.displayProduct.imagenes?.length || 0}`);
+        //     }
+        //     return hasImages;
+        // });
 
         if (process.env.NODE_ENV === 'development') {
             console.log('✅ Después de filtro de imágenes:', filtered.length);
@@ -253,7 +218,7 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
         // Filtro por subrubro
         if (filters.subrubro !== 'TODOS') {
             filtered = filtered.filter(product => {
-                const subrubro = normalizeString(product.displayProduct.Subrubro || '');
+                const subrubro = normalizeString(product.displayProduct.subrubro || '');
                 return subrubro.includes(normalizeString(filters.subrubro));
             });
         }
@@ -293,26 +258,26 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
         switch (filters.sortBy) {
             case 'alfabetico-asc':
                 filtered.sort((a, b) => {
-                    const nombreA = (a.displayProduct.NOMBRE || a.displayProduct.Descripcion || '').toLowerCase();
-                    const nombreB = (b.displayProduct.NOMBRE || b.displayProduct.Descripcion || '').toLowerCase();
+                    const nombreA = (a.displayProduct.nombreBase || a.displayProduct.item || '').toLowerCase();
+                    const nombreB = (b.displayProduct.nombreBase || b.displayProduct.item || '').toLowerCase();
                     return nombreA.localeCompare(nombreB);
                 });
                 break;
             case 'alfabetico-desc':
                 filtered.sort((a, b) => {
-                    const nombreA = (a.displayProduct.NOMBRE || a.displayProduct.Descripcion || '').toLowerCase();
-                    const nombreB = (b.displayProduct.NOMBRE || b.displayProduct.Descripcion || '').toLowerCase();
+                    const nombreA = (a.displayProduct.nombreBase || a.displayProduct.item || '').toLowerCase();
+                    const nombreB = (b.displayProduct.nombreBase || b.displayProduct.item || '').toLowerCase();
                     return nombreB.localeCompare(nombreA);
                 });
                 break;
             case 'precio-asc':
                 // Ordenar por precio ascendente (menor a mayor)
                 filtered.sort((a, b) => {
-                    const precioA = a.displayProduct.PrecioVenta || 0;
-                    const precioB = b.displayProduct.PrecioVenta || 0;
+                    const precioA = a.displayProduct.precioLista || 0;
+                    const precioB = b.displayProduct.precioLista || 0;
                     if (precioA === 0 && precioB === 0) {
-                        const nombreA = (a.displayProduct.NOMBRE || a.displayProduct.Descripcion || '').toLowerCase();
-                        const nombreB = (b.displayProduct.NOMBRE || b.displayProduct.Descripcion || '').toLowerCase();
+                        const nombreA = (a.displayProduct.nombreBase || a.displayProduct.item || '').toLowerCase();
+                        const nombreB = (b.displayProduct.nombreBase || b.displayProduct.item || '').toLowerCase();
                         return nombreA.localeCompare(nombreB);
                     }
                     return precioA - precioB;
@@ -321,28 +286,28 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
             case 'precio-desc':
                 // Ordenar por precio descendente (mayor a menor)
                 filtered.sort((a, b) => {
-                    const precioA = a.displayProduct.PrecioVenta || 0;
-                    const precioB = b.displayProduct.PrecioVenta || 0;
+                    const precioA = a.displayProduct.precioLista || 0;
+                    const precioB = b.displayProduct.precioLista || 0;
                     if (precioA === 0 && precioB === 0) {
-                        const nombreA = (a.displayProduct.NOMBRE || a.displayProduct.Descripcion || '').toLowerCase();
-                        const nombreB = (b.displayProduct.NOMBRE || b.displayProduct.Descripcion || '').toLowerCase();
-                        return nombreA.localeCompare(nombreB);
+                        const nombreA = (a.displayProduct.nombreBase || a.displayProduct.item || '').toLowerCase();
+                        const nombreB = (b.displayProduct.nombreBase || b.displayProduct.item || '').toLowerCase();
+                        return nombreB.localeCompare(nombreA);
                     }
                     return precioB - precioA;
                 });
                 break;
             case 'destacados':
-                // Por ahora no hay campo destacado en GroupedProduct, mantener orden alfabético
+                // Por ahora no hay campo destacado, mantener orden alfabético
                 filtered.sort((a, b) => {
-                    const nombreA = (a.displayProduct.NOMBRE || a.displayProduct.Descripcion || '').toLowerCase();
-                    const nombreB = (b.displayProduct.NOMBRE || b.displayProduct.Descripcion || '').toLowerCase();
+                    const nombreA = (a.displayProduct.nombreBase || a.displayProduct.item || '').toLowerCase();
+                    const nombreB = (b.displayProduct.nombreBase || b.displayProduct.item || '').toLowerCase();
                     return nombreA.localeCompare(nombreB);
                 });
                 break;
         }
 
         return filtered;
-    }, [groupedProducts, filters]);
+    }, [products, filters]);
 
     // Paginación
     const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -356,7 +321,7 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
         const colores = new Set<string>();
         const talles = new Set<string>();
         
-        groupedProducts.forEach(product => {
+        products.forEach(product => {
             if (product.availableColors) {
                 product.availableColors.forEach(color => colores.add(color));
             }
@@ -377,7 +342,7 @@ export const useGroupedCatalogFilters = ({ groupedProducts, itemsPerPage = 12 }:
                 return a.localeCompare(b);
             }),
         };
-    }, [groupedProducts]);
+    }, [products]);
 
     // Funciones para actualizar filtros
     const updateFilter = <K extends keyof FilterState>(key: K, value: FilterState[K]) => {

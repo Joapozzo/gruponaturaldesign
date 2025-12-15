@@ -1,5 +1,6 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 
@@ -32,32 +33,47 @@ const BaseModal: React.FC<BaseModalProps> = ({
   size = 'md',
   closeOnOverlayClick = true,
   className = '',
-  zIndex = 100002,
+  zIndex = 999999,
 }) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    // Prevenir scroll del body cuando el modal está abierto
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   const handleOverlayClick = () => {
     if (closeOnOverlayClick) {
       onClose();
     }
   };
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay */}
+          {/* Overlay - Full screen */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm w-screen h-screen"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm w-screen h-screen"
             style={{ zIndex: zIndex - 1 }}
             onClick={handleOverlayClick}
           />
 
-          {/* Modal Container */}
+          {/* Modal Container - Full screen container */}
           <div
-            className="fixed top-0 left-0 right-0 bottom-0 p-4 pointer-events-none h-screen flex items-center justify-center"
+            className="fixed inset-0 p-4 pointer-events-none flex items-center justify-center"
             style={{ zIndex }}
           >
             <div className={`pointer-events-auto w-full ${sizeClasses[size]} ${className}`}>
@@ -109,6 +125,10 @@ const BaseModal: React.FC<BaseModalProps> = ({
       )}
     </AnimatePresence>
   );
+
+  if (!mounted) return null;
+
+  return createPortal(modalContent, document.body);
 };
 
 export default BaseModal;

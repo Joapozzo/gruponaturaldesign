@@ -17,7 +17,7 @@ const Navbar = () => {
         toggleMenu
     } = useNavigation();
     const { itemCount, isWholesale } = useCart();
-    const { categories, isLoading: categoriesLoading } = useShopCategories();
+    const { categories } = useShopCategories();
     const router = useRouter();
 
     const [isCartOpen, setIsCartOpen] = useState(false);
@@ -79,12 +79,38 @@ const Navbar = () => {
         return false;
     };
 
+    // Función para normalizar rubro antes de navegar
+    const normalizeRubroForNavigation = (rubro: string): string => {
+        if (!rubro) return '';
+        const rubroUpper = rubro.toUpperCase().trim();
+        
+        // Si contiene "WORKWEAR", retornar "WORKWEAR"
+        if (rubroUpper.includes('WORKWEAR')) {
+            return 'WORKWEAR';
+        }
+        
+        // Si contiene "OFFICE", retornar "BASIC"
+        if (rubroUpper.includes('OFFICE')) {
+            return 'BASIC';
+        }
+        
+        // Si ya es "BASIC" o "WORKWEAR", retornarlo tal cual
+        if (rubroUpper === 'BASIC' || rubroUpper === 'WORKWEAR') {
+            return rubroUpper;
+        }
+        
+        // Por defecto, retornar el rubro original
+        return rubro.trim();
+    };
+
     // Función para navegar con filtro
     const handleCategoryNavigation = (type: 'rubro' | 'subrubro' | 'genero', value: string) => {
         const params = new URLSearchParams();
         
         if (type === 'rubro') {
-            params.set('rubro', value);
+            // Normalizar el rubro antes de agregarlo a la URL
+            const normalizedRubro = normalizeRubroForNavigation(value);
+            params.set('rubro', normalizedRubro);
         } else if (type === 'subrubro') {
             params.set('subrubro', value);
         } else if (type === 'genero') {

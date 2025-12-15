@@ -12,6 +12,9 @@ interface EmailRequestBody {
   paymentData: PaymentData;
   items: CartItem[];
   itemCount: number;
+  subtotal?: number;
+  iva?: number;
+  total?: number;
 }
 
 /**
@@ -20,7 +23,7 @@ interface EmailRequestBody {
 export async function POST(request: NextRequest) {
   try {
     const body: EmailRequestBody = await request.json();
-    const { to, subject, customerData, shippingData, paymentData, items, itemCount } = body;
+    const { to, subject, customerData, shippingData, paymentData, items, itemCount, subtotal, iva, total } = body;
 
     // Validar datos requeridos
     if (!to || !customerData || !items || items.length === 0) {
@@ -48,6 +51,9 @@ export async function POST(request: NextRequest) {
       paymentData,
       items,
       itemCount,
+      subtotal: subtotal || 0,
+      iva: iva || 0,
+      total: total || 0,
     });
 
     // Enviar email al cliente
@@ -65,6 +71,9 @@ export async function POST(request: NextRequest) {
       paymentData,
       items,
       itemCount,
+      subtotal: subtotal || 0,
+      iva: iva || 0,
+      total: total || 0,
     });
 
     const internalEmail = await transporter.sendMail({
@@ -125,9 +134,21 @@ function generateOrderEmailHTML(data: {
   paymentData: PaymentData;
   items: CartItem[];
   itemCount: number;
+  subtotal: number;
+  iva: number;
+  total: number;
 }): string {
-  const { customerData, shippingData, paymentData, items, itemCount } = data;
+  const { customerData, shippingData, paymentData, items, itemCount, subtotal, iva, total } = data;
   const logoBase64 = getLogoBase64();
+
+  // Formatear precio
+  const formatPrice = (price: number): string => {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS',
+      minimumFractionDigits: 2,
+    }).format(price);
+  };
 
   return `
 <!DOCTYPE html>
@@ -591,9 +612,30 @@ function generateOrderEmailHTML(data: {
 
       <!-- Summary -->
       <div class="summary-box">
-        <div class="summary-title">Total de Productos</div>
-        <div class="summary-total">${itemCount}</div>
-        <div class="summary-label">Unidades en total</div>
+        <div class="summary-title">Resumen de la Compra</div>
+        <div style="text-align: left; margin-top: 15px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: #e0e0e0;">
+            <span>Total de productos:</span>
+            <span style="font-weight: 600;">${itemCount} unidades</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: #e0e0e0;">
+            <span>Subtotal sin IVA:</span>
+            <span style="font-weight: 600;">${formatPrice(subtotal)}</span>
+          </div>
+          ${iva > 0 ? `
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: #e0e0e0;">
+            <span>IVA (21%):</span>
+            <span style="font-weight: 600;">${formatPrice(iva)}</span>
+          </div>
+          ` : ''}
+          <div style="border-top: 2px solid rgba(237, 50, 55, 0.3); margin-top: 15px; padding-top: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 18px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Total:</span>
+              <span class="summary-total" style="font-size: 36px; font-weight: 700; color: #Ed3237; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);">${formatPrice(total)}</span>
+            </div>
+            <div class="summary-label" style="text-align: right; margin-top: 5px;">IVA incluido</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -648,8 +690,20 @@ function generateInternalEmailHTML(data: {
   paymentData: PaymentData;
   items: CartItem[];
   itemCount: number;
+  subtotal: number;
+  iva: number;
+  total: number;
 }): string {
-  const { customerData, shippingData, paymentData, items, itemCount } = data;
+  const { customerData, shippingData, paymentData, items, itemCount, subtotal, iva, total } = data;
+
+  // Formatear precio
+  const formatPrice = (price: number): string => {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS',
+      minimumFractionDigits: 2,
+    }).format(price);
+  };
   const timestamp = new Date().toLocaleString('es-AR', {
     dateStyle: 'full',
     timeStyle: 'medium',
@@ -831,6 +885,34 @@ function generateInternalEmailHTML(data: {
         <br/><span style="color: #Ed3237; font-weight: bold;">Cantidad: ${item.quantity} unidades</span>
       </div>
       `).join('')}
+    </div>
+
+    <!-- Resumen -->
+    <div class="section" style="background: #000; color: white; border-left: 4px solid #Ed3237;">
+      <div class="section-title" style="color: white;">💰 RESUMEN DE LA COMPRA</div>
+      <div style="padding: 15px 0;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">
+          <span>Total de productos:</span>
+          <span style="font-weight: 600;">${itemCount} unidades</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">
+          <span>Subtotal sin IVA:</span>
+          <span style="font-weight: 600;">${formatPrice(subtotal)}</span>
+        </div>
+        ${iva > 0 ? `
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">
+          <span>IVA (21%):</span>
+          <span style="font-weight: 600;">${formatPrice(iva)}</span>
+        </div>
+        ` : ''}
+        <div style="border-top: 2px solid rgba(237, 50, 55, 0.5); margin-top: 15px; padding-top: 15px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 20px; font-weight: 700; text-transform: uppercase;">TOTAL:</span>
+            <span style="font-size: 32px; font-weight: 700; color: #Ed3237;">${formatPrice(total)}</span>
+          </div>
+          <div style="text-align: right; margin-top: 5px; font-size: 12px; color: #b0b0b0;">IVA incluido</div>
+        </div>
+      </div>
     </div>
 
     <div class="footer">

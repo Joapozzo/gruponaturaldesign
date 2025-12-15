@@ -72,12 +72,33 @@ export function createProductId(codigo: string): number {
     return Math.abs(hash);
 }
 
+import { IVA_RATE } from '@/app/utils/constants';
+
 /**
  * Formatea el precio para mostrar
  */
 export function formatPrice(precio: number | null | undefined): string {
     if (!precio || precio === 0) return 'Consultar';
     return `$${precio.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
+}
+
+/**
+ * Calcula el precio sin IVA
+ * @param precioConIva Precio con IVA incluido
+ * @returns Precio sin IVA
+ */
+export function calculatePriceWithoutIVA(precioConIva: number | null | undefined): number {
+    if (!precioConIva || precioConIva === 0) return 0;
+    return precioConIva / (1 + IVA_RATE);
+}
+
+/**
+ * Formatea el precio sin IVA para mostrar (texto pequeño)
+ */
+export function formatPriceWithoutIVA(precioConIva: number | null | undefined): string {
+    if (!precioConIva || precioConIva === 0) return '';
+    const precioSinIva = calculatePriceWithoutIVA(precioConIva);
+    return `$${precioSinIva.toLocaleString('es-AR', { minimumFractionDigits: 2 })} sin IVA`;
 }
 
 /**
@@ -90,25 +111,39 @@ export function formatPrice(precio: number | null | undefined): string {
  * - negro
  */
 const COLOR_MAPPING: { [key: string]: string[] } = {
-    'gris': ['gris', 'gris-melange'],
-    'gris melange': ['gris', 'gris-melange'],
-    'gris-melange': ['gris', 'gris-melange'],
-    'azul': ['azul'], // TODOS los azules están con "azul" en el nombre
-    'azul marino': ['azul'], // Buscar solo "azul"
-    'azul-marino': ['azul'], // Buscar solo "azul"
-    'celeste': ['celeste'], // CELESTE tiene su propia carpeta/archivos
-    'cemento': ['cemento'], // CEMENTO tiene su propia carpeta/archivos
-    'gristopo': ['gristopo'], // "gristopo" (todo junto, sin guión)
-    'gris topo': ['gristopo'], // También aceptar "gris topo" y buscar "gristopo"
-    'gris-topo': ['gristopo'], // También aceptar "gris-topo" y buscar "gristopo"
-    'lavado oscuro': ['oscuro'], // "lavado oscuro" busca "oscuro"
-    'lavado-oscuro': ['oscuro'], // "lavado-oscuro" busca "oscuro"
-    'lavado claro': ['claro'], // "lavado claro" busca "claro"
-    'lavado-claro': ['claro'], // "lavado-claro" busca "claro"
-    'lavado medio': ['medio'], // "lavado medio" busca "medio"
-    'lavado-medio': ['medio'], // "lavado-medio" busca "medio"
-    'blanco': ['blanco'],
+    // IMPORTANTE: Según la estructura real de archivos del CSV:
+    // buzo-standard-unisex-azulmarino-1.jpg (para Azul Marino)
+    // buzo-standard-unisex-grismelange-1.jpg (para Gris Melange) - SIN GUION entre gris y melange
+    // buzo-standard-unisex-gristopo-1.jpg (para Gris Topo)
+    // buzo-standard-unisex-negro-1.jpg (para Negro)
+    'azul marino': ['azulmarino', 'marino'],
+    'azul-marino': ['azulmarino', 'marino'],
+    'azul mar': ['azulmarino', 'marino'],
+    'gris melange': ['grismelange', 'melange'], // Buscar tanto "grismelange" como "melange"
+    'gris-melange': ['grismelange', 'melange'],
+    'gris mel': ['grismelange', 'melange'],
+    'gris-mel': ['grismelange', 'melange'],
+    'gris mel cl': ['grismelange', 'melange'],
+    'gris topo': ['gristopo'],
+    'gris-topo': ['gristopo'],
+    'gristopo': ['gristopo'],
+    'gris t': ['gristopo'],
+    'topo': ['gristopo'], // Mapear "topo" a "gristopo"
     'negro': ['negro'],
+    'neg': ['negro'],
+    'blanco': ['blanco'],
+    'celeste': ['celeste', 'azul'],
+    'azul': ['azul'],
+    'lavado oscuro': ['oscuro'],
+    'lavado-oscuro': ['oscuro'],
+    'lavado claro': ['claro'],
+    'lavado-claro': ['claro'],
+    'lavado medio': ['medio'],
+    'lavado-medio': ['medio'],
+    'arena': ['arena'],
+    'cemento': ['cemento'],
+    'tostado': ['tostado'],
+    'gris': ['gris'], // Para camisas drill que solo dicen "Gris"
 };
 
 /**
@@ -129,9 +164,9 @@ function normalizeColorForFile(color: string | null | undefined): string[] {
 
 /**
  * Construye las rutas de imagen basadas en el nombre del producto y el color
- * Retorna solo las rutas posibles (el componente filtrará las que no existen)
+ * Retorna solo las rutas posibles (el componente verificará cuáles existen)
  * Formato esperado: {productSlug}/{productSlug}-{color}-{numero}.jpg
- * Busca hasta 10 imágenes, pero el componente solo mostrará las que existen
+ * IMPORTANTE: Genera hasta 20 imágenes (el componente verificará cuáles existen realmente)
  */
 export function getProductImagesByColor(
     productName: string,
@@ -149,14 +184,14 @@ export function getProductImagesByColor(
         const primaryColor = colorVariants[0];
         
         // Buscar imágenes con el patrón: {productSlug}-{color}-{numero}.jpg
-        // Buscar hasta 10 imágenes por color (el componente filtrará las que no existen)
-        for (let i = 1; i <= 10; i++) {
+        // Generar hasta 20 imágenes (el componente verificará cuáles existen)
+        for (let i = 1; i <= 20; i++) {
             const imagePath = `${basePath}/${productSlug}/${productSlug}-${primaryColor}-${i}.jpg`;
             images.push(imagePath);
         }
     } else {
         // Si no hay color, buscar imágenes genéricas (sin color en el nombre)
-        for (let i = 1; i <= 10; i++) {
+        for (let i = 1; i <= 20; i++) {
             const imagePath = `${basePath}/${productSlug}/${productSlug}-${i}.jpg`;
             images.push(imagePath);
         }
@@ -200,13 +235,13 @@ export function getAllProductImagesByColors(
     const images: string[] = [];
     
     if (availableColors && availableColors.length > 0) {
-        // Para cada color disponible, buscar todas sus imágenes
+        // Para cada color disponible, buscar sus imágenes
         for (const color of availableColors) {
             const colorVariants = normalizeColorForFile(color);
             if (colorVariants.length > 0) {
                 const primaryColor = colorVariants[0];
-                // Buscar hasta 10 imágenes por color
-                for (let i = 1; i <= 10; i++) {
+                // Generar hasta 20 imágenes por color (el componente verificará cuáles existen)
+                for (let i = 1; i <= 20; i++) {
                     const imagePath = `${basePath}/${productSlug}/${productSlug}-${primaryColor}-${i}.jpg`;
                     images.push(imagePath);
                 }
@@ -214,7 +249,7 @@ export function getAllProductImagesByColors(
         }
     } else {
         // Si no hay colores, buscar imágenes genéricas
-        for (let i = 1; i <= 10; i++) {
+        for (let i = 1; i <= 20; i++) {
             const imagePath = `${basePath}/${productSlug}/${productSlug}-${i}.jpg`;
             images.push(imagePath);
         }
@@ -248,8 +283,8 @@ export function hasProductImages(
 
 /**
  * Obtiene las imágenes del producto
- * Si hay color, busca imágenes específicas de ese color
- * Si no hay color pero hay availableColors, muestra todas las imágenes de todos los colores
+ * IMPORTANTE: SOLO usa las imágenes que vienen del CSV, NO genera imágenes dinámicamente
+ * Si hay color, filtra las imágenes del CSV que correspondan a ese color
  */
 export function getProductImages(
     imagenes: string[] | undefined,
@@ -261,32 +296,58 @@ export function getProductImages(
 ): string[] {
     const PLACEHOLDER_IMAGE = '/imgs/producto-placeholder.png';
     
-    // Si hay productName y color, buscar imágenes específicas de ese color
-    if (productName && color) {
-        const colorImages = getProductImagesByColor(productName, color);
-        if (colorImages.length > 0) {
-            return colorImages.slice(0, maxImages);
-        }
-    }
-    
-    // Si hay productName y availableColors pero no color seleccionado, mostrar todas las imágenes
-    if (productName && availableColors && availableColors.length > 0 && !color) {
-        const allImages = getAllProductImagesByColors(productName, availableColors);
-        if (allImages.length > 0) {
-            return allImages.slice(0, maxImages * 2); // Mostrar más imágenes si hay múltiples colores
-        }
-    }
-    
-    // Fallback: usar las imágenes del producto si existen
+    // PRIMERO: Usar SOLO las imágenes que vienen del CSV
     const productImages = imagenes && imagenes.length > 0
         ? imagenes.filter(img => img && img.trim() !== '')
         : imagen && imagen.trim() !== ''
             ? [imagen]
             : [];
-
-    return productImages.length > 0 
-        ? productImages.slice(0, maxImages) 
-        : [PLACEHOLDER_IMAGE];
+    
+    // Si no hay imágenes del CSV, retornar placeholder
+    if (productImages.length === 0) {
+        return [PLACEHOLDER_IMAGE];
+    }
+    
+    // Si hay color seleccionado, filtrar las imágenes del CSV que correspondan a ese color
+    if (color) {
+        const colorVariants = normalizeColorForFile(color);
+        if (colorVariants.length > 0) {
+            // Buscar TODAS las variantes del color (ej: "grismelange" y "melange" para "gris melange")
+            const filteredImages = productImages.filter(img => {
+                if (!img) return false;
+                const imgLower = img.toLowerCase();
+                
+                // Buscar cada variante del color en la ruta de la imagen
+                for (const colorVariant of colorVariants) {
+                    // Buscar el color en la ruta de la imagen de múltiples formas:
+                    // - "/imgs/products/buzo-standard-unisex/buzo-standard-unisex-grismelange-1.jpg"
+                    // - "buzo-standard-unisex-grismelange-1"
+                    // Puede estar como: -color- o -color. o -color/ o al final -color
+                    if (imgLower.includes(`-${colorVariant}-`) || 
+                        imgLower.includes(`-${colorVariant}.`) ||
+                        imgLower.includes(`-${colorVariant}/`) ||
+                        imgLower.endsWith(`-${colorVariant}`) ||
+                        imgLower.endsWith(`-${colorVariant}.jpg`)) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+            
+            // Si encontramos imágenes del color, retornarlas (ordenadas por número si es posible)
+            if (filteredImages.length > 0) {
+                // Ordenar por número de imagen si es posible (para mantener orden 1, 2, 3, 4)
+                return filteredImages.sort((a, b) => {
+                    const numA = parseInt(a.match(/-(\d+)\./)?.[1] || '0', 10);
+                    const numB = parseInt(b.match(/-(\d+)\./)?.[1] || '0', 10);
+                    return numA - numB;
+                });
+            }
+        }
+    }
+    
+    // Si no hay color o no se encontraron imágenes del color, retornar todas las imágenes del CSV
+    return productImages;
 }
 
 /**

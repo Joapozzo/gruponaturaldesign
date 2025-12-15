@@ -26,7 +26,7 @@ export const seoConfig = {
             '@type': 'ContactPoint',
             telephone: '+54-351-7136316',
             contactType: 'customer service',
-            email: 'info@naturalonline.com.ar',
+            email: 'ventas@naturalonline.com.ar',
             availableLanguage: 'Spanish'
         },
         sameAs: [
@@ -47,7 +47,7 @@ export const seoConfig = {
         name: 'NTDS Natural Design',
         image: 'https://naturalonline.com.ar/og-image.jpg',
         telephone: '+54-351-7136316',
-        email: 'info@naturalonline.com.ar',
+        email: 'ventas@naturalonline.com.ar',
         address: {
             '@type': 'PostalAddress',
             streetAddress: 'Rivera Indarte 2143',

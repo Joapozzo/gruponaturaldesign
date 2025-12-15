@@ -1,7 +1,6 @@
 "use client";
-import React, { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { useGroupedProducts } from '@/app/hooks/useGroupedProducts';
+import React, { useState, useEffect, Suspense, useRef } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useGroupedCatalogFilters } from '@/app/components/hooks/useGroupedCatalogFilters';
 import FilterControls from '@/app/components/FilterControls';
 import ProductsGrid from '@/app/components/catalog/ProductsGrid';
@@ -11,15 +10,33 @@ import ScrollToTop from '@/app/components/catalog/ScrollToTop';
 import Pagination from '@/app/components/Pagination';
 import Section from '@/app/components/Section';
 import CatalogCategoriesHero from '@/app/components/CatalogCategoriesHero';
+import { useProductsV2 } from '@/app/hooks/useProductsV2';
 
 const CatalogContent = () => {
     const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
     
-    // Cargar productos agrupados
-    const { groupedProducts, isLoading } = useGroupedProducts();
+    // Cargar productos agrupados V2
+    const { products, isLoading, isError, error, rubros, subrubros } = useProductsV2();
+    
+    // Debug logs
+    useEffect(() => {
+        if (isError) {
+            console.error('[shoponline] Error al cargar productos:', error);
+        }
+        if (products.length > 0) {
+            console.log('[shoponline] Productos cargados:', products.length);
+            console.log('[shoponline] Rubros:', rubros.length, 'Subrubros:', subrubros.length);
+        }
+    }, [products, isLoading, isError, error, rubros, subrubros]);
+    
     // Estado para productos expandidos
     const [expandedSku, setExpandedSku] = useState<string | null>(null);
-    // console.log('groupedProducts', groupedProducts);
+    
+    // Ref para evitar loops infinitos al sincronizar URL <-> Filtros
+    const isInitialized = useRef(false);
+    const isUpdatingFromURL = useRef(false);
     
     // Hook de filtros
     const {
@@ -27,7 +44,7 @@ const CatalogContent = () => {
         updateFilter,
         toggleColor,
         toggleTalle,
-        clearFilters,
+        clearFilters: originalClearFilters,
         paginatedProducts,
         currentPage,
         totalPages,
@@ -38,35 +55,144 @@ const CatalogContent = () => {
         showingTo,
         hasActiveFilters,
     } = useGroupedCatalogFilters({
-        groupedProducts,
+        products,
         itemsPerPage: 12,
     });
-    // console.log('groupedProducts', paginatedProducts);
 
-    // Aplicar filtros desde URL params al cargar
+    // Función para normalizar rubro desde URL (puede venir como "PRODUCTO WORKWEAR", "PRODUCTO OFFICE", "WORKWEAR", "BASIC")
+    const normalizeRubroFromURL = (rubro: string): string => {
+        if (!rubro) return 'TODOS';
+        
+        const normalized = rubro.toUpperCase().trim();
+        
+        // Si contiene "WORKWEAR", retornar "WORKWEAR"
+        if (normalized.includes('WORKWEAR')) {
+            return 'WORKWEAR';
+        }
+        
+        // Si contiene "OFFICE" o "BASIC", retornar "BASIC"
+        if (normalized.includes('OFFICE') || normalized.includes('BASIC')) {
+            return 'BASIC';
+        }
+        
+        // Si es exactamente "WORKWEAR" o "BASIC", retornarlo
+        if (normalized === 'WORKWEAR' || normalized === 'BASIC') {
+            return normalized;
+        }
+        
+        // Por defecto, retornar BASIC (ya que en el Excel la mayoría son OFFICE)
+        return 'BASIC';
+    };
+
+    // Función para sincronizar filtros con URL
+    const syncFiltersToURL = (newFilters: typeof filters) => {
+        if (isUpdatingFromURL.current) return; // Evitar loop
+        
+        const params = new URLSearchParams();
+        
+        // Solo agregar parámetros si no son valores por defecto
+        if (newFilters.categoriaTipo && newFilters.categoriaTipo !== 'TODOS') {
+            // Normalizar el valor antes de agregarlo a la URL
+            const normalizedRubro = normalizeRubroFromURL(newFilters.categoriaTipo);
+            params.set('rubro', normalizedRubro);
+        }
+        if (newFilters.subrubro && newFilters.subrubro !== 'TODOS') {
+            params.set('subrubro', newFilters.subrubro);
+        }
+        if (newFilters.genero && newFilters.genero !== 'TODOS') {
+            params.set('genero', newFilters.genero.toLowerCase());
+        }
+        if (newFilters.searchTerm && newFilters.searchTerm.trim() !== '') {
+            params.set('search', newFilters.searchTerm);
+        }
+        
+        const newURL = params.toString() 
+            ? `${pathname}?${params.toString()}`
+            : pathname;
+        
+        // Usar replace para no agregar entrada al historial
+        router.replace(newURL, { scroll: false });
+    };
+
+    // Aplicar filtros desde URL params cuando cambien los params (URL -> Filtros)
     useEffect(() => {
+        // Evitar actualizar si estamos sincronizando desde filtros
+        if (isUpdatingFromURL.current) return;
+        
         const rubro = searchParams.get('rubro');
         const subrubro = searchParams.get('subrubro');
         const genero = searchParams.get('genero');
         const search = searchParams.get('search');
 
+        isUpdatingFromURL.current = true;
+        
+        // Actualizar rubro
         if (rubro) {
-            updateFilter('categoriaTipo', rubro);
+            const normalizedRubro = normalizeRubroFromURL(rubro);
+            updateFilter('categoriaTipo', normalizedRubro);
+        } else {
+            // Si no hay rubro en URL, limpiar solo si no es el valor inicial
+            if (filters.categoriaTipo !== 'TODOS') {
+                updateFilter('categoriaTipo', 'TODOS');
+            }
         }
+        
+        // Actualizar subrubro
         if (subrubro) {
             updateFilter('subrubro', subrubro);
+        } else {
+            if (filters.subrubro !== 'TODOS') {
+                updateFilter('subrubro', 'TODOS');
+            }
         }
+        
+        // Actualizar género
         if (genero) {
-            // Validar que el género sea uno de los valores permitidos
             const validGenero = ['dama', 'hombre', 'unisex'].includes(genero.toLowerCase()) 
                 ? genero.toLowerCase() as 'dama' | 'hombre' | 'unisex'
                 : 'TODOS';
             updateFilter('genero', validGenero);
+        } else {
+            if (filters.genero !== 'TODOS') {
+                updateFilter('genero', 'TODOS');
+            }
         }
+        
+        // Actualizar búsqueda
         if (search) {
             updateFilter('searchTerm', search);
+        } else {
+            if (filters.searchTerm !== '') {
+                updateFilter('searchTerm', '');
+            }
         }
-    }, [searchParams, updateFilter]);
+        
+        // Resetear flag después de un pequeño delay
+        setTimeout(() => {
+            isUpdatingFromURL.current = false;
+        }, 100);
+        
+        if (!isInitialized.current) {
+            isInitialized.current = true;
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams.toString()]); // Solo cuando cambien los searchParams
+
+    // Sincronizar filtros con URL cuando cambien (Filtros -> URL)
+    useEffect(() => {
+        if (!isInitialized.current) return;
+        if (isUpdatingFromURL.current) return;
+        
+        syncFiltersToURL(filters);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filters.categoriaTipo, filters.subrubro, filters.genero, filters.searchTerm]);
+
+    // Wrapper para clearFilters que también limpia la URL
+    const clearFilters = () => {
+        originalClearFilters();
+        // Limpiar URL después de limpiar filtros
+        router.replace(pathname, { scroll: false });
+    };
 
 
     return (
@@ -91,10 +217,23 @@ const CatalogContent = () => {
                     onToggleTalle={toggleTalle}
                     onClearFilters={clearFilters}
                     hasActiveFilters={hasActiveFilters}
+                    rubros={rubros.map(r => r.nombreNormalizado)}
+                    subrubros={subrubros.map(s => s.nombre)}
                 />
 
                 {/* Grid de productos */}
-                {isLoading ? (
+                {isError ? (
+                    <div className="text-center py-12">
+                        <p className="text-red-600 mb-4">Error al cargar productos</p>
+                        <p className="text-gray-600 text-sm">{error?.message || 'Error desconocido'}</p>
+                        <button 
+                            onClick={() => window.location.reload()} 
+                            className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                        >
+                            Recargar página
+                        </button>
+                    </div>
+                ) : isLoading ? (
                     <LoadingState />
                 ) : paginatedProducts.length === 0 ? (
                     <EmptyState

@@ -12,6 +12,7 @@ interface QuantityControlsProductPageProps {
     isInCart: boolean;
     canAddMore: boolean;
     maxReached: boolean;
+    maxReachedStock?: boolean; // Límite de stock alcanzado
     onIncrement: () => void;
     onDecrement: () => void;
     disabled?: boolean;
@@ -23,6 +24,7 @@ export default function QuantityControlsProductPage({
     isInCart,
     canAddMore,
     maxReached,
+    maxReachedStock = false,
     onIncrement,
     onDecrement,
     disabled = false,
@@ -78,16 +80,26 @@ export default function QuantityControlsProductPage({
     // Si está en el carrito, mostrar controles de cantidad
     return (
         <div className="space-y-3 sm:space-y-4 mt-4">
+            {/* Mensaje de límite de 20 artículos (mayorista) */}
             {maxReached && (
-                <div className="w-full px-4 py-2 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-red-600 font-medium text-sm text-center">
+                <div className="w-full px-4 py-3 bg-red-50 border-2 border-red-300 rounded-lg shadow-sm">
+                    <p className="text-red-700 font-semibold text-sm sm:text-base text-center">
                         Límite alcanzado: máximo 20 artículos totales
                     </p>
                 </div>
             )}
             
-            {/* Controles de cantidad - Sin outline, estilo CartDrawer */}
-            <div className="flex justify-center w-full">
+            {/* Mensaje de límite de stock */}
+            {maxReachedStock && !maxReached && (
+                <div className="w-full px-4 py-3 bg-orange-50 border-2 border-orange-300 rounded-lg shadow-sm">
+                    <p className="text-orange-700 font-semibold text-sm sm:text-base text-center">
+                        Stock disponible alcanzado
+                    </p>
+                </div>
+            )}
+            
+            {/* Controles de cantidad - Agrandado y con mejor contraste */}
+            <div className="flex justify-center w-full bg-gray-50 border-2 border-gray-200 rounded-lg p-4 sm:p-6 shadow-sm">
                 <QuantityControlsUI
                     quantity={currentQuantity}
                     onIncrement={onIncrement}

@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CartState, CartProduct, CartItem, CustomerData, ShippingData, PaymentData } from '../types/cart';
 
-const IVA_RATE = 0; // 0% o cambiar a 0.21 para 21%
+import { IVA_RATE } from '@/app/utils/constants';
+import { canAddQuantity } from '@/app/services/stockService';
 const WHATSAPP_NUMBER = '+5493517136311';
 
 export const useCartStore = create<CartState>()(
@@ -25,16 +26,29 @@ export const useCartStore = create<CartState>()(
 
                     let newItems: CartItem[];
 
+                    // Asegurar que el precio sea un número válido
+                    let precio = 0;
+                    if (typeof product.precio === 'number' && product.precio > 0) {
+                        precio = product.precio;
+                    } else {
+                        // Convertir a string y parsear (por si viene como string desde alguna fuente externa)
+                        const precioStr = String(product.precio || '0');
+                        precio = parseFloat(precioStr.replace(/[^0-9.-]+/g, '')) || 0;
+                    }
+                    
                     if (existingIndex > -1) {
                         newItems = [...state.items];
                         newItems[existingIndex].quantity += quantity;
                         newItems[existingIndex].subtotal =
-                            newItems[existingIndex].quantity * product.precio;
+                            newItems[existingIndex].quantity * precio;
                     } else {
                         const newItem: CartItem = {
-                            product,
+                            product: {
+                                ...product,
+                                precio: precio, // Asegurar que el precio en el producto también sea correcto
+                            },
                             quantity,
-                            subtotal: quantity * product.precio,
+                            subtotal: quantity * precio,
                             especificaciones: especificaciones || undefined,
                         };
                         newItems = [...state.items, newItem];
@@ -68,10 +82,28 @@ export const useCartStore = create<CartState>()(
                 set((state) => {
                     const newItems = state.items.map((item) => {
                         if (item.product.id === productId) {
+                            // Validar stock disponible (lógica separada y delicada)
+                            const stock = item.product.stock;
+                            const currentQuantity = item.quantity;
+                            if (!canAddQuantity(stock, currentQuantity, quantity - currentQuantity)) {
+                                // No permitir incrementar más allá del stock disponible
+                                return item;
+                            }
+                            
+                            // Asegurar que el precio sea un número válido
+                            let precio = 0;
+                            if (typeof item.product.precio === 'number' && item.product.precio > 0) {
+                                precio = item.product.precio;
+                            } else {
+                                // Convertir a string y parsear (por si viene como string desde alguna fuente externa)
+                                const precioStr = String(item.product.precio || '0');
+                                precio = parseFloat(precioStr.replace(/[^0-9.-]+/g, '')) || 0;
+                            }
+                            
                             return {
                                 ...item,
                                 quantity,
-                                subtotal: quantity * item.product.precio,
+                                subtotal: quantity * precio,
                             };
                         }
                         return item;
@@ -190,7 +222,18 @@ export const useCartStore = create<CartState>()(
 );
 
 function calculateTotals(items: CartItem[]) {
-    const subtotal = items.reduce((acc, item) => acc + item.subtotal, 0);
+    // Calcular subtotal asegurándonos de que cada item tenga un precio válido
+    const subtotal = items.reduce((acc, item) => {
+        // Si el subtotal es 0 pero el producto tiene precio, recalcular
+        if (item.subtotal === 0 && item.product.precio && item.product.precio > 0) {
+            const precio = typeof item.product.precio === 'number' 
+                ? item.product.precio 
+                : parseFloat(String(item.product.precio).replace(/[^0-9.-]+/g, '')) || 0;
+            return acc + (item.quantity * precio);
+        }
+        return acc + item.subtotal;
+    }, 0);
+    
     const iva = subtotal * IVA_RATE;
     const total = subtotal + iva;
     const itemCount = items.reduce((acc, item) => acc + item.quantity, 0);

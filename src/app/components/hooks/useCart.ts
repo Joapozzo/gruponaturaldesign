@@ -52,7 +52,7 @@ export const useCart = () => {
             if (newTotalCount > 20) {
                 return { 
                     canAdd: false, 
-                    reason: 'Límite alcanzado: máximo 20 artículos totales'
+                    reason: 'Límite minorista alcanzado: máximo 20 artículos totales'
                 };
             }
 

@@ -3,9 +3,9 @@ import { z } from 'zod';
 export const contactSchema = z.object({
     nombreCompleto: z
         .string()
-        .min(2, 'El nombre debe tener al menos 2 caracteres')
         .max(50, 'El nombre no puede exceder 50 caracteres')
-        .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'El nombre solo puede contener letras y espacios'),
+        .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/, 'El nombre solo puede contener letras y espacios')
+        .optional(),
 
     email: z
         .string()

@@ -13,6 +13,10 @@ import ColorSelector from './product-card/components/ColorSelector';
 import SizeSelector from './product-card/components/SizeSelector';
 import VariantSelector from './product-card/components/VariantSelector';
 import QuantityControls from './product-card/components/QuantityControls';
+import { getStockInfo, canAddQuantity, getStockMessage } from '@/app/services/stockService';
+import { formatPriceWithoutIVA } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
+import { useConfirmModal } from './hooks/useModal';
+import ConfirmModal from './modal/ConfirmModal';
 
 interface ProductCardGroupedProps {
     group: GroupedProduct;
@@ -29,6 +33,16 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
 }) => {
     const router = useRouter();
     const { addToCart, getCartItem, updateQuantity, getProductQuantity, canAddToCart } = useCart();
+
+    // Hook para modal de confirmación mayorista
+    const { 
+        isOpen: isWholesaleModalOpen, 
+        loading: isWholesaleModalLoading, 
+        modalOptions: wholesaleModalOptions, 
+        showModal: showWholesaleModal, 
+        closeModal: closeWholesaleModal, 
+        handleConfirm: handleWholesaleConfirm 
+    } = useConfirmModal();
 
     // Hook para manejar el estado del card
     const {
@@ -53,7 +67,10 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
     // Usar la variante seleccionada para mostrar
     const product = selectedVariant.producto;
     const productName = product.NOMBRE || group.skuBase;
-
+    
+    // Obtener stock de la variante seleccionada
+    const stock = selectedVariant.stock;
+    
     // Hook para manejar imágenes
     const { mainImage, hasValidImage, handleImageError, setHasValidImage } = useProductCardImage({
         product,
@@ -98,10 +115,20 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
         currentQuantity = getProductQuantity(selectedVariantId);
     }
     
-    // Validar si se puede agregar más unidades
+    // Validar límite de 20 artículos totales
     const quantityValidation = canAddToCart(selectedVariantId, 1);
-    const canAddMore = quantityValidation.canAdd;
+    const canAddMoreByLimit = quantityValidation.canAdd;
+    
+    // Validar stock disponible (lógica separada y delicada)
+    const canAddMoreByStock = canAddQuantity(stock, currentQuantity, 1);
+    
+    // Se puede agregar más solo si cumple ambos: límite de 20 Y stock disponible
+    const canAddMore = canAddMoreByLimit && canAddMoreByStock;
     const maxReached = !canAddMore;
+    
+    // Obtener información de stock (sin revelar el número exacto)
+    const stockInfo = getStockInfo(stock, currentQuantity);
+    const stockMessage = getStockMessage(stock);
 
     // Función para generar slug desde nombre
     const nombreToSlug = (nombre: string): string => {
@@ -147,15 +174,28 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
             }
         }
 
-        // Validar si se puede agregar más
+        // Validar límite de 20 artículos totales
         const validation = canAddToCart(selectedVariantId, 1);
         if (!validation.canAdd) {
-            // Mostrar toast con el mensaje de error
-            if (validation.reason) {
-                toast.error(validation.reason, {
-                    duration: 4000,
-                });
-            }
+            // Mostrar modal de confirmación para ir a mayorista
+            showWholesaleModal({
+                title: 'Límite minorista alcanzado',
+                message: 'Has alcanzado el límite de compra minorista (20 artículos). ¿Deseas continuar con tu compra en nuestro sistema mayorista?',
+                type: 'warning',
+                confirmText: 'Sí, ir a mayorista',
+                cancelText: 'No, cancelar',
+                onConfirm: async () => {
+                    router.push('/mayorista');
+                }
+            });
+            return;
+        }
+        
+        // Validar stock disponible (lógica separada y delicada)
+        if (!canAddQuantity(stock, currentQuantity, 1)) {
+            toast.error('No hay más unidades disponibles de este producto', {
+                duration: 4000,
+            });
             return;
         }
 
@@ -184,14 +224,20 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
             // No cerrar el producto cuando ya está en el carrito
         } else {
             // Si no está en el carrito, agregarlo
+            // Asegurar que el precio sea un número válido
+            const precio = product.PrecioVenta 
+                ? (typeof product.PrecioVenta === 'number' ? product.PrecioVenta : parseFloat(String(product.PrecioVenta).replace(/[^0-9.-]+/g, '')) || 0)
+                : 0;
+            
             addToCart(
                 {
                     id: selectedVariantId,
                     nombre: group.skuBase || product.Descripcion || product.NOMBRE || 'Sin descripción',
                     descripcion: product.DescripcionCorta || product.Descripcion || '',
                     imagen: mainImage || '',
-                    precio: product.PrecioVenta || 0,
+                    precio: precio,
                     categoria: product.Rubro || 'Sin categoría',
+                    stock: stock, // Pasar stock al carrito para validaciones
                     skuBaseSlug: group.skuBaseSlug || nombreToSlug(group.skuBase),
                 },
                 1,
@@ -220,11 +266,14 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
     const formattedPrice = product.PrecioVenta
         ? `$${product.PrecioVenta.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`
         : 'Consultar';
+    
+    // Calcular precio sin IVA
+    const priceWithoutIVA = formatPriceWithoutIVA(product.PrecioVenta);
 
-    // Si no hay imagen válida después de intentar con todos los colores, no mostrar el producto
-    if (!hasValidImage && (group.availableColors?.length || 0) > 0) {
-        return null;
-    }
+    // RENDERIZAR TODOS LOS PRODUCTOS SIN IMPORTAR SI TIENEN IMAGEN O NO (para control)
+    // if (!hasValidImage && (group.availableColors?.length || 0) > 0) {
+    //     return null;
+    // }
 
     return (
         <motion.div
@@ -332,11 +381,28 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                         {!isMobile && (
                             <span className="text-xs sm:text-sm text-gray-500 font-medium">Precio</span>
                         )}
-                        <span
-                            className={`font-bold text-gray-900 ${isMobile ? 'text-sm' : 'text-base sm:text-lg'}`}
-                        >
-                            {formattedPrice}
-                        </span>
+                        <div className="flex flex-col">
+                            <span
+                                className={`font-bold text-gray-900 ${isMobile ? 'text-sm' : 'text-base sm:text-lg'}`}
+                            >
+                                {formattedPrice}
+                            </span>
+                            {priceWithoutIVA && (
+                                <span className="text-xs text-gray-500">
+                                    {priceWithoutIVA}
+                                </span>
+                            )}
+                            {/* Mensaje de stock bajo (sin mostrar número exacto) */}
+                            {stockMessage && (
+                                <span className={`text-xs font-semibold mt-1 ${
+                                    stockMessage === 'ÚLTIMAS UNIDADES' 
+                                        ? 'text-orange-600' 
+                                        : 'text-red-600'
+                                }`}>
+                                    {stockMessage}
+                                </span>
+                            )}
+                        </div>
                     </div>
 
                     <QuantityControls
@@ -385,6 +451,15 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                     transition={{ duration: 0.4 }}
                 />
             )}
+
+            {/* Modal de confirmación mayorista */}
+            <ConfirmModal
+                isOpen={isWholesaleModalOpen}
+                onClose={closeWholesaleModal}
+                onConfirm={handleWholesaleConfirm}
+                loading={isWholesaleModalLoading}
+                {...wholesaleModalOptions}
+            />
         </motion.div>
     );
 };

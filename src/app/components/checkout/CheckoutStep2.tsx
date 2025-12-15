@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../hooks/useCart';
 import Button from '../ui/Button';
 import { CustomerData, ShippingData } from '@/app/types/cart';
-
+import { formatPrice } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
 
 interface CheckoutStep2Props {
   onNext: () => void;
@@ -17,6 +17,7 @@ interface FormErrors {
   nombre?: string;
   apellido?: string;
   email?: string;
+  confirmEmail?: string;
   telefono?: string;
   documento?: string;
   direccion?: string;
@@ -27,7 +28,7 @@ interface FormErrors {
 
 export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
   const router = useRouter();
-  const { customerData, shippingData, setCustomerData, setShippingData, itemCount } = useCart();
+  const { customerData, shippingData, setCustomerData, setShippingData, itemCount, items, subtotal, iva, total } = useCart();
 
   // No redirigir automáticamente - mostrar alerta cuando llegue a 20 unidades
 
@@ -43,6 +44,9 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
     documento: customerData?.documento || '',
     tipo_documento: customerData?.tipo_documento || 'DNI',
   });
+
+  // Estado para el email de confirmación
+  const [confirmEmail, setConfirmEmail] = useState<string>(customerData?.email || '');
 
   // Shipping Data State
   const [shipping, setShipping] = useState<ShippingData>({
@@ -83,6 +87,11 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
         if (!value.trim()) return 'Requerido';
         if (!validateEmail(value)) return 'Email inválido';
         break;
+      case 'confirmEmail':
+        if (!value.trim()) return 'Requerido';
+        if (!validateEmail(value)) return 'Email inválido';
+        if (value !== formData.email) return 'Los emails no coinciden';
+        break;
       case 'telefono':
         if (!value.trim()) return 'Requerido';
         if (!validatePhone(value)) return 'Teléfono inválido';
@@ -122,6 +131,19 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
       const error = validateField(field, value);
       setErrors({ ...errors, [field]: error });
     }
+    // Si cambia el email, también validar el confirmEmail
+    if (field === 'email' && touched.confirmEmail) {
+      const confirmError = validateField('confirmEmail', confirmEmail);
+      setErrors({ ...errors, confirmEmail: confirmError });
+    }
+  };
+
+  const handleConfirmEmailChange = (value: string) => {
+    setConfirmEmail(value);
+    if (touched.confirmEmail) {
+      const error = validateField('confirmEmail', value);
+      setErrors({ ...errors, confirmEmail: error });
+    }
   };
 
   const handleShippingChange = (field: keyof ShippingData, value: string) => {
@@ -134,7 +156,14 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
 
   const handleBlur = (field: string) => {
     setTouched({ ...touched, [field]: true });
-    const value = field in formData ? (formData as any)[field] : (shipping as any)[field];
+    let value: string;
+    if (field === 'confirmEmail') {
+      value = confirmEmail;
+    } else if (field in formData) {
+      value = (formData as any)[field];
+    } else {
+      value = (shipping as any)[field];
+    }
     const error = validateField(field, value);
     setErrors({ ...errors, [field]: error });
   };
@@ -150,6 +179,13 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
         isValid = false;
       }
     });
+
+    // Validar confirmEmail
+    const confirmEmailError = validateField('confirmEmail', confirmEmail);
+    if (confirmEmailError) {
+      newErrors.confirmEmail = confirmEmailError;
+      isValid = false;
+    }
 
     if (formData.documento) {
       const error = validateField('documento', formData.documento);
@@ -181,7 +217,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
       return;
     }
 
-    const allFields = ['nombre', 'apellido', 'email', 'telefono', 'direccion', 'localidad', 'provincia', 'codigo_postal'];
+    const allFields = ['nombre', 'apellido', 'email', 'confirmEmail', 'telefono', 'direccion', 'localidad', 'provincia', 'codigo_postal'];
     const newTouched: Record<string, boolean> = {};
     allFields.forEach((field) => {
       newTouched[field] = true;
@@ -287,53 +323,76 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
               </div>
             </div>
 
-            {/* Email y Teléfono */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Email <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleCustomerChange('email', e.target.value)}
-                  onBlur={() => handleBlur('email')}
-                  className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
-                    errors.email && touched.email ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  style={{
-                    color: '#000000',
-                    backgroundColor: '#ffffff',
-                  }}
-                  placeholder="juan@ejemplo.com"
-                />
-                {errors.email && touched.email && (
-                  <p className="text-red-600 text-xs mt-1">{errors.email}</p>
-                )}
-              </div>
+            {/* Email */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Email <span className="text-red-600">*</span>
+              </label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleCustomerChange('email', e.target.value)}
+                onBlur={() => handleBlur('email')}
+                className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                  errors.email && touched.email ? 'border-red-500' : 'border-gray-300'
+                }`}
+                style={{
+                  color: '#000000',
+                  backgroundColor: '#ffffff',
+                }}
+                placeholder="juan@ejemplo.com"
+              />
+              {errors.email && touched.email && (
+                <p className="text-red-600 text-xs mt-1">{errors.email}</p>
+              )}
+            </div>
 
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Teléfono <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="tel"
-                  value={formData.telefono}
-                  onChange={(e) => handleCustomerChange('telefono', e.target.value)}
-                  onBlur={() => handleBlur('telefono')}
-                  className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
-                    errors.telefono && touched.telefono ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  style={{
-                    color: '#000000',
-                    backgroundColor: '#ffffff',
-                  }}
-                  placeholder="+54 11 1234-5678"
-                />
-                {errors.telefono && touched.telefono && (
-                  <p className="text-red-600 text-xs mt-1">{errors.telefono}</p>
-                )}
-              </div>
+            {/* Confirmar Email */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Confirmar Email <span className="text-red-600">*</span>
+              </label>
+              <input
+                type="email"
+                value={confirmEmail}
+                onChange={(e) => handleConfirmEmailChange(e.target.value)}
+                onBlur={() => handleBlur('confirmEmail')}
+                className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                  errors.confirmEmail && touched.confirmEmail ? 'border-red-500' : 'border-gray-300'
+                }`}
+                style={{
+                  color: '#000000',
+                  backgroundColor: '#ffffff',
+                }}
+                placeholder="juan@ejemplo.com"
+              />
+              {errors.confirmEmail && touched.confirmEmail && (
+                <p className="text-red-600 text-xs mt-1">{errors.confirmEmail}</p>
+              )}
+            </div>
+
+            {/* Teléfono */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Teléfono <span className="text-red-600">*</span>
+              </label>
+              <input
+                type="tel"
+                value={formData.telefono}
+                onChange={(e) => handleCustomerChange('telefono', e.target.value)}
+                onBlur={() => handleBlur('telefono')}
+                className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                  errors.telefono && touched.telefono ? 'border-red-500' : 'border-gray-300'
+                }`}
+                style={{
+                  color: '#000000',
+                  backgroundColor: '#ffffff',
+                }}
+                placeholder="+54 11 1234-5678"
+              />
+              {errors.telefono && touched.telefono && (
+                <p className="text-red-600 text-xs mt-1">{errors.telefono}</p>
+              )}
             </div>
 
             {/* Tipo Doc y Número (en una fila) */}
@@ -596,29 +655,41 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
         </div>
       </div>
 
-      {/* RIGHT SIDE - Resumen e Info */}
-      <div className="w-full lg:w-80 flex flex-col gap-4">
-        <h2 className="text-base lg:text-xl font-bold text-black">RESUMEN</h2>
+      {/* RIGHT SIDE - Resumen del Carrito Fijo */}
+      <div className="w-full lg:w-80 flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
+        <h2 className="text-base lg:text-xl font-bold text-black">RESUMEN DEL PEDIDO</h2>
 
-        {/* Info Box */}
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
-          <h3 className="text-sm font-bold text-black">¿QUÉ NECESITAMOS?</h3>
-          <div className="space-y-2 text-xs text-gray-700">
-            <div className="flex gap-2">
-              <span className="text-red-600 font-bold">*</span>
-              <p>Nombre y apellido completo</p>
+        {/* Resumen del Carrito */}
+        <div className="bg-white border-l-2 border-black p-4 rounded-lg space-y-4">
+          {/* Lista de productos */}
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {items.map((item) => (
+              <div key={item.product.id} className="flex items-start gap-2 text-xs">
+                <span className="text-gray-500">{item.quantity}x</span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-black line-clamp-1">{item.product.nombre}</p>
+                  {item.especificaciones && (
+                    <p className="text-gray-500 text-[10px] line-clamp-1">{item.especificaciones}</p>
+                  )}
+                </div>
+                <span className="font-semibold text-black">{formatPrice(item.subtotal)}</span>
+              </div>
+            ))}
+          </div>
+          
+          {/* Totales */}
+          <div className="pt-4 border-t border-gray-200 space-y-2">
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>Total de productos</span>
+              <span className="font-semibold">{itemCount}</span>
             </div>
-            <div className="flex gap-2">
-              <span className="text-red-600 font-bold">*</span>
-              <p>Email válido para enviar confirmación</p>
+            <div className="flex justify-between text-xs text-gray-500">
+              <span>Subtotal sin IVA</span>
+              <span>{formatPrice(total / 1.21)}</span>
             </div>
-            <div className="flex gap-2">
-              <span className="text-red-600 font-bold">*</span>
-              <p>Teléfono de contacto</p>
-            </div>
-            <div className="flex gap-2">
-              <span className="text-gray-400">○</span>
-              <p>Datos fiscales si facturás como empresa</p>
+            <div className="flex justify-between text-lg font-bold text-black pt-2 border-t border-gray-300">
+              <span>TOTAL</span>
+              <span>{formatPrice(total)}</span>
             </div>
           </div>
         </div>

@@ -29,9 +29,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
     const {
         items,
         itemCount,
-        // subtotal,  // Comentado temporalmente - sin precios por ahora
-        // iva,       // Comentado temporalmente - sin precios por ahora
-        // total,     // Comentado temporalmente - sin precios por ahora
+        subtotal,
+        iva,
+        total,
         isEmpty,
         updateQuantity: originalUpdateQuantity,
         removeFromCart,
@@ -102,11 +102,17 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
         if (quantityDifference > 0) {
             const validation = canAddToCart(productId, quantityDifference);
             if (!validation.canAdd) {
-                if (validation.reason) {
-                    toast.error(validation.reason, {
-                        duration: 4000,
-                    });
-                }
+                // Mostrar modal de confirmación para ir a mayorista
+                showModal({
+                    title: 'Límite minorista alcanzado',
+                    message: 'Has alcanzado el límite de compra minorista (20 artículos). ¿Deseas continuar con tu compra en nuestro sistema mayorista?',
+                    type: 'warning',
+                    confirmText: 'Sí, ir a mayorista',
+                    cancelText: 'No, cancelar',
+                    onConfirm: async () => {
+                        router.push('/mayorista');
+                    }
+                });
                 return;
             }
         }
@@ -195,31 +201,15 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                         {!isEmpty && (
                             <div className="border-t border-gray-200 p-6 space-y-4 bg-white shadow-lg flex-shrink-0">
 
-                                {/* Resumen - COMENTADO TEMPORALMENTE (sin precios por ahora) */}
-                                {/* <div className="space-y-2">
-                                    <div className="flex justify-between text-gray-600">
-                                        <span className="font-medium">Subtotal</span>
-                                        <span className="font-semibold">
-                                            ${subtotal.toLocaleString('es-AR')}
-                                        </span>
+                                {/* Resumen de precios */}
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-gray-500 text-sm">
+                                        <span>Subtotal sin IVA</span>
+                                        <span>${(total / 1.21).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
                                     </div>
-                                    {iva > 0 && (
-                                        <div className="flex justify-between text-gray-500 text-sm">
-                                            <span>IVA (21%)</span>
-                                            <span>${iva.toLocaleString('es-AR')}</span>
-                                        </div>
-                                    )}
                                     <div className="flex justify-between text-xl font-bold text-black pt-3 border-t border-gray-300">
                                         <span className="tracking-wide">TOTAL</span>
-                                        <span>${total.toLocaleString('es-AR')}</span>
-                                    </div>
-                                </div> */}
-
-                                {/* Resumen de productos */}
-                                <div className="space-y-2">
-                                    <div className="flex justify-between text-xl font-bold text-black">
-                                        <span className="tracking-wide">TOTAL DE PRODUCTOS</span>
-                                        <span>{itemCount}</span>
+                                        <span>${total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
                                     </div>
                                 </div>
 

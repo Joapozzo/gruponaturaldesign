@@ -833,43 +833,6 @@ class ProductsService {
         return group.variants.find(v => v.codigo === codigo);
     }
 
-    /**
-     * Carga productos agrupados desde archivos locales
-     * Lee automáticamente desde public/data/products/
-     */
-    async loadGroupedProductsFromFiles(): Promise<GroupedProduct[] | null> {
-        try {
-            const response = await fetch('/api/products/load-from-files');
-            
-            if (!response.ok) {
-                throw new Error(`Error ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-
-            if (!data.success || !data.data) {
-                console.error('[loadGroupedProductsFromFiles] Error en respuesta:', data.error);
-                throw new Error(data.error || 'Error desconocido');
-            }
-
-            // El API ya devuelve productos agrupados
-            if (Array.isArray(data.data)) {
-
-                // Convertir los grupos a GroupedProduct
-                const mapped = data.data.map((group: any) => {
-                    const mappedGroup = this.mapApiGroupToGroupedProduct(group);
-                    return mappedGroup;
-                });
-                // console.log('[loadGroupedProductsFromFiles] Total grupos mapeados:', mapped.length);
-                return mapped;
-            }
-
-            return null;
-        } catch (error) {
-            console.error('[loadGroupedProductsFromFiles] Error al cargar productos desde archivos:', error);
-            return null;
-        }
-    }
 
     /**
      * Carga productos agrupados desde la API (Google Sheets)

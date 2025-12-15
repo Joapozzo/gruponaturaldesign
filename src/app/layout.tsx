@@ -3,7 +3,6 @@ import { Poppins, Montserrat } from "next/font/google";
 import "./globals.css";
 import ConditionalLayout from "./components/ConditionalLayout";
 import { Providers } from "./components/Providers";
-import AutoProductLoader from "./components/AutoProductLoader";
 
 // Fuentes según el manual de marca NTDS
 // Franklin Gothic Heavy no está en Google Fonts, usamos Poppins como fallback principal
@@ -79,7 +78,7 @@ export const metadata: Metadata = {
     siteName: "NTDS Natural Design",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/icon-512.png",
         width: 1200,
         height: 630,
         alt: "NTDS Natural Design - Uniformes Empresariales",
@@ -104,7 +103,7 @@ export const metadata: Metadata = {
     "business:contact_data:postal_code": "5000",
     "business:contact_data:country_name": "Argentina",
     "business:contact_data:phone_number": "+54 351 7136316",
-    "business:contact_data:email": "info@naturalonline.com.ar",
+    "business:contact_data:email": "ventas@naturalonline.com.ar",
   },
 
   // Robots y indexación
@@ -145,15 +144,19 @@ export const metadata: Metadata = {
   // Favicon e iconos - Natural Design Logo
   icons: {
     icon: [
+      { url: '/favicon.ico', sizes: '32x32' },
+      { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+      { url: '/icon-512.png', type: 'image/png', sizes: '512x512' },
       { url: 'https://naturalonline.com.ar/logos/logo-1.svg', type: 'image/svg+xml' },
-      { url: 'https://naturalonline.com.ar/logos/logo-1.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: light)' },
-      { url: 'https://naturalonline.com.ar/logos/logo-2.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: dark)' },
     ],
     apple: [
-      { url: 'https://naturalonline.com.ar/logos/logo-1.svg', type: 'image/svg+xml' },
+      { url: '/apple-icon-180.png', sizes: '180x180', type: 'image/png' },
     ],
-    shortcut: 'https://naturalonline.com.ar/logos/logo-1.svg',
+    shortcut: '/favicon.ico',
   },
+
+  // Manifest
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
@@ -184,7 +187,7 @@ export default function RootLayout({
               "name": "NTDS Natural Design",
               "alternateName": "Natural Design",
               "url": "https://naturalonline.com.ar",
-              "logo": "https://naturalonline.com.ar/logo.png",
+              "logo": "https://naturalonline.com.ar/icon-512.png",
               "image": "https://naturalonline.com.ar/og-image.jpg",
               "description": "Empresa especializada en uniformes empresariales de diseño, ropa de trabajo y merchandising de diseño con más de 25 años de experiencia en Córdoba, Argentina.",
               "address": {
@@ -199,7 +202,7 @@ export default function RootLayout({
                 "@type": "ContactPoint",
                 "telephone": "+54-351-7136316",
                 "contactType": "customer service",
-                "email": "info@naturalonline.com.ar",
+                "email": "ventas@naturalonline.com.ar",
                 "availableLanguage": "Spanish"
               },
               "sameAs": [
@@ -233,16 +236,12 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
         {/* Favicon - Natural Design Logo */}
-        <link rel="icon" href="https://naturalonline.com.ar/logos/logo-1.svg" type="image/svg+xml" />
-        <link rel="icon" href="https://naturalonline.com.ar/logos/logo-1.svg" type="image/svg+xml" media="(prefers-color-scheme: light)" />
-        <link rel="icon" href="https://naturalonline.com.ar/logos/logo-2.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" />
-        <link rel="shortcut icon" href="https://naturalonline.com.ar/logos/logo-1.svg" type="image/svg+xml" />
+        <link rel="icon" href="/favicon.ico" sizes="32x32" />
+        <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
+        <link rel="icon" href="/icon-512.png" type="image/png" sizes="512x512" />
         
         {/* Apple touch icon */}
-        <link rel="apple-touch-icon" href="https://naturalonline.com.ar/logos/logo-1.svg" />
-        <link rel="apple-touch-icon" sizes="180x180" href="https://naturalonline.com.ar/logos/logo-1.svg" />
-
-        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/apple-icon-180.png" sizes="180x180" />
 
         {/* Optimización de recursos */}
         <link rel="dns-prefetch" href="//images.unsplash.com" />
@@ -262,7 +261,6 @@ export default function RootLayout({
         }}
       >
         <Providers>
-          <AutoProductLoader />
           <ConditionalLayout>
             {children}
           </ConditionalLayout>

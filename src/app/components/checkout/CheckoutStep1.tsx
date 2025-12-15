@@ -8,7 +8,10 @@ import { useCart } from '../hooks/useCart';
 import Button from '../ui/Button';
 import { Trash2, ArrowRight, Package } from 'lucide-react';
 import QuantityControlsUI from '@/app/components/ui/QuantityControls';
-// import { formatPrice } from '@/app/utils/precio'; // Comentado - sin precios por ahora
+import { formatPrice, formatPriceWithoutIVA } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
+import { getStockMessage } from '@/app/services/stockService';
+import { useConfirmModal } from '../hooks/useModal';
+import ConfirmModal from '../modal/ConfirmModal';
 
 interface CheckoutStep1Props {
   onNext: () => void;
@@ -17,8 +20,17 @@ interface CheckoutStep1Props {
 
 export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
   const router = useRouter();
-  const { items, updateQuantity: originalUpdateQuantity, removeFromCart, itemCount, canAddToCart } = useCart();
-  // const { subtotal, iva, total } = useCart(); // Comentado - sin precios por ahora
+  const { items, updateQuantity: originalUpdateQuantity, removeFromCart, itemCount, canAddToCart, subtotal, iva, total } = useCart();
+
+  // Hook para modal de confirmación mayorista
+  const { 
+    isOpen: isWholesaleModalOpen, 
+    loading: isWholesaleModalLoading, 
+    modalOptions: wholesaleModalOptions, 
+    showModal: showWholesaleModal, 
+    closeModal: closeWholesaleModal, 
+    handleConfirm: handleWholesaleConfirm 
+  } = useConfirmModal();
 
   // No redirigir automáticamente - mostrar alerta cuando llegue a 20 unidades
 
@@ -41,12 +53,30 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
     if (quantityDifference > 0) {
       const validation = canAddToCart(productId, quantityDifference);
       if (!validation.canAdd) {
-        if (validation.reason) {
-          toast.error(validation.reason, {
+        // Mostrar modal de confirmación para ir a mayorista
+        showWholesaleModal({
+          title: 'Límite minorista alcanzado',
+          message: 'Has alcanzado el límite de compra minorista (20 artículos). ¿Deseas continuar con tu compra en nuestro sistema mayorista?',
+          type: 'warning',
+          confirmText: 'Sí, ir a mayorista',
+          cancelText: 'No, cancelar',
+          onConfirm: async () => {
+            router.push('/mayorista');
+          }
+        });
+        return;
+      }
+      
+      // Validar stock del producto
+      const existingItem = items.find(item => item.product.id === productId);
+      if (existingItem && existingItem.product.stock !== undefined) {
+        const stockMessage = getStockMessage(existingItem.product.stock);
+        if (stockMessage && newQuantity > (existingItem.product.stock || 0)) {
+          toast.error(stockMessage, {
             duration: 4000,
           });
+          return;
         }
-        return;
       }
     }
 
@@ -99,6 +129,13 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
                   {item.especificaciones && (
                     <p className="text-[10px] lg:text-xs text-gray-600 mt-0.5 line-clamp-1">{item.especificaciones}</p>
                   )}
+                  {/* Precio */}
+                  <div className="mt-1">
+                    <p className="text-xs font-bold text-black">{formatPrice(item.subtotal)}</p>
+                    {item.subtotal > 0 && (
+                      <p className="text-[10px] text-gray-500">{formatPriceWithoutIVA(item.subtotal)}</p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Quantity Controls - Estilo CartDrawer sin outline */}
@@ -108,8 +145,8 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
                       quantity={item.quantity}
                       onIncrement={() => handleQuantityChange(item.product.id, item.quantity + 1)}
                       onDecrement={() => handleQuantityChange(item.product.id, item.quantity - 1)}
-                      canAddMore={canAddToCart(item.product.id, 1).canAdd}
-                      maxReached={item.quantity >= 99}
+                      canAddMore={canAddToCart(item.product.id, 1).canAdd && (item.product.stock === undefined || item.quantity < (item.product.stock || 0))}
+                      maxReached={item.quantity >= 99 || (item.product.stock !== undefined && item.quantity >= (item.product.stock || 0))}
                     />
                   </div>
                   {/* Remove Button - Siempre visible */}
@@ -125,17 +162,12 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
             </motion.div>
           ))}
 
-          {/* Summary - Minimalista */}
-          <div className="p-2 flex justify-between items-center mt-2 border-t border-gray-200">
-            <span className="text-xs text-gray-600 font-medium">TOTAL DE PRODUCTOS</span>
-            <span className="text-sm font-semibold text-black">{itemCount}</span>
-          </div>
         </div>
       </div>
 
-      {/* RIGHT SIDE - Acciones y Políticas */}
-      <div className="w-full lg:w-80 flex flex-col gap-4">
-        {/* <h2 className="text-base lg:text-xl font-bold text-black">ACCIONES</h2> */}
+      {/* RIGHT SIDE - Resumen del Carrito Fijo */}
+      <div className="w-full lg:w-80 flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
+
 
         {/* Alerta Mayorista - Si tiene 20+ artículos, mostrar mensaje y botón para volver */}
         {itemCount >= 20 ? (
@@ -206,7 +238,7 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
         )}
 
         {/* Políticas */}
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
           <h3 className="text-sm font-bold text-black mb-3">INFORMACIÓN IMPORTANTE</h3>
           <div className="space-y-3 text-xs text-gray-700">
             <div className="flex gap-2">
@@ -237,6 +269,15 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
         </div>
 
       </div>
+
+      {/* Modal de confirmación mayorista */}
+      <ConfirmModal
+        isOpen={isWholesaleModalOpen}
+        onClose={closeWholesaleModal}
+        onConfirm={handleWholesaleConfirm}
+        loading={isWholesaleModalLoading}
+        {...wholesaleModalOptions}
+      />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../hooks/useCart';
@@ -11,7 +11,7 @@ import { BsCashStack } from "react-icons/bs";
 // import { FaWhatsapp } from "react-icons/fa";
 import { FaRegCreditCard } from "react-icons/fa6";
 import { ArrowLeft } from 'lucide-react';
-// import { formatPrice } from '@/app/utils/precio'; // Comentado - sin precios por ahora
+import { formatPrice } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
 
 interface CheckoutStep3Props {
   onBack: () => void;
@@ -58,9 +58,9 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
     setPaymentData,
     clearCart,
     itemCount,
-    // subtotal,  // Comentado - sin precios por ahora
-    // iva,       // Comentado - sin precios por ahora
-    // total,     // Comentado - sin precios por ahora
+    subtotal,
+    iva,
+    total,
   } = useCart();
 
   // No redirigir automáticamente - mostrar alerta cuando llegue a 20 unidades
@@ -153,6 +153,8 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
       }
 
       message += `   Cantidad: ${item.quantity} unidades\n`;
+      message += `   Precio unitario: ${formatPrice(item.product.precio)}\n`;
+      message += `   Subtotal: ${formatPrice(item.subtotal)}\n`;
       if (index < items.length - 1) {
         message += '\n';
       }
@@ -163,6 +165,8 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
     // RESUMEN
     message += '*RESUMEN*\n';
     message += `Total de productos: ${itemCount} unidades\n`;
+    message += `Subtotal sin IVA: ${formatPrice(subtotal)}\n`;
+    message += `*TOTAL (IVA incluido): ${formatPrice(total)}*\n`;
   
     return encodeURIComponent(message);
   };
@@ -177,9 +181,9 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
         paymentData: payment,
         items,
         itemCount,
-        // subtotal,  // Comentado
-        // iva,       // Comentado
-        // total,     // Comentado
+        subtotal,
+        iva,
+        total,
       };
 
       const response = await fetch('/api/send-order-email', {
@@ -341,9 +345,8 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
                     <p className="text-gray-600 text-xs mt-1">{item.especificaciones}</p>
                   )}
                   <p className="text-gray-700 mt-1">Cantidad: {item.quantity} unidades</p>
-                  {/* PRECIOS - Comentados para futuro */}
-                  {/* <p className="text-gray-700">Precio: {formatPrice(item.product.precio)}</p> */}
-                  {/* <p className="font-semibold text-black">Subtotal: {formatPrice(item.subtotal)}</p> */}
+                  <p className="text-gray-700">Precio unitario: {formatPrice(item.product.precio)}</p>
+                  <p className="font-semibold text-black">Subtotal: {formatPrice(item.subtotal)}</p>
                 </div>
               ))}
             </div>
@@ -351,25 +354,20 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
 
           {/* Total Summary - Sticky at bottom */}
           <div className="sticky bottom-0 bg-black text-white p-4 rounded-lg">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center mb-3">
               <span className="font-bold text-sm">TOTAL DE PRODUCTOS</span>
               <span className="text-2xl font-bold text-red-600">{itemCount}</span>
             </div>
-            {/* PRECIOS - Comentados para futuro */}
-            {/* <div className="mt-3 pt-3 border-t border-gray-700 space-y-1 text-sm">
-              <div className="flex justify-between">
-                <span>Subtotal:</span>
+            <div className="pt-3 border-t border-gray-700 space-y-1 text-sm">
+              <div className="flex justify-between text-xs text-gray-300">
+                <span>Subtotal sin IVA:</span>
                 <span>{formatPrice(subtotal)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>IVA (21%):</span>
-                <span>{formatPrice(iva)}</span>
-              </div>
               <div className="flex justify-between text-lg font-bold mt-2 pt-2 border-t border-gray-700">
-                <span>TOTAL:</span>
+                <span>TOTAL (IVA incluido):</span>
                 <span className="text-red-600">{formatPrice(total)}</span>
               </div>
-            </div> */}
+            </div>
           </div>
         </div>
       </div>

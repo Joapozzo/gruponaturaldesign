@@ -37,15 +37,7 @@ export function useShopCategories() {
             try {
                 setIsLoading(true);
                 
-                // Intentar cargar desde archivos primero
-                const fileGrouped = await productsService.loadGroupedProductsFromFiles();
-                if (fileGrouped && fileGrouped.length > 0) {
-                    setGroupedProducts(fileGrouped);
-                    setIsLoading(false);
-                    return;
-                }
-
-                // Si no hay archivos, intentar desde localStorage
+                // Intentar cargar desde localStorage
                 const products = productsService.loadProductsFromLocalStorage();
                 if (products && products.length > 0) {
                     const grouped = productsService.groupProductsByVariants(products);
@@ -70,10 +62,37 @@ export function useShopCategories() {
         const subrubrosSet = new Set<string>();
         const generosSet = new Set<string>();
 
+        // Función para normalizar rubro: PRODUCTO OFFICE → BASIC, PRODUCTO WORKWEAR → WORKWEAR
+        const normalizeRubroForDisplay = (rubro: string): string => {
+            if (!rubro) return '';
+            const rubroUpper = rubro.toUpperCase().trim();
+            
+            // Si contiene "WORKWEAR", retornar "WORKWEAR"
+            if (rubroUpper.includes('WORKWEAR')) {
+                return 'WORKWEAR';
+            }
+            
+            // Si contiene "OFFICE", retornar "BASIC"
+            if (rubroUpper.includes('OFFICE')) {
+                return 'BASIC';
+            }
+            
+            // Si ya es "BASIC" o "WORKWEAR", retornarlo tal cual
+            if (rubroUpper === 'BASIC' || rubroUpper === 'WORKWEAR') {
+                return rubroUpper;
+            }
+            
+            // Por defecto, retornar el rubro original
+            return rubro.trim();
+        };
+
         groupedProducts.forEach(product => {
-            // Rubros
+            // Rubros - normalizar para mostrar
             if (product.displayProduct.Rubro) {
-                rubrosSet.add(product.displayProduct.Rubro.trim());
+                const normalizedRubro = normalizeRubroForDisplay(product.displayProduct.Rubro);
+                if (normalizedRubro) {
+                    rubrosSet.add(normalizedRubro);
+                }
             }
 
             // Subrubros

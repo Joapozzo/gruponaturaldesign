@@ -16,22 +16,7 @@ export function useGroupedProducts(options: UseGroupedProductsOptions = {}) {
     const query = useQuery({
         queryKey: ['products', 'grouped', filters],
         queryFn: async (): Promise<GroupedProduct[]> => {
-            // PRIORIDAD 1: Intentar cargar desde archivos locales (public/data/products/)
-            const fileGrouped = await productsService.loadGroupedProductsFromFiles();
-            if (fileGrouped && fileGrouped.length > 0) {
-                // Guardar en localStorage como backup
-                const productsArray = fileGrouped.flatMap(g => g.variants.map(v => v.producto));
-                productsService.saveProductsToLocalStorage(productsArray);
-                
-                // Aplicar filtros si existen
-                const hasFilters = Object.keys(filters).length > 0;
-                if (hasFilters) {
-                    return productsService.filterGroupedProducts(fileGrouped, filters);
-                }
-                return fileGrouped;
-            }
-
-            // PRIORIDAD 2: Intentar cargar desde la API (Google Sheets)
+            // PRIORIDAD 1: Intentar cargar desde la API (Google Sheets)
             const apiGrouped = await productsService.loadGroupedProductsFromAPI();
             if (apiGrouped && apiGrouped.length > 0) {
                 // Aplicar filtros si existen

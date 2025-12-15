@@ -26,7 +26,7 @@ export default function MayoristaPage() {
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     const beneficios = [
-        'Precios especiales según cantidad',
+        'Hasta 40% OFF',
         'Opciones de pago flexibles',
         'Atención personalizada',
         'Producción programada y logística a medida',

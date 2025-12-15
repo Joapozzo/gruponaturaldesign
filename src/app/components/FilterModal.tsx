@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Filter, ArrowUpDown } from 'lucide-react';
 import { FilterState } from './hooks/useCatalogFilters';
+import { getColorHex } from './product-card/utils/colorUtils';
 
 interface FilterModalProps {
     isOpen: boolean;
@@ -16,44 +17,86 @@ interface FilterModalProps {
     onToggleTalle: (talle: string) => void;
     onClearFilters: () => void;
     hasActiveFilters: boolean;
+    rubros?: string[];
+    subrubros?: string[];
 }
 
-// Mapeo de colores a códigos hexadecimales aproximados
-const colorMap: Record<string, string> = {
-    'negro': '#000000',
-    'black': '#000000',
-    'blanco': '#FFFFFF',
-    'white': '#FFFFFF',
-    'rojo': '#FF0000',
-    'red': '#FF0000',
-    'azul': '#0000FF',
-    'blue': '#0000FF',
-    'verde': '#00FF00',
-    'green': '#00FF00',
-    'amarillo': '#FFFF00',
-    'yellow': '#FFFF00',
-    'naranja': '#FFA500',
-    'orange': '#FFA500',
-    'rosa': '#FFC0CB',
-    'pink': '#FFC0CB',
-    'violeta': '#8A2BE2',
-    'violet': '#8A2BE2',
-    'lila': '#C8A2C8',
-    'lilac': '#C8A2C8',
-    'gris': '#808080',
-    'gray': '#808080',
-    'gris claro': '#D3D3D3',
-    'light gray': '#D3D3D3',
-    'hueso': '#F5F5DC',
-    'beige': '#F5F5DC',
-    'marron': '#A52A2A',
-    'brown': '#A52A2A',
+// La función getColorHex se importa de colorUtils.ts para mantener consistencia
+
+/**
+ * Orden estándar de talles en letras
+ * IMPORTANTE: 2XS debe ir primero, luego XS, S, M, L, XL, 2XL, 3XL, 4XL
+ */
+const SIZE_ORDER: { [key: string]: number } = {
+    '2xs': 1,      // 2XS debe ir primero
+    'xxs': 1,      // XXS es lo mismo que 2XS
+    'xs': 2,
+    's': 3,
+    'm': 4,
+    'l': 5,
+    'xl': 6,
+    '2xl': 7,
+    'xxl': 7,      // XXL es lo mismo que 2XL
+    '3xl': 8,
+    'xxxl': 8,     // XXXL es lo mismo que 3XL
+    '4xl': 9,
+    'xxxxl': 9,    // XXXXL es lo mismo que 4XL
+    '5xl': 10,
 };
 
-const getColorHex = (colorName: string): string => {
-    const normalized = colorName.toLowerCase().trim();
-    return colorMap[normalized] || '#CCCCCC';
-};
+/**
+ * Función para normalizar el nombre del talle antes de buscar en SIZE_ORDER
+ */
+function normalizeSizeForOrder(size: string): string {
+    const normalized = size.toLowerCase().trim();
+    
+    // Normalizar variantes comunes
+    if (normalized === 'xxs') return '2xs';
+    if (normalized === 'xxl') return '2xl';
+    if (normalized === 'xxxl') return '3xl';
+    if (normalized === 'xxxxl') return '4xl';
+    
+    return normalized;
+}
+
+/**
+ * Función para ordenar talles de manera lógica
+ * - Números: de menor a mayor (36, 38, 40, 42)
+ * - Letras: orden estándar (2xs, xs, s, m, l, xl, 2xl, 3xl, 4xl)
+ */
+function sortSizes(sizes: string[]): string[] {
+    return [...sizes].sort((a, b) => {
+        const aLower = a.toLowerCase().trim();
+        const bLower = b.toLowerCase().trim();
+
+        // Verificar si ambos son números puros
+        const aIsNumber = /^\d+$/.test(aLower);
+        const bIsNumber = /^\d+$/.test(bLower);
+
+        // Si ambos son números, ordenar numéricamente
+        if (aIsNumber && bIsNumber) {
+            return parseInt(aLower, 10) - parseInt(bLower, 10);
+        }
+
+        // Si uno es número y el otro no, los números van primero
+        if (aIsNumber && !bIsNumber) return -1;
+        if (!aIsNumber && bIsNumber) return 1;
+
+        // Si ambos son letras, normalizar y usar el orden predefinido
+        const aNormalized = normalizeSizeForOrder(aLower);
+        const bNormalized = normalizeSizeForOrder(bLower);
+        
+        const aOrder = SIZE_ORDER[aNormalized] || 999;
+        const bOrder = SIZE_ORDER[bNormalized] || 999;
+
+        if (aOrder !== bOrder) {
+            return aOrder - bOrder;
+        }
+
+        // Si no está en el orden predefinido, ordenar alfabéticamente
+        return aLower.localeCompare(bLower);
+    });
+}
 
 const FilterModal: React.FC<FilterModalProps> = ({
     isOpen,
@@ -65,7 +108,33 @@ const FilterModal: React.FC<FilterModalProps> = ({
     onToggleTalle,
     onClearFilters,
     hasActiveFilters,
+    rubros = [],
+    subrubros = [],
 }) => {
+    // Valores dinámicos para categorías (siempre incluir TODOS, BASIC y WORKWEAR)
+    // Los rubros ya vienen normalizados como 'WORKWEAR' o 'BASIC'
+    const defaultCategorias = ['TODOS', 'BASIC', 'WORKWEAR'];
+    const categoriaOptions = [...defaultCategorias, ...rubros].filter((value, index, self) => 
+        index === self.indexOf(value) // Remover duplicados
+    );
+    
+    // Valores dinámicos para subrubros (siempre incluir TODOS)
+    const subrubroOptions = ['TODOS', ...subrubros].filter((value, index, self) => 
+        index === self.indexOf(value) // Remover duplicados
+    );
+    
+    // Ordenar colores alfabéticamente
+    const sortedColores = useMemo(() => {
+        return [...availableOptions.colores].sort((a, b) => 
+            a.toLowerCase().localeCompare(b.toLowerCase())
+        );
+    }, [availableOptions.colores]);
+    
+    // Ordenar talles de menor a mayor usando la función sortSizes
+    const sortedTalles = useMemo(() => {
+        return sortSizes(availableOptions.talles);
+    }, [availableOptions.talles]);
+    
     return (
         <AnimatePresence>
             {isOpen && (
@@ -135,7 +204,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                                     Categoría
                                 </h3>
                                 <div className="space-y-2">
-                                    {(['BASIC', 'WORKWEAR', 'TODOS'] as const).map((tipo) => (
+                                    {categoriaOptions.map((tipo) => (
                                         <label
                                             key={tipo}
                                             className="flex items-center space-x-3 p-3 border-2 border-gray-200 rounded-lg hover:border-gray-300 transition-colors cursor-pointer"
@@ -156,30 +225,32 @@ const FilterModal: React.FC<FilterModalProps> = ({
                             </div>
 
                             {/* Subrubro */}
-                            <div>
-                                <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">
-                                    Tipo de Prenda
-                                </h3>
-                                <div className="space-y-2">
-                                    {(['remera', 'pantalon', 'campera', 'sweater', 'camisa', 'buzo', 'TODOS'] as const).map((subrubro) => (
-                                        <label
-                                            key={subrubro}
-                                            className="flex items-center space-x-3 p-3 border-2 border-gray-200 rounded-lg hover:border-gray-300 transition-colors cursor-pointer"
-                                        >
-                                            <input
-                                                type="radio"
-                                                name="subrubro"
-                                                checked={filters.subrubro === subrubro}
-                                                onChange={() => onUpdateFilter('subrubro', subrubro)}
-                                                className="w-4 h-4 text-gray-600 accent-gray-600"
-                                            />
-                                            <span className="text-sm font-medium text-gray-700 capitalize">
-                                                {subrubro === 'TODOS' ? 'Todos' : subrubro}
-                                            </span>
-                                        </label>
-                                    ))}
+                            {subrubroOptions.length > 1 && (
+                                <div>
+                                    <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">
+                                        Tipo de Prenda
+                                    </h3>
+                                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                                        {subrubroOptions.map((subrubro) => (
+                                            <label
+                                                key={subrubro}
+                                                className="flex items-center space-x-3 p-3 border-2 border-gray-200 rounded-lg hover:border-gray-300 transition-colors cursor-pointer"
+                                            >
+                                                <input
+                                                    type="radio"
+                                                    name="subrubro"
+                                                    checked={filters.subrubro === subrubro}
+                                                    onChange={() => onUpdateFilter('subrubro', subrubro)}
+                                                    className="w-4 h-4 text-gray-600 accent-gray-600"
+                                                />
+                                                <span className="text-sm font-medium text-gray-700 capitalize">
+                                                    {subrubro === 'TODOS' ? 'Todos' : subrubro}
+                                                </span>
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
                             {/* Género */}
                             <div>
@@ -208,13 +279,13 @@ const FilterModal: React.FC<FilterModalProps> = ({
                             </div>
 
                             {/* Colores */}
-                            {availableOptions.colores.length > 0 && (
+                            {sortedColores.length > 0 && (
                                 <div>
                                     <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">
                                         Color
                                     </h3>
                                     <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
-                                        {availableOptions.colores.map((color) => {
+                                        {sortedColores.map((color) => {
                                             const isSelected = filters.colores.includes(color);
                                             return (
                                                 <label
@@ -246,13 +317,13 @@ const FilterModal: React.FC<FilterModalProps> = ({
                             )}
 
                             {/* Talles */}
-                            {availableOptions.talles.length > 0 && (
+                            {sortedTalles.length > 0 && (
                                 <div>
                                     <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">
                                         Talle
                                     </h3>
                                     <div className="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto">
-                                        {availableOptions.talles.map((talle) => {
+                                        {sortedTalles.map((talle) => {
                                             const isSelected = filters.talles.includes(talle);
                                             return (
                                                 <label

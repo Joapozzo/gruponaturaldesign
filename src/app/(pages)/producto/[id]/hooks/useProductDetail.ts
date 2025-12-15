@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { GroupedProduct } from '@/app/types/producto';
-import { useGroupedProducts } from '@/app/hooks/useGroupedProducts';
+import { GroupedProductV2 } from '@/app/types/producto-v2';
+import { useProductsV2 } from '@/app/hooks/useProductsV2';
 import { nombreToSlug } from '../helpers/productHelpers';
 
 interface OutfitRelations {
@@ -136,6 +137,103 @@ function findRelatedProductsForOutfit(
     return relatedProducts.slice(0, maxResults);
 }
 
+/**
+ * Adapta GroupedProductV2 a GroupedProduct para compatibilidad
+ */
+function adaptGroupedProductV2ToGroupedProduct(groupV2: GroupedProductV2): GroupedProduct {
+    // Adaptar displayProduct
+    const displayProduct: GroupedProduct['displayProduct'] = {
+        Codigo: groupV2.displayProduct.codigo,
+        Tipo: null,
+        Descripcion: groupV2.displayProduct.item,
+        UM: null,
+        Rubro: groupV2.displayProduct.rubro,
+        Subrubro: groupV2.displayProduct.subrubro,
+        Activo: true,
+        Moneda: null,
+        PrecioCosto: null,
+        UltActualizacion: null,
+        CostoXLM: null,
+        ListaMaterial: null,
+        PrecioUMCompra: null,
+        UMCompra: null,
+        PrecioVenta: groupV2.displayProduct.precioLista,
+        UtilidadP: null,
+        UtilidadR: null,
+        Base: null,
+        Barcode: null,
+        EqCodigoContable: null,
+        EqCodigoExterno: null,
+        ItemDeCompra: null,
+        ItemDeVenta: true,
+        ItemDeAlquiler: null,
+        Fabricar: null,
+        APedido: null,
+        GrupoGasto: null,
+        CTACompras: null,
+        CTAVentas: null,
+        StockMin: null,
+        StockMax: null,
+        PesoBruto: null,
+        DescripcionCorta: groupV2.displayProduct.nombreBase,
+        Observaciones: null,
+        ProveedorPorDefecto: null,
+        DepositoConsumo: null,
+        Ubicacion: null,
+        ItemLote: null,
+        ItemSerie: null,
+        Clase: null,
+        Linea: null,
+        Material: null,
+        ActPrecioXOC: null,
+        FlowintSincroEnabled: null,
+        Usuario: null,
+        FechaAlta: null,
+        // Campos extendidos
+        imagen: groupV2.displayProduct.imagen || null,
+        imagenes: groupV2.displayProduct.imagenes || [],
+        tablaTallesImage: groupV2.displayProduct.tablaTallesImage || null,
+        indicacionesBordadosUrl: groupV2.displayProduct.indicacionesBordadosImage || null,
+        NOMBRE: groupV2.displayProduct.nombreBase,
+        // Agregar rubroNormalizado para compatibilidad con filtros
+        rubroNormalizado: groupV2.displayProduct.rubroNormalizado,
+    };
+
+    // Adaptar variantes - cada variante tiene su propio producto con su descripción
+    const variants: GroupedProduct['variants'] = groupV2.variants.map(v => {
+        // Crear un ProductWithImage específico para esta variante con su descripción
+        const variantProduct: GroupedProduct['displayProduct'] = {
+            ...displayProduct,
+            // Usar la descripción del producto de la variante (v.producto.item)
+            Descripcion: v.producto.item || displayProduct.Descripcion,
+            // Usar el precio de la variante
+            PrecioVenta: v.precioLista || displayProduct.PrecioVenta,
+            // Usar las imágenes específicas de esta variante si las tiene
+            imagenes: v.producto.imagenes || displayProduct.imagenes,
+            imagen: v.producto.imagen || displayProduct.imagen,
+        };
+        
+        return {
+            codigo: v.codigo,
+            variantNumber: 0,
+            talle: v.talle,
+            color: v.color,
+            stock: v.stock,
+            producto: variantProduct,
+        };
+    });
+
+    return {
+        skuBase: groupV2.skuBase,
+        skuBaseSlug: groupV2.skuBaseSlug,
+        displayProduct,
+        variants,
+        totalVariants: groupV2.totalVariants,
+        availableColors: groupV2.availableColors,
+        availableSizes: groupV2.availableSizes,
+    };
+}
+
 export function useProductDetail() {
     const params = useParams();
     const skuBase = decodeURIComponent(params.id as string);
@@ -143,11 +241,17 @@ export function useProductDetail() {
     const [groupedProduct, setGroupedProduct] = useState<GroupedProduct | null>(null);
     const [relatedProducts, setRelatedProducts] = useState<GroupedProduct[]>([]);
 
-    const { groupedProducts, isLoading: productsLoading, isError: productsError, isFetched: productsFetched } = useGroupedProducts();
+    const { products: groupedProductsV2, isLoading: productsLoading, isError: productsError } = useProductsV2();
+    
+    // Convertir productos V2 a formato compatible (memoizar para evitar recreaciones)
+    const groupedProducts = useMemo(
+        () => groupedProductsV2.map(adaptGroupedProductV2ToGroupedProduct),
+        [groupedProductsV2]
+    );
 
     useEffect(() => {
-        // Mientras los productos estén cargando O no se hayan fetcheado aún, no hacer nada
-        if (productsLoading || !productsFetched) {
+        // Mientras los productos estén cargando, no hacer nada
+        if (productsLoading) {
             return;
         }
 
@@ -194,7 +298,7 @@ export function useProductDetail() {
         
         // Buscar el producto por múltiples criterios para mayor flexibilidad
         // PRIORIDAD: Búsquedas exactas primero, luego búsquedas flexibles
-        const foundProduct = groupedProducts.find(g => {
+        const foundProduct = groupedProducts.find((g: GroupedProduct) => {
             const slug = g.skuBaseSlug || nombreToSlug(g.skuBase);
             const skuBaseLower = g.skuBase.toLowerCase();
             
@@ -241,11 +345,11 @@ export function useProductDetail() {
             // Solo filtrar palabras realmente comunes que no son distintivas
             const commonWords = ['de', 'la', 'el', 'y', 'con', 'para', 'por', 'un', 'una', 'del', 'las', 'los'];
             const searchWords = cleanedSearchSlug.split('-')
-                .filter(w => w.length > 2 && !commonWords.includes(w.toLowerCase()));
+                .filter((w: string) => w.length > 2 && !commonWords.includes(w.toLowerCase()));
             const skuBaseWords = skuBaseLower.split(/\s+/)
-                .filter(w => w.length > 2 && !commonWords.includes(w.toLowerCase()));
+                .filter((w: string) => w.length > 2 && !commonWords.includes(w.toLowerCase()));
             const slugWords = slug.toLowerCase().split('-')
-                .filter(w => w.length > 2 && !commonWords.includes(w.toLowerCase()));
+                .filter((w: string) => w.length > 2 && !commonWords.includes(w.toLowerCase()));
             
             // Si no hay palabras distintivas, no hacer búsqueda por palabras clave
             if (searchWords.length === 0) {
@@ -255,15 +359,15 @@ export function useProductDetail() {
             // Verificar que palabras distintivas como "hombre" o "dama" coincidan exactamente
             // Esto previene que "camisa-drill-dama" coincida con "camisa-drill-hombre"
             const genderWords = ['hombre', 'dama', 'unisex'];
-            const searchHasGender = searchWords.some(w => genderWords.includes(w.toLowerCase()));
-            const productHasGender = skuBaseWords.some(w => genderWords.includes(w.toLowerCase())) ||
-                                    slugWords.some(w => genderWords.includes(w.toLowerCase()));
+            const searchHasGender = searchWords.some((w: string) => genderWords.includes(w.toLowerCase()));
+            const productHasGender = skuBaseWords.some((w: string) => genderWords.includes(w.toLowerCase())) ||
+                                    slugWords.some((w: string) => genderWords.includes(w.toLowerCase()));
             
             // Si el slug de búsqueda tiene una palabra de género, el producto DEBE tener la misma
             if (searchHasGender && productHasGender) {
-                const searchGender = searchWords.find(w => genderWords.includes(w.toLowerCase()));
-                const productGender = skuBaseWords.find(w => genderWords.includes(w.toLowerCase())) ||
-                                     slugWords.find(w => genderWords.includes(w.toLowerCase()));
+                const searchGender = searchWords.find((w: string) => genderWords.includes(w.toLowerCase()));
+                const productGender = skuBaseWords.find((w: string) => genderWords.includes(w.toLowerCase())) ||
+                                     slugWords.find((w: string) => genderWords.includes(w.toLowerCase()));
                 if (searchGender?.toLowerCase() !== productGender?.toLowerCase()) {
                     return false; // Géneros diferentes, no coinciden
                 }
@@ -274,9 +378,9 @@ export function useProductDetail() {
             }
             
             // Contar palabras que coinciden exactamente (no parcialmente)
-            const exactMatches = searchWords.filter(word => 
-                skuBaseWords.some(skuWord => skuWord === word) ||
-                slugWords.some(slugWord => slugWord === word)
+            const exactMatches = searchWords.filter((word: string) => 
+                skuBaseWords.some((skuWord: string) => skuWord === word) ||
+                slugWords.some((slugWord: string) => slugWord === word)
             );
             
             // Requerir que TODAS las palabras distintivas coincidan exactamente
@@ -317,10 +421,10 @@ export function useProductDetail() {
             setGroupedProduct(null);
             setRelatedProducts([]);
         }
-    }, [skuBase, groupedProducts, productsLoading, productsError, productsFetched]);
+    }, [skuBase, groupedProducts, productsLoading, productsError]);
 
-    // isLoading es true mientras los productos estén cargando O no se hayan fetcheado aún
-    const isLoading = productsLoading || !productsFetched;
+    // isLoading es true mientras los productos estén cargando
+    const isLoading = productsLoading;
 
     return {
         groupedProduct,

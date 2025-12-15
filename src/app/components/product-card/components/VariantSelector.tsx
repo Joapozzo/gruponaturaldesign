@@ -22,17 +22,7 @@ export default function VariantSelector({
 }: VariantSelectorProps) {
     return (
         <>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5">
-                <span className="text-xs sm:text-sm font-medium text-gray-700">
-                    Opción seleccionada: #{selectedVariant.variantNumber}
-                </span>
-                <button
-                    onClick={onToggleExpand}
-                    className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap"
-                >
-                    {isExpanded ? 'Ocultar' : `Ver ${variants.length} opciones`}
-                </button>
-            </div>
+            {/* Ocultar el selector de opciones - no mostrar "Ver X opciones" */}
 
             <AnimatePresence>
                 {isExpanded && (

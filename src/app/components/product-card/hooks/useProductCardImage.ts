@@ -26,7 +26,28 @@ export function useProductCardImage({
         setHasValidImage(true);
         setImageLoadAttempts(0);
 
-        // Prioridad 1: Imagen del color seleccionado
+        // Prioridad 1: Usar imágenes del producto (la variante seleccionada ya tiene las imágenes correctas para su color)
+        // Las imágenes ya vienen organizadas por color desde el servicio en la variante
+        if (product.imagenes && product.imagenes.length > 0) {
+            // Filtrar imágenes válidas
+            const validImages = product.imagenes.filter(
+                (img) => img && img.trim() !== '' && !img.includes('.png')
+            );
+            
+            if (validImages.length > 0) {
+                // Usar la primera imagen de la variante (ya está filtrada por color)
+                setMainImage(validImages[0]);
+                return;
+            }
+        }
+
+        // Prioridad 2: Usar imagen principal del producto
+        if (product.imagen && product.imagen.trim() !== '' && !product.imagen.includes('.png')) {
+            setMainImage(product.imagen);
+            return;
+        }
+
+        // Prioridad 3: Intentar generar desde nombre y color (fallback)
         if (selectedColor && productName) {
             const colorImages = getProductImagesByColor(productName, selectedColor);
             if (colorImages.length > 0) {
@@ -35,27 +56,17 @@ export function useProductCardImage({
             }
         }
 
-        // Prioridad 2: Primera imagen disponible del producto (cualquier color)
+        // Prioridad 4: Primera imagen disponible del producto (cualquier color)
         if (productName) {
             setMainImage(getFirstProductImage(productName));
             return;
         }
 
-        // Prioridad 3: Imágenes del producto si existen
-        const productImages =
-            product.imagenes && product.imagenes.length > 0
-                ? product.imagenes.filter((img) => img && img.trim() !== '' && !img.includes('.png'))
-                : product.imagen && product.imagen.trim() !== '' && !product.imagen.includes('.png')
-                  ? [product.imagen]
-                  : [];
-        if (productImages.length > 0) {
-            setMainImage(productImages[0]);
-            return;
-        }
-
-        // Fallback: placeholder
+        // Fallback: placeholder (siempre asegurar que haya una imagen)
         setMainImage(PLACEHOLDER_IMAGE);
-    }, [selectedColor, productName, product.imagen, product.imagenes]);
+        // No marcar como inválida, siempre mostrar algo
+        setHasValidImage(true);
+    }, [selectedColor, productName, product.imagen, product.imagenes, product.Codigo]);
 
     // Manejar error de carga de imagen
     const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -79,9 +90,21 @@ export function useProductCardImage({
             }
         }
 
-        // Si ya intentamos con todos los colores o no hay más opciones, marcar como sin imagen
+        // Si ya intentamos con todos los colores o no hay más opciones, usar placeholder
+        // SIEMPRE mostrar algo, nunca dejar sin imagen
         if (imageLoadAttempts >= availableColors.length || availableColors.length === 0) {
-            setHasValidImage(false);
+            // Intentar con la primera imagen disponible del producto (cualquier color)
+            if (productName) {
+                const firstImage = getFirstProductImage(productName);
+                if (firstImage && firstImage !== PLACEHOLDER_IMAGE) {
+                    target.src = firstImage;
+                    setImageLoadAttempts((prev) => prev + 1);
+                    return;
+                }
+            }
+            // Último recurso: usar placeholder pero mantener hasValidImage en true
+            target.src = PLACEHOLDER_IMAGE;
+            setHasValidImage(true); // Siempre mostrar algo
         } else {
             setImageLoadAttempts((prev) => prev + 1);
         }

@@ -30,32 +30,96 @@ export default function ProductImageGallery({
     const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
     const [isHovering, setIsHovering] = useState(false);
     const [validImages, setValidImages] = useState<string[]>([]);
-    const [imageLoadStatus, setImageLoadStatus] = useState<{ [key: string]: 'loading' | 'loaded' | 'error' }>({});
+    const [imageLoadStatus, setImageLoadStatus] = useState<{ [key: string]: 'loading' | 'loaded' | 'error' | 'pending' }>({});
+    const [imagesKey, setImagesKey] = useState<string>('');
     const imageRef = useRef<HTMLDivElement>(null);
 
     // Filtrar imágenes válidas (que existen)
+    // Solo intentar cargar imágenes secuencialmente hasta encontrar un 404
     useEffect(() => {
-        // Inicializar todas las imágenes como "intentando cargar"
-        const status: { [key: string]: 'loading' | 'loaded' | 'error' } = {};
-        images.forEach(img => {
-            status[img] = 'loading'; // loading = intentando, loaded = existe, error = no existe
+        // Crear una clave única para comparar el array de imágenes
+        const newImagesKey = images.join('|');
+        
+        // Solo actualizar si las imágenes realmente cambiaron
+        if (newImagesKey === imagesKey) {
+            return;
+        }
+        
+        setImagesKey(newImagesKey);
+        
+        // Inicializar todas las imágenes como "no intentadas aún"
+        const status: { [key: string]: 'loading' | 'loaded' | 'error' | 'pending' } = {};
+        images.forEach((img, index) => {
+            // Solo marcar la primera imagen como "loading", las demás como "pending"
+            if (index === 0) {
+                status[img] = 'loading';
+            } else {
+                status[img] = 'pending';
+            }
         });
         setImageLoadStatus(status);
-        setValidImages(images); // Mantener todas las imágenes para mantener índices
-    }, [images]);
+        setValidImages(images);
+    }, [images, imagesKey]); // Depender de images y imagesKey para comparar
 
     const handleImageLoad = (imgSrc: string) => {
-        setImageLoadStatus(prev => ({ ...prev, [imgSrc]: 'loaded' }));
+        setImageLoadStatus(prev => {
+            // Solo actualizar si el estado cambió
+            if (prev[imgSrc] === 'loaded') {
+                return prev; // Ya está cargada, no hacer nada
+            }
+            
+            const newStatus: { [key: string]: 'loading' | 'loaded' | 'error' | 'pending' } = { ...prev, [imgSrc]: 'loaded' };
+            // Si esta imagen cargó exitosamente, intentar cargar la siguiente SOLO si no hay errores previos
+            const currentIndex = validImages.indexOf(imgSrc);
+            if (currentIndex >= 0 && currentIndex < validImages.length - 1) {
+                const nextImage = validImages[currentIndex + 1];
+                // Solo intentar cargar la siguiente si está pendiente
+                if (newStatus[nextImage] === 'pending') {
+                    newStatus[nextImage] = 'loading';
+                }
+            }
+            return newStatus;
+        });
     };
 
     const handleImageError = (imgSrc: string) => {
-        setImageLoadStatus(prev => ({ ...prev, [imgSrc]: 'error' }));
+        setImageLoadStatus(prev => {
+            // Si esta imagen falló, marcar como error y NO intentar cargar las siguientes
+            const newStatus: { [key: string]: 'loading' | 'loaded' | 'error' | 'pending' } = { ...prev, [imgSrc]: 'error' };
+            
+            // Encontrar el índice de la imagen que falló
+            const errorIndex = validImages.indexOf(imgSrc);
+            
+            // Marcar todas las imágenes siguientes como 'error' también para evitar intentos
+            if (errorIndex >= 0) {
+                for (let i = errorIndex + 1; i < validImages.length; i++) {
+                    const nextImg = validImages[i];
+                    // Solo marcar como error si aún no se ha intentado cargar
+                    if (newStatus[nextImg] === 'pending' || newStatus[nextImg] === 'loading') {
+                        newStatus[nextImg] = 'error';
+                    }
+                }
+            }
+            
+            return newStatus;
+        });
     };
 
-    // Filtrar imágenes válidas (solo las que cargaron exitosamente o están intentando)
-    const displayImages = validImages.filter(img => {
+    // Filtrar imágenes válidas (mostrar las que están cargando o cargaron exitosamente)
+    // Si una imagen falla (404), no mostrar esa ni las siguientes
+    const displayImages = validImages.filter((img, index) => {
         const status = imageLoadStatus[img];
-        return status === 'loading' || status === 'loaded'; // Mostrar si está intentando o existe
+        
+        // Si una imagen anterior falló, no mostrar las siguientes
+        if (index > 0) {
+            const prevStatus = imageLoadStatus[validImages[index - 1]];
+            if (prevStatus === 'error') {
+                return false; // No mostrar si la anterior falló
+            }
+        }
+        
+        // Mostrar si está cargando o cargó exitosamente (no mostrar si está en 'error')
+        return status === 'loading' || status === 'loaded';
     });
 
     // Ajustar el índice actual si la imagen actual no existe
@@ -97,7 +161,7 @@ export default function ProductImageGallery({
                 /* Fallback: mostrar galería local con miniaturas */
                 <div className="space-y-2 sm:space-y-3 lg:space-y-4">
                     {/* Imagen principal */}
-                    <div className="relative group max-w-md mx-auto">
+                    <div className="relative group max-w-md lg:max-w-lg">
                         <div
                             ref={imageRef}
                             className="relative aspect-[3/4] bg-white rounded-lg overflow-hidden cursor-zoom-in"
@@ -106,7 +170,7 @@ export default function ProductImageGallery({
                             onMouseEnter={handleMouseEnter}
                             onMouseLeave={handleMouseLeave}
                         >
-                            {displayImages.length > 0 && displayImages[adjustedIndex] && imageLoadStatus[displayImages[adjustedIndex]] !== 'error' ? (
+                            {displayImages.length > 0 && displayImages[adjustedIndex] ? (
                                 <>
                                     <Image
                                         src={displayImages[adjustedIndex]}
@@ -185,50 +249,60 @@ export default function ProductImageGallery({
 
                     {/* Miniaturas de imágenes */}
                     {displayImages.length > 1 && (
-                        <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2">
-                            {displayImages.map((img, index) => (
-                                <motion.button
+                        <div className="max-w-md lg:max-w-lg">
+                            <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+                                {displayImages.map((img, index) => (
+                                <div
                                     key={`${img}-${index}`}
-                                    onClick={() => {
-                                        // Encontrar el índice original en images para mantener consistencia
-                                        const originalIndex = validImages.indexOf(img);
-                                        if (originalIndex !== -1) {
-                                            onImageChange(originalIndex);
-                                        } else {
-                                            onImageChange(index);
-                                        }
-                                    }}
-                                    className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all duration-300 ${
+                                    className={`relative ${
                                         adjustedIndex === index
-                                            ? 'border-black ring-2 ring-black ring-offset-2'
-                                            : 'border-gray-200 hover:border-gray-400'
+                                            ? 'p-0.5'
+                                            : ''
                                     }`}
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    aria-label={`Ver imagen ${index + 1}`}
                                 >
-                                    {imageLoadStatus[img] === 'error' ? (
-                                        <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                                            <Package className="w-6 h-6 text-gray-400" />
-                                        </div>
-                                    ) : (
-                                        <Image
-                                            src={img}
-                                            alt={`${productName} - Miniatura ${index + 1}`}
-                                            className="w-full h-full object-cover"
-                                            width={120}
-                                            height={120}
-                                            unoptimized={true}
-                                            onLoad={() => handleImageLoad(img)}
-                                            onError={() => handleImageError(img)}
-                                        />
-                                    )}
-                                    {/* Overlay cuando está seleccionada */}
-                                    {adjustedIndex === index && (
-                                        <div className="absolute inset-0 bg-black/20" />
-                                    )}
-                                </motion.button>
+                                    <motion.button
+                                        onClick={() => {
+                                            // Encontrar el índice original en images para mantener consistencia
+                                            const originalIndex = validImages.indexOf(img);
+                                            if (originalIndex !== -1) {
+                                                onImageChange(originalIndex);
+                                            } else {
+                                                onImageChange(index);
+                                            }
+                                        }}
+                                        className={`relative aspect-square rounded-lg border-2 transition-all duration-300 w-full ${
+                                            adjustedIndex === index
+                                                ? 'border-black ring-2 ring-black ring-offset-2'
+                                                : 'border-gray-200 hover:border-gray-400 overflow-hidden'
+                                        }`}
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        aria-label={`Ver imagen ${index + 1}`}
+                                    >
+                                        {imageLoadStatus[img] === 'error' ? (
+                                            <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-lg overflow-hidden">
+                                                <Package className="w-6 h-6 text-gray-400" />
+                                            </div>
+                                        ) : (
+                                            <Image
+                                                src={img}
+                                                alt={`${productName} - Miniatura ${index + 1}`}
+                                                className="w-full h-full object-cover rounded-lg overflow-hidden"
+                                                width={120}
+                                                height={120}
+                                                unoptimized={true}
+                                                onLoad={() => handleImageLoad(img)}
+                                                onError={() => handleImageError(img)}
+                                            />
+                                        )}
+                                        {/* Overlay cuando está seleccionada */}
+                                        {adjustedIndex === index && (
+                                            <div className="absolute inset-0 bg-black/20 rounded-lg" />
+                                        )}
+                                    </motion.button>
+                                </div>
                             ))}
+                            </div>
                         </div>
                     )}
                 </div>

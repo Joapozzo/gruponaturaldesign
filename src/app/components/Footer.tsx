@@ -72,11 +72,11 @@ const Footer = () => {
                                 351 - 7136316
                             </p>
                             <a 
-                                href="mailto:info@naturalonline.com.ar" 
+                                href="mailto:ventas@naturalonline.com.ar" 
                                 className="flex items-center hover:text-white transition-colors"
                             >
                                 <Mail size={16} className="mr-2" />
-                                info@naturalonline.com.ar
+                                ventas@naturalonline.com.ar
                             </a>
                             <p className="flex items-center">
                                 <MapPin size={16} className="mr-2" />

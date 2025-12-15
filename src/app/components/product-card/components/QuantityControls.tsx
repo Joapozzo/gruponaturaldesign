@@ -62,7 +62,7 @@ export default function QuantityControls({
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                 >
-                    <span>Elegir</span>
+                    <span>Agregar</span>
                 </motion.button>
             </div>
         );

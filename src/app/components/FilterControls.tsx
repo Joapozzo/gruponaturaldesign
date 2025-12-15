@@ -19,6 +19,8 @@ interface FilterControlsProps {
     onToggleTalle: (talle: string) => void;
     onClearFilters: () => void;
     hasActiveFilters: boolean;
+    rubros?: string[];
+    subrubros?: string[];
 }
 
 const FilterControls: React.FC<FilterControlsProps> = ({
@@ -32,6 +34,8 @@ const FilterControls: React.FC<FilterControlsProps> = ({
     onToggleTalle,
     onClearFilters,
     hasActiveFilters,
+    rubros = [],
+    subrubros = [],
 }) => {
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
@@ -279,6 +283,8 @@ const FilterControls: React.FC<FilterControlsProps> = ({
                 onToggleTalle={onToggleTalle}
                 onClearFilters={onClearFilters}
                 hasActiveFilters={hasActiveFilters}
+                rubros={rubros}
+                subrubros={subrubros}
             />
         </>
     );

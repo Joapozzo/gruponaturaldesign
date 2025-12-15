@@ -295,7 +295,7 @@ const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
       footerActions={footerActions}
     >
       {/* Steps Indicator */}
-      <div className="mb-6">
+      <div className="mb-6 px-2">
         <div className="flex items-center justify-between mb-2">
           {steps.map((step, index) => (
             <React.Fragment key={step.key}>
@@ -338,7 +338,7 @@ const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.2 }}
-            className="space-y-4"
+            className="space-y-4 px-2"
           >
             {/* Nombre */}
             <div>

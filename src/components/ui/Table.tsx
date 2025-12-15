@@ -184,7 +184,7 @@ export function Table<T>({
                   id="page-size"
                   value={pagination.limit}
                   onChange={(e) => handleLimitChange(Number(e.target.value))}
-                  className="px-2 py-1 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="px-2 py-1 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
                 >
                   {pageSizeOptions.map((size) => (
                     <option key={size} value={size}>
@@ -231,7 +231,7 @@ export function Table<T>({
                     className={cn(
                       'px-3 py-1 text-sm rounded-md transition-colors',
                       pagination.page === pageNum
-                        ? 'bg-primary-600 text-white font-medium'
+                        ? 'bg-black text-white font-medium'
                         : 'text-neutral-600 hover:bg-neutral-200'
                     )}
                   >

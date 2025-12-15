@@ -89,7 +89,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
         <BaseModal
             isOpen={isOpen}
             onClose={onClose}
-            size="sm"
+            size="md"
             showCloseButton={true}
             closeOnOverlayClick={!loading}
         >

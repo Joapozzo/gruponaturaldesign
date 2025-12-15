@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { getProductImages } from '../helpers/productHelpers';
 
 /**
@@ -15,7 +15,11 @@ export function useProductImages(
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
-    const images = getProductImages(imagenes, imagen, maxImages, productName, color, availableColors);
+    // Recalcular imágenes cuando cambia el color o el productName
+    // Usar useMemo para evitar recálculos innecesarios
+    const images = useMemo(() => {
+        return getProductImages(imagenes, imagen, maxImages, productName, color, availableColors);
+    }, [imagenes, imagen, maxImages, productName, color, availableColors]);
 
     // Resetear índice cuando cambia el color
     useEffect(() => {

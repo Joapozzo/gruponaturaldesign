@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Table, TableColumn } from '@/components/ui/Table';
+import { TableSkeleton } from '@/components/ui/TableSkeleton';
 import Button from '@/components/ui/Button';
 import PageHeader from '@/components/admin/PageHeader';
 import { Card } from '@/components/ui/Card';
@@ -19,7 +20,8 @@ import {
   Loader2,
   Search,
   CheckSquare,
-  Square
+  Square,
+  RefreshCw
 } from 'lucide-react';
 import ConfirmModal from '@/app/components/modal/ConfirmModal';
 import AlertModal from '@/app/components/modal/AlertModal';
@@ -55,8 +57,10 @@ const AdminProductosPage = () => {
   const {
     data: productosData,
     isLoading,
+    isFetching,
     isError,
     error,
+    refetch,
   } = useQuery({
     queryKey: ['productos', empresaId, page, limit, search],
     queryFn: () => productoService.getAll({ 
@@ -206,6 +210,11 @@ const AdminProductosPage = () => {
     
     return flattened;
   }, [productosData?.data]);
+
+  // Función para refrescar datos
+  const handleRefresh = async () => {
+    await refetch();
+  };
 
   // Función para exportar a CSV
   const handleExport = async () => {
@@ -587,6 +596,15 @@ const AdminProductosPage = () => {
                         <Button
                             variant="ghost"
                             size="sm"
+              onClick={handleRefresh}
+                            disabled={isLoading || isFetching}
+                        >
+              <RefreshCw className={`w-4 h-4 mr-2 inline ${isLoading || isFetching ? 'animate-spin' : ''}`} />
+              Refrescar
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
               onClick={handleExport}
                         >
               <Download className="w-4 h-4 mr-2 inline" />
@@ -690,11 +708,12 @@ const AdminProductosPage = () => {
         </Card>
 
         <Card variant="elevated" padding="none">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin text-neutral-400" />
-              <span className="ml-2 text-neutral-600">Cargando productos...</span>
-                            </div>
+          {isLoading || isFetching ? (
+            <TableSkeleton 
+              rows={limit} 
+              columns={12}
+              showPagination={true}
+            />
           ) : isError ? (
             <div className="flex items-center justify-center py-12">
               <span className="text-red-600">

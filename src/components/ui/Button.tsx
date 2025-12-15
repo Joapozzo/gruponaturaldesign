@@ -36,10 +36,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const isDisabled = disabled || loading;
 
     const variantStyles = {
-      primary: 'bg-primary-600 hover:bg-primary-700 text-white shadow-sm hover:shadow-md',
+      primary: 'bg-black hover:bg-neutral-800 text-white shadow-sm hover:shadow-md',
       secondary: 'bg-neutral-200 hover:bg-neutral-300 text-neutral-900',
       ghost: 'bg-transparent hover:bg-neutral-100 text-neutral-700',
-      danger: 'bg-red-600 hover:bg-red-700 text-white shadow-sm hover:shadow-md',
+      danger: 'bg-[#Ed3237] hover:bg-[#A80006] text-white shadow-sm hover:shadow-md',
     };
 
     const sizeStyles = {
@@ -54,7 +54,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(
           'inline-flex items-center justify-center gap-2 rounded-lg font-medium',
           'transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2',
-          'focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed',
+          'focus:ring-black disabled:opacity-50 disabled:cursor-not-allowed',
           variantStyles[variant],
           sizeStyles[size],
           className

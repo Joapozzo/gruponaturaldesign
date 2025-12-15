@@ -35,28 +35,23 @@ export default function ProductCardImage({
             }`}
             onClick={onClick}
         >
-            {hasValidImage ? (
-                <motion.img
-                    src={mainImage}
-                    alt={product.Descripcion || product.NOMBRE || 'Producto'}
-                    className="w-full h-full object-cover"
-                    animate={
-                        !isMobile
-                            ? {
-                                  scale: isHovered ? 1.08 : 1,
-                                  filter: isHovered ? 'brightness(0.85)' : 'brightness(1)',
-                              }
-                            : {}
-                    }
-                    transition={{ duration: 0.5, ease: 'easeOut' }}
-                    onError={onImageError}
-                    onLoad={onImageLoad}
-                />
-            ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                    <span className="text-gray-400 text-sm">Sin imagen</span>
-                </div>
-            )}
+            {/* Siempre renderizar una imagen, incluso si es placeholder */}
+            <motion.img
+                src={mainImage}
+                alt={product.Descripcion || product.NOMBRE || 'Producto'}
+                className="w-full h-full object-cover"
+                animate={
+                    !isMobile
+                        ? {
+                              scale: isHovered ? 1.08 : 1,
+                              filter: isHovered ? 'brightness(0.85)' : 'brightness(1)',
+                          }
+                        : {}
+                }
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                onError={onImageError}
+                onLoad={onImageLoad}
+            />
 
             {/* Overlay gradient */}
             <motion.div

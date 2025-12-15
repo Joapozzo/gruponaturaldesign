@@ -74,6 +74,8 @@ export interface ProductWithImage extends ProductSFactory {
     NOMBRE?: string; // Nombre del producto desde la hoja 2 (para agrupación)
     TALLES?: string; // Talles disponibles
     COLORES?: string; // Colores disponibles
+    // Rubro normalizado para filtros (PRODUCTO OFFICE → BASIC, PRODUCTO WORKWEAR → WORKWEAR)
+    rubroNormalizado?: 'WORKWEAR' | 'BASIC';
     // Flag para variantes virtuales (combinaciones de color/talle que no existen físicamente)
     _isVirtual?: boolean; // Indica si es una variante virtual (no existe como producto físico)
 }

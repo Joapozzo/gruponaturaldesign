@@ -3,6 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { GroupedProduct } from '@/app/types/producto';
+import { getColorHex } from '@/app/components/product-card/utils/colorUtils';
 
 interface ProductVariantSelectorProps {
     groupedProduct: GroupedProduct;
@@ -12,33 +13,6 @@ interface ProductVariantSelectorProps {
     onColorSelect: (color: string) => void;
     onSizeSelect: (size: string) => void;
 }
-
-// Helper para obtener color hexadecimal desde nombre de color
-const getColorHex = (colorName: string): string => {
-    const colorMap: Record<string, string> = {
-        'NEGRO': '#000000',
-        'BLANCO': '#FFFFFF',
-        'AZUL': '#0066CC',
-        'AZUL MARINO': '#003366',
-        'GRIS': '#808080',
-        'GRIS PERLA': '#E8E8E8',
-        'GRIS MELANGE': '#A0A0A0',
-        'GRIS TOPO': '#8B7355',
-        'ROJO': '#CC0000',
-        'VERDE': '#00CC00',
-        'AMARILLO': '#FFCC00',
-        'NARANJA': '#FF6600',
-        'ROSA': '#FF99CC',
-        'VIOLETA': '#9966CC',
-        'BEIGE': '#F5F5DC',
-        'MARRON': '#8B4513',
-        'CELESTE': '#87CEEB',
-        'LAVADO OSCURO': '#2C2C2C',
-        'LAVADO CLARO': '#D3D3D3',
-        'LAVADO MEDIO': '#808080',
-    };
-    return colorMap[colorName.toUpperCase()] || '#999999';
-};
 
 export default function ProductVariantSelector({
     groupedProduct,
@@ -111,21 +85,32 @@ export default function ProductVariantSelector({
                     <div className="flex flex-wrap gap-2 sm:gap-3">
                         {availableSizes.map((size) => {
                             const isSelected = selectedSize === size;
+                            
+                            // Buscar la variante para este color y talle para verificar stock
+                            const variant = groupedProduct.variants.find(
+                                v => v.color?.toLowerCase() === selectedColor?.toLowerCase() && v.talle === size
+                            );
+                            const hasStock = variant && variant.stock !== undefined && variant.stock > 0;
+                            const isOutOfStock = variant && variant.stock === 0;
 
                             return (
                                 <motion.button
                                     key={size}
                                     onClick={() => onSizeSelect(size)}
+                                    disabled={!variant || isOutOfStock}
                                     className={`
                                         relative min-w-[44px] sm:min-w-[60px] px-2.5 sm:px-4 py-2 sm:py-3 rounded-lg
                                         text-xs sm:text-sm font-bold transition-all duration-200
                                         ${isSelected
                                             ? 'bg-black text-white ring-1 sm:ring-2 ring-black ring-offset-1 sm:ring-offset-2'
-                                            : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                                            : isOutOfStock
+                                                ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-50'
+                                                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
                                         }
                                     `}
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
+                                    whileHover={!isOutOfStock ? { scale: 1.05 } : {}}
+                                    whileTap={!isOutOfStock ? { scale: 0.95 } : {}}
+                                    title={isOutOfStock ? 'Sin stock' : variant ? `Stock: ${variant.stock}` : ''}
                                 >
                                     {size}
                                     {isSelected && (

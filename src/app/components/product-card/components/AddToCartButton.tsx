@@ -37,7 +37,7 @@ export default function AddToCartButton({
         if (isExactVariantInCart) return 'Sumar';
         if (isInCartGeneric) return 'En carrito';
         if (hasColorSizeData && isExpanded && (!selectedColor || !selectedSize)) return 'Selecciona opciones';
-        if (needsSelection) return 'Elegir';
+        if (needsSelection) return 'Agregar';
         return 'Agregar';
     };
 

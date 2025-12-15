@@ -42,7 +42,7 @@ export const useContactForm = (): UseContactFormReturn => {
     } = useForm<ContactFormData>({
         resolver: zodResolver(contactSchema),
         defaultValues: {
-            nombreCompleto: '',
+            nombreCompleto: undefined,
             email: '',
             empresa: '',
             telefono: '',

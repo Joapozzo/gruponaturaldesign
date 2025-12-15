@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, ArrowRight } from 'lucide-react';
+import { CheckCircle2, ArrowRight, ArrowDown } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 
@@ -69,10 +69,37 @@ export default function WholesaleBanner({ fullScreen = false }: WholesaleBannerP
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 1, delay: 0.3 }}
-                        className="text-xl md:text-xl mb-4 font-light tracking-wide 2xl:text-2xl"
+                        className="text-xl md:text-xl mb-8 font-light tracking-wide 2xl:text-2xl"
                     >
                         ¡Excelente! Por la cantidad, tu compra ingresa automáticamente en nuestro formato Mayorista, con descuentos especiales, opciones de personalización (bordado/estampa) y formas de pago preferenciales.
                     </motion.p>
+                    
+                    {/* Call to Action */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 1, delay: 0.6 }}
+                        className="flex flex-col items-center gap-4"
+                    >
+                        <div className="border-2 border-white rounded-lg px-6 py-4 md:px-8 md:py-5">
+                            <p className="text-sm md:text-base lg:text-lg font-medium text-white">
+                                Dejanos tus datos y un asesor se comunicará con vos a la brevedad
+                            </p>
+                        </div>
+                        <motion.div
+                            animate={{ 
+                                y: [0, 8, 0],
+                            }}
+                            transition={{ 
+                                duration: 1.5,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                            }}
+                            className="flex flex-col items-center"
+                        >
+                            <ArrowDown className="w-6 h-6 md:w-8 md:h-8 text-white" />
+                        </motion.div>
+                    </motion.div>
                 </div>
             </section>
         );

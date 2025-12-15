@@ -35,7 +35,6 @@ export async function POST(request: NextRequest) {
       subject: '✅ Confirmación - Natural Online',
       html: `
         <h2>¡Gracias por tu consulta!</h2>
-        <p>Hola <strong>${validatedData.nombreCompleto}</strong>,</p>
         <p>Recibimos tu consulta el ${timestamp}.</p>
         <div style="background: #f5f5f5; padding: 20px; margin: 20px 0;">
           <h3>Resumen:</h3>
@@ -50,12 +49,11 @@ export async function POST(request: NextRequest) {
     // Email interno
     const internalMail = {
       from: process.env.SMTP_USER,
-      to: 'info@naturalonline.com.ar',
+      to: 'ventas@naturalonline.com.ar',
       subject: `🔔 Nueva Consulta - ${validatedData.empresa}`,
       html: `
         <h2>Nueva Consulta</h2>
         <p><strong>Fecha:</strong> ${timestamp}</p>
-        <p><strong>Nombre:</strong> ${validatedData.nombreCompleto}</p>
         <p><strong>Email:</strong> ${validatedData.email}</p>
         <p><strong>Empresa:</strong> ${validatedData.empresa}</p>
         <p><strong>Teléfono:</strong> ${validatedData.telefono}</p>

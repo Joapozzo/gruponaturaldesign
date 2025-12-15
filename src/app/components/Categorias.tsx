@@ -20,7 +20,7 @@ const Categorias = () => {
         },
         {
             id: 'uniformes-diseno',
-            nombre: 'UNIFORMES DE DISEÑO',
+            nombre: 'UNIFORMES PERSONALIZADOS',
             descripcion: 'Diseños personalizados y exclusivos creados especialmente para tu empresa.',
             imagen: '/imgs/personalizados.jpg',
             route: '/personalizados'

@@ -1,5 +1,6 @@
 "use client";
 import React, { Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import Section from '@/app/components/Section';
 import { useProductDetail } from './hooks/useProductDetail';
 import { useProductImages } from './hooks/useProductImages';
@@ -17,9 +18,23 @@ import RelatedProducts from './components/RelatedProducts';
 import ProductImageModal from './components/ProductImageModal';
 import ProductLoadingState from './components/ProductLoadingState';
 import ProductNotFound from './components/ProductNotFound';
+import { useConfirmModal } from '@/app/components/hooks/useModal';
+import ConfirmModal from '@/app/components/modal/ConfirmModal';
 // import ProductVariantBadge from './components/ProductVariantBadge';
 
 const ProductDetailPageContent = () => {
+    const router = useRouter();
+    
+    // Hook para modal de confirmación mayorista
+    const { 
+        isOpen: isWholesaleModalOpen, 
+        loading: isWholesaleModalLoading, 
+        modalOptions: wholesaleModalOptions, 
+        showModal: showWholesaleModal, 
+        closeModal: closeWholesaleModal, 
+        handleConfirm: handleWholesaleConfirm 
+    } = useConfirmModal();
+
     // Hook principal para cargar el producto
     const { groupedProduct, relatedProducts, isLoading } = useProductDetail();
 
@@ -37,6 +52,8 @@ const ProductDetailPageContent = () => {
     } = useProductVariants(groupedProduct);
 
     // Hook para manejar imágenes (debe llamarse siempre)
+    // IMPORTANTE: Usar groupedProduct.displayProduct.imagenes que contiene TODAS las imágenes
+    // de todas las variantes agrupadas, no solo las de la variante seleccionada
     const {
         images,
         currentImageIndex,
@@ -47,13 +64,27 @@ const ProductDetailPageContent = () => {
         openModal,
         closeModal,
     } = useProductImages(
-        selectedVariant?.producto.imagenes,
-        selectedVariant?.producto.imagen,
+        groupedProduct?.displayProduct.imagenes,
+        groupedProduct?.displayProduct.imagen,
         5,
         productName,
         selectedColor,
         groupedProduct?.availableColors
     );
+
+    // Callback para cuando se alcanza el límite mayorista
+    const handleWholesaleLimitReached = () => {
+        showWholesaleModal({
+            title: 'Límite minorista alcanzado',
+            message: 'Has alcanzado el límite de compra minorista (20 artículos). ¿Deseas continuar con tu compra en nuestro sistema mayorista?',
+            type: 'warning',
+            confirmText: 'Sí, ir a mayorista',
+            cancelText: 'No, cancelar',
+            onConfirm: async () => {
+                router.push('/mayorista');
+            }
+        });
+    };
 
     // Hook para manejar el carrito (debe llamarse siempre)
     const { 
@@ -67,7 +98,8 @@ const ProductDetailPageContent = () => {
     } = useProductCart(
         groupedProduct,
         groupedProduct?.displayProduct,
-        selectedVariant
+        selectedVariant,
+        handleWholesaleLimitReached
     );
 
     // Estados de carga y error (después de todos los hooks)
@@ -98,7 +130,7 @@ const ProductDetailPageContent = () => {
                 contentClassName="max-w-7xl mx-auto"
                 noPadding
             >
-                <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-12 mb-8 sm:mb-12 lg:mb-16">
+                <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-6 mb-8 sm:mb-12 lg:mb-16">
                     {/* Galería de imágenes */}
                     <div>
                         <ProductImageGallery
@@ -125,6 +157,7 @@ const ProductDetailPageContent = () => {
                         <ProductInfo
                             productName={productName}
                             displayProduct={displayProduct}
+                            selectedVariant={selectedVariant}
                             price={selectedVariant.producto.PrecioVenta}
                         />
 
@@ -151,6 +184,7 @@ const ProductDetailPageContent = () => {
                             isInCart={inCart}
                             canAddMore={canAddMore}
                             maxReached={maxReached}
+                            maxReachedStock={!canAddMore && !maxReached}
                             onIncrement={handleIncrement}
                             onDecrement={handleDecrement}
                             disabled={selectedVariant?.producto?._isVirtual === true}
@@ -175,6 +209,15 @@ const ProductDetailPageContent = () => {
                 images={images}
                 currentImageIndex={currentImageIndex}
                 productName={productName}
+            />
+
+            {/* Modal de confirmación mayorista */}
+            <ConfirmModal
+                isOpen={isWholesaleModalOpen}
+                onClose={closeWholesaleModal}
+                onConfirm={handleWholesaleConfirm}
+                loading={isWholesaleModalLoading}
+                {...wholesaleModalOptions}
             />
         </div>
     );

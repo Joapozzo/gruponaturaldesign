@@ -12,20 +12,118 @@ import 'swiper/css/pagination';
 import Section from './Section';
 import Button from './ui/Button';
 import { useRouter } from 'next/navigation';
-import { useGroupedProducts } from '../hooks/useGroupedProducts';
+import { useProductsV2 } from '../hooks/useProductsV2';
 import ProductCardGrouped from './ProductCardGrouped';
+import { GroupedProduct, ProductVariant, ProductWithImage } from '../types/producto';
+import { GroupedProductV2 } from '../types/producto-v2';
 
 const ProductosDestacados = () => {
     const router = useRouter();
     const [expandedSku, setExpandedSku] = useState<string | null>(null);
     const swiperRef = useRef<SwiperType | null>(null);
     const currentSlideIndexRef = useRef<number>(0);
-    // TEMPORALMENTE SIN FILTROS para ver todos los productos
-    const { groupedProducts, isLoading } = useGroupedProducts({
-        // activo: true,
-        // itemDeVenta: true,
-    });
-    // console.log('ProductosDestacados', groupedProducts);
+    
+    // Usar la misma fuente de datos que ProductsGrid (productos V2 del CSV)
+    const { products: productsV2, isLoading } = useProductsV2();
+    
+    /**
+     * Adapta GroupedProductV2 a GroupedProduct para compatibilidad con ProductCardGrouped
+     * Misma lógica que ProductsGrid
+     */
+    const adaptGroupedProductV2ToGroupedProduct = (groupV2: GroupedProductV2): GroupedProduct => {
+        // Adaptar displayProduct
+        const displayProduct: ProductWithImage = {
+            Codigo: groupV2.displayProduct.codigo,
+            Tipo: null,
+            Descripcion: groupV2.displayProduct.item,
+            UM: null,
+            Rubro: groupV2.displayProduct.rubro,
+            Subrubro: groupV2.displayProduct.subrubro,
+            Activo: true,
+            Moneda: null,
+            PrecioCosto: null,
+            UltActualizacion: null,
+            CostoXLM: null,
+            ListaMaterial: null,
+            PrecioUMCompra: null,
+            UMCompra: null,
+            PrecioVenta: groupV2.displayProduct.precioLista,
+            UtilidadP: null,
+            UtilidadR: null,
+            Base: null,
+            Barcode: null,
+            EqCodigoContable: null,
+            EqCodigoExterno: null,
+            ItemDeCompra: null,
+            ItemDeVenta: true,
+            ItemDeAlquiler: null,
+            Fabricar: null,
+            APedido: null,
+            GrupoGasto: null,
+            CTACompras: null,
+            CTAVentas: null,
+            StockMin: null,
+            StockMax: null,
+            PesoBruto: null,
+            DescripcionCorta: groupV2.displayProduct.nombreBase,
+            Observaciones: null,
+            ProveedorPorDefecto: null,
+            DepositoConsumo: null,
+            Ubicacion: null,
+            ItemLote: null,
+            ItemSerie: null,
+            Clase: null,
+            Linea: null,
+            Material: null,
+            ActPrecioXOC: null,
+            FlowintSincroEnabled: null,
+            Usuario: null,
+            FechaAlta: null,
+            // Campos extendidos - IMPORTANTE: usar las imágenes del V2
+            imagen: groupV2.displayProduct.imagen || null,
+            imagenes: groupV2.displayProduct.imagenes || [],
+            tablaTallesImage: groupV2.displayProduct.tablaTallesImage || null,
+            indicacionesBordadosUrl: groupV2.displayProduct.indicacionesBordadosImage || null,
+            NOMBRE: groupV2.displayProduct.nombreBase,
+        };
+
+        // Adaptar variantes - cada variante tiene su propio producto con su descripción
+        const variants: ProductVariant[] = groupV2.variants.map(v => {
+            // Crear un ProductWithImage específico para esta variante con su descripción
+            const variantProduct: ProductWithImage = {
+                ...displayProduct,
+                // Usar la descripción del producto de la variante (v.producto.item)
+                Descripcion: v.producto.item || displayProduct.Descripcion,
+                // Usar el precio de la variante
+                PrecioVenta: v.precioLista || displayProduct.PrecioVenta,
+                // Usar las imágenes específicas de esta variante si las tiene
+                imagenes: v.producto.imagenes || displayProduct.imagenes,
+                imagen: v.producto.imagen || displayProduct.imagen,
+            };
+            
+            return {
+                codigo: v.codigo,
+                variantNumber: 0, // No tenemos número de variante en V2
+                talle: v.talle,
+                color: v.color,
+                stock: v.stock,
+                producto: variantProduct,
+            };
+        });
+
+        return {
+            skuBase: groupV2.skuBase,
+            skuBaseSlug: groupV2.skuBaseSlug,
+            displayProduct,
+            variants,
+            totalVariants: groupV2.totalVariants,
+            availableColors: groupV2.availableColors,
+            availableSizes: groupV2.availableSizes,
+        };
+    };
+
+    // Adaptar productos V2 a formato compatible (misma lógica que ProductsGrid)
+    const groupedProducts = productsV2.map(adaptGroupedProductV2ToGroupedProduct);
 
     // Tomar solo los primeros 8 productos (sin mutar el array original)
     const productDestacados = groupedProducts.slice(0, 8);

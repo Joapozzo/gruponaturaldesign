@@ -39,7 +39,7 @@ export default function Header() {
               placeholder="Buscar productos, pedidos..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+              className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-sm"
             />
           </div>
         </div>
@@ -66,7 +66,7 @@ export default function Header() {
             >
               <Bell className="w-5 h-5 text-neutral-600" />
               {notifications.length > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                <span className="absolute top-1 right-1 w-2 h-2 bg-[#Ed3237] rounded-full"></span>
               )}
             </button>
 
@@ -126,8 +126,8 @@ export default function Header() {
               className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-neutral-100 transition-colors"
               aria-label="Menú de usuario"
             >
-              <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-                <User className="w-4 h-4 text-primary-700" />
+              <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">
+                <User className="w-4 h-4 text-neutral-700" />
               </div>
               <span className="hidden md:block text-sm font-medium text-neutral-700">
                 Admin
