@@ -18,6 +18,7 @@ export interface CartItem {
     quantity: number;
     subtotal: number;
     especificaciones?: string;
+    bordado?: boolean;
 }
 
 // Datos del cliente
@@ -63,10 +64,11 @@ export interface CartState {
     total: number;
 
     // Actions
-    addItem: (product: CartProduct, quantity?: number, especificaciones?: string) => void;
+    addItem: (product: CartProduct, quantity?: number, especificaciones?: string, bordado?: boolean) => void;
     removeItem: (productId: number) => void;
     updateQuantity: (productId: number, quantity: number) => void;
     updateEspecificaciones: (productId: number, especificaciones: string) => void;
+    updateBordado: (productId: number, bordado: boolean) => void;
     clearCart: () => void;
 
     setCustomerData: (data: CustomerData) => void;

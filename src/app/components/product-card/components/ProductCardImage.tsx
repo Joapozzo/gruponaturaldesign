@@ -99,7 +99,18 @@ export default function ProductCardImage({
                             }}
                             transition={{ duration: 0.3 }}
                         >
-                            {product.Rubro || 'Sin categoría'}
+                            {(() => {
+                                let rubro = product.Rubro || 'Sin categoría';
+                                // Quitar "PRODUCTO" del inicio
+                                if (rubro.toUpperCase().startsWith('PRODUCTO ')) {
+                                    rubro = rubro.substring(9); // Quitar "PRODUCTO "
+                                }
+                                // Normalizar: OFFICE → BASIC
+                                if (rubro.toUpperCase().includes('OFFICE')) {
+                                    return 'BASIC';
+                                }
+                                return rubro;
+                            })()}
                         </motion.span>
                         <motion.div
                             className="flex items-center space-x-1 text-xs font-semibold"

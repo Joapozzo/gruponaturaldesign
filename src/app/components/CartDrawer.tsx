@@ -34,6 +34,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
         total,
         isEmpty,
         updateQuantity: originalUpdateQuantity,
+        updateBordado,
         removeFromCart,
         clearCart,
         canAddToCart,
@@ -189,6 +190,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                                 item={item}
                                                 onUpdateQuantity={isInCheckout ? () => {} : updateQuantity}
                                                 onRemove={isInCheckout ? () => {} : removeFromCart}
+                                                onUpdateBordado={isInCheckout ? undefined : updateBordado}
                                                 canAddMore={canAddMore}
                                             />
                                         );

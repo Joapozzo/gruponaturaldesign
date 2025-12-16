@@ -13,7 +13,8 @@ import ColorSelector from './product-card/components/ColorSelector';
 import SizeSelector from './product-card/components/SizeSelector';
 import VariantSelector from './product-card/components/VariantSelector';
 import QuantityControls from './product-card/components/QuantityControls';
-import { getStockInfo, canAddQuantity, getStockMessage } from '@/app/services/stockService';
+import BordadoSwitch from './product-card/components/BordadoSwitch';
+import { canAddQuantity, getStockMessage } from '@/app/services/stockService';
 import { formatPriceWithoutIVA } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
 import { useConfirmModal } from './hooks/useModal';
 import ConfirmModal from './modal/ConfirmModal';
@@ -32,7 +33,10 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
     onExpandChange,
 }) => {
     const router = useRouter();
-    const { addToCart, getCartItem, updateQuantity, getProductQuantity, canAddToCart } = useCart();
+    const { addToCart, updateQuantity, getProductQuantity, canAddToCart, updateBordado, items } = useCart();
+    
+    // Estado para bordado (por defecto false)
+    const [bordado, setBordado] = React.useState(false);
 
     // Hook para modal de confirmación mayorista
     const { 
@@ -101,9 +105,24 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
     };
 
     // Verificar si la variante exacta (mismo color y talle) está en el carrito
-    const cartItem = getCartItem(selectedVariantId);
     const currentSpecs = getCurrentSpecs();
-    const isExactVariantInCart = !!(cartItem && cartItem.especificaciones === currentSpecs);
+    // Buscar el item en el carrito que coincida con id y especificaciones
+    const cartItem = React.useMemo(() => {
+        return items.find(item => 
+            item.product.id === selectedVariantId && 
+            item.especificaciones === currentSpecs
+        );
+    }, [items, selectedVariantId, currentSpecs]);
+    const isExactVariantInCart = !!cartItem;
+    
+    // Sincronizar estado de bordado con el carrito si el item ya existe
+    React.useEffect(() => {
+        if (cartItem) {
+            setBordado(cartItem.bordado || false);
+        } else {
+            setBordado(false);
+        }
+    }, [cartItem]);
     
     // Obtener cantidad actual del producto en el carrito
     // Si tiene especificaciones, solo contar la variante exacta
@@ -127,7 +146,6 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
     const maxReached = !canAddMore;
     
     // Obtener información de stock (sin revelar el número exacto)
-    const stockInfo = getStockInfo(stock, currentQuantity);
     const stockMessage = getStockMessage(stock);
 
     // Función para generar slug desde nombre
@@ -241,7 +259,8 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                     skuBaseSlug: group.skuBaseSlug || nombreToSlug(group.skuBase),
                 },
                 1,
-                specs
+                specs,
+                bordado
             );
 
             // Animación de feedback - NO cerrar el producto, mantenerlo abierto
@@ -370,6 +389,21 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                         )}
                     </div>
                 )}
+
+                {/* Switch de Bordado */}
+                <div className="mt-2">
+                    <BordadoSwitch
+                        value={bordado}
+                        onChange={(value) => {
+                            setBordado(value);
+                            // Si el item ya está en el carrito, actualizar el bordado
+                            if (cartItem && cartItem.especificaciones === currentSpecs) {
+                                updateBordado(selectedVariantId, value);
+                            }
+                        }}
+                        isMobile={isMobile}
+                    />
+                </div>
 
                 {/* Precio y botón */}
                 <div

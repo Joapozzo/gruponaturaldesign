@@ -24,7 +24,18 @@ export default function ProductSpecs({ selectedVariant, displayProduct }: Produc
                         Categoría
                     </h4>
                     <p className="text-gray-600 text-xs sm:text-sm">
-                        {displayProduct.Rubro}
+                        {(() => {
+                            let rubro = displayProduct.Rubro || '';
+                            // Quitar "PRODUCTO" del inicio
+                            if (rubro.toUpperCase().startsWith('PRODUCTO ')) {
+                                rubro = rubro.substring(9); // Quitar "PRODUCTO "
+                            }
+                            // Normalizar: OFFICE → BASIC
+                            if (rubro.toUpperCase().includes('OFFICE')) {
+                                return 'BASIC';
+                            }
+                            return rubro;
+                        })()}
                     </p>
                 </div>
             )}

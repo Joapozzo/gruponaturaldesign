@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useConfirmModal } from './hooks/useModal';
 import ConfirmModal from './modal/ConfirmModal';
+import BordadoSwitch from './product-card/components/BordadoSwitch';
 import { nombreToSlug, parseProductSpecs } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
 import QuantityControlsUI from './ui/QuantityControls';
 import { formatPrice, formatPriceWithoutIVA } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
@@ -22,14 +23,16 @@ interface CartItemProps {
         quantity: number;
         subtotal: number;
         especificaciones?: string;
+        bordado?: boolean;
     };
     onUpdateQuantity: (productId: number, quantity: number) => void;
     onRemove: (productId: number) => void;
+    onUpdateBordado?: (productId: number, bordado: boolean) => void;
     canAddMore?: boolean;
 }
 
-const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, canAddMore = true }) => {
-    const { product, quantity, subtotal, especificaciones } = item;
+const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, onUpdateBordado, canAddMore = true }) => {
+    const { product, quantity, subtotal, especificaciones, bordado = false } = item;
     const { isOpen: isConfirmModalOpen, loading, modalOptions, showModal, closeModal, handleConfirm } = useConfirmModal();
     const router = useRouter();
     
@@ -147,6 +150,19 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, c
                     <p className="text-xs text-gray-600 mb-2 line-clamp-1">
                         {especificaciones}
                     </p>
+                )}
+
+                {/* Switch de Bordado */}
+                {onUpdateBordado && (
+                    <div className="mb-2">
+                        <BordadoSwitch
+                            value={bordado}
+                            onChange={(value) => {
+                                onUpdateBordado(product.id, value);
+                            }}
+                            isMobile={false}
+                        />
+                    </div>
                 )}
 
                 {/* Precio y controles */}

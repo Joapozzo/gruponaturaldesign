@@ -6,9 +6,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useGroupedProducts } from '@/app/hooks/useGroupedProducts';
-import { GroupedProduct } from '@/app/types/producto';
-import { nombreToSlug, getFirstProductImage, getProductImagesByColor } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
+import { useProductsV2 } from '@/app/hooks/useProductsV2';
+import { GroupedProductV2 } from '@/app/types/producto-v2';
+import { GroupedProduct, ProductVariant, ProductWithImage } from '@/app/types/producto';
+import { nombreToSlug } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
+import { useProductCardImage } from './product-card/hooks/useProductCardImage';
 import SearchInput from './ui/SearchInput';
 
 interface SearchModalProps {
@@ -25,6 +27,156 @@ const normalizeString = (str: string): string => {
     .replace(/[\u0300-\u036f]/g, '');
 };
 
+// Adaptar GroupedProductV2 a GroupedProduct (igual que ProductsGrid)
+const adaptGroupedProductV2ToGroupedProduct = (groupV2: GroupedProductV2): GroupedProduct => {
+  const displayProduct: ProductWithImage = {
+    Codigo: groupV2.displayProduct.codigo,
+    Tipo: null,
+    Descripcion: groupV2.displayProduct.item,
+    UM: null,
+    Rubro: groupV2.displayProduct.rubro,
+    Subrubro: groupV2.displayProduct.subrubro,
+    Activo: true,
+    Moneda: null,
+    PrecioCosto: null,
+    UltActualizacion: null,
+    CostoXLM: null,
+    ListaMaterial: null,
+    PrecioUMCompra: null,
+    UMCompra: null,
+    PrecioVenta: groupV2.displayProduct.precioLista,
+    UtilidadP: null,
+    UtilidadR: null,
+    Base: null,
+    Barcode: null,
+    EqCodigoContable: null,
+    EqCodigoExterno: null,
+    ItemDeCompra: null,
+    ItemDeVenta: true,
+    ItemDeAlquiler: null,
+    Fabricar: null,
+    APedido: null,
+    GrupoGasto: null,
+    CTACompras: null,
+    CTAVentas: null,
+    StockMin: null,
+    StockMax: null,
+    PesoBruto: null,
+    DescripcionCorta: groupV2.displayProduct.nombreBase,
+    Observaciones: null,
+    ProveedorPorDefecto: null,
+    DepositoConsumo: null,
+    Ubicacion: null,
+    ItemLote: null,
+    ItemSerie: null,
+    Clase: null,
+    Linea: null,
+    Material: null,
+    ActPrecioXOC: null,
+    FlowintSincroEnabled: null,
+    Usuario: null,
+    FechaAlta: null,
+    imagen: groupV2.displayProduct.imagen || null,
+    imagenes: groupV2.displayProduct.imagenes || [],
+    tablaTallesImage: groupV2.displayProduct.tablaTallesImage || null,
+    indicacionesBordadosUrl: groupV2.displayProduct.indicacionesBordadosImage || null,
+    NOMBRE: groupV2.displayProduct.nombreBase,
+  };
+
+  const variants: ProductVariant[] = groupV2.variants.map(v => {
+    const variantProduct: ProductWithImage = {
+      ...displayProduct,
+      Descripcion: v.producto.item || displayProduct.Descripcion,
+      PrecioVenta: v.precioLista || displayProduct.PrecioVenta,
+      imagenes: v.producto.imagenes || displayProduct.imagenes,
+      imagen: v.producto.imagen || displayProduct.imagen,
+    };
+    
+    return {
+      codigo: v.codigo,
+      variantNumber: 0,
+      talle: v.talle,
+      color: v.color,
+      stock: v.stock,
+      producto: variantProduct,
+    };
+  });
+
+  return {
+    skuBase: groupV2.skuBase,
+    skuBaseSlug: groupV2.skuBaseSlug,
+    displayProduct,
+    variants,
+    totalVariants: groupV2.totalVariants,
+    availableColors: groupV2.availableColors,
+    availableSizes: groupV2.availableSizes,
+  };
+};
+
+// Componente interno para cada producto en la búsqueda - usa el mismo hook que ProductCardGrouped
+interface SearchProductItemProps {
+  product: GroupedProduct;
+  onClick: () => void;
+}
+
+const SearchProductItem: React.FC<SearchProductItemProps> = ({ product, onClick }) => {
+  // Usar la primera variante disponible (igual que ProductCardGrouped usa selectedVariant)
+  const firstVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
+  const productToUse = firstVariant ? firstVariant.producto : product.displayProduct;
+  const productName = productToUse.NOMBRE || productToUse.Descripcion || product.skuBase;
+  const selectedColor = firstVariant?.color || null;
+  
+  // Usar el mismo hook que ProductCardGrouped
+  const { mainImage, handleImageError } = useProductCardImage({
+    product: productToUse,
+    productName,
+    selectedColor,
+    availableColors: product.availableColors,
+  });
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
+      onClick={onClick}
+      className="flex gap-3 p-3 rounded-lg border border-gray-200 hover:border-[#Ed3237] hover:shadow-md cursor-pointer transition-all group"
+    >
+      <div className="relative w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+        {/* Siempre renderizar una imagen, incluso si es placeholder - igual que ProductCardImage */}
+        <Image
+          src={mainImage}
+          alt={productName}
+          fill
+          className="object-cover group-hover:scale-110 transition-transform"
+          sizes="80px"
+          unoptimized={true}
+          onError={handleImageError}
+        />
+      </div>
+      <div className="flex-1 min-w-0">
+        <h3 className="font-semibold text-sm text-black line-clamp-2 group-hover:text-[#Ed3237] transition-colors">
+          {productName}
+        </h3>
+        <p className="text-xs text-gray-500 mt-1">
+          {(() => {
+            let rubro = product.displayProduct.Rubro || product.displayProduct.Subrubro || '';
+            // Quitar "PRODUCTO" del inicio
+            if (rubro.toUpperCase().startsWith('PRODUCTO ')) {
+              rubro = rubro.substring(9); // Quitar "PRODUCTO "
+            }
+            // Normalizar: OFFICE → BASIC
+            if (rubro.toUpperCase().includes('OFFICE')) {
+              return 'BASIC';
+            }
+            return rubro;
+          })()}
+        </p>
+      </div>
+    </motion.div>
+  );
+};
+
 const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -36,8 +188,16 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
     setMounted(true);
   }, []);
   
-  // Usar el mismo hook que usa la página
-  const { groupedProducts, isLoading } = useGroupedProducts();
+  // Usar el mismo hook que usa shoponline (useProductsV2)
+  const { products: productsV2, isLoading } = useProductsV2();
+  
+  // Adaptar productos V2 a formato compatible - solo cuando hay datos y está montado
+  const groupedProducts = useMemo(() => {
+    if (!mounted || !productsV2 || productsV2.length === 0) {
+      return [];
+    }
+    return productsV2.map(adaptGroupedProductV2ToGroupedProduct);
+  }, [productsV2, mounted]);
 
   // Focus en el input cuando se abre el modal
   useEffect(() => {
@@ -190,81 +350,13 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                   </div>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {results.slice(0, 6).map((product) => {
-                      const productName = product.displayProduct.NOMBRE || product.displayProduct.Descripcion || product.skuBase;
-                      const displayProduct = product.displayProduct;
-                      
-                      // Usar la misma lógica que useProductCardImage para obtener la imagen
-                      let mainImage = '/imgs/producto-placeholder.png';
-                      
-                      // Prioridad 1: Imagen del primer color disponible
-                      if (productName && product.availableColors && product.availableColors.length > 0) {
-                        const firstColorImages = getProductImagesByColor(productName, product.availableColors[0]);
-                        if (firstColorImages.length > 0) {
-                          mainImage = firstColorImages[0];
-                        }
-                      }
-                      
-                      // Prioridad 2: Primera imagen disponible del producto (cualquier color)
-                      if (mainImage === '/imgs/producto-placeholder.png' && productName) {
-                        mainImage = getFirstProductImage(productName);
-                      }
-                      
-                      // Prioridad 3: Imágenes del producto si existen
-                      if (mainImage === '/imgs/producto-placeholder.png') {
-                        const productImages = displayProduct.imagenes && displayProduct.imagenes.length > 0
-                          ? displayProduct.imagenes.filter((img) => img && img.trim() !== '' && !img.includes('.png'))
-                          : displayProduct.imagen && displayProduct.imagen.trim() !== '' && !displayProduct.imagen.includes('.png')
-                            ? [displayProduct.imagen]
-                            : [];
-                        if (productImages.length > 0) {
-                          mainImage = productImages[0];
-                        }
-                      }
-                      
-                      return (
-                        <motion.div
-                          key={product.skuBase}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.2 }}
-                          onClick={() => handleProductClick(product)}
-                          className="flex gap-3 p-3 rounded-lg border border-gray-200 hover:border-[#Ed3237] hover:shadow-md cursor-pointer transition-all group"
-                        >
-                          <div className="relative w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
-                            <Image
-                              src={mainImage}
-                              alt={productName}
-                              fill
-                              className="object-cover group-hover:scale-110 transition-transform"
-                              onError={(e) => {
-                                // Si falla, intentar con otro color o usar placeholder
-                                const target = e.target as HTMLImageElement;
-                                if (productName && product.availableColors && product.availableColors.length > 1) {
-                                  const nextColorImages = getProductImagesByColor(productName, product.availableColors[1]);
-                                  if (nextColorImages.length > 0) {
-                                    target.src = nextColorImages[0];
-                                    return;
-                                  }
-                                }
-                                target.src = '/imgs/producto-placeholder.png';
-                              }}
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-sm text-black line-clamp-2 group-hover:text-[#Ed3237] transition-colors">
-                              {productName}
-                            </h3>
-                            <p className="text-xs text-gray-500 mt-1">{product.displayProduct.Rubro || product.displayProduct.Subrubro || ''}</p>
-                            {/* {product.totalVariants > 1 && (
-                              <span className="inline-block mt-1 px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded">
-                                {product.totalVariants} variantes
-                              </span>
-                            )} */}
-                          </div>
-                        </motion.div>
-                      );
-                    })}
+                    {results.slice(0, 6).map((product) => (
+                      <SearchProductItem
+                        key={product.skuBase}
+                        product={product}
+                        onClick={() => handleProductClick(product)}
+                      />
+                    ))}
                   </div>
                 </div>
               ) : (

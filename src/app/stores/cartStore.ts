@@ -18,10 +18,12 @@ export const useCartStore = create<CartState>()(
             iva: 0,
             total: 0,
 
-            addItem: (product: CartProduct, quantity = 1, especificaciones = '') => {
+            addItem: (product: CartProduct, quantity = 1, especificaciones = '', bordado = false) => {
                 set((state) => {
                     const existingIndex = state.items.findIndex(
-                        (item) => item.product.id === product.id
+                        (item) => item.product.id === product.id && 
+                        item.especificaciones === especificaciones &&
+                        item.bordado === bordado
                     );
 
                     let newItems: CartItem[];
@@ -50,6 +52,7 @@ export const useCartStore = create<CartState>()(
                             quantity,
                             subtotal: quantity * precio,
                             especificaciones: especificaciones || undefined,
+                            bordado: bordado || false,
                         };
                         newItems = [...state.items, newItem];
                     }
@@ -126,6 +129,16 @@ export const useCartStore = create<CartState>()(
                 }));
             },
 
+            updateBordado: (productId: number, bordado: boolean) => {
+                set((state) => ({
+                    items: state.items.map((item) =>
+                        item.product.id === productId
+                            ? { ...item, bordado }
+                            : item
+                    ),
+                }));
+            },
+
             clearCart: () => {
                 set({
                     items: [],
@@ -184,6 +197,9 @@ export const useCartStore = create<CartState>()(
                     message += `   Precio unit: $${item.product.precio.toLocaleString('es-AR')}\n`;
                     if (item.especificaciones) {
                         message += `   Detalles: ${item.especificaciones}\n`;
+                    }
+                    if (item.bordado) {
+                        message += `   ✨ Bordado: SÍ\n`;
                     }
                     message += `   Subtotal: $${item.subtotal.toLocaleString('es-AR')}\n\n`;
                 });

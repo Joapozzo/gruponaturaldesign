@@ -25,6 +25,7 @@ export const useCart = () => {
         removeFromCart: store.removeItem,
         updateQuantity: store.updateQuantity,
         updateEspecificaciones: store.updateEspecificaciones,
+        updateBordado: store.updateBordado,
         clearCart: store.clearCart,
         setCustomerData: store.setCustomerData,
         setShippingData: store.setShippingData,

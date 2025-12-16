@@ -20,6 +20,7 @@ import ProductLoadingState from './components/ProductLoadingState';
 import ProductNotFound from './components/ProductNotFound';
 import { useConfirmModal } from '@/app/components/hooks/useModal';
 import ConfirmModal from '@/app/components/modal/ConfirmModal';
+import BordadoSwitch from '@/app/components/product-card/components/BordadoSwitch';
 // import ProductVariantBadge from './components/ProductVariantBadge';
 
 const ProductDetailPageContent = () => {
@@ -86,21 +87,36 @@ const ProductDetailPageContent = () => {
         });
     };
 
+    // Estado para bordado (por defecto false)
+    const [bordado, setBordado] = React.useState(false);
+    
     // Hook para manejar el carrito (debe llamarse siempre)
     const { 
         handleIncrement, 
-        handleDecrement, 
+        handleDecrement,
+        handleBordadoChange,
         isAdding, 
         inCart, 
         currentQuantity,
         canAddMore,
         maxReached,
+        cartItem,
     } = useProductCart(
         groupedProduct,
         groupedProduct?.displayProduct,
         selectedVariant,
-        handleWholesaleLimitReached
+        handleWholesaleLimitReached,
+        bordado
     );
+    
+    // Sincronizar estado de bordado con el carrito
+    React.useEffect(() => {
+        if (cartItem) {
+            setBordado(cartItem.bordado || false);
+        } else {
+            setBordado(false);
+        }
+    }, [cartItem]);
 
     // Estados de carga y error (después de todos los hooks)
     if (isLoading) {
@@ -176,6 +192,19 @@ const ProductDetailPageContent = () => {
                             selectedVariant={selectedVariant}
                             displayProduct={displayProduct}
                         />
+
+                        {/* Switch de Bordado */}
+                        <div className="mt-4">
+                            <BordadoSwitch
+                                value={bordado}
+                                onChange={(value) => {
+                                    setBordado(value);
+                                    handleBordadoChange(value);
+                                }}
+                                isMobile={false}
+                                size="large"
+                            />
+                        </div>
 
                         {/* Controles de cantidad */}
                         <QuantityControlsProductPage

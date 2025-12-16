@@ -152,6 +152,10 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
         });
       }
 
+      if (item.bordado) {
+        message += `   ✨ Bordado: SÍ\n`;
+      }
+
       message += `   Cantidad: ${item.quantity} unidades\n`;
       message += `   Precio unitario: ${formatPrice(item.product.precio)}\n`;
       message += `   Subtotal: ${formatPrice(item.subtotal)}\n`;
@@ -343,6 +347,9 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
                   </p>
                   {item.especificaciones && (
                     <p className="text-gray-600 text-xs mt-1">{item.especificaciones}</p>
+                  )}
+                  {item.bordado && (
+                    <p className="text-red-600 font-semibold mt-1 text-xs">✨ Bordado: SÍ</p>
                   )}
                   <p className="text-gray-700 mt-1">Cantidad: {item.quantity} unidades</p>
                   <p className="text-gray-700">Precio unitario: {formatPrice(item.product.precio)}</p>

@@ -602,6 +602,11 @@ function generateOrderEmailHTML(data: {
             ${item.especificaciones}
           </div>
           ` : ''}
+          ${item.bordado ? `
+          <div class="product-specs" style="background: #fff5f5; border-left-color: #Ed3237;">
+            <strong style="color: #Ed3237;">✨ Bordado: SÍ</strong>
+          </div>
+          ` : ''}
           <div class="product-quantity">
             <span>Cantidad:</span>
             <span class="quantity-badge">${item.quantity} unidades</span>
@@ -882,6 +887,7 @@ function generateInternalEmailHTML(data: {
       <div class="product-item">
         <strong>${index + 1}. ${item.product.nombre}</strong>
         ${item.especificaciones ? `<br/><small style="color: #666;">${item.especificaciones}</small>` : ''}
+        ${item.bordado ? `<br/><small style="color: #Ed3237; font-weight: bold;">✨ Bordado: SÍ</small>` : ''}
         <br/><span style="color: #Ed3237; font-weight: bold;">Cantidad: ${item.quantity} unidades</span>
       </div>
       `).join('')}

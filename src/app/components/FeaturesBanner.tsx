@@ -13,7 +13,7 @@ const FeaturesBanner = () => {
     {
       icon: CreditCard,
       title: "MEDIO DE PAGO",
-      description: "6 cuotas sin interés a partir de $180.000"
+      description: "3 CUOTAS SIN INTERÉS • 15% OFF CON TRANSFERENCIA"
     },
     {
       icon: Store,
@@ -23,7 +23,7 @@ const FeaturesBanner = () => {
     {
       icon: Truck,
       title: "ENVÍO GRATIS",
-      description: "Con monto mínimo de $230.000"
+      description: "ENVÍO GRATIS A SUCURSAL EN COMPRAS SUPERIORES A $200.000"
     }
   ];
 

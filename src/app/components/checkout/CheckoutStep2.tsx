@@ -671,6 +671,9 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                   {item.especificaciones && (
                     <p className="text-gray-500 text-[10px] line-clamp-1">{item.especificaciones}</p>
                   )}
+                  {item.bordado && (
+                    <p className="text-[10px] text-red-600 font-semibold mt-0.5">✨ Bordado: SÍ</p>
+                  )}
                 </div>
                 <span className="font-semibold text-black">{formatPrice(item.subtotal)}</span>
               </div>

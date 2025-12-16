@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { GroupedProduct, ProductVariant } from '@/app/types/producto';
 import { useCart } from '@/app/components/hooks/useCart';
@@ -12,10 +13,11 @@ export function useProductCart(
     groupedProduct: GroupedProduct | null,
     displayProduct: any,
     selectedVariant: ProductVariant | null,
-    onWholesaleLimitReached?: () => void
+    onWholesaleLimitReached?: () => void,
+    bordado: boolean = false
 ) {
     const router = useRouter();
-    const { addToCart, isInCart, canAddToCart, getProductQuantity, updateQuantity, itemCount } = useCart();
+    const { addToCart, isInCart, canAddToCart, getProductQuantity, updateQuantity, itemCount, items, updateBordado } = useCart();
     const [isAdding, setIsAdding] = useState(false);
 
     const handleAddToCart = () => {
@@ -88,7 +90,8 @@ export function useProductCart(
                 skuBaseSlug: groupedProduct.skuBaseSlug || nombreToSlug(groupedProduct.skuBase),
             },
             1,
-            specs
+            specs,
+            bordado
         );
 
         setTimeout(() => {
@@ -99,6 +102,30 @@ export function useProductCart(
     const productId = selectedVariant ? createProductId(selectedVariant.codigo) : 0;
     const inCart = isInCart(productId);
     const currentQuantity = getProductQuantity(productId);
+    
+    // Crear especificaciones para buscar el item correcto
+    const specs = selectedVariant ? createProductSpecs(
+        selectedVariant.color,
+        selectedVariant.talle,
+        selectedVariant.codigo,
+        selectedVariant.variantNumber
+    ) : '';
+    
+    // Buscar el item en el carrito que coincida con id y especificaciones
+    const cartItem = React.useMemo(() => {
+        if (!selectedVariant) return null;
+        return items.find(item => 
+            item.product.id === productId && 
+            item.especificaciones === specs
+        );
+    }, [items, productId, specs, selectedVariant]);
+    
+    // Función para actualizar bordado
+    const handleBordadoChange = (newBordado: boolean) => {
+        if (cartItem) {
+            updateBordado(productId, newBordado);
+        }
+    };
 
     // Calcular canAddMore y maxReached
     const handleIncrement = () => {
@@ -154,6 +181,7 @@ export function useProductCart(
         handleAddToCart,
         handleIncrement,
         handleDecrement,
+        handleBordadoChange,
         isAdding,
         inCart,
         currentQuantity,
@@ -161,6 +189,7 @@ export function useProductCart(
         maxReached,
         maxReachedStock, // Agregar información de stock alcanzado
         productId,
+        cartItem,
     };
 }
 

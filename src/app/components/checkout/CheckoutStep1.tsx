@@ -8,6 +8,7 @@ import { useCart } from '../hooks/useCart';
 import Button from '../ui/Button';
 import { Trash2, ArrowRight, Package } from 'lucide-react';
 import QuantityControlsUI from '@/app/components/ui/QuantityControls';
+import BordadoSwitch from '../product-card/components/BordadoSwitch';
 import { formatPrice, formatPriceWithoutIVA } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
 import { getStockMessage } from '@/app/services/stockService';
 import { useConfirmModal } from '../hooks/useModal';
@@ -20,7 +21,7 @@ interface CheckoutStep1Props {
 
 export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
   const router = useRouter();
-  const { items, updateQuantity: originalUpdateQuantity, removeFromCart, itemCount, canAddToCart, subtotal, iva, total } = useCart();
+  const { items, updateQuantity: originalUpdateQuantity, updateBordado, removeFromCart, itemCount, canAddToCart, subtotal, iva, total } = useCart();
 
   // Hook para modal de confirmación mayorista
   const { 
@@ -129,6 +130,14 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
                   {item.especificaciones && (
                     <p className="text-[10px] lg:text-xs text-gray-600 mt-0.5 line-clamp-1">{item.especificaciones}</p>
                   )}
+                  {/* Switch de Bordado */}
+                  <div className="mt-1.5">
+                    <BordadoSwitch
+                      value={item.bordado || false}
+                      onChange={(value) => updateBordado(item.product.id, value)}
+                      isMobile={false}
+                    />
+                  </div>
                   {/* Precio */}
                   <div className="mt-1">
                     <p className="text-xs font-bold text-black">{formatPrice(item.subtotal)}</p>
