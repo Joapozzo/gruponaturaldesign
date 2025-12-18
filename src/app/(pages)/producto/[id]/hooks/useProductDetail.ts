@@ -197,6 +197,12 @@ function adaptGroupedProductV2ToGroupedProduct(groupV2: GroupedProductV2): Group
         NOMBRE: groupV2.displayProduct.nombreBase,
         // Agregar rubroNormalizado para compatibilidad con filtros
         rubroNormalizado: groupV2.displayProduct.rubroNormalizado,
+        // Nuevos campos de precios y descripción
+        precioTransfer: groupV2.displayProduct.precioTransfer,
+        precioSImp: groupV2.displayProduct.precioSImp,
+        precio3cuotas: groupV2.displayProduct.precio3cuotas,
+        descripcionCompleta: groupV2.displayProduct.descripcion,
+        textiles: groupV2.displayProduct.textiles,
     };
 
     // Adaptar variantes - cada variante tiene su propio producto con su descripción
@@ -211,6 +217,12 @@ function adaptGroupedProductV2ToGroupedProduct(groupV2: GroupedProductV2): Group
             // Usar las imágenes específicas de esta variante si las tiene
             imagenes: v.producto.imagenes || displayProduct.imagenes,
             imagen: v.producto.imagen || displayProduct.imagen,
+            // Mantener los nuevos campos de precios y descripción
+            precioTransfer: v.producto.precioTransfer || displayProduct.precioTransfer,
+            precioSImp: v.producto.precioSImp || displayProduct.precioSImp,
+            precio3cuotas: v.producto.precio3cuotas || displayProduct.precio3cuotas,
+            descripcionCompleta: v.producto.descripcion || displayProduct.descripcionCompleta,
+            textiles: v.producto.textiles || displayProduct.textiles,
         };
         
         return {
@@ -240,6 +252,7 @@ export function useProductDetail() {
     
     const [groupedProduct, setGroupedProduct] = useState<GroupedProduct | null>(null);
     const [relatedProducts, setRelatedProducts] = useState<GroupedProduct[]>([]);
+    const [hasSearched, setHasSearched] = useState(false); // Track si ya se buscó el producto
 
     const { products: groupedProductsV2, isLoading: productsLoading, isError: productsError } = useProductsV2();
     
@@ -252,6 +265,7 @@ export function useProductDetail() {
     useEffect(() => {
         // Mientras los productos estén cargando, no hacer nada
         if (productsLoading) {
+            setHasSearched(false); // Resetear cuando empieza a cargar
             return;
         }
 
@@ -260,6 +274,7 @@ export function useProductDetail() {
         if (productsError || groupedProducts.length === 0) {
             setGroupedProduct(null);
             setRelatedProducts([]);
+            setHasSearched(true); // Marcar que ya se buscó
             return;
         }
 
@@ -421,10 +436,13 @@ export function useProductDetail() {
             setGroupedProduct(null);
             setRelatedProducts([]);
         }
+        
+        // Marcar que ya se buscó el producto
+        setHasSearched(true);
     }, [skuBase, groupedProducts, productsLoading, productsError]);
 
-    // isLoading es true mientras los productos estén cargando
-    const isLoading = productsLoading;
+    // isLoading es true mientras los productos estén cargando O mientras no se haya buscado aún
+    const isLoading = productsLoading || !hasSearched;
 
     return {
         groupedProduct,

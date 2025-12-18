@@ -39,14 +39,14 @@ class ProductsV2Service {
      * Solo reemplaza cuando "D" o "H" están solos (no como parte de otra palabra)
      */
     private normalizeGenero(nombre: string): string {
-        // Normalizar " D " (espacio D espacio) a " Dama "
+        // Normalizar " D " (espacio D espacio) a " DAMA " (mayúsculas para consistencia)
         // También " D " al inicio o final, pero no si es parte de otra palabra
         // Usar lookbehind y lookahead para asegurar que esté separado
-        nombre = nombre.replace(/(^|\s+)D(\s+|$)/g, '$1Dama$2');
+        nombre = nombre.replace(/(^|\s+)D(\s+|$)/gi, '$1DAMA$2');
         
-        // Normalizar " H " (espacio H espacio) a " Hombre "
+        // Normalizar " H " (espacio H espacio) a " HOMBRE " (mayúsculas para consistencia)
         // También " H " al inicio o final, pero no si es parte de otra palabra
-        nombre = nombre.replace(/(^|\s+)H(\s+|$)/g, '$1Hombre$2');
+        nombre = nombre.replace(/(^|\s+)H(\s+|$)/gi, '$1HOMBRE$2');
         
         // Limpiar espacios múltiples que puedan quedar
         nombre = nombre.replace(/\s+/g, ' ').trim();
@@ -174,6 +174,7 @@ class ProductsV2Service {
             { pattern: /gris\s+topo/i, name: 'Gris Topo' },
             { pattern: /lavado\s+oscuro/i, name: 'Lavado Oscuro' },
             { pattern: /lavado\s+claro/i, name: 'Lavado Claro' },
+            { pattern: /tostado/i, name: 'Tostado' }, // Agregar Tostado como color compuesto
         ];
         
         // Buscar colores compuestos primero (buscar en el string completo)
@@ -185,17 +186,30 @@ class ProductsV2Service {
         
         // Colores simples (incluyendo cemento y tostado)
         // IMPORTANTE: Solo buscar colores simples si NO se encontró un color compuesto
+        // IMPORTANTE: "azul" debe ir DESPUÉS de buscar "azul marino" para evitar falsos positivos
         const colores = [
-            'negro', 'blanco', 'celeste', 'gris', 'rojo', 'verde', 
+            'negro', 'blanco', 'azul', 'celeste', 'gris', 'rojo', 'verde', 
             'beige', 'marron', 'camel', 'bordo', 'rosa', 'amarillo', 'arena',
             'cemento', 'tostado' // Agregar cemento y tostado como colores
         ];
 
-        const palabras = normalizedItem.toLowerCase().split(/\s+/);
+        // Primero remover el talle del final para buscar el color correctamente
+        // Los talles pueden ser números (36, 38, etc.) o letras (XS, S, M, etc.)
+        const tallePatterns = [
+            /\s+(2XS|XS|S|M|L|XL|2XL|3XL|4XL|5XL)\s*$/i,
+            /\s+(\d{1,2})\s*$/,
+            /\s+(PP|P|G|GG|XG|XXG|XXXG)\s*$/i,
+        ];
         
-        // Buscar colores desde el final (la última palabra es el color, antes del talle que ya fue removido)
+        let itemSinTalle = normalizedItem.toLowerCase();
+        for (const pattern of tallePatterns) {
+            itemSinTalle = itemSinTalle.replace(pattern, '').trim();
+        }
+
+        const palabras = itemSinTalle.split(/\s+/);
+        
+        // Buscar colores desde el final (ahora la última palabra debería ser el color)
         // IMPORTANTE: Buscar desde la última palabra hacia atrás para encontrar el color
-        // PERO: Solo buscar si no se encontró un color compuesto antes
         for (let i = palabras.length - 1; i >= 0; i--) {
             const palabra = palabras[i];
             // Buscar coincidencia EXACTA del color (no parcial para evitar falsos positivos)
@@ -485,6 +499,9 @@ class ProductsV2Service {
         
         const nombreBase = this.extractNombreBase(itemNormalizado);
         const precioLista = this.parsePrecio(raw.precioLista);
+        const precioTransfer = raw.precioTransfer ? this.parsePrecio(raw.precioTransfer) : undefined;
+        const precioSImp = raw.precioSImp ? this.parsePrecio(raw.precioSImp) : undefined;
+        const precio3cuotas = raw.precio3cuotas ? this.parsePrecio(raw.precio3cuotas) : undefined;
         const talle = this.extractTalle(itemNormalizado);
         const color = this.extractColor(itemNormalizado);
         
@@ -512,6 +529,9 @@ class ProductsV2Service {
             deposito: raw.deposito,
             stock: raw.stock,
             precioLista,
+            precioTransfer,
+            precioSImp,
+            precio3cuotas,
             nombreBase,
             imagenes, // Leer directamente del CSV
             imagen,   // Primera imagen del CSV
@@ -520,6 +540,8 @@ class ProductsV2Service {
             talle,
             color,
             rubroNormalizado, // PRODUCTO OFFICE → BASIC, PRODUCTO WORKWEAR → WORKWEAR
+            descripcion: raw.descripcion,
+            textiles: raw.textiles,
         };
     }
 
@@ -694,32 +716,46 @@ class ProductsV2Service {
             const availableSizes = Array.from(tallesSet);
 
             // Organizar imágenes por color para que cambien cuando se selecciona un color
-            // Mapa: color -> array de imágenes
-            const imagenesPorColor = new Map<string, string[]>();
+            // Mapa: color -> Set de imágenes (para evitar duplicados)
+            const imagenesPorColorSet = new Map<string, Set<string>>();
             const todasLasImagenes = new Set<string>();
             
             sortedVariants.forEach(v => {
                 if (v.color && v.imagenes && v.imagenes.length > 0) {
                     // Agrupar imágenes por color
                     const color = v.color; // Guardar en constante para type safety
-                    if (!imagenesPorColor.has(color)) {
-                        imagenesPorColor.set(color, []);
+                    if (!imagenesPorColorSet.has(color)) {
+                        imagenesPorColorSet.set(color, new Set<string>());
                     }
+                    // Solo agregar imágenes de la primera variante de cada color para evitar duplicados
+                    // Todas las variantes del mismo color deberían tener las mismas imágenes
+                    const colorSet = imagenesPorColorSet.get(color)!;
                     v.imagenes.forEach(img => {
-                        imagenesPorColor.get(color)!.push(img);
-                        todasLasImagenes.add(img);
+                        if (!colorSet.has(img)) {
+                            colorSet.add(img);
+                            todasLasImagenes.add(img);
+                        }
                     });
                 } else if (v.imagenes && v.imagenes.length > 0) {
                     // Si no tiene color, agregar a un grupo "sin-color"
                     const noColorKey = 'sin-color';
-                    if (!imagenesPorColor.has(noColorKey)) {
-                        imagenesPorColor.set(noColorKey, []);
+                    if (!imagenesPorColorSet.has(noColorKey)) {
+                        imagenesPorColorSet.set(noColorKey, new Set<string>());
                     }
+                    const noColorSet = imagenesPorColorSet.get(noColorKey)!;
                     v.imagenes.forEach(img => {
-                        imagenesPorColor.get(noColorKey)!.push(img);
-                        todasLasImagenes.add(img);
+                        if (!noColorSet.has(img)) {
+                            noColorSet.add(img);
+                            todasLasImagenes.add(img);
+                        }
                     });
                 }
+            });
+            
+            // Convertir Sets a Arrays para el displayProduct
+            const imagenesPorColor = new Map<string, string[]>();
+            imagenesPorColorSet.forEach((imgSet, color) => {
+                imagenesPorColor.set(color, Array.from(imgSet));
             });
             
             // Obtener todas las imágenes únicas (para el displayProduct)

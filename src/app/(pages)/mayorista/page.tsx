@@ -1,7 +1,18 @@
 "use client";
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, ArrowLeft } from 'lucide-react';
+import { 
+    CheckCircle2, 
+    ArrowLeft, 
+    MapPin, 
+    Users, 
+    Shirt, 
+    CreditCard, 
+    User, 
+    Mail, 
+    Phone,
+    Briefcase
+} from 'lucide-react';
 import Section from '@/app/components/Section';
 import { useRouter } from 'next/navigation';
 import WholesaleBanner from '@/app/components/WholesaleBanner';
@@ -16,6 +27,10 @@ export default function MayoristaPage() {
     });
 
     const [formData, setFormData] = useState({
+        nombre: '',
+        apellido: '',
+        mail: '',
+        telefono: '',
         provincia: '',
         ciudad: '',
         cantidad: '',
@@ -51,6 +66,20 @@ export default function MayoristaPage() {
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
 
+        if (!formData.nombre.trim()) {
+            newErrors.nombre = 'El nombre es requerido';
+        }
+        if (!formData.apellido.trim()) {
+            newErrors.apellido = 'El apellido es requerido';
+        }
+        if (!formData.mail.trim()) {
+            newErrors.mail = 'El email es requerido';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.mail)) {
+            newErrors.mail = 'El email no es válido';
+        }
+        if (!formData.telefono.trim()) {
+            newErrors.telefono = 'El teléfono es requerido';
+        }
         if (!formData.provincia.trim()) {
             newErrors.provincia = 'La provincia es requerida';
         }
@@ -76,13 +105,18 @@ export default function MayoristaPage() {
         }
 
         // Construir mensaje para WhatsApp con el formato solicitado
-        let message = "¡Hola! Quiero uniformar a mi equipo 💼👕\n\n";
-        message += "Completá los siguientes datos:\n\n";
-        message += `📍 Provincia y Ciudad: ${formData.provincia}, ${formData.ciudad}\n`;
-        message += `👥 Cantidad de prendas aproximadas: ${formData.cantidad}\n`;
-        message += `👔 Tipo de prendas que buscan: ${formData.tipoPrendas}\n`;
+        let message = "¡Hola! Quiero uniformar a mi equipo\n\n";
+        message += "Datos de contacto:\n";
+        message += `Nombre: ${formData.nombre}\n`;
+        message += `Apellido: ${formData.apellido}\n`;
+        message += `Email: ${formData.mail}\n`;
+        message += `Teléfono: ${formData.telefono}\n\n`;
+        message += "Información del pedido:\n";
+        message += `Provincia y Ciudad: ${formData.provincia}, ${formData.ciudad}\n`;
+        message += `Cantidad de prendas aproximadas: ${formData.cantidad}\n`;
+        message += `Tipo de prendas que buscan: ${formData.tipoPrendas}\n`;
         if (formData.cuit) {
-            message += `🆔 CUIT: ${formData.cuit}\n`;
+            message += `CUIT: ${formData.cuit}\n`;
         }
 
         openWhatsApp(message);
@@ -149,19 +183,109 @@ export default function MayoristaPage() {
                         transition={{ duration: 0.6, delay: 0.2 }}
                         className="bg-gray-50 p-6 sm:p-8 rounded-lg border border-gray-200"
                     >
-                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">
-                            ¡Hola! Quiero uniformar a mi equipo 💼👕
+                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
+                            <Briefcase className="w-6 h-6 text-[#Ed3237]" />
+                            <span>¡Hola! Quiero uniformar a mi equipo</span>
                         </h2>
                         <p className="text-gray-700 mb-6">
                             Completá los siguientes datos:
                         </p>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
+                            {/* Nombre y Apellido */}
+                            <div className="grid sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label htmlFor="nombre" className="flex text-sm font-semibold text-gray-700 mb-2 items-center gap-2">
+                                        <User className="w-4 h-4 text-[#Ed3237]" />
+                                        <span>Nombre: *</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="nombre"
+                                        name="nombre"
+                                        value={formData.nombre}
+                                        onChange={handleInputChange}
+                                        className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
+                                            errors.nombre ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                        placeholder="Ej: Juan"
+                                    />
+                                    {errors.nombre && (
+                                        <p className="text-red-500 text-xs mt-1">{errors.nombre}</p>
+                                    )}
+                                </div>
+                                <div>
+                                    <label htmlFor="apellido" className="flex text-sm font-semibold text-gray-700 mb-2 items-center gap-2">
+                                        <User className="w-4 h-4 text-[#Ed3237]" />
+                                        <span>Apellido: *</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="apellido"
+                                        name="apellido"
+                                        value={formData.apellido}
+                                        onChange={handleInputChange}
+                                        className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
+                                            errors.apellido ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                        placeholder="Ej: Pérez"
+                                    />
+                                    {errors.apellido && (
+                                        <p className="text-red-500 text-xs mt-1">{errors.apellido}</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Email y Teléfono */}
+                            <div className="grid sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label htmlFor="mail" className="flex text-sm font-semibold text-gray-700 mb-2 items-center gap-2">
+                                        <Mail className="w-4 h-4 text-[#Ed3237]" />
+                                        <span>Email: *</span>
+                                    </label>
+                                    <input
+                                        type="email"
+                                        id="mail"
+                                        name="mail"
+                                        value={formData.mail}
+                                        onChange={handleInputChange}
+                                        className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
+                                            errors.mail ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                        placeholder="Ej: juan@empresa.com"
+                                    />
+                                    {errors.mail && (
+                                        <p className="text-red-500 text-xs mt-1">{errors.mail}</p>
+                                    )}
+                                </div>
+                                <div>
+                                    <label htmlFor="telefono" className="flex text-sm font-semibold text-gray-700 mb-2 items-center gap-2">
+                                        <Phone className="w-4 h-4 text-[#Ed3237]" />
+                                        <span>Teléfono: *</span>
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        id="telefono"
+                                        name="telefono"
+                                        value={formData.telefono}
+                                        onChange={handleInputChange}
+                                        className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
+                                            errors.telefono ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                        placeholder="Ej: +54 9 351 123-4567"
+                                    />
+                                    {errors.telefono && (
+                                        <p className="text-red-500 text-xs mt-1">{errors.telefono}</p>
+                                    )}
+                                </div>
+                            </div>
+
                             {/* Provincia y Ciudad */}
                             <div className="grid sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label htmlFor="provincia" className="block text-sm font-semibold text-gray-700 mb-2">
-                                        📍 Provincia: *
+                                    <label htmlFor="provincia" className="flex text-sm font-semibold text-gray-700 mb-2 items-center gap-2">
+                                        <MapPin className="w-4 h-4 text-[#Ed3237]" />
+                                        <span>Provincia: *</span>
                                     </label>
                                     <input
                                         type="text"
@@ -179,8 +303,9 @@ export default function MayoristaPage() {
                                     )}
                                 </div>
                                 <div>
-                                    <label htmlFor="ciudad" className="block text-sm font-semibold text-gray-700 mb-2">
-                                        📍 Ciudad: *
+                                    <label htmlFor="ciudad" className="flex text-sm font-semibold text-gray-700 mb-2 items-center gap-2">
+                                        <MapPin className="w-4 h-4 text-[#Ed3237]" />
+                                        <span>Ciudad: *</span>
                                     </label>
                                     <input
                                         type="text"
@@ -201,8 +326,9 @@ export default function MayoristaPage() {
 
                             {/* Cantidad */}
                             <div>
-                                <label htmlFor="cantidad" className="block text-sm font-semibold text-gray-700 mb-2">
-                                    👥 Cantidad de prendas aproximadas: *
+                                <label htmlFor="cantidad" className="flex text-sm font-semibold text-gray-700 mb-2 items-center gap-2">
+                                    <Users className="w-4 h-4 text-[#Ed3237]" />
+                                    <span>Cantidad de prendas aproximadas: *</span>
                                 </label>
                                 <input
                                     type="text"
@@ -222,8 +348,9 @@ export default function MayoristaPage() {
 
                             {/* Tipo de prendas */}
                             <div>
-                                <label htmlFor="tipoPrendas" className="block text-sm font-semibold text-gray-700 mb-2">
-                                    👔 Tipo de prendas que buscan: *
+                                <label htmlFor="tipoPrendas" className="flex text-sm font-semibold text-gray-700 mb-2 items-center gap-2">
+                                    <Shirt className="w-4 h-4 text-[#Ed3237]" />
+                                    <span>Tipo de prendas que buscan: *</span>
                                 </label>
                                 <textarea
                                     id="tipoPrendas"
@@ -243,8 +370,9 @@ export default function MayoristaPage() {
 
                             {/* CUIT (opcional) */}
                             <div>
-                                <label htmlFor="cuit" className="block text-sm font-semibold text-gray-700 mb-2">
-                                    🆔 CUIT (opcional):
+                                <label htmlFor="cuit" className="flex text-sm font-semibold text-gray-700 mb-2 items-center gap-2">
+                                    <CreditCard className="w-4 h-4 text-[#Ed3237]" />
+                                    <span>CUIT (opcional):</span>
                                 </label>
                                 <input
                                     type="text"

@@ -14,10 +14,29 @@ interface ProductInfoProps {
 
 export default function ProductInfo({ productName, displayProduct, selectedVariant, price }: ProductInfoProps) {
     const formattedPrice = formatPrice(price);
-    const priceWithoutIVA = formatPriceWithoutIVA(price);
     
-    // Usar la descripción de la variante seleccionada (cambia con color/talle)
-    const description = selectedVariant?.producto?.Descripcion || displayProduct.Descripcion;
+    // Obtener precios adicionales
+    const precioTransfer = selectedVariant?.producto?.precioTransfer || displayProduct.precioTransfer;
+    const precio3cuotas = selectedVariant?.producto?.precio3cuotas || displayProduct.precio3cuotas;
+    const precioSImp = selectedVariant?.producto?.precioSImp || displayProduct.precioSImp;
+    
+    const formattedTransfer = precioTransfer
+        ? `$${precioTransfer.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`
+        : null;
+    
+    const formatted3Cuotas = precio3cuotas
+        ? `$${precio3cuotas.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`
+        : null;
+    
+    const formattedSImp = precioSImp
+        ? `$${precioSImp.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`
+        : null;
+    
+    // Usar la descripción completa del producto (descripcionCompleta)
+    const description = selectedVariant?.producto?.descripcionCompleta || displayProduct.descripcionCompleta;
+    
+    // Obtener textiles del producto
+    const textiles = selectedVariant?.producto?.textiles || displayProduct.textiles;
     
     // Obtener mensaje de stock (sin mostrar número exacto)
     const stock = selectedVariant?.stock;
@@ -36,12 +55,29 @@ export default function ProductInfo({ productName, displayProduct, selectedVaria
                     {productName}
                 </h1>
                 <div className="flex flex-col items-start space-y-1 mb-3 sm:mb-4">
+                    {/* Precio lista - más grande */}
                     <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
                         {formattedPrice}
                     </span>
-                    {priceWithoutIVA && (
-                        <span className="text-xs sm:text-sm text-gray-500">
-                            {priceWithoutIVA}
+                    {/* Transfer y cuotas - más pequeños, lado a lado */}
+                    {(formattedTransfer || formatted3Cuotas) && (
+                        <div className="flex flex-row gap-3 mt-1">
+                            {formattedTransfer && (
+                                <span className="text-sm text-gray-600">
+                                    Transfer: {formattedTransfer}
+                                </span>
+                            )}
+                            {formatted3Cuotas && (
+                                <span className="text-sm text-gray-600">
+                                    3 cuotas: {formatted3Cuotas}
+                                </span>
+                            )}
+                        </div>
+                    )}
+                    {/* Precio sin impuestos - más pequeño, abajo */}
+                    {formattedSImp && (
+                        <span className="text-xs sm:text-sm text-gray-500 mt-1">
+                            Sin impuestos: {formattedSImp}
                         </span>
                     )}
                     {/* Mensaje de stock bajo (sin mostrar número exacto) */}
@@ -55,7 +91,7 @@ export default function ProductInfo({ productName, displayProduct, selectedVaria
                         </span>
                     )}
                 </div>
-                {/* Descripción completa del producto desde la variante seleccionada */}
+                {/* Descripción completa del producto */}
                 {description && (
                     <div className="mb-4 sm:mb-6">
                         <h3 className="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wide mb-2 sm:mb-3">
@@ -66,8 +102,19 @@ export default function ProductInfo({ productName, displayProduct, selectedVaria
                         </p>
                     </div>
                 )}
-                {/* Material */}
-                {displayProduct.Material && (
+                {/* Textiles */}
+                {textiles && (
+                    <div className="mb-4 sm:mb-6">
+                        <h3 className="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wide mb-2 sm:mb-3">
+                            Textiles
+                        </h3>
+                        <p className="text-gray-700 text-sm sm:text-base leading-relaxed">
+                            {textiles}
+                        </p>
+                    </div>
+                )}
+                {/* Material (fallback si no hay textiles) */}
+                {!textiles && displayProduct.Material && (
                     <div className="mb-4 sm:mb-6">
                         <h3 className="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wide mb-1.5 sm:mb-2">
                             Material

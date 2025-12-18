@@ -98,7 +98,7 @@ export function calculatePriceWithoutIVA(precioConIva: number | null | undefined
 export function formatPriceWithoutIVA(precioConIva: number | null | undefined): string {
     if (!precioConIva || precioConIva === 0) return '';
     const precioSinIva = calculatePriceWithoutIVA(precioConIva);
-    return `$${precioSinIva.toLocaleString('es-AR', { minimumFractionDigits: 2 })} sin IVA`;
+    return `$${precioSinIva.toLocaleString('es-AR', { minimumFractionDigits: 2 })} sin impuestos nacionales`;
 }
 
 /**

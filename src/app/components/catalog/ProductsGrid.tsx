@@ -68,6 +68,12 @@ const adaptGroupedProductV2ToGroupedProduct = (groupV2: GroupedProductV2): Group
         tablaTallesImage: groupV2.displayProduct.tablaTallesImage || null,
         indicacionesBordadosUrl: groupV2.displayProduct.indicacionesBordadosImage || null,
         NOMBRE: groupV2.displayProduct.nombreBase,
+        // Campos de precios adicionales del CSV
+        precioTransfer: groupV2.displayProduct.precioTransfer,
+        precio3cuotas: groupV2.displayProduct.precio3cuotas,
+        precioSImp: groupV2.displayProduct.precioSImp,
+        descripcionCompleta: groupV2.displayProduct.descripcion,
+        textiles: groupV2.displayProduct.textiles,
     };
 
     // Adaptar variantes - cada variante tiene su propio producto con su descripción
@@ -82,6 +88,12 @@ const adaptGroupedProductV2ToGroupedProduct = (groupV2: GroupedProductV2): Group
             // Usar las imágenes específicas de esta variante si las tiene
             imagenes: v.producto.imagenes || displayProduct.imagenes,
             imagen: v.producto.imagen || displayProduct.imagen,
+            // Mantener los nuevos campos de precios y descripción (con fallback al displayProduct)
+            precioTransfer: v.producto.precioTransfer || displayProduct.precioTransfer,
+            precio3cuotas: v.producto.precio3cuotas || displayProduct.precio3cuotas,
+            precioSImp: v.producto.precioSImp || displayProduct.precioSImp,
+            descripcionCompleta: v.producto.descripcion || displayProduct.descripcionCompleta,
+            textiles: v.producto.textiles || displayProduct.textiles,
         };
         
         return {

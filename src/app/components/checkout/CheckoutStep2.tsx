@@ -687,7 +687,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
               <span className="font-semibold">{itemCount}</span>
             </div>
             <div className="flex justify-between text-xs text-gray-500">
-              <span>Subtotal sin IVA</span>
+              <span>Subtotal sin impuestos nacionales</span>
               <span>{formatPrice(total / 1.21)}</span>
             </div>
             <div className="flex justify-between text-lg font-bold text-black pt-2 border-t border-gray-300">

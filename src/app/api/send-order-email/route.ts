@@ -624,21 +624,15 @@ function generateOrderEmailHTML(data: {
             <span style="font-weight: 600;">${itemCount} unidades</span>
           </div>
           <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: #e0e0e0;">
-            <span>Subtotal sin IVA:</span>
-            <span style="font-weight: 600;">${formatPrice(subtotal)}</span>
+            <span>Total sin impuestos:</span>
+            <span style="font-weight: 600;">${formatPrice(total / 1.21)}</span>
           </div>
-          ${iva > 0 ? `
-          <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: #e0e0e0;">
-            <span>IVA (21%):</span>
-            <span style="font-weight: 600;">${formatPrice(iva)}</span>
-          </div>
-          ` : ''}
           <div style="border-top: 2px solid rgba(237, 50, 55, 0.3); margin-top: 15px; padding-top: 15px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <span style="font-size: 18px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Total:</span>
               <span class="summary-total" style="font-size: 36px; font-weight: 700; color: #Ed3237; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);">${formatPrice(total)}</span>
             </div>
-            <div class="summary-label" style="text-align: right; margin-top: 5px;">IVA incluido</div>
+            <div class="summary-label" style="text-align: right; margin-top: 5px;">Impuestos incluidos</div>
           </div>
         </div>
       </div>
@@ -654,7 +648,7 @@ function generateOrderEmailHTML(data: {
       <div class="contact-info">
         <div class="contact-row">
           <span>📞</span>
-          <span>+54 351 7136316</span>
+          <span>+54 9 3517 13-6311</span>
         </div>
         <div class="contact-row">
           <span>📧</span>
@@ -902,21 +896,15 @@ function generateInternalEmailHTML(data: {
           <span style="font-weight: 600;">${itemCount} unidades</span>
         </div>
         <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">
-          <span>Subtotal sin IVA:</span>
-          <span style="font-weight: 600;">${formatPrice(subtotal)}</span>
+          <span>Total sin impuestos:</span>
+          <span style="font-weight: 600;">${formatPrice(total / 1.21)}</span>
         </div>
-        ${iva > 0 ? `
-        <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">
-          <span>IVA (21%):</span>
-          <span style="font-weight: 600;">${formatPrice(iva)}</span>
-        </div>
-        ` : ''}
         <div style="border-top: 2px solid rgba(237, 50, 55, 0.5); margin-top: 15px; padding-top: 15px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span style="font-size: 20px; font-weight: 700; text-transform: uppercase;">TOTAL:</span>
             <span style="font-size: 32px; font-weight: 700; color: #Ed3237;">${formatPrice(total)}</span>
           </div>
-          <div style="text-align: right; margin-top: 5px; font-size: 12px; color: #b0b0b0;">IVA incluido</div>
+          <div style="text-align: right; margin-top: 5px; font-size: 12px; color: #b0b0b0;">Impuestos incluidos</div>
         </div>
       </div>
     </div>

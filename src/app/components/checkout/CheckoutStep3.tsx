@@ -167,10 +167,12 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
     message += '--------------------------------\n\n';
   
     // RESUMEN
+    // Calcular total sin impuestos (el precio ya tiene IVA incluido)
+    const totalSinImpuestos = total / 1.21;
     message += '*RESUMEN*\n';
     message += `Total de productos: ${itemCount} unidades\n`;
-    message += `Subtotal sin IVA: ${formatPrice(subtotal)}\n`;
-    message += `*TOTAL (IVA incluido): ${formatPrice(total)}*\n`;
+    message += `Total sin impuestos: ${formatPrice(totalSinImpuestos)}\n`;
+    message += `*TOTAL (impuestos incluidos): ${formatPrice(total)}*\n`;
   
     return encodeURIComponent(message);
   };
@@ -367,11 +369,11 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
             </div>
             <div className="pt-3 border-t border-gray-700 space-y-1 text-sm">
               <div className="flex justify-between text-xs text-gray-300">
-                <span>Subtotal sin IVA:</span>
-                <span>{formatPrice(subtotal)}</span>
+                <span>Total sin impuestos:</span>
+                <span>{formatPrice(total / 1.21)}</span>
               </div>
               <div className="flex justify-between text-lg font-bold mt-2 pt-2 border-t border-gray-700">
-                <span>TOTAL (IVA incluido):</span>
+                <span>TOTAL (impuestos incluidos):</span>
                 <span className="text-red-600">{formatPrice(total)}</span>
               </div>
             </div>

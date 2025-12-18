@@ -12,14 +12,22 @@ export interface ProductV2Raw {
     deposito: string; // ECOMMERCE (no se usa)
     stock: number;
     precioLista: string; // Formato: $35,900.00
+    precioTransfer?: string; // Formato: $30,515.00
+    precioSImp?: string; // Formato: $29,669.42
+    precio3cuotas?: string; // Formato: $11,966.67
     fotos?: string; // Paths separados por comas: "camisa-drill-dama-celeste-1, camisa-drill-dama-celeste-2"
     talles?: string; // Slug para tabla de talles: "buzo-standard-unisex"
     bordados?: string; // Slug de bordado: "superiores", "pantalon-jean", "pantalon-chino", "pantalon-cargo"
+    descripcion?: string; // Descripción completa del producto
+    textiles?: string; // Composición de textiles
 }
 
 // Producto procesado con datos normalizados
-export interface ProductV2 extends Omit<ProductV2Raw, 'precioLista' | 'fotos' | 'talles' | 'bordados'> {
+export interface ProductV2 extends Omit<ProductV2Raw, 'precioLista' | 'precioTransfer' | 'precioSImp' | 'precio3cuotas' | 'fotos' | 'talles' | 'bordados'> {
     precioLista: number; // Precio parseado como número
+    precioTransfer?: number; // Precio transfer parseado como número
+    precioSImp?: number; // Precio sin impuestos parseado como número
+    precio3cuotas?: number; // Precio 3 cuotas parseado como número
     imagenes: string[]; // Array de paths de imágenes
     imagen?: string; // Imagen principal (primera del array)
     tablaTallesImage?: string; // Path a imagen de tabla de talles
@@ -28,6 +36,8 @@ export interface ProductV2 extends Omit<ProductV2Raw, 'precioLista' | 'fotos' | 
     talle?: string; // Talle extraído del item
     color?: string; // Color extraído del item
     rubroNormalizado: 'WORKWEAR' | 'BASIC'; // Rubro normalizado
+    descripcion?: string; // Descripción completa del producto
+    textiles?: string; // Composición de textiles
 }
 
 // Variante de producto (para agrupación)

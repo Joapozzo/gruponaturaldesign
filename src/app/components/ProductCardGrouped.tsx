@@ -15,7 +15,6 @@ import VariantSelector from './product-card/components/VariantSelector';
 import QuantityControls from './product-card/components/QuantityControls';
 import BordadoSwitch from './product-card/components/BordadoSwitch';
 import { canAddQuantity, getStockMessage } from '@/app/services/stockService';
-import { formatPriceWithoutIVA } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
 import { useConfirmModal } from './hooks/useModal';
 import ConfirmModal from './modal/ConfirmModal';
 
@@ -281,18 +280,27 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
         updateQuantity(selectedVariantId, currentQuantity - 1);
     };
 
-    // Formatear precio
+    // Formatear precios
     const formattedPrice = product.PrecioVenta
         ? `$${product.PrecioVenta.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`
         : 'Consultar';
     
-    // Calcular precio sin IVA
-    const priceWithoutIVA = formatPriceWithoutIVA(product.PrecioVenta);
-
-    // RENDERIZAR TODOS LOS PRODUCTOS SIN IMPORTAR SI TIENEN IMAGEN O NO (para control)
-    // if (!hasValidImage && (group.availableColors?.length || 0) > 0) {
-    //     return null;
-    // }
+    // Obtener precios desde la variante o el producto display (fallback como en ProductInfo)
+    const precioTransfer = selectedVariant?.producto?.precioTransfer || group.displayProduct?.precioTransfer;
+    const precio3cuotas = selectedVariant?.producto?.precio3cuotas || group.displayProduct?.precio3cuotas;
+    const precioSImp = selectedVariant?.producto?.precioSImp || group.displayProduct?.precioSImp;
+    console.log(selectedVariant);
+    const formattedTransfer = precioTransfer
+        ? `$${precioTransfer.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`
+        : null;
+    
+    const formatted3Cuotas = precio3cuotas
+        ? `$${precio3cuotas.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`
+        : null;
+    
+    const formattedSImp = precioSImp
+        ? `$${precioSImp.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`
+        : null;
 
     return (
         <motion.div
@@ -416,14 +424,28 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                             <span className="text-xs sm:text-sm text-gray-500 font-medium">Precio</span>
                         )}
                         <div className="flex flex-col">
+                            {/* Precio lista - bien grande */}
                             <span
                                 className={`font-bold text-gray-900 ${isMobile ? 'text-sm' : 'text-base sm:text-lg'}`}
                             >
                                 {formattedPrice}
                             </span>
-                            {priceWithoutIVA && (
-                                <span className="text-xs text-gray-500">
-                                    {priceWithoutIVA}
+                            {/* Precio transfer - abajo del precio de lista */}
+                            {formattedTransfer && (
+                                <span className={`text-gray-700 mt-1 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                                    Transfer: {formattedTransfer}
+                                </span>
+                            )}
+                            {/* Precio cuotas - abajo del transfer */}
+                            {formatted3Cuotas && (
+                                <span className={`text-gray-700 mt-0.5 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                                    3 cuotas de {formatted3Cuotas}
+                                </span>
+                            )}
+                            {/* Precio sin impuestos - más chico y en gris */}
+                            {formattedSImp && (
+                                <span className={`text-gray-500 mt-0.5 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+                                    Sin impuestos: {formattedSImp}
                                 </span>
                             )}
                             {/* Mensaje de stock bajo (sin mostrar número exacto) */}

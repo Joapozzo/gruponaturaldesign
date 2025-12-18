@@ -102,7 +102,7 @@ export const metadata: Metadata = {
     "business:contact_data:region": "Córdoba",
     "business:contact_data:postal_code": "5000",
     "business:contact_data:country_name": "Argentina",
-    "business:contact_data:phone_number": "+54 351 7136316",
+    "business:contact_data:phone_number": "+54 9 3517 13-6311",
     "business:contact_data:email": "ventas@naturalonline.com.ar",
   },
 

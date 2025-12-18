@@ -177,6 +177,20 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
       {/* RIGHT SIDE - Resumen del Carrito Fijo */}
       <div className="w-full lg:w-80 flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
 
+        {/* Resumen de precios */}
+        <div className="bg-white border border-gray-200 p-4 rounded-lg space-y-2">
+          <h3 className="text-sm font-bold text-black mb-3">RESUMEN</h3>
+          <div className="space-y-2">
+            <div className="flex justify-between text-gray-500 text-sm">
+              <span>Subtotal sin impuestos</span>
+              <span>${(total / 1.21).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+            </div>
+            <div className="flex justify-between text-lg font-bold text-black pt-3 border-t border-gray-300">
+              <span className="tracking-wide">TOTAL</span>
+              <span>${total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+            </div>
+          </div>
+        </div>
 
         {/* Alerta Mayorista - Si tiene 20+ artículos, mostrar mensaje y botón para volver */}
         {itemCount >= 20 ? (

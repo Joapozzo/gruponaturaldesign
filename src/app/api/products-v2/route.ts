@@ -16,9 +16,14 @@ interface ProductV2Raw {
     deposito: string;
     stock: number;
     precioLista: string;
+    precioTransfer?: string;
+    precioSImp?: string;
+    precio3cuotas?: string;
     fotos?: string;
     talles?: string;
     bordados?: string;
+    descripcion?: string;
+    textiles?: string;
 }
 
 /**
@@ -34,12 +39,20 @@ export async function GET(request: Request) {
         // Verificar cache
         const now = Date.now();
         if (!clearCache && cachedProducts && (now - cacheTimestamp) < CACHE_DURATION) {
-            return NextResponse.json({
-                success: true,
-                data: cachedProducts,
-                cached: true,
-                timestamp: new Date(cacheTimestamp).toISOString()
-            });
+            // Si el caché tiene datos, devolverlos
+            if (cachedProducts.length > 0) {
+                return NextResponse.json({
+                    success: true,
+                    data: cachedProducts,
+                    cached: true,
+                    timestamp: new Date(cacheTimestamp).toISOString()
+                });
+            } else {
+                // Si el caché está vacío, limpiarlo y recargar
+                console.warn('[API] Caché vacío detectado, recargando...');
+                cachedProducts = null;
+                cacheTimestamp = 0;
+            }
         }
 
         if (clearCache) {
@@ -55,9 +68,8 @@ export async function GET(request: Request) {
             
             // Leer CSV como texto y parsear manualmente para mejor control
             const csvText = fileBuffer.toString('utf-8');
-            const lines = csvText.split('\n').filter(line => line.trim() !== '');
             
-            if (lines.length === 0) {
+            if (csvText.trim().length === 0) {
                 console.warn('[API] CSV vacío');
                 cachedProducts = [];
                 cacheTimestamp = now;
@@ -70,41 +82,134 @@ export async function GET(request: Request) {
                 });
             }
 
-            // Parsear CSV manualmente (manejar comillas y valores con comas)
-            const parseCSVLine = (line: string): string[] => {
-                const result: string[] = [];
+            // Parsear CSV completo respetando campos multilínea entre comillas
+            const parseCSV = (text: string): string[][] => {
+                const rows: string[][] = [];
                 let current = '';
                 let inQuotes = false;
+                const currentRow: string[] = [];
                 
-                for (let i = 0; i < line.length; i++) {
-                    const char = line[i];
+                for (let i = 0; i < text.length; i++) {
+                    const char = text[i];
+                    const nextChar = i < text.length - 1 ? text[i + 1] : null;
                     
                     if (char === '"') {
-                        inQuotes = !inQuotes;
+                        // Manejar comillas escapadas ("")
+                        if (inQuotes && nextChar === '"') {
+                            current += '"';
+                            i++; // Saltar la siguiente comilla
+                        } else {
+                            inQuotes = !inQuotes;
+                        }
                     } else if (char === ',' && !inQuotes) {
-                        result.push(current.trim());
+                        // Fin de campo
+                        currentRow.push(current.trim());
+                        current = '';
+                    } else if ((char === '\n' || char === '\r') && !inQuotes) {
+                        // Fin de fila (solo si no estamos dentro de comillas)
+                        // Manejar \r\n como un solo salto de línea
+                        if (char === '\r' && nextChar === '\n') {
+                            // Es \r\n, saltar ambos caracteres
+                            i++; // Saltar el \n
+                        }
+                        
+                        // Agregar último campo de la fila
+                        currentRow.push(current.trim());
+                        // Agregar fila si tiene contenido
+                        if (currentRow.length > 0 && currentRow.some(f => f !== '')) {
+                            rows.push([...currentRow]); // Hacer copia del array
+                        }
+                        // Limpiar para la siguiente fila
+                        currentRow.length = 0;
                         current = '';
                     } else {
-                        current += char;
+                        // Agregar carácter al campo actual
+                        // Reemplazar saltos de línea dentro de comillas con espacio
+                        if (inQuotes && (char === '\n' || char === '\r')) {
+                            current += ' ';
+                            // Si es \r\n, saltar el \n también
+                            if (char === '\r' && nextChar === '\n') {
+                                i++; // Saltar el \n
+                            }
+                        } else {
+                            current += char;
+                        }
                     }
                 }
-                result.push(current.trim()); // Último campo
-                return result;
+                
+                // Agregar última fila si hay contenido (para archivos que no terminan en \n)
+                if (current.trim() !== '' || currentRow.length > 0) {
+                    currentRow.push(current.trim());
+                    if (currentRow.length > 0 && currentRow.some(f => f !== '')) {
+                        rows.push([...currentRow]); // Hacer copia del array
+                    }
+                }
+                
+                return rows;
             };
 
-            // Primera línea son los headers
-            const headersRaw = parseCSVLine(lines[0]);
+            // Parsear todo el CSV
+            let allRows: string[][];
+            try {
+                allRows = parseCSV(csvText);
+                console.log(`[API] CSV parseado: ${allRows.length} filas encontradas`);
+            } catch (parseError) {
+                console.error('[API] Error al parsear CSV:', parseError);
+                return NextResponse.json({
+                    success: false,
+                    error: `Error al parsear CSV: ${parseError instanceof Error ? parseError.message : 'Error desconocido'}`,
+                    data: []
+                }, { status: 500 });
+            }
+            
+            if (allRows.length === 0) {
+                console.warn('[API] CSV vacío después de parsear');
+                cachedProducts = [];
+                cacheTimestamp = now;
+                return NextResponse.json({
+                    success: true,
+                    data: [],
+                    total: 0,
+                    cached: false,
+                    timestamp: new Date(cacheTimestamp).toISOString()
+                });
+            }
+            
+            if (allRows.length === 1) {
+                console.warn('[API] CSV solo tiene headers, no hay datos');
+                cachedProducts = [];
+                cacheTimestamp = now;
+                return NextResponse.json({
+                    success: true,
+                    data: [],
+                    total: 0,
+                    cached: false,
+                    timestamp: new Date(cacheTimestamp).toISOString()
+                });
+            }
+
+            // Primera fila son los headers
+            const headersRaw = allRows[0];
+            if (!headersRaw || headersRaw.length === 0) {
+                console.error('[API] No se encontraron headers en el CSV');
+                return NextResponse.json({
+                    success: false,
+                    error: 'El CSV no tiene headers válidos',
+                    data: []
+                }, { status: 500 });
+            }
             const headers = headersRaw.map(h => h.trim().toLowerCase());
             console.log('[API] Headers detectados (raw):', headersRaw);
             console.log('[API] Headers detectados (normalizados):', headers);
+            console.log(`[API] Total de columnas: ${headersRaw.length}`);
             
             // Verificar que el header "rubro" esté en la posición correcta
             const rubroIndex = headersRaw.findIndex(h => h.trim().toLowerCase() === 'rubro');
             console.log('[API] Índice de "rubro" en headers:', rubroIndex);
             
             // Debug: verificar la primera fila de datos antes de procesar
-            if (lines.length > 1) {
-                const firstDataLine = parseCSVLine(lines[1]);
+            if (allRows.length > 1) {
+                const firstDataLine = allRows[1];
                 console.log('[API] Primera fila de datos parseada:', firstDataLine);
                 console.log('[API] Longitud de primera fila:', firstDataLine.length);
                 console.log('[API] Headers esperados:', headersRaw);
@@ -129,10 +234,15 @@ export async function GET(request: Request) {
                 else if (header === 'subrubro') columnIndexes.subrubro = index;
                 else if (header === 'deposito' || header === 'depósito') columnIndexes.deposito = index;
                 else if (header === 'stock' || header === 'existencia') columnIndexes.stock = index;
-                else if (normalized.includes('precio') || normalized === 'preciolista') columnIndexes.precioLista = index;
+                else if (normalized === 'preciolista' || (normalized.includes('precio') && normalized.includes('lista'))) columnIndexes.precioLista = index;
+                else if (normalized === 'preciotransfer' || (normalized.includes('precio') && normalized.includes('transfer'))) columnIndexes.precioTransfer = index;
+                else if (normalized === 'preciosimp' || (normalized.includes('precio') && normalized.includes('simp'))) columnIndexes.precioSImp = index;
+                else if (normalized === 'precio3cuotas' || (normalized.includes('precio') && normalized.includes('cuotas'))) columnIndexes.precio3cuotas = index;
                 else if (header === 'fotos' || header === 'foto') columnIndexes.fotos = index;
                 else if (header === 'talles' || header === 'talle') columnIndexes.talles = index;
                 else if (header === 'bordados' || header === 'bordado') columnIndexes.bordados = index;
+                else if (header === 'descripcion' || header === 'descripción') columnIndexes.descripcion = index;
+                else if (header === 'textiles' || header === 'textil') columnIndexes.textiles = index;
             });
             
             // Verificar que todos los índices estén correctos
@@ -152,7 +262,7 @@ export async function GET(request: Request) {
             console.log('[API] Índices de columnas:', columnIndexes);
 
             // Procesar filas (saltar la primera que son headers)
-            const rawData = lines.slice(1).map(line => parseCSVLine(line));
+            const rawData = allRows.slice(1);
 
             if (rawData.length === 0) {
                 console.warn('[API] CSV vacío o sin datos');
@@ -237,6 +347,11 @@ export async function GET(request: Request) {
                     const fotosValue = getValue('fotos');
                     const tallesValue = getValue('talles');
                     const bordadosValue = getValue('bordados');
+                    const precioTransferValue = getValue('precioTransfer');
+                    const precioSImpValue = getValue('precioSImp');
+                    const precio3cuotasValue = getValue('precio3cuotas');
+                    const descripcionValue = getValue('descripcion');
+                    const textilesValue = getValue('textiles');
 
                     return {
                         codigo,
@@ -246,9 +361,14 @@ export async function GET(request: Request) {
                         deposito: getValue('deposito') || '',
                         stock: Number(getValue('stock') || 0),
                         precioLista: getValue('precioLista') || '0',
+                        precioTransfer: precioTransferValue || undefined,
+                        precioSImp: precioSImpValue || undefined,
+                        precio3cuotas: precio3cuotasValue || undefined,
                         fotos: fotosValue || undefined,
                         talles: tallesValue || undefined,
                         bordados: bordadosValue || undefined,
+                        descripcion: descripcionValue || undefined,
+                        textiles: textilesValue || undefined,
                     };
                 })
                 .filter((p): p is ProductV2Raw => p !== null && p.codigo !== '' && p.item !== ''); // Filtrar nulos y filas vacías

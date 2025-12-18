@@ -338,6 +338,26 @@ class ProductsService {
     }
 
     /**
+     * Parsea un precio que puede venir como string con formato de moneda
+     * Ejemplo: "$35,900.00" → 35900
+     */
+    private parsePrecio(precioStr: string | number | undefined | null): number | undefined {
+        if (precioStr === undefined || precioStr === null || precioStr === '') return undefined;
+        
+        // Si ya es un número, retornarlo
+        if (typeof precioStr === 'number') return precioStr;
+        
+        // Si es string, limpiar símbolos y comas
+        const cleaned = String(precioStr)
+            .replace(/[$\s]/g, '')
+            .replace(/,/g, '')
+            .trim();
+        
+        const parsed = parseFloat(cleaned);
+        return isNaN(parsed) ? undefined : parsed;
+    }
+
+    /**
      * Asegura que una URL de imagen sea relativa (local)
      * Convierte URLs absolutas de Ferozo a rutas relativas
      */
@@ -587,6 +607,10 @@ class ProductsService {
             NOMBRE: this.sanitizeString(apiProduct.NOMBRE) || undefined,
             TALLES: this.sanitizeString(apiProduct.TALLES) || undefined,
             COLORES: this.sanitizeString(apiProduct.COLORES) || undefined,
+            // Campos de precios adicionales del CSV
+            precioTransfer: this.parsePrecio(apiProduct.precioTransfer),
+            precio3cuotas: this.parsePrecio(apiProduct.precio3cuotas),
+            precioSImp: this.parsePrecio(apiProduct.precioSImp),
         };
     }
 
@@ -645,8 +669,11 @@ class ProductsService {
             nombre = nombre.replace(regex, '');
         });
 
+        // Normalizar "H" a "HOMBRE" para agrupación consistente
+        nombre = nombre.replace(/\bH\b/g, 'HOMBRE');
+        
         // Remover colores comunes al final
-        const colores = ['NEGRO', 'BLANCO', 'AZUL', 'GRIS', 'ROJO', 'VERDE', 'AMARILLO', 'NARANJA', 'ROSA', 'VIOLETA', 'BEIGE', 'MARRON', 'AZUL MARINO', 'CELESTE', 'CEMENTO', 'GRIS TOPO', 'GRISTOPO', 'GRIS MELANGE', 'GRIS PERLA'];
+        const colores = ['NEGRO', 'BLANCO', 'AZUL', 'GRIS', 'ROJO', 'VERDE', 'AMARILLO', 'NARANJA', 'ROSA', 'VIOLETA', 'BEIGE', 'MARRON', 'AZUL MARINO', 'CELESTE', 'CEMENTO', 'GRIS TOPO', 'GRISTOPO', 'GRIS MELANGE', 'GRIS PERLA', 'TOSTADO'];
         colores.forEach(color => {
             const regex = new RegExp(`\\s*${color}\\s*$`, 'i');
             nombre = nombre.replace(regex, '');
@@ -670,11 +697,17 @@ class ProductsService {
             let groupKey: string;
             
             if ((product as any).NOMBRE) {
-                // Si tiene NOMBRE de la hoja 2, usarlo directamente
-                groupKey = String((product as any).NOMBRE).trim();
+                // Si tiene NOMBRE de la hoja 2, normalizarlo y usarlo
+                let nombre = String((product as any).NOMBRE).trim();
+                // Normalizar "H" a "HOMBRE" para agrupación consistente
+                nombre = nombre.replace(/\bH\b/g, 'HOMBRE');
+                groupKey = nombre;
             } else if (product.Descripcion) {
                 const nombreBase = this.extractNombreBase(product.Descripcion);
-                groupKey = nombreBase || product.Descripcion;
+                // Normalizar "H" a "HOMBRE" si aún no se normalizó
+                let nombre = nombreBase || product.Descripcion;
+                nombre = nombre.replace(/\bH\b/g, 'HOMBRE');
+                groupKey = nombre;
             } else if (product.Codigo) {
                 // Fallback: usar SKU base si no hay descripción
                 groupKey = this.extractSkuBase(product.Codigo);
@@ -978,7 +1011,7 @@ class ProductsService {
         const coloresCompuestos = [
             'LAVADO OSCURO', 'LAVADO CLARO', 'LAVADO MEDIO',
             'AZUL MARINO', 'GRIS PERLA', 'GRIS MELANGE', 'GRIS TOPO', 'GRISTOPO',
-            'CELESTE', 'CEMENTO', // Agregar CELESTE y CEMENTO
+            'CELESTE', 'CEMENTO', 'TOSTADO', // Agregar CELESTE, CEMENTO y TOSTADO
             'NEGRO', 'BLANCO', 'AZUL', 'GRIS', 'ROJO', 'VERDE', 
             'AMARILLO', 'NARANJA', 'ROSA', 'VIOLETA', 'BEIGE', 'MARRON'
         ];

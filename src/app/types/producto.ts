@@ -78,6 +78,13 @@ export interface ProductWithImage extends ProductSFactory {
     rubroNormalizado?: 'WORKWEAR' | 'BASIC';
     // Flag para variantes virtuales (combinaciones de color/talle que no existen físicamente)
     _isVirtual?: boolean; // Indica si es una variante virtual (no existe como producto físico)
+    // Nuevos campos de precios
+    precioTransfer?: number; // Precio transfer
+    precioSImp?: number; // Precio sin impuestos
+    precio3cuotas?: number; // Precio en 3 cuotas
+    // Descripción y textiles
+    descripcionCompleta?: string; // Descripción completa del producto
+    textiles?: string; // Composición de textiles
 }
 
 // Filtros para productos
