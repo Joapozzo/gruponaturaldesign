@@ -35,16 +35,30 @@ export function useShopCategories() {
     const { data: groupedProducts = [], isLoading } = useQuery({
         queryKey: ['products', 'grouped', 'categories'],
         queryFn: async (): Promise<GroupedProduct[]> => {
-            // PRIORIDAD 1: Intentar cargar desde la API (Google Sheets)
-            const apiGrouped = await productsService.loadGroupedProductsFromAPI();
-            if (apiGrouped && apiGrouped.length > 0) {
-                return apiGrouped;
+            try {
+                // PRIORIDAD 1: Intentar cargar desde la API (Google Sheets)
+                const apiGrouped = await productsService.loadGroupedProductsFromAPI();
+                if (apiGrouped && apiGrouped.length > 0) {
+                    // Guardar en localStorage como backup
+                    const products = apiGrouped.flatMap(g => g.variants.map(v => v.producto));
+                    if (products.length > 0) {
+                        productsService.saveProductsToLocalStorage(products);
+                    }
+                    return apiGrouped;
+                }
+            } catch (error) {
+                // Si falla la API, continuar con localStorage
+                console.warn('Error loading from API, using localStorage:', error);
             }
 
             // PRIORIDAD 2: Intentar cargar desde localStorage
-            const products = productsService.loadProductsFromLocalStorage();
-            if (products && products.length > 0) {
-                return productsService.groupProductsByVariants(products);
+            try {
+                const products = productsService.loadProductsFromLocalStorage();
+                if (products && products.length > 0) {
+                    return productsService.groupProductsByVariants(products);
+                }
+            } catch (error) {
+                console.warn('Error loading from localStorage:', error);
             }
 
             return [];
@@ -52,6 +66,8 @@ export function useShopCategories() {
         staleTime: 1000 * 60 * 10, // 10 minutos
         gcTime: 1000 * 60 * 60, // 1 hora
         refetchOnWindowFocus: false,
+        retry: 2, // Reintentar 2 veces si falla
+        retryDelay: 1000, // Esperar 1 segundo entre reintentos
     });
 
     const categories = useMemo<ShopCategories>(() => {

@@ -17,7 +17,7 @@ const Navbar = () => {
         toggleMenu
     } = useNavigation();
     const { itemCount, isWholesale } = useCart();
-    const { categories } = useShopCategories();
+    const { categories, isLoading: categoriesLoading } = useShopCategories();
     const router = useRouter();
 
     const [isCartOpen, setIsCartOpen] = useState(false);
@@ -324,9 +324,13 @@ const Navbar = () => {
                                     onMouseLeave={() => setIsShopSubmenuOpen(false)}
                                 >
                                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                            {/* Géneros */}
-                                            {categories.generos.length > 0 && (
+                                        {categoriesLoading ? (
+                                            <div className="text-center py-4 text-gray-500 text-sm">Cargando categorías...</div>
+                                        ) : (
+                                            <>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                {/* Géneros */}
+                                                {categories.generos.length > 0 && (
                                                 <div>
                                                     <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-200">GÉNERO</h3>
                                                     <div className="flex flex-wrap gap-2">
@@ -378,20 +382,22 @@ const Navbar = () => {
                                                     </div>
                                                 </div>
                                             )}
-                                        </div>
+                                            </div>
 
-                                        {/* Ver todo */}
-                                        <div className="mt-4 pt-4 border-t border-gray-200 text-center">
-                                            <button
-                                                onClick={() => {
-                                                    router.push('/shoponline');
-                                                    setIsShopSubmenuOpen(false);
-                                                }}
-                                                className="px-6 py-2 text-xs font-semibold text-[#Ed3237] hover:bg-[#Ed3237] hover:text-white rounded transition-all duration-200"
-                                            >
-                                                VER TODO
-                                            </button>
-                                        </div>
+                                            {/* Ver todo */}
+                                            <div className="mt-4 pt-4 border-t border-gray-200 text-center">
+                                                <button
+                                                    onClick={() => {
+                                                        router.push('/shoponline');
+                                                        setIsShopSubmenuOpen(false);
+                                                    }}
+                                                    className="px-6 py-2 text-xs font-semibold text-[#Ed3237] hover:bg-[#Ed3237] hover:text-white rounded transition-all duration-200"
+                                                >
+                                                    VER TODO
+                                                </button>
+                                            </div>
+                                            </>
+                                        )}
                                     </div>
                                 </motion.div>
                             )}

@@ -33,6 +33,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validar variables de entorno de SMTP
+    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      console.error('SMTP configuration missing:', {
+        hasHost: !!process.env.SMTP_HOST,
+        hasUser: !!process.env.SMTP_USER,
+        hasPass: !!process.env.SMTP_PASS,
+      });
+      return NextResponse.json(
+        { error: 'Configuración de email no disponible' },
+        { status: 500 }
+      );
+    }
+
     // Configurar transporter de nodemailer con tu SMTP
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
@@ -42,7 +55,21 @@ export async function POST(request: NextRequest) {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
+      tls: {
+        rejectUnauthorized: false, // Para evitar problemas con certificados
+      },
     });
+
+    // Verificar conexión SMTP antes de enviar
+    try {
+      await transporter.verify();
+    } catch (verifyError) {
+      console.error('SMTP verification failed:', verifyError);
+      return NextResponse.json(
+        { error: 'Error de conexión con el servidor de email', details: verifyError instanceof Error ? verifyError.message : 'Unknown error' },
+        { status: 500 }
+      );
+    }
 
     // Generar HTML del email
     const emailHTML = generateOrderEmailHTML({
@@ -96,8 +123,28 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
+    // Log detallado del error para debugging en producción
+    console.error('Error sending email:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      smtpConfig: {
+        hasHost: !!process.env.SMTP_HOST,
+        hasUser: !!process.env.SMTP_USER,
+        hasPass: !!process.env.SMTP_PASS,
+        port: process.env.SMTP_PORT,
+        secure: process.env.SMTP_SECURE,
+      },
+    });
+    
     return NextResponse.json(
-      { error: 'Error al enviar email', details: error instanceof Error ? error.message : 'Unknown error' },
+      { 
+        error: 'Error al enviar email', 
+        details: error instanceof Error ? error.message : 'Unknown error',
+        // En desarrollo, incluir más detalles
+        ...(process.env.NODE_ENV === 'development' && {
+          stack: error instanceof Error ? error.stack : undefined,
+        }),
+      },
       { status: 500 }
     );
   }
