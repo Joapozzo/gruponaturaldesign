@@ -31,10 +31,11 @@ export interface ShopCategories {
 export function useShopCategories() {
     // Usar directamente useGroupedProducts sin filtros - COMPARTE TODA LA LÓGICA DE CARGA
     // Esto asegura que siempre use la misma fuente de datos que el resto de la app
-    const { groupedProducts, isLoading } = useGroupedProducts({});
+    const { groupedProducts, isLoading, isFetched } = useGroupedProducts({});
 
     const categories = useMemo<ShopCategories>(() => {
-        if (isLoading || !groupedProducts || groupedProducts.length === 0) {
+        // Solo retornar vacío si realmente no hay datos Y ya se intentó cargar
+        if ((isLoading && !isFetched) || !groupedProducts || groupedProducts.length === 0) {
             return { rubros: [], subrubros: [], generos: [] };
         }
 
@@ -94,6 +95,20 @@ export function useShopCategories() {
             generos: Array.from(generosSet).sort(),
         };
     }, [groupedProducts, isLoading]);
+
+    // Debug en desarrollo
+    if (process.env.NODE_ENV === 'development') {
+        console.log('[useShopCategories]', {
+            isLoading,
+            isFetched,
+            groupedProductsCount: groupedProducts?.length || 0,
+            categoriesCount: {
+                rubros: categories.rubros.length,
+                subrubros: categories.subrubros.length,
+                generos: categories.generos.length,
+            },
+        });
+    }
 
     return {
         categories,

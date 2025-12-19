@@ -326,11 +326,11 @@ const Navbar = () => {
                                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                                         {categoriesLoading ? (
                                             <div className="text-center py-4 text-gray-500 text-sm">Cargando categorías...</div>
-                                        ) : (
+                                        ) : categories && (categories.rubros.length > 0 || categories.subrubros.length > 0 || categories.generos.length > 0) ? (
                                             <>
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                                 {/* Géneros */}
-                                                {categories.generos.length > 0 && (
+                                                {categories?.generos && categories.generos.length > 0 && (
                                                 <div>
                                                     <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-200">GÉNERO</h3>
                                                     <div className="flex flex-wrap gap-2">
@@ -348,7 +348,7 @@ const Navbar = () => {
                                             )}
 
                                             {/* Rubros */}
-                                            {categories.rubros.length > 0 && (
+                                            {categories?.rubros && categories.rubros.length > 0 && (
                                                 <div>
                                                     <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-200">RUBROS</h3>
                                                     <div className="flex flex-wrap gap-2">
@@ -366,7 +366,7 @@ const Navbar = () => {
                                             )}
 
                                             {/* Subrubros */}
-                                            {categories.subrubros.length > 0 && (
+                                            {categories?.subrubros && categories.subrubros.length > 0 && (
                                                 <div>
                                                     <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-200">CATEGORÍAS</h3>
                                                     <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
@@ -397,6 +397,10 @@ const Navbar = () => {
                                                 </button>
                                             </div>
                                             </>
+                                        ) : (
+                                            <div className="text-center py-4 text-gray-500 text-sm">
+                                                No hay categorías disponibles
+                                            </div>
                                         )}
                                     </div>
                                 </motion.div>
@@ -464,8 +468,12 @@ const Navbar = () => {
                                                             className="overflow-hidden"
                                                         >
                                                             <div className="pl-6 pr-3 py-3 bg-gray-50 rounded-lg mt-1">
+                                                                {categoriesLoading ? (
+                                                                    <div className="text-center py-4 text-gray-500 text-sm">Cargando categorías...</div>
+                                                                ) : (
+                                                                    <>
                                                                 {/* Géneros */}
-                                                                {categories.generos.length > 0 && (
+                                                                {categories?.generos && categories.generos.length > 0 && (
                                                                     <div className="mb-4">
                                                                         <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">GÉNERO</h3>
                                                                         <div className="overflow-x-auto -mx-2 px-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
@@ -485,7 +493,7 @@ const Navbar = () => {
                                                                 )}
 
                                                                 {/* Rubros */}
-                                                                {categories.rubros.length > 0 && (
+                                                                {categories?.rubros && categories.rubros.length > 0 && (
                                                                     <div className="mb-4 border-t border-gray-200 pt-4">
                                                                         <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">RUBROS</h3>
                                                                         <div className="overflow-x-auto -mx-2 px-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
@@ -505,7 +513,7 @@ const Navbar = () => {
                                                                 )}
 
                                                                 {/* Subrubros */}
-                                                                {categories.subrubros.length > 0 && (
+                                                                {categories?.subrubros && categories.subrubros.length > 0 && (
                                                                     <div className="mb-4 border-t border-gray-200 pt-4">
                                                                         <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">CATEGORÍAS</h3>
                                                                         <div className="overflow-x-auto -mx-2 px-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
@@ -537,6 +545,8 @@ const Navbar = () => {
                                                                         VER TODO
                                                                     </button>
                                                                 </div>
+                                                                    </>
+                                                                )}
                                                             </div>
                                                         </motion.div>
                                                     )}
