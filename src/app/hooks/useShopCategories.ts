@@ -1,10 +1,8 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { productsService } from '../services/productsService';
+import { useMemo } from 'react';
+import { useGroupedProducts } from './useGroupedProducts';
 import { GroupedProduct } from '../types/producto';
-import { queryKeys } from '../lib/queryKeys';
 
 // Función para extraer género del código o nombre del producto (mismo que en useGroupedCatalogFilters)
 const extractGender = (product: GroupedProduct): string | null => {
@@ -31,44 +29,9 @@ export interface ShopCategories {
 }
 
 export function useShopCategories() {
-    // Usar React Query para cargar productos (igual que useGroupedProducts)
-    const { data: groupedProducts = [], isLoading } = useQuery({
-        queryKey: ['products', 'grouped', 'categories'],
-        queryFn: async (): Promise<GroupedProduct[]> => {
-            try {
-                // PRIORIDAD 1: Intentar cargar desde la API (Google Sheets)
-                const apiGrouped = await productsService.loadGroupedProductsFromAPI();
-                if (apiGrouped && apiGrouped.length > 0) {
-                    // Guardar en localStorage como backup
-                    const products = apiGrouped.flatMap(g => g.variants.map(v => v.producto));
-                    if (products.length > 0) {
-                        productsService.saveProductsToLocalStorage(products);
-                    }
-                    return apiGrouped;
-                }
-            } catch (error) {
-                // Si falla la API, continuar con localStorage
-                console.warn('Error loading from API, using localStorage:', error);
-            }
-
-            // PRIORIDAD 2: Intentar cargar desde localStorage
-            try {
-                const products = productsService.loadProductsFromLocalStorage();
-                if (products && products.length > 0) {
-                    return productsService.groupProductsByVariants(products);
-                }
-            } catch (error) {
-                console.warn('Error loading from localStorage:', error);
-            }
-
-            return [];
-        },
-        staleTime: 1000 * 60 * 10, // 10 minutos
-        gcTime: 1000 * 60 * 60, // 1 hora
-        refetchOnWindowFocus: false,
-        retry: 2, // Reintentar 2 veces si falla
-        retryDelay: 1000, // Esperar 1 segundo entre reintentos
-    });
+    // Usar directamente useGroupedProducts sin filtros - COMPARTE TODA LA LÓGICA DE CARGA
+    // Esto asegura que siempre use la misma fuente de datos que el resto de la app
+    const { groupedProducts, isLoading } = useGroupedProducts({});
 
     const categories = useMemo<ShopCategories>(() => {
         if (isLoading || !groupedProducts || groupedProducts.length === 0) {
