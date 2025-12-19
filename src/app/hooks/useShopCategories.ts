@@ -32,9 +32,15 @@ export function useShopCategories() {
     // Usar useProductsV2 - LA MISMA FUENTE QUE FilterModal
     // Esto asegura que siempre use la misma fuente de datos (CSV) que el resto de la app
     // IMPORTANTE: Llamar sin parámetros para usar la misma query key que otros componentes
-    const { products, rubros, subrubros, isLoading, isFetched } = useProductsV2();
+    const { products, rubros, subrubros, isLoading, isFetched, isError, error } = useProductsV2();
 
     const categories = useMemo<ShopCategories>(() => {
+        // Si hay error, retornar vacío pero loguear
+        if (isError) {
+            console.error('[useShopCategories] Error al cargar productos:', error);
+            return { rubros: [], subrubros: [], generos: [] };
+        }
+
         // Si está cargando y no se ha fetcheado, retornar vacío
         if (isLoading && !isFetched) {
             return { rubros: [], subrubros: [], generos: [] };
@@ -47,7 +53,7 @@ export function useShopCategories() {
 
         // Si no hay datos y ya se fetcheó, retornar vacío (evitar procesar datos vacíos)
         if (isFetched && validRubros.length === 0 && validSubrubros.length === 0 && validProducts.length === 0) {
-            console.warn('[useShopCategories] Datos fetcheados pero vacíos');
+            console.warn('[useShopCategories] Datos fetcheados pero vacíos - verificar que /api/products-v2 esté funcionando');
             return { rubros: [], subrubros: [], generos: [] };
         }
 
@@ -81,6 +87,7 @@ export function useShopCategories() {
         console.log('[useShopCategories]', {
             isLoading,
             isFetched,
+            isError,
             productsCount: validProducts.length,
             rubrosCount: validRubros.length,
             subrubrosCount: validSubrubros.length,
@@ -94,7 +101,7 @@ export function useShopCategories() {
         });
 
         return result;
-    }, [products, rubros, subrubros, isLoading, isFetched]);
+    }, [products, rubros, subrubros, isLoading, isFetched, isError, error]);
 
     return {
         categories,
