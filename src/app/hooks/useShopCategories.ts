@@ -31,7 +31,8 @@ export interface ShopCategories {
 export function useShopCategories() {
     // Usar useProductsV2 - LA MISMA FUENTE QUE FilterModal
     // Esto asegura que siempre use la misma fuente de datos (CSV) que el resto de la app
-    const { products, rubros, subrubros, isLoading, isFetched } = useProductsV2({});
+    // IMPORTANTE: Llamar sin parámetros para usar la misma query key que otros componentes
+    const { products, rubros, subrubros, isLoading, isFetched } = useProductsV2();
 
     const categories = useMemo<ShopCategories>(() => {
         // Si está cargando y no se ha fetcheado, retornar vacío
@@ -39,41 +40,61 @@ export function useShopCategories() {
             return { rubros: [], subrubros: [], generos: [] };
         }
 
+        // Asegurar que rubros y subrubros sean arrays válidos
+        const validRubros = Array.isArray(rubros) ? rubros : [];
+        const validSubrubros = Array.isArray(subrubros) ? subrubros : [];
+        const validProducts = Array.isArray(products) ? products : [];
+
+        // Si no hay datos y ya se fetcheó, retornar vacío (evitar procesar datos vacíos)
+        if (isFetched && validRubros.length === 0 && validSubrubros.length === 0 && validProducts.length === 0) {
+            console.warn('[useShopCategories] Datos fetcheados pero vacíos');
+            return { rubros: [], subrubros: [], generos: [] };
+        }
+
         // Usar rubros y subrubros directamente de useProductsV2 (ya vienen normalizados)
-        const rubrosList = rubros.map(r => r.nombreNormalizado).filter(Boolean);
-        const subrubrosList = subrubros.map(s => s.nombre).filter(Boolean);
+        const rubrosList = validRubros
+            .map(r => r?.nombreNormalizado)
+            .filter((nombre): nombre is string => Boolean(nombre));
+        
+        const subrubrosList = validSubrubros
+            .map(s => s?.nombre)
+            .filter((nombre): nombre is string => Boolean(nombre));
 
         // Extraer géneros de los productos
         const generosSet = new Set<string>();
-        products.forEach(product => {
-            const gender = extractGender(product);
-            if (gender) {
-                generosSet.add(gender.toUpperCase());
+        validProducts.forEach(product => {
+            if (product) {
+                const gender = extractGender(product);
+                if (gender) {
+                    generosSet.add(gender.toUpperCase());
+                }
             }
         });
 
-        return {
+        const result = {
             rubros: rubrosList.length > 0 ? rubrosList : [],
             subrubros: subrubrosList.length > 0 ? subrubrosList : [],
             generos: Array.from(generosSet).sort(),
         };
-    }, [products, rubros, subrubros, isLoading, isFetched]);
 
-    // Debug en desarrollo
-    if (process.env.NODE_ENV === 'development') {
+        // Debug en desarrollo y producción (para diagnosticar el problema)
         console.log('[useShopCategories]', {
             isLoading,
             isFetched,
-            productsCount: products?.length || 0,
-            rubrosCount: rubros?.length || 0,
-            subrubrosCount: subrubros?.length || 0,
+            productsCount: validProducts.length,
+            rubrosCount: validRubros.length,
+            subrubrosCount: validSubrubros.length,
             categoriesCount: {
-                rubros: categories.rubros.length,
-                subrubros: categories.subrubros.length,
-                generos: categories.generos.length,
+                rubros: result.rubros.length,
+                subrubros: result.subrubros.length,
+                generos: result.generos.length,
             },
+            rubrosList: result.rubros,
+            subrubrosList: result.subrubros.slice(0, 5), // Primeros 5 para no saturar
         });
-    }
+
+        return result;
+    }, [products, rubros, subrubros, isLoading, isFetched]);
 
     return {
         categories,

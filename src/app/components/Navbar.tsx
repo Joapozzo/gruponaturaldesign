@@ -326,7 +326,7 @@ const Navbar = () => {
                                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                                         {categoriesLoading ? (
                                             <div className="text-center py-4 text-gray-500 text-sm">Cargando categorías...</div>
-                                        ) : categories && (categories.rubros.length > 0 || categories.subrubros.length > 0 || categories.generos.length > 0) ? (
+                                        ) : categories && Array.isArray(categories.rubros) && Array.isArray(categories.subrubros) && Array.isArray(categories.generos) && (categories.rubros.length > 0 || categories.subrubros.length > 0 || categories.generos.length > 0) ? (
                                             <>
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                                 {/* Géneros */}
@@ -399,7 +399,20 @@ const Navbar = () => {
                                             </>
                                         ) : (
                                             <div className="text-center py-4 text-gray-500 text-sm">
-                                                No hay categorías disponibles
+                                                {categoriesLoading ? (
+                                                    'Cargando categorías...'
+                                                ) : (
+                                                    <>
+                                                        No hay categorías disponibles
+                                                        {process.env.NODE_ENV === 'development' && (
+                                                            <div className="mt-2 text-xs text-gray-400">
+                                                                Debug: rubros={categories?.rubros?.length || 0}, 
+                                                                subrubros={categories?.subrubros?.length || 0}, 
+                                                                generos={categories?.generos?.length || 0}
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -470,7 +483,7 @@ const Navbar = () => {
                                                             <div className="pl-6 pr-3 py-3 bg-gray-50 rounded-lg mt-1">
                                                                 {categoriesLoading ? (
                                                                     <div className="text-center py-4 text-gray-500 text-sm">Cargando categorías...</div>
-                                                                ) : (
+                                                                ) : categories && Array.isArray(categories.rubros) && Array.isArray(categories.subrubros) && Array.isArray(categories.generos) && (categories.rubros.length > 0 || categories.subrubros.length > 0 || categories.generos.length > 0) ? (
                                                                     <>
                                                                 {/* Géneros */}
                                                                 {categories?.generos && categories.generos.length > 0 && (
@@ -546,6 +559,23 @@ const Navbar = () => {
                                                                     </button>
                                                                 </div>
                                                                     </>
+                                                                ) : (
+                                                                    <div className="text-center py-4 text-gray-500 text-sm">
+                                                                        {categoriesLoading ? (
+                                                                            'Cargando categorías...'
+                                                                        ) : (
+                                                                            <>
+                                                                                No hay categorías disponibles
+                                                                                {process.env.NODE_ENV === 'development' && (
+                                                                                    <div className="mt-2 text-xs text-gray-400">
+                                                                                        Debug: rubros={categories?.rubros?.length || 0}, 
+                                                                                        subrubros={categories?.subrubros?.length || 0}, 
+                                                                                        generos={categories?.generos?.length || 0}
+                                                                                    </div>
+                                                                                )}
+                                                                            </>
+                                                                        )}
+                                                                    </div>
                                                                 )}
                                                             </div>
                                                         </motion.div>
