@@ -28,6 +28,29 @@ export interface ShopCategories {
     generos: string[];
 }
 
+// Categorías hardcodeadas como fallback
+const HARDCODED_CATEGORIES: ShopCategories = {
+    rubros: ['WORKWEAR', 'BASIC'],
+    subrubros: [
+        'Buzo',
+        'Camisa',
+        'Chomba',
+        'Pantalón',
+        'Remera',
+        'Campera',
+        'Jean',
+        'Cargo',
+        'Chino',
+        'Tejido',
+        'Cardigan',
+        'Sweater',
+        'Pantalón Jean',
+        'Pantalón Cargo',
+        'Pantalón Chino'
+    ],
+    generos: ['DAMA', 'HOMBRE', 'UNISEX']
+};
+
 export function useShopCategories() {
     // Usar useProductsV2 - LA MISMA FUENTE QUE FilterModal
     // Esto asegura que siempre use la misma fuente de datos (CSV) que el resto de la app
@@ -35,27 +58,10 @@ export function useShopCategories() {
     const { products, rubros, subrubros, isLoading, isFetched, isError, error } = useProductsV2();
 
     const categories = useMemo<ShopCategories>(() => {
-        // Si hay error, retornar vacío pero loguear
-        if (isError) {
-            console.error('[useShopCategories] Error al cargar productos:', error);
-            return { rubros: [], subrubros: [], generos: [] };
-        }
-
-        // Si está cargando y no se ha fetcheado, retornar vacío
-        if (isLoading && !isFetched) {
-            return { rubros: [], subrubros: [], generos: [] };
-        }
-
         // Asegurar que rubros y subrubros sean arrays válidos
         const validRubros = Array.isArray(rubros) ? rubros : [];
         const validSubrubros = Array.isArray(subrubros) ? subrubros : [];
         const validProducts = Array.isArray(products) ? products : [];
-
-        // Si no hay datos y ya se fetcheó, retornar vacío (evitar procesar datos vacíos)
-        if (isFetched && validRubros.length === 0 && validSubrubros.length === 0 && validProducts.length === 0) {
-            console.warn('[useShopCategories] Datos fetcheados pero vacíos - verificar que /api/products-v2 esté funcionando');
-            return { rubros: [], subrubros: [], generos: [] };
-        }
 
         // Usar rubros y subrubros directamente de useProductsV2 (ya vienen normalizados)
         const rubrosList = validRubros
@@ -77,10 +83,11 @@ export function useShopCategories() {
             }
         });
 
+        // Si hay datos cargados, usarlos; si no, usar hardcoded
         const result = {
-            rubros: rubrosList.length > 0 ? rubrosList : [],
-            subrubros: subrubrosList.length > 0 ? subrubrosList : [],
-            generos: Array.from(generosSet).sort(),
+            rubros: rubrosList.length > 0 ? rubrosList : HARDCODED_CATEGORIES.rubros,
+            subrubros: subrubrosList.length > 0 ? subrubrosList : HARDCODED_CATEGORIES.subrubros,
+            generos: generosSet.size > 0 ? Array.from(generosSet).sort() : HARDCODED_CATEGORIES.generos,
         };
 
         // Debug en desarrollo y producción (para diagnosticar el problema)
@@ -91,6 +98,11 @@ export function useShopCategories() {
             productsCount: validProducts.length,
             rubrosCount: validRubros.length,
             subrubrosCount: validSubrubros.length,
+            usingHardcoded: {
+                rubros: rubrosList.length === 0,
+                subrubros: subrubrosList.length === 0,
+                generos: generosSet.size === 0,
+            },
             categoriesCount: {
                 rubros: result.rubros.length,
                 subrubros: result.subrubros.length,
