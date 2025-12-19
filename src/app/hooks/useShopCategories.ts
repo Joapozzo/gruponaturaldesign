@@ -6,8 +6,8 @@ import { GroupedProductV2 } from '../types/producto-v2';
 
 // Función para extraer género del código o nombre del producto
 const extractGender = (product: GroupedProductV2): string | null => {
-    const nombre = (product.nombre || product.item || '').toLowerCase();
-    const codigo = (product.codigo || '').toLowerCase();
+    const nombre = (product.skuBase || product.displayProduct?.item || product.displayProduct?.nombreBase || '').toLowerCase();
+    const codigo = (product.displayProduct?.codigo || '').toLowerCase();
     
     if (nombre.includes('dama') || codigo.includes('dama') || codigo.includes('d')) {
         return 'dama';
@@ -66,11 +66,11 @@ export function useShopCategories() {
         // Usar rubros y subrubros directamente de useProductsV2 (ya vienen normalizados)
         const rubrosList = validRubros
             .map(r => r?.nombreNormalizado)
-            .filter((nombre): nombre is string => Boolean(nombre));
+            .filter(Boolean) as string[]; // Filtrar nulos/undefined y convertir a string[]
         
         const subrubrosList = validSubrubros
             .map(s => s?.nombre)
-            .filter((nombre): nombre is string => Boolean(nombre));
+            .filter(Boolean) as string[]; // Filtrar nulos/undefined
 
         // Extraer géneros de los productos
         const generosSet = new Set<string>();
