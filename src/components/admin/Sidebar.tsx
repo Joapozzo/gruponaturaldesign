@@ -262,7 +262,6 @@ export default function Sidebar({}: SidebarProps) {
                   className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[#000000] hover:text-[#Ed3237] hover:bg-gray-50 transition-all duration-300 text-xs font-medium tracking-wide"
                   onClick={() => {
                     // Aquí iría la lógica de logout
-                    console.log('Logout');
                   }}
                 >
                   <LogOut className="w-4 h-4" />
@@ -284,7 +283,6 @@ export default function Sidebar({}: SidebarProps) {
                   className="p-2 rounded-lg text-[#000000] hover:text-[#Ed3237] hover:bg-gray-50 transition-all duration-300"
                   onClick={() => {
                     // Aquí iría la lógica de logout
-                    console.log('Logout');
                   }}
                   aria-label="Cerrar sesión"
                 >

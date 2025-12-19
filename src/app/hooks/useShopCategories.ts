@@ -44,7 +44,7 @@ export function useShopCategories() {
                     setGroupedProducts(grouped);
                 }
             } catch (error) {
-                console.error('Error loading categories:', error);
+                // Error silencioso
             } finally {
                 setIsLoading(false);
             }

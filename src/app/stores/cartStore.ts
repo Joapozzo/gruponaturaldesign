@@ -231,15 +231,25 @@ export const useCartStore = create<CartState>()(
                 customerData: state.customerData,
                 shippingData: state.shippingData,
                 paymentData: state.paymentData,
-                itemCount: state.itemCount,
             }),
+            onRehydrateStorage: () => (state) => {
+                // Recalcular totales cuando se carga desde localStorage
+                if (state && state.items) {
+                    const totals = calculateTotals(state.items);
+                    state.itemCount = totals.itemCount;
+                    state.subtotal = totals.subtotal;
+                    state.iva = totals.iva;
+                    state.total = totals.total;
+                }
+            },
         }
     )
 );
 
 function calculateTotals(items: CartItem[]) {
-    // Calcular subtotal asegurándonos de que cada item tenga un precio válido
-    const subtotal = items.reduce((acc, item) => {
+    // Calcular el total (precio ya incluye IVA)
+    // El precio de los productos ya viene con IVA incluido
+    const total = items.reduce((acc, item) => {
         // Si el subtotal es 0 pero el producto tiene precio, recalcular
         if (item.subtotal === 0 && item.product.precio && item.product.precio > 0) {
             const precio = typeof item.product.precio === 'number' 
@@ -250,11 +260,19 @@ function calculateTotals(items: CartItem[]) {
         return acc + item.subtotal;
     }, 0);
     
-    const iva = subtotal * IVA_RATE;
-    const total = subtotal + iva;
+    // El total ya incluye IVA, entonces:
+    // - Subtotal sin impuestos = total / 1.21
+    // - IVA = total - subtotal sin impuestos
+    const subtotalSinImpuestos = total / (1 + IVA_RATE);
+    const iva = total - subtotalSinImpuestos;
     const itemCount = items.reduce((acc, item) => acc + item.quantity, 0);
 
-    return { itemCount, subtotal, iva, total };
+    return { 
+        itemCount, 
+        subtotal: subtotalSinImpuestos,  // Subtotal sin impuestos
+        iva, 
+        total  // Total con IVA incluido
+    };
 }
 
 export const sendOrderViaWhatsApp = (message: string) => {

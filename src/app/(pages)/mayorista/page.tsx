@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { 
     CheckCircle2, 
@@ -14,6 +14,7 @@ import {
     Briefcase
 } from 'lucide-react';
 import Section from '@/app/components/Section';
+import ErrorBoundary from '@/app/components/ErrorBoundary';
 import { useRouter } from 'next/navigation';
 import WholesaleBanner from '@/app/components/WholesaleBanner';
 import { useWhatsApp } from '@/app/components/hooks/useWhatsApp';
@@ -123,7 +124,8 @@ export default function MayoristaPage() {
     };
 
     return (
-        <div className="min-h-screen bg-white">
+        <ErrorBoundary>
+            <div className="min-h-screen bg-white">
             {/* Hero Banner Full Screen */}
             <div className="relative">
                 <WholesaleBanner fullScreen={true} />
@@ -393,6 +395,7 @@ export default function MayoristaPage() {
                                     size="lg"
                                     fullWidth
                                     className="inline-flex items-center justify-center space-x-2"
+                                    aria-label="Enviar formulario de contacto mayorista"
                                 >
                                     <span>CONTACTAR CON UN ASESOR</span>
                                 </Button>
@@ -401,7 +404,8 @@ export default function MayoristaPage() {
                     </motion.div>
                 </div>
             </Section>
-        </div>
+            </div>
+        </ErrorBoundary>
     );
 }
 

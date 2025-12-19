@@ -71,8 +71,7 @@ const DriveImageGallery: React.FC<DriveImageGalleryProps> = ({ driveFolderUrl, p
                     setError(data.error || data.message);
                 }
             })
-            .catch((err) => {
-                console.error('Error al cargar imágenes:', err);
+            .catch(() => {
                 setError('Error al cargar las imágenes');
             })
             .finally(() => {

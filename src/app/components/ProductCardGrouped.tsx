@@ -289,7 +289,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
     const precioTransfer = selectedVariant?.producto?.precioTransfer || group.displayProduct?.precioTransfer;
     const precio3cuotas = selectedVariant?.producto?.precio3cuotas || group.displayProduct?.precio3cuotas;
     const precioSImp = selectedVariant?.producto?.precioSImp || group.displayProduct?.precioSImp;
-    console.log(selectedVariant);
+
     const formattedTransfer = precioTransfer
         ? `$${precioTransfer.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`
         : null;

@@ -49,7 +49,6 @@ export async function GET(request: Request) {
                 });
             } else {
                 // Si el caché está vacío, limpiarlo y recargar
-                console.warn('[API] Caché vacío detectado, recargando...');
                 cachedProducts = null;
                 cacheTimestamp = 0;
             }
@@ -70,7 +69,6 @@ export async function GET(request: Request) {
             const csvText = fileBuffer.toString('utf-8');
             
             if (csvText.trim().length === 0) {
-                console.warn('[API] CSV vacío');
                 cachedProducts = [];
                 cacheTimestamp = now;
                 return NextResponse.json({
@@ -152,9 +150,7 @@ export async function GET(request: Request) {
             let allRows: string[][];
             try {
                 allRows = parseCSV(csvText);
-                console.log(`[API] CSV parseado: ${allRows.length} filas encontradas`);
             } catch (parseError) {
-                console.error('[API] Error al parsear CSV:', parseError);
                 return NextResponse.json({
                     success: false,
                     error: `Error al parsear CSV: ${parseError instanceof Error ? parseError.message : 'Error desconocido'}`,
@@ -163,7 +159,6 @@ export async function GET(request: Request) {
             }
             
             if (allRows.length === 0) {
-                console.warn('[API] CSV vacío después de parsear');
                 cachedProducts = [];
                 cacheTimestamp = now;
                 return NextResponse.json({
@@ -176,7 +171,6 @@ export async function GET(request: Request) {
             }
             
             if (allRows.length === 1) {
-                console.warn('[API] CSV solo tiene headers, no hay datos');
                 cachedProducts = [];
                 cacheTimestamp = now;
                 return NextResponse.json({
@@ -191,7 +185,6 @@ export async function GET(request: Request) {
             // Primera fila son los headers
             const headersRaw = allRows[0];
             if (!headersRaw || headersRaw.length === 0) {
-                console.error('[API] No se encontraron headers en el CSV');
                 return NextResponse.json({
                     success: false,
                     error: 'El CSV no tiene headers válidos',
@@ -199,27 +192,6 @@ export async function GET(request: Request) {
                 }, { status: 500 });
             }
             const headers = headersRaw.map(h => h.trim().toLowerCase());
-            console.log('[API] Headers detectados (raw):', headersRaw);
-            console.log('[API] Headers detectados (normalizados):', headers);
-            console.log(`[API] Total de columnas: ${headersRaw.length}`);
-            
-            // Verificar que el header "rubro" esté en la posición correcta
-            const rubroIndex = headersRaw.findIndex(h => h.trim().toLowerCase() === 'rubro');
-            console.log('[API] Índice de "rubro" en headers:', rubroIndex);
-            
-            // Debug: verificar la primera fila de datos antes de procesar
-            if (allRows.length > 1) {
-                const firstDataLine = allRows[1];
-                console.log('[API] Primera fila de datos parseada:', firstDataLine);
-                console.log('[API] Longitud de primera fila:', firstDataLine.length);
-                console.log('[API] Headers esperados:', headersRaw);
-                console.log('[API] Headers length:', headersRaw.length);
-                // Mostrar mapeo de columnas
-                console.log('[API] Mapeo esperado:');
-                headersRaw.forEach((header, idx) => {
-                    console.log(`  ${header} (índice ${idx}) -> "${firstDataLine[idx] || 'VACÍO'}"`);
-                });
-            }
 
             // Crear mapa de índices de columnas usando headers sin normalizar para mejor precisión
             const columnIndexes: Record<string, number> = {};
@@ -244,28 +216,11 @@ export async function GET(request: Request) {
                 else if (header === 'descripcion' || header === 'descripción') columnIndexes.descripcion = index;
                 else if (header === 'textiles' || header === 'textil') columnIndexes.textiles = index;
             });
-            
-            // Verificar que todos los índices estén correctos
-            console.log('[API] Mapeo de columnas:', {
-                codigo: columnIndexes.codigo,
-                item: columnIndexes.item,
-                rubro: columnIndexes.rubro,
-                subrubro: columnIndexes.subrubro,
-                deposito: columnIndexes.deposito,
-                stock: columnIndexes.stock,
-                precioLista: columnIndexes.precioLista,
-                fotos: columnIndexes.fotos,
-                talles: columnIndexes.talles,
-                bordados: columnIndexes.bordados
-            });
-
-            console.log('[API] Índices de columnas:', columnIndexes);
 
             // Procesar filas (saltar la primera que son headers)
             const rawData = allRows.slice(1);
 
             if (rawData.length === 0) {
-                console.warn('[API] CSV vacío o sin datos');
                 cachedProducts = [];
                 cacheTimestamp = now;
                 return NextResponse.json({
@@ -277,31 +232,6 @@ export async function GET(request: Request) {
                 });
             }
 
-            // Debug: mostrar primera fila de datos para verificar mapeo
-            if (rawData.length > 0) {
-                console.log('[API] Primera fila de datos (raw):', rawData[0]);
-                console.log('[API] Headers esperados:', headersRaw);
-                console.log('[API] Primera fila parseada completa:', rawData[0]);
-                console.log('[API] Longitud de primera fila:', rawData[0].length);
-                // Verificar específicamente el rubro
-                const rubroIdx = columnIndexes.rubro;
-                const subrubroIdx = columnIndexes.subrubro;
-                if (rubroIdx !== undefined && rawData[0][rubroIdx]) {
-                    console.log(`[API] Rubro en índice ${rubroIdx}: "${rawData[0][rubroIdx]}"`);
-                } else {
-                    console.error('[API] ERROR: No se encontró rubro en la primera fila');
-                    console.error('[API] Índices de columnas:', columnIndexes);
-                    console.error('[API] Primera fila completa:', rawData[0]);
-                }
-                if (subrubroIdx !== undefined && rawData[0][subrubroIdx]) {
-                    console.log(`[API] Subrubro en índice ${subrubroIdx}: "${rawData[0][subrubroIdx]}"`);
-                }
-                // Mostrar todos los valores de la primera fila con sus índices
-                console.log('[API] Primera fila con índices:');
-                rawData[0].forEach((val, idx) => {
-                    console.log(`  [${idx}]: "${val}"`);
-                });
-            }
 
             // Procesar filas
             const products: ProductV2Raw[] = rawData
@@ -309,9 +239,6 @@ export async function GET(request: Request) {
                     const getValue = (key: string): string | null => {
                         const idx = columnIndexes[key];
                         if (idx === undefined || idx >= rowArray.length) {
-                            if (process.env.NODE_ENV === 'development') {
-                                console.warn(`[API] Columna "${key}" no encontrada. Índice: ${idx}, Longitud fila: ${rowArray.length}`);
-                            }
                             return null;
                         }
                         const value = rowArray[idx];
@@ -322,22 +249,6 @@ export async function GET(request: Request) {
                     const item = getValue('item');
                     const rubro = getValue('rubro');
                     const subrubro = getValue('subrubro');
-
-                    // Debug: verificar primera fila
-                    if (codigo === 'L-WW-BU-ST22') {
-                        console.log('[API] DEBUG Primera fila:', {
-                            codigo,
-                            item,
-                            rubro,
-                            subrubro,
-                            rowArray,
-                            columnIndexes,
-                            'rubro index': columnIndexes.rubro,
-                            'subrubro index': columnIndexes.subrubro,
-                            'value at rubro index': rowArray[columnIndexes.rubro],
-                            'value at subrubro index': rowArray[columnIndexes.subrubro]
-                        });
-                    }
 
                     // Solo procesar si tiene código e item
                     if (!codigo || !item || codigo === '' || item === '') {
@@ -373,27 +284,6 @@ export async function GET(request: Request) {
                 })
                 .filter((p): p is ProductV2Raw => p !== null && p.codigo !== '' && p.item !== ''); // Filtrar nulos y filas vacías
 
-            console.log(`[API] Productos procesados: ${products.length} de ${rawData.length} filas`);
-            if (products.length === 0 && rawData.length > 0) {
-                console.warn('[API] No se procesaron productos. Primera fila raw:', rawData[0]);
-                if (rawData[0] && Array.isArray(rawData[0])) {
-                    console.warn('[API] Longitud de la primera fila:', rawData[0].length);
-                    console.warn('[API] Valores de la primera fila:', rawData[0]);
-                }
-            }
-            if (products.length > 0) {
-                console.log('[API] Ejemplo de producto procesado:', products[0]);
-                // Verificar que el rubro esté correcto
-                const ejemploWW = products.find(p => p.codigo === 'L-WW-BU-ST22');
-                const ejemploOF = products.find(p => p.codigo && p.codigo.includes('OF'));
-                if (ejemploWW) {
-                    console.log('[API] Ejemplo WORKWEAR:', ejemploWW);
-                }
-                if (ejemploOF) {
-                    console.log('[API] Ejemplo OFFICE:', ejemploOF);
-                }
-            }
-
             // Guardar en cache
             cachedProducts = products;
             cacheTimestamp = now;
@@ -420,7 +310,6 @@ export async function GET(request: Request) {
         }
 
     } catch (error: unknown) {
-        console.error('Error en /api/products-v2:', error);
         const errorMessage = error instanceof Error ? error.message : 'Error al procesar productos';
         return NextResponse.json({
             success: false,

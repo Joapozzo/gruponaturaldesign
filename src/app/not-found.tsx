@@ -10,7 +10,7 @@ export default function NotFound() {
     const router = useRouter();
 
     return (
-        <div className="min-h-screen bg-white flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-white flex items-center justify-center px-4 sm:px-6 lg:px-8 mt-10">
             <div className="max-w-4xl w-full text-center">
                 {/* Número 404 grande */}
                 <motion.div
@@ -19,7 +19,7 @@ export default function NotFound() {
                     transition={{ duration: 0.6, ease: "easeOut" }}
                     className="mb-8"
                 >
-                    <h1 className="text-9xl sm:text-[12rem] lg:text-[16rem] font-bold text-black leading-none">
+                    <h1 className="text-9xl sm:text-[10rem] lg:text-[10rem] font-bold text-black leading-none">
                         4
                         <span className="text-[#Ed3237]">0</span>
                         4

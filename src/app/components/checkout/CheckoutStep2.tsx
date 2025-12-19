@@ -688,7 +688,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
             </div>
             <div className="flex justify-between text-xs text-gray-500">
               <span>Subtotal sin impuestos nacionales</span>
-              <span>{formatPrice(total / 1.21)}</span>
+              <span>{formatPrice(subtotal)}</span>
             </div>
             <div className="flex justify-between text-lg font-bold text-black pt-2 border-t border-gray-300">
               <span>TOTAL</span>

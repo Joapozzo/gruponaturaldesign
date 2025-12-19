@@ -40,7 +40,6 @@ export const useConfirmModal = () => {
                 await modalOptions.onConfirm();
                 closeModal();
             } catch (error) {
-                console.error('Error en confirmación:', error);
                 setLoading(false);
             }
         } else {

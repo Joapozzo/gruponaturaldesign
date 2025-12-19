@@ -83,10 +83,6 @@ export async function POST(request: NextRequest) {
       html: internalEmailHTML,
     });
 
-    console.log('✅ Emails enviados exitosamente:', {
-      cliente: clientEmail.messageId,
-      interno: internalEmail.messageId,
-    });
 
     return NextResponse.json({
       success: true,
@@ -100,7 +96,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Error al enviar email:', error);
     return NextResponse.json(
       { error: 'Error al enviar email', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
@@ -119,7 +114,6 @@ function getLogoBase64(): string {
     const base64 = Buffer.from(logoFile).toString('base64');
     return `data:image/svg+xml;base64,${base64}`;
   } catch (error) {
-    console.error('Error al leer el logo:', error);
     // Fallback a URL externa si falla
     return 'https://naturalonline.com.ar/logos/logo-2.svg';
   }
@@ -625,7 +619,7 @@ function generateOrderEmailHTML(data: {
           </div>
           <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: #e0e0e0;">
             <span>Total sin impuestos:</span>
-            <span style="font-weight: 600;">${formatPrice(total / 1.21)}</span>
+            <span style="font-weight: 600;">${formatPrice(subtotal)}</span>
           </div>
           <div style="border-top: 2px solid rgba(237, 50, 55, 0.3); margin-top: 15px; padding-top: 15px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">

@@ -2,6 +2,7 @@
 import React, { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useGroupedCatalogFilters } from '@/app/components/hooks/useGroupedCatalogFilters';
+import { useDebounce } from '@/app/components/hooks/useDebounce';
 import FilterControls from '@/app/components/FilterControls';
 import ProductsGrid from '@/app/components/catalog/ProductsGrid';
 import EmptyState from '@/app/components/catalog/EmptyState';
@@ -20,16 +21,6 @@ const CatalogContent = () => {
     // Cargar productos agrupados V2
     const { products, isLoading, isError, error, rubros, subrubros } = useProductsV2();
     
-    // Debug logs
-    useEffect(() => {
-        if (isError) {
-            console.error('[shoponline] Error al cargar productos:', error);
-        }
-        if (products.length > 0) {
-            console.log('[shoponline] Productos cargados:', products.length);
-            console.log('[shoponline] Rubros:', rubros.length, 'Subrubros:', subrubros.length);
-        }
-    }, [products, isLoading, isError, error, rubros, subrubros]);
     
     // Estado para productos expandidos
     const [expandedSku, setExpandedSku] = useState<string | null>(null);
@@ -178,14 +169,23 @@ const CatalogContent = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams.toString()]); // Solo cuando cambien los searchParams
 
+    // Debounce del searchTerm para actualizar la URL solo después de que el usuario deje de escribir
+    const debouncedSearchTerm = useDebounce(filters.searchTerm, 400);
+
     // Sincronizar filtros con URL cuando cambien (Filtros -> URL)
+    // Para searchTerm usar el valor debounceado, para los demás filtros actualizar inmediatamente
     useEffect(() => {
         if (!isInitialized.current) return;
         if (isUpdatingFromURL.current) return;
         
-        syncFiltersToURL(filters);
+        // Crear un objeto de filtros con el searchTerm debounceado para la URL
+        const filtersForURL = {
+            ...filters,
+            searchTerm: debouncedSearchTerm,
+        };
+        syncFiltersToURL(filtersForURL);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filters.categoriaTipo, filters.subrubro, filters.genero, filters.searchTerm]);
+    }, [filters.categoriaTipo, filters.subrubro, filters.genero, debouncedSearchTerm]);
 
     // Wrapper para clearFilters que también limpia la URL
     const clearFilters = () => {

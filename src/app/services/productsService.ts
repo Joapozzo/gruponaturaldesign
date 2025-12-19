@@ -471,7 +471,7 @@ class ProductsService {
             localStorage.setItem('ntds_products', JSON.stringify(products));
             localStorage.setItem('ntds_products_updated', new Date().toISOString());
         } catch (error) {
-            console.error('Error al guardar productos en localStorage:', error);
+            // Error silencioso al guardar en localStorage
         }
     }
 
@@ -484,7 +484,6 @@ class ProductsService {
             if (!stored) return null;
             return JSON.parse(stored);
         } catch (error) {
-            console.error('Error al cargar productos desde localStorage:', error);
             return null;
         }
     }
@@ -534,7 +533,6 @@ class ProductsService {
 
             return products.length > 0 ? products : null;
         } catch (error) {
-            console.error('Error al cargar productos desde API:', error);
             return null;
         }
     }
@@ -654,6 +652,69 @@ class ProductsService {
     }
 
     /**
+     * Normaliza un nombre para comparación (sin acentos, lowercase, sin espacios extra)
+     * Igual que en el backend para mantener consistencia
+     */
+    private normalizarNombre(nombre: string): string {
+        if (!nombre) return '';
+        return nombre
+            .toLowerCase()
+            .normalize('NFD') // Normaliza caracteres acentuados
+            .replace(/[\u0300-\u036f]/g, '') // Elimina diacríticos
+            .trim()
+            .replace(/\s+/g, ' '); // Reemplaza múltiples espacios con uno solo
+    }
+
+    /**
+     * Extrae el sexo de un nombre y lo normaliza
+     * Detecta: "D" -> "Dama" -> "Mujer", "H" -> "Hombre", etc.
+     * IMPORTANTE: Normaliza "D" y "Dama" de la misma manera para unificar productos
+     */
+    private extraerYNormalizarSexo(nombre: string): { nombreSinSexo: string; sexo: string | null } {
+        const nombreLower = nombre.toLowerCase();
+        let sexo: string | null = null;
+        let nombreSinSexo = nombre;
+        
+        // PRIMERO: Buscar palabras completas de sexo (prioridad sobre abreviaciones)
+        // Esto asegura que "Dama" se procese antes que "D" para evitar conflictos
+        const palabrasSexo = ['hombre', 'mujer', 'dama', 'damas', 'unisex', 'niño', 'niña'];
+        
+        let encontroPalabraCompleta = false;
+        for (const s of palabrasSexo) {
+            const regex = new RegExp(`\\b${s}\\b`, 'gi');
+            if (regex.test(nombreLower)) {
+                // Normalizar: "dama" o "damas" -> "mujer"
+                if (s === 'dama' || s === 'damas') {
+                    sexo = 'Mujer';
+                } else {
+                    sexo = s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+                }
+                nombreSinSexo = nombre.replace(regex, '').trim().replace(/\s+/g, ' ');
+                encontroPalabraCompleta = true;
+                break;
+            }
+        }
+        
+        // SEGUNDO: Si no encontró palabra completa, buscar abreviaciones (D, H)
+        // Solo si NO hay palabra completa de sexo ya detectada
+        if (!encontroPalabraCompleta) {
+            // Buscar " D " o " D" al final (D = Dama)
+            // IMPORTANTE: Verificar que no haya "DAMA" ya que puede estar en otra parte
+            if (/\bD\b/.test(nombre) && !/\bDAMA\b/i.test(nombre)) {
+                sexo = 'Mujer';
+                nombreSinSexo = nombre.replace(/\bD\b/gi, '').trim().replace(/\s+/g, ' ');
+            }
+            // Buscar " H " o " H" al final (H = Hombre)
+            else if (/\bH\b/.test(nombre) && !/\bHOMBRE\b/i.test(nombre)) {
+                sexo = 'Hombre';
+                nombreSinSexo = nombre.replace(/\bH\b/gi, '').trim().replace(/\s+/g, ' ');
+            }
+        }
+        
+        return { nombreSinSexo, sexo };
+    }
+
+    /**
      * Extrae el nombre base de una descripción (sin talle, color, etc.)
      * Ejemplo: "Remera Gentle Dama NEGRO XS" -> "Remera Gentle Dama"
      */
@@ -690,30 +751,36 @@ class ProductsService {
         // Mapa para agrupar por SKU base o nombre
         const groupsMap = new Map<string, ProductWithImage[]>();
 
-        // Agrupar productos por nombre base (descripción sin talle/color)
+        // Agrupar productos por nombre base normalizado + sexo (igual que en el backend)
         // Priorizar NOMBRE de la hoja 2 si está disponible
         products.forEach(product => {
             // Priorizar NOMBRE de la hoja 2 para agrupación
-            let groupKey: string;
+            let nombreOriginal: string;
+            let nombreBase: string;
+            let sexo: string | null = null;
             
             if ((product as any).NOMBRE) {
-                // Si tiene NOMBRE de la hoja 2, normalizarlo y usarlo
-                let nombre = String((product as any).NOMBRE).trim();
-                // Normalizar "H" a "HOMBRE" para agrupación consistente
-                nombre = nombre.replace(/\bH\b/g, 'HOMBRE');
-                groupKey = nombre;
+                // Si tiene NOMBRE de la hoja 2, usarlo
+                nombreOriginal = String((product as any).NOMBRE).trim();
             } else if (product.Descripcion) {
-                const nombreBase = this.extractNombreBase(product.Descripcion);
-                // Normalizar "H" a "HOMBRE" si aún no se normalizó
-                let nombre = nombreBase || product.Descripcion;
-                nombre = nombre.replace(/\bH\b/g, 'HOMBRE');
-                groupKey = nombre;
+                nombreOriginal = this.extractNombreBase(product.Descripcion) || product.Descripcion;
             } else if (product.Codigo) {
                 // Fallback: usar SKU base si no hay descripción
-                groupKey = this.extractSkuBase(product.Codigo);
+                nombreOriginal = this.extractSkuBase(product.Codigo);
             } else {
                 return; // Saltar si no hay forma de agrupar
             }
+
+            // Extraer sexo y nombre sin sexo
+            const { nombreSinSexo, sexo: sexoExtraido } = this.extraerYNormalizarSexo(nombreOriginal);
+            nombreBase = nombreSinSexo;
+            sexo = sexoExtraido;
+
+            // Normalizar nombre base para comparación
+            const nombreBaseNormalizado = this.normalizarNombre(nombreBase);
+            
+            // Clave única: nombre normalizado + sexo (igual que en el backend)
+            const groupKey = `${nombreBaseNormalizado}|${sexo || 'sin-sexo'}`;
 
             if (!groupsMap.has(groupKey)) {
                 groupsMap.set(groupKey, []);
@@ -725,7 +792,62 @@ class ProductsService {
         // Convertir grupos a GroupedProduct[]
         const groupedProducts: GroupedProduct[] = [];
 
-        groupsMap.forEach((variants, skuBase) => {
+        groupsMap.forEach((variants, groupKey) => {
+            // Extraer nombre base y sexo de la clave
+            const [nombreBaseNormalizado, sexoStr] = groupKey.split('|');
+            const sexo = sexoStr === 'sin-sexo' ? null : sexoStr;
+            
+            // Obtener el nombre original del primer producto (para mostrar)
+            const primerProducto = variants[0];
+            let nombreOriginal: string;
+            
+            if ((primerProducto as any).NOMBRE) {
+                nombreOriginal = String((primerProducto as any).NOMBRE).trim();
+            } else if (primerProducto.Descripcion) {
+                nombreOriginal = this.extractNombreBase(primerProducto.Descripcion) || primerProducto.Descripcion;
+            } else {
+                nombreOriginal = this.extractSkuBase(primerProducto.Codigo || '');
+            }
+            
+            // IMPORTANTE: Normalizar el nombre base de manera consistente
+            // Usar el nombre normalizado de la clave para asegurar consistencia
+            // entre productos que tienen "D" y "Dama"
+            const { nombreSinSexo } = this.extraerYNormalizarSexo(nombreOriginal);
+            
+            // Usar el nombre sin sexo normalizado, pero reconstruir desde el nombre base normalizado
+            // para asegurar que todos los productos del mismo grupo tengan el mismo skuBase
+            // Buscar el nombre base más común entre todas las variantes para consistencia
+            let skuBase = nombreSinSexo || nombreOriginal;
+            
+            // Si hay múltiples variantes, intentar encontrar el nombre base más común
+            // para asegurar consistencia (priorizar nombres sin abreviaciones)
+            if (variants.length > 1) {
+                const nombresSinSexo = variants.map(v => {
+                    let nom: string;
+                    if ((v as any).NOMBRE) {
+                        nom = String((v as any).NOMBRE).trim();
+                    } else if (v.Descripcion) {
+                        nom = this.extractNombreBase(v.Descripcion) || v.Descripcion;
+                    } else {
+                        nom = this.extractSkuBase(v.Codigo || '');
+                    }
+                    const { nombreSinSexo: nss } = this.extraerYNormalizarSexo(nom);
+                    return nss || nom;
+                });
+                
+                // Priorizar nombres que NO tienen abreviaciones (D, H) sobre los que sí
+                const nombresSinAbreviaciones = nombresSinSexo.filter(n => 
+                    !/\bD\b/i.test(n) && !/\bH\b/i.test(n)
+                );
+                
+                if (nombresSinAbreviaciones.length > 0) {
+                    // Usar el nombre más largo (más completo) sin abreviaciones
+                    skuBase = nombresSinAbreviaciones.reduce((a, b) => a.length > b.length ? a : b);
+                } else {
+                    // Si todos tienen abreviaciones, usar el más común
+                    skuBase = nombreSinSexo || nombreOriginal;
+                }
+            }
             // Ordenar variantes por número
             const sortedVariants = variants.sort((a, b) => {
                 const numA = this.extractVariantNumber(a.Codigo || '');
@@ -897,7 +1019,6 @@ class ProductsService {
 
             return null;
         } catch (error) {
-            console.error('Error al cargar productos agrupados desde API:', error);
             return null;
         }
     }

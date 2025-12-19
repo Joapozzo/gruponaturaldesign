@@ -86,7 +86,6 @@ export async function GET(request: Request) {
     });
 
   } catch (error: any) {
-    console.error('Error en /api/drive-images:', error);
     return NextResponse.json(
       { error: error.message || 'Error desconocido' },
       { status: 500 }

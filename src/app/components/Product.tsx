@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { ArrowRight, Star, Eye, ShoppingCart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ProductWithImage } from '../types/producto';
@@ -106,32 +107,40 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
 
             {/* Imagen del producto */}
             <div className="relative h-100 overflow-hidden rounded-t-lg">
-                <motion.img
-                    src={
-                        (Array.isArray(product.imagen) ? product.imagen[0] : product.imagen) || 
-                        product.imagenes?.[0] || 
-                        (product.NOMBRE ? getFirstProductImage(product.NOMBRE) : '') ||
-                        (product.Descripcion ? getFirstProductImage(product.Descripcion) : '') ||
-                        '/imgs/producto-placeholder.png'
-                    }
-                    alt={product.Descripcion || product.NOMBRE || product.Codigo || ''}
-                    className="w-full h-full object-cover"
+                <motion.div
+                    className="relative w-full h-full"
                     animate={!isMobile ? {
                         scale: isHovered ? 1.08 : 1,
                         filter: isHovered ? "brightness(0.85)" : "brightness(1)",
                     } : {}}
                     transition={{ duration: 0.5, ease: "easeOut" }}
-                    onError={(e) => {
-                        // Si la imagen no existe, intentar con la primera imagen del producto
-                        const target = e.target as HTMLImageElement;
-                        const productName = product.NOMBRE || product.Descripcion;
-                        if (productName) {
-                            target.src = getFirstProductImage(productName);
-                        } else {
-                            target.src = '/imgs/producto-placeholder.png';
+                >
+                    <Image
+                        src={
+                            (Array.isArray(product.imagen) ? product.imagen[0] : product.imagen) || 
+                            product.imagenes?.[0] || 
+                            (product.NOMBRE ? getFirstProductImage(product.NOMBRE) : '') ||
+                            (product.Descripcion ? getFirstProductImage(product.Descripcion) : '') ||
+                            '/imgs/producto-placeholder.png'
                         }
-                    }}
-                />
+                        alt={product.Descripcion || product.NOMBRE || product.Codigo || 'Producto'}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        loading="lazy"
+                        quality={85}
+                        onError={(e) => {
+                            // Si la imagen no existe, intentar con la primera imagen del producto
+                            const target = e.target as HTMLImageElement;
+                            const productName = product.NOMBRE || product.Descripcion;
+                            if (productName) {
+                                target.src = getFirstProductImage(productName);
+                            } else {
+                                target.src = '/imgs/producto-placeholder.png';
+                            }
+                        }}
+                    />
+                </motion.div>
 
                 {/* Overlay gradient */}
                 <motion.div

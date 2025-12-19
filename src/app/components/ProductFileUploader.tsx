@@ -58,7 +58,6 @@ const ProductFileUploader: React.FC = () => {
                 setUploadStatus('idle');
             }, 3000);
         } catch (error: any) {
-            console.error('Error al procesar archivo:', error);
             setUploadStatus('error');
             setErrorMessage(error.message || 'Error al procesar el archivo');
         } finally {

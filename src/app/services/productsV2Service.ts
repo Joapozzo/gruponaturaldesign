@@ -35,18 +35,29 @@ class ProductsV2Service {
 
     /**
      * Normaliza el género en el nombre del producto
-     * "D" → "Dama", "H" → "Hombre"
+     * "D" → "DAMA", "H" → "HOMBRE"
+     * IMPORTANTE: Normaliza tanto abreviaciones como palabras completas para unificar productos
      * Solo reemplaza cuando "D" o "H" están solos (no como parte de otra palabra)
      */
     private normalizeGenero(nombre: string): string {
-        // Normalizar " D " (espacio D espacio) a " DAMA " (mayúsculas para consistencia)
-        // También " D " al inicio o final, pero no si es parte de otra palabra
-        // Usar lookbehind y lookahead para asegurar que esté separado
-        nombre = nombre.replace(/(^|\s+)D(\s+|$)/gi, '$1DAMA$2');
+        // PRIMERO: Normalizar palabras completas a mayúsculas para consistencia
+        // "Dama" o "dama" → "DAMA", "Hombre" o "hombre" → "HOMBRE"
+        nombre = nombre.replace(/\b(DAMA|DAMAS)\b/gi, 'DAMA');
+        nombre = nombre.replace(/\b(HOMBRE|HOMBRES)\b/gi, 'HOMBRE');
         
-        // Normalizar " H " (espacio H espacio) a " HOMBRE " (mayúsculas para consistencia)
+        // SEGUNDO: Normalizar " D " (espacio D espacio) a " DAMA " (mayúsculas para consistencia)
+        // También " D " al inicio o final, pero no si es parte de otra palabra
+        // IMPORTANTE: Solo si NO hay "DAMA" ya presente para evitar duplicados
+        if (!/\bDAMA\b/i.test(nombre)) {
+            nombre = nombre.replace(/(^|\s+)D(\s+|$)/gi, '$1DAMA$2');
+        }
+        
+        // TERCERO: Normalizar " H " (espacio H espacio) a " HOMBRE " (mayúsculas para consistencia)
         // También " H " al inicio o final, pero no si es parte de otra palabra
-        nombre = nombre.replace(/(^|\s+)H(\s+|$)/gi, '$1HOMBRE$2');
+        // IMPORTANTE: Solo si NO hay "HOMBRE" ya presente para evitar duplicados
+        if (!/\bHOMBRE\b/i.test(nombre)) {
+            nombre = nombre.replace(/(^|\s+)H(\s+|$)/gi, '$1HOMBRE$2');
+        }
         
         // Limpiar espacios múltiples que puedan quedar
         nombre = nombre.replace(/\s+/g, ' ').trim();
@@ -77,6 +88,19 @@ class ProductsV2Service {
         }
 
         // Remover colores conocidos del final usando regex más robusto
+        // IMPORTANTE: Primero remover abreviaciones de colores antes de los colores completos
+        // Abreviaciones de colores (deben ir ANTES de los colores compuestos)
+        const abreviacionesColores = [
+            { pattern: /\s+neg\s*$/i, replace: '' }, // NEG → Negro
+            { pattern: /\s+gris\s+t\s*$/i, replace: '' }, // Gris T → Gris Topo
+            { pattern: /\s+g\s+t\s*$/i, replace: '' }, // G T → Gris Topo (abreviación más corta)
+        ];
+        
+        // Aplicar abreviaciones primero
+        for (const abbrev of abreviacionesColores) {
+            nombre = nombre.replace(abbrev.pattern, abbrev.replace).trim();
+        }
+        
         // Colores compuestos (más largos primero para evitar coincidencias parciales)
         // IMPORTANTE: Normalizar abreviaciones como "GRIS MEL CL" → "gris melange"
         const coloresCompuestos = [
@@ -99,8 +123,9 @@ class ProductsV2Service {
         }
         
         // Colores simples (buscar desde el final)
+        // IMPORTANTE: Incluir abreviaciones comunes como "neg" (ya removido arriba, pero por si acaso)
         const coloresSimples = [
-            'celeste', 'azul', 'negro', 'blanco', 'gris', 'rojo', 'verde',
+            'celeste', 'azul', 'negro', 'neg', 'blanco', 'gris', 'rojo', 'verde',
             'amarillo', 'naranja', 'rosa', 'violeta', 'beige', 'marron', 'camel', 'bordo',
             'arena', 'marino', 'melange', 'topo', 'oscuro', 'claro', 'medio',
             'cemento', 'tostado' // Agregar cemento y tostado como colores
@@ -140,31 +165,41 @@ class ProductsV2Service {
 
     /**
      * Extrae color del item (última palabra antes del talle, si es un color conocido)
-     * Normaliza abreviaciones como "GRIS MEL CL" → "Gris Melange"
+     * Normaliza abreviaciones como "GRIS MEL CL" → "Gris Melange", "NEG" → "Negro", "Gris T" → "Gris Topo"
      */
     private extractColor(item: string): string | undefined {
         // Primero normalizar abreviaciones comunes
         let normalizedItem = item.toUpperCase();
         
         // Mapeo de abreviaciones a colores completos
+        // IMPORTANTE: Incluir abreviaciones como "NEG" (Negro) y "Gris T" (Gris Topo)
         const colorAbbreviations: Record<string, string> = {
             'GRIS MEL': 'gris melange',
             'GRIS MEL CL': 'gris melange',
             'GRIS MELANGE': 'gris melange',
             'GRIS TOPO': 'gris topo',
+            'GRIS T': 'gris topo', // Abreviación: Gris T → Gris Topo
+            'G T': 'gris topo', // Abreviación más corta
             'AZUL MAR': 'azul marino',
             'AZUL MARINO': 'azul marino',
             'LAVADO OSCURO': 'lavado oscuro',
             'LAVADO CLARO': 'lavado claro',
+            'NEG': 'negro', // Abreviación: NEG → Negro
         };
         
-        // Buscar y reemplazar abreviaciones
-        for (const [abbrev, fullColor] of Object.entries(colorAbbreviations)) {
-            if (normalizedItem.includes(abbrev)) {
-                normalizedItem = normalizedItem.replace(abbrev, fullColor);
+        // Buscar y reemplazar abreviaciones (ordenar por longitud descendente para coincidencias más largas primero)
+        const sortedAbbrevs = Object.entries(colorAbbreviations).sort((a, b) => b[0].length - a[0].length);
+        for (const [abbrev, fullColor] of sortedAbbrevs) {
+            // Buscar la abreviación como palabra completa (con espacios o al final/inicio)
+            const abbrevRegex = new RegExp(`\\b${abbrev.replace(/\s+/g, '\\s+')}\\b`, 'i');
+            if (abbrevRegex.test(normalizedItem)) {
+                normalizedItem = normalizedItem.replace(abbrevRegex, fullColor);
                 break;
             }
         }
+        
+        // Convertir a minúsculas para búsqueda de patrones
+        normalizedItem = normalizedItem.toLowerCase();
         
         // Colores compuestos (más largos primero)
         // IMPORTANTE: Buscar colores compuestos ANTES de buscar colores simples
@@ -201,7 +236,8 @@ class ProductsV2Service {
             /\s+(PP|P|G|GG|XG|XXG|XXXG)\s*$/i,
         ];
         
-        let itemSinTalle = normalizedItem.toLowerCase();
+        // normalizedItem ya está en minúsculas después de la normalización
+        let itemSinTalle = normalizedItem;
         for (const pattern of tallePatterns) {
             itemSinTalle = itemSinTalle.replace(pattern, '').trim();
         }
@@ -464,7 +500,6 @@ class ProductsV2Service {
      */
     private normalizeRubro(rubro: string): 'WORKWEAR' | 'BASIC' {
         if (!rubro || !rubro.trim()) {
-            console.error('[normalizeRubro] ERROR: Rubro vacío o nulo');
             return 'BASIC'; // Fallback
         }
         
@@ -486,7 +521,6 @@ class ProductsV2Service {
         }
         
         // Si no coincide con nada, es un error - no debería pasar
-        console.error(`[normalizeRubro] ERROR: Rubro desconocido "${rubro}" - no contiene WORKWEAR ni OFFICE`);
         return 'BASIC'; // Fallback por seguridad
     }
 
@@ -505,17 +539,7 @@ class ProductsV2Service {
         const talle = this.extractTalle(itemNormalizado);
         const color = this.extractColor(itemNormalizado);
         
-        // Debug: verificar que el rubro se lea correctamente
-        if (process.env.NODE_ENV === 'development' && raw.codigo && raw.codigo.includes('WW')) {
-            console.log(`[mapRawToProduct] Producto ${raw.codigo}: rubro="${raw.rubro}"`);
-        }
-        
         const rubroNormalizado = this.normalizeRubro(raw.rubro);
-        
-        // Debug: verificar normalización
-        if (process.env.NODE_ENV === 'development' && raw.codigo && raw.codigo.includes('WW')) {
-            console.log(`[mapRawToProduct] Producto ${raw.codigo}: rubro="${raw.rubro}" → normalizado="${rubroNormalizado}"`);
-        }
         
         // Parsear imágenes directamente del CSV
         const imagenes = this.parseFotos(raw.fotos);
@@ -550,65 +574,39 @@ class ProductsV2Service {
      */
     async loadProductsFromCSV(): Promise<ProductV2[]> {
         try {
-            console.log('[ProductsV2Service] Cargando productos desde /api/products-v2...');
-            
             // Cargar desde API endpoint
             const response = await fetch('/api/products-v2');
             
-            console.log('[ProductsV2Service] Response status:', response.status, response.statusText);
-            
             if (!response.ok) {
                 if (response.status === 404) {
-                    console.warn('[ProductsV2Service] Endpoint /api/products-v2 no encontrado, intentando carga directa...');
                     // Fallback: intentar carga directa (puede no funcionar en producción)
                     return this.loadProductsFromCSVDirect();
                 }
-                const errorText = await response.text();
-                console.error('[ProductsV2Service] Error response:', errorText);
                 throw new Error(`Error ${response.status}: ${response.statusText}`);
             }
 
             const data = await response.json();
-            console.log('[ProductsV2Service] Data recibida:', {
-                success: data.success,
-                total: data.total,
-                cached: data.cached,
-                dataLength: Array.isArray(data.data) ? data.data.length : 'no es array'
-            });
 
             if (!data.success) {
                 throw new Error(data.error || 'Error desconocido al cargar productos');
             }
 
             if (!Array.isArray(data.data)) {
-                console.error('[ProductsV2Service] data.data no es un array:', typeof data.data, data.data);
                 throw new Error('Los datos recibidos no son un array');
             }
 
             // Mapear a ProductV2Raw
             const productsRaw: ProductV2Raw[] = data.data;
-            console.log('[ProductsV2Service] Productos raw:', productsRaw.length);
 
             if (productsRaw.length === 0) {
-                console.warn('[ProductsV2Service] No se encontraron productos en el CSV');
                 return [];
             }
 
             // Convertir a ProductV2
             const products = productsRaw.map(raw => this.mapRawToProduct(raw));
-            console.log('[ProductsV2Service] Productos procesados:', products.length);
-            
-            // Debug: contar productos por rubro normalizado
-            const rubrosCount = products.reduce((acc, p) => {
-                const rubro = p.rubroNormalizado || 'SIN_RUBRO';
-                acc[rubro] = (acc[rubro] || 0) + 1;
-                return acc;
-            }, {} as Record<string, number>);
-            console.log('[ProductsV2Service] Productos por rubro normalizado:', rubrosCount);
             
             return products;
         } catch (error) {
-            console.error('[ProductsV2Service] Error al cargar productos desde CSV:', error);
             throw error;
         }
     }
@@ -658,7 +656,6 @@ class ProductsV2Service {
             // Convertir a ProductV2
             return productsRaw.map(raw => this.mapRawToProduct(raw));
         } catch (error) {
-            console.error('Error en carga directa de CSV:', error);
             throw error;
         }
     }
@@ -666,13 +663,21 @@ class ProductsV2Service {
     /**
      * Agrupa productos por nombre base (misma lógica que antes)
      * Las imágenes se leen directamente del CSV
+     * IMPORTANTE: Normaliza el nombre base para unificar productos con "D" y "Dama"
      */
     groupProductsByVariants(products: ProductV2[]): GroupedProductV2[] {
         const groupsMap = new Map<string, ProductV2[]>();
 
-        // Agrupar por nombre base
+        // Agrupar por nombre base normalizado
+        // IMPORTANTE: Normalizar el nombre base para asegurar que "Cargo Balance D" 
+        // y "Cargo Balance Dama" se agrupen juntos
         products.forEach(product => {
-            const groupKey = product.nombreBase.trim();
+            // Normalizar el nombre base para unificar variaciones
+            // Esto asegura que productos con "D" y "Dama" se agrupen juntos
+            let nombreBaseNormalizado = this.normalizeGenero(product.nombreBase.trim());
+            
+            // Usar el nombre base normalizado como clave de agrupación
+            const groupKey = nombreBaseNormalizado;
             
             if (!groupsMap.has(groupKey)) {
                 groupsMap.set(groupKey, []);
@@ -701,7 +706,10 @@ class ProductsV2Service {
             });
 
             const primerProducto = sortedVariants[0];
-            const skuBaseSlug = this.nombreToSlug(nombreBase);
+            // IMPORTANTE: Normalizar el nombre base para el skuBase final
+            // Esto asegura consistencia entre productos con "D" y "Dama"
+            const nombreBaseNormalizado = this.normalizeGenero(nombreBase);
+            const skuBaseSlug = this.nombreToSlug(nombreBaseNormalizado);
 
             // Extraer colores y talles únicos
             const coloresSet = new Set<string>();
@@ -803,7 +811,7 @@ class ProductsV2Service {
             });
 
             groupedProducts.push({
-                skuBase: nombreBase,
+                skuBase: nombreBaseNormalizado, // Usar nombre normalizado para consistencia
                 skuBaseSlug,
                 displayProduct: displayProductWithImages,
                 variants: productVariants,

@@ -96,7 +96,7 @@ const Footer = () => {
                     <p className="text-xs md:text-sm">&copy; 2025 Natural Design. Todos los derechos reservados.</p>
                     <div className="flex flex-wrap justify-center gap-4 text-xs md:text-sm">
                         <a href="/politicas-cambio-devolucion" className="hover:text-white transition-colors">
-                            Políticas de Cambio y Devolución
+                            Políticas de cambio y devolución
                         </a>
                     </div>
                 </div>

@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { ChevronRight, Home } from 'lucide-react';
 import { useCart } from '@/app/components/hooks/useCart';
+import ErrorBoundary from '@/app/components/ErrorBoundary';
 import CheckoutStep1 from '@/app/components/checkout/CheckoutStep1';
 import CheckoutStep2 from '@/app/components/checkout/CheckoutStep2';
 import CheckoutStep3 from '@/app/components/checkout/CheckoutStep3';
@@ -21,13 +22,6 @@ export default function CheckoutPage() {
   const { items, itemCount, isWholesale } = useCart();
   const [currentStep, setCurrentStep] = useState(1);
 
-  // Redirect if cart is empty
-  // useEffect(() => {
-  //   if (itemCount === 0) {
-  //     router.push('/catalogo');
-  //   }
-  // }, [itemCount, router]);
-
   const handleNextStep = () => {
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
@@ -41,7 +35,8 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <ErrorBoundary>
+      <div className="min-h-screen bg-white flex flex-col">
       {/* Banner Mayorista - Solo si supera 20 unidades */}
       {isWholesale() && (
         <div className="flex-shrink-0 w-full">
@@ -140,6 +135,7 @@ export default function CheckoutPage() {
           </AnimatePresence>
         </div>
       </div>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }

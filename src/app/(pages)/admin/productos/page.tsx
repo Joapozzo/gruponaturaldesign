@@ -230,7 +230,6 @@ const AdminProductosPage = () => {
       window.URL.revokeObjectURL(url);
       showAlert('Éxito', 'Productos exportados correctamente', 'success');
     } catch (error) {
-      console.error('Error al exportar:', error);
       showAlert('Error', 'Error al exportar productos. Por favor, intente nuevamente.', 'error');
     }
   };

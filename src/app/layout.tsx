@@ -6,19 +6,22 @@ import { Providers } from "./components/Providers";
 
 // Fuentes según el manual de marca NTDS
 // Franklin Gothic Heavy no está en Google Fonts, usamos Poppins como fallback principal
+// Optimizado: solo cargamos los pesos necesarios (400, 600, 700) para reducir bundle size
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  weight: ["400", "600", "700"], // Solo los pesos usados en el sitio
   display: "swap",
+  preload: true,
 });
 
 // Montserrat como alternativa adicional
 const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  weight: ["400", "600", "700"], // Solo los pesos usados en el sitio
   display: "swap",
+  preload: false, // No preload ya que es alternativa
 });
 
 export const metadata: Metadata = {

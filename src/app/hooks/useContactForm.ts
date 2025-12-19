@@ -114,8 +114,6 @@ export const useContactForm = (): UseContactFormReturn => {
             }
 
         } catch (error) {
-            console.error('Error al enviar formulario:', error);
-
             // Si no se ha seteado un mensaje específico, usar uno genérico
             if (!errorMessage) {
                 if (error instanceof TypeError && error.message.includes('fetch')) {

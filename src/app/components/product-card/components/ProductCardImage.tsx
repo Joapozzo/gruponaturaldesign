@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { ArrowRight, Eye } from 'lucide-react';
 import { ProductWithImage } from '@/app/types/producto';
 
@@ -34,12 +35,19 @@ export default function ProductCardImage({
                 isMobile ? 'h-[240px]' : 'h-[550px]'
             }`}
             onClick={onClick}
+            role="button"
+            tabIndex={0}
+            aria-label={`Ver detalles de ${product.Descripcion || product.NOMBRE || 'producto'}`}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onClick();
+                }
+            }}
         >
             {/* Siempre renderizar una imagen, incluso si es placeholder */}
-            <motion.img
-                src={mainImage}
-                alt={product.Descripcion || product.NOMBRE || 'Producto'}
-                className="w-full h-full object-cover"
+            <motion.div
+                className="relative w-full h-full"
                 animate={
                     !isMobile
                         ? {
@@ -49,9 +57,19 @@ export default function ProductCardImage({
                         : {}
                 }
                 transition={{ duration: 0.5, ease: 'easeOut' }}
-                onError={onImageError}
-                onLoad={onImageLoad}
-            />
+            >
+                <Image
+                    src={mainImage}
+                    alt={product.Descripcion || product.NOMBRE || 'Producto'}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    loading="lazy"
+                    quality={85}
+                    onError={onImageError}
+                    onLoad={onImageLoad}
+                />
+            </motion.div>
 
             {/* Overlay gradient */}
             <motion.div
@@ -77,8 +95,17 @@ export default function ProductCardImage({
                 }
                 transition={{ duration: 0.4, ease: 'easeOut' }}
                 onClick={onQuickView}
+                role="button"
+                tabIndex={0}
+                aria-label="Vista rápida del producto"
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onQuickView(e as any);
+                    }
+                }}
             >
-                <Eye className={isMobile ? 'w-4 h-4 text-white' : 'w-5 h-5 text-white'} />
+                <Eye className={isMobile ? 'w-4 h-4 text-white' : 'w-5 h-5 text-white'} aria-hidden="true" />
             </motion.div>
 
             {/* Información overlay en hover - Solo desktop */}

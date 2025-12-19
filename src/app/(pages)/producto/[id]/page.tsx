@@ -1,7 +1,9 @@
 "use client";
-import React, { Suspense } from 'react';
+import React, { Suspense, useMemo, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import Section from '@/app/components/Section';
+import ErrorBoundary from '@/app/components/ErrorBoundary';
 import { useProductDetail } from './hooks/useProductDetail';
 import { useProductImages } from './hooks/useProductImages';
 import { useProductVariants } from './hooks/useProductVariants';
@@ -14,14 +16,27 @@ import ProductSpecs from './components/ProductSpecs';
 import QuantityControlsProductPage from './components/QuantityControlsProductPage';
 import ProductResources from './components/ProductResources';
 import ProductShowroomInfo from './components/ProductShowroomInfo';
-import RelatedProducts from './components/RelatedProducts';
 import ProductImageModal from './components/ProductImageModal';
 import ProductLoadingState from './components/ProductLoadingState';
 import ProductNotFound from './components/ProductNotFound';
 import { useConfirmModal } from '@/app/components/hooks/useModal';
 import ConfirmModal from '@/app/components/modal/ConfirmModal';
 import BordadoSwitch from '@/app/components/product-card/components/BordadoSwitch';
-// import ProductVariantBadge from './components/ProductVariantBadge';
+
+// Dynamic import para RelatedProducts (componente pesado con Swiper)
+const RelatedProducts = dynamic(() => import('./components/RelatedProducts'), {
+    loading: () => (
+        <div className="py-8">
+            <h2 className="text-2xl font-bold mb-6">Productos relacionados</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[...Array(4)].map((_, i) => (
+                    <div key={i} className="animate-pulse bg-gray-200 rounded-lg h-96" />
+                ))}
+            </div>
+        </div>
+    ),
+    ssr: false, // Swiper no necesita SSR
+});
 
 const ProductDetailPageContent = () => {
     const router = useRouter();
@@ -39,8 +54,11 @@ const ProductDetailPageContent = () => {
     // Hook principal para cargar el producto
     const { groupedProduct, relatedProducts, isLoading } = useProductDetail();
 
-    // Calcular productName antes de usarlo en los hooks
-    const productName = groupedProduct?.skuBase || groupedProduct?.displayProduct?.NOMBRE || 'Sin nombre';
+    // Memoizar productName para evitar recálculos innecesarios
+    const productName = useMemo(
+        () => groupedProduct?.skuBase || groupedProduct?.displayProduct?.NOMBRE || 'Sin nombre',
+        [groupedProduct]
+    );
 
     // Hook para manejar variantes (debe llamarse siempre, incluso si no hay producto)
     const {
@@ -117,6 +135,17 @@ const ProductDetailPageContent = () => {
             setBordado(false);
         }
     }, [cartItem]);
+
+    // Prefetch productos relacionados cuando estén disponibles
+    useEffect(() => {
+        if (relatedProducts && relatedProducts.length > 0) {
+            relatedProducts.slice(0, 4).forEach((product) => {
+                if (product.skuBaseSlug) {
+                    router.prefetch(`/producto/${product.skuBaseSlug}`);
+                }
+            });
+        }
+    }, [relatedProducts, router]);
 
     // Estados de carga y error (después de todos los hooks)
     if (isLoading) {
@@ -254,9 +283,11 @@ const ProductDetailPageContent = () => {
 
 const ProductDetailPage = () => {
     return (
-        <Suspense fallback={<ProductLoadingState />}>
-            <ProductDetailPageContent />
-        </Suspense>
+        <ErrorBoundary>
+            <Suspense fallback={<ProductLoadingState />}>
+                <ProductDetailPageContent />
+            </Suspense>
+        </ErrorBoundary>
     );
 };
 

@@ -167,11 +167,10 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
     message += '--------------------------------\n\n';
   
     // RESUMEN
-    // Calcular total sin impuestos (el precio ya tiene IVA incluido)
-    const totalSinImpuestos = total / 1.21;
+    // El subtotal ya es sin impuestos (calculado desde el total que incluye IVA)
     message += '*RESUMEN*\n';
     message += `Total de productos: ${itemCount} unidades\n`;
-    message += `Total sin impuestos: ${formatPrice(totalSinImpuestos)}\n`;
+    message += `Total sin impuestos: ${formatPrice(subtotal)}\n`;
     message += `*TOTAL (impuestos incluidos): ${formatPrice(total)}*\n`;
   
     return encodeURIComponent(message);
@@ -205,7 +204,6 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
       const result = await response.json();
       return result;
     } catch (error) {
-      console.error('Error al enviar email de confirmación:', error);
       return null;
     }
   };
@@ -228,8 +226,8 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
       const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
 
       // Enviar email en segundo plano (no bloquea)
-      sendEmailConfirmation().catch(err => {
-        console.error('Error al enviar email (no crítico):', err);
+      sendEmailConfirmation().catch(() => {
+        // Error silencioso - no crítico
       });
 
       setOrderSuccess(true);
@@ -242,7 +240,6 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
         }, 2000);
       }, 1500);
     } catch (error) {
-      console.error('Error processing order:', error);
       alert('Hubo un error al procesar tu pedido. Por favor, intenta nuevamente.');
       setIsProcessing(false);
     }
@@ -370,7 +367,7 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
             <div className="pt-3 border-t border-gray-700 space-y-1 text-sm">
               <div className="flex justify-between text-xs text-gray-300">
                 <span>Total sin impuestos:</span>
-                <span>{formatPrice(total / 1.21)}</span>
+                <span>{formatPrice(subtotal)}</span>
               </div>
               <div className="flex justify-between text-lg font-bold mt-2 pt-2 border-t border-gray-700">
                 <span>TOTAL (impuestos incluidos):</span>

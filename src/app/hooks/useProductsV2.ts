@@ -26,14 +26,10 @@ export function useProductsV2(options: UseProductsV2Options = {}) {
         queryKey: ['products-v2', 'grouped', filters],
         queryFn: async (): Promise<ProductsV2Response> => {
             try {
-                console.log('[useProductsV2] Iniciando carga de productos...');
-                
                 // Cargar productos desde CSV
                 const products = await productsV2Service.loadProductsFromCSV();
-                console.log('[useProductsV2] Productos cargados:', products.length);
 
                 if (products.length === 0) {
-                    console.warn('[useProductsV2] No se encontraron productos');
                     return {
                         products: [],
                         total: 0,
@@ -44,19 +40,15 @@ export function useProductsV2(options: UseProductsV2Options = {}) {
 
                 // Agrupar productos
                 const grouped = productsV2Service.groupProductsByVariants(products);
-                console.log('[useProductsV2] Productos agrupados:', grouped.length);
 
                 // Extraer rubros y subrubros
                 const { rubros, subrubros } = productsV2Service.extractRubrosAndSubrubros(products);
-                console.log('[useProductsV2] Rubros:', rubros.length, 'Subrubros:', subrubros.length);
 
                 // Aplicar filtros si existen
                 const hasFilters = Object.keys(filters).length > 0;
                 const filteredGrouped = hasFilters
                     ? productsV2Service.filterGroupedProducts(grouped, filters)
                     : grouped;
-
-                console.log('[useProductsV2] Productos después de filtros:', filteredGrouped.length);
 
                 return {
                     products: filteredGrouped,
@@ -65,7 +57,6 @@ export function useProductsV2(options: UseProductsV2Options = {}) {
                     subrubros,
                 };
             } catch (error) {
-                console.error('[useProductsV2] Error al cargar productos:', error);
                 throw error;
             }
         },

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { GroupedProductV2 } from '@/app/types/producto-v2';
 import { GroupedProduct, ProductVariant, ProductWithImage } from '@/app/types/producto';
@@ -122,8 +122,15 @@ const ProductsGrid: React.FC<ProductsGridProps> = ({
     expandedSku,
     onExpandChange,
 }) => {
-    // Adaptar productos V2 a formato compatible
-    const adaptedProducts = products.map(adaptGroupedProductV2ToGroupedProduct);
+    // Memoizar la adaptación de productos para evitar recalcular en cada render
+    const adaptedProducts = useMemo(() => {
+        return products.map(adaptGroupedProductV2ToGroupedProduct);
+    }, [products]);
+
+    // Memoizar el handler de expansión para evitar re-renderizados de los hijos
+    const handleExpandChange = useCallback((sku: string | null) => {
+        onExpandChange(sku);
+    }, [onExpandChange]);
 
     return (
         <motion.div
@@ -138,12 +145,27 @@ const ProductsGrid: React.FC<ProductsGridProps> = ({
                     group={group}
                     index={index}
                     expandedSku={expandedSku}
-                    onExpandChange={onExpandChange}
+                    onExpandChange={handleExpandChange}
                 />
             ))}
         </motion.div>
     );
 };
 
-export default ProductsGrid;
+// Optimizar con React.memo para evitar re-renderizados cuando las props no cambian
+export default React.memo(ProductsGrid, (prevProps, nextProps) => {
+    // Comparación simple: si las referencias de los arrays son iguales, no re-renderizar
+    // También verificar que expandedSku no haya cambiado
+    if (prevProps.expandedSku !== nextProps.expandedSku) return false;
+    
+    // Si los arrays tienen diferente longitud, hay que re-renderizar
+    if (prevProps.products.length !== nextProps.products.length) return false;
+    
+    // Comparar las claves (skuBase) de todos los productos
+    // Si las claves son las mismas y en el mismo orden, no re-renderizar
+    const prevKeys = prevProps.products.map(p => p.skuBase).join(',');
+    const nextKeys = nextProps.products.map(p => p.skuBase).join(',');
+    
+    return prevKeys === nextKeys;
+});
 

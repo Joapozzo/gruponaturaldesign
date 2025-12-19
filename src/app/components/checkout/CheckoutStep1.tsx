@@ -108,11 +108,12 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
                   {item.product.imagen ? (
                     <Image
                       src={item.product.imagen}
-                      alt={item.product.nombre}
+                      alt={item.product.nombre || 'Producto'}
                       fill
                       className="object-cover"
                       sizes="(max-width: 768px) 48px, 64px"
-                      unoptimized={true}
+                      loading="lazy"
+                      quality={85}
                       onError={() => {
                         // El error se maneja mostrando el Package icon
                       }}
@@ -183,7 +184,7 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
           <div className="space-y-2">
             <div className="flex justify-between text-gray-500 text-sm">
               <span>Subtotal sin impuestos</span>
-              <span>${(total / 1.21).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+              <span>${subtotal.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between text-lg font-bold text-black pt-3 border-t border-gray-300">
               <span className="tracking-wide">TOTAL</span>
@@ -228,10 +229,24 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
           <>
             {/* Action Buttons - Row en mobile, col en desktop */}
             <div className="flex flex-row lg:flex-col gap-2 lg:gap-3">
-              <Button variant="black" size="lg" fullWidth onClick={onNext} className="flex-1 lg:flex-none">
+              <Button 
+                variant="black" 
+                size="lg" 
+                fullWidth 
+                onClick={onNext} 
+                className="flex-1 lg:flex-none"
+                aria-label="Continuar al siguiente paso del checkout"
+              >
                 CONTINUAR
               </Button>
-              <Button variant="blackOutline" size="md" fullWidth onClick={onBack} className="flex-1 lg:flex-none">
+              <Button 
+                variant="blackOutline" 
+                size="md" 
+                fullWidth 
+                onClick={onBack} 
+                className="flex-1 lg:flex-none"
+                aria-label="Volver a seguir comprando"
+              >
                 SEGUIR COMPRANDO
               </Button>
             </div>

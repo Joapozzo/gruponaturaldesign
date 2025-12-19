@@ -31,7 +31,6 @@ export const useFormModal = () => {
       await options.onSubmit(data);
       closeModal();
     } catch (error) {
-      console.error('Error en formulario:', error);
       // El error se maneja en el componente que llama
     } finally {
       setLoading(false);

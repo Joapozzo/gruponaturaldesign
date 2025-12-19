@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { GroupedProductV2 } from '../../types/producto-v2';
 import { FilterState } from './useCatalogFilters';
 import { hasProductImages } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
+import { useDebounce } from './useDebounce';
 
 export interface UseGroupedCatalogFiltersProps {
     products: GroupedProductV2[];
@@ -100,10 +101,6 @@ const isProductAllowed = (productName: string, category: string): boolean => {
         return false;
     });
 
-    // Debug temporal: mostrar productos que no coinciden
-    if (!isAllowed && process.env.NODE_ENV === 'development') {
-        console.log(`❌ Producto no permitido: "${productName}" (categoría: ${category})`);
-    }
 
     return isAllowed;
 };
@@ -140,11 +137,12 @@ export const useGroupedCatalogFilters = ({ products, itemsPerPage = 12 }: UseGro
 
     const [currentPage, setCurrentPage] = useState(1);
 
-    // Productos filtrados
+    // Debounce del searchTerm para optimizar el filtrado
+    // El input se actualiza inmediatamente pero el filtrado espera 300ms
+    const debouncedSearchTerm = useDebounce(filters.searchTerm, 300);
+
+    // Productos filtrados (usando el searchTerm debounceado)
     const filteredProducts = useMemo(() => {
-        if (process.env.NODE_ENV === 'development') {
-            console.log('🔍 INICIANDO FILTRADO - Total productos:', products.length);
-        }
         let filtered = [...products];
 
         // PRIMERO: Filtro por categoría tipo (BASIC/WORKWEAR)
@@ -161,9 +159,6 @@ export const useGroupedCatalogFilters = ({ products, itemsPerPage = 12 }: UseGro
                 const rubroMatches = rubroNormalizadoUpper === categoriaTipoUpper;
 
                 if (!rubroMatches) {
-                    if (process.env.NODE_ENV === 'development') {
-                        console.log(`❌ Producto rechazado (rubro no coincide): "${productName}" - Rubro normalizado: "${rubroNormalizado}" - Categoría filtro: "${filters.categoriaTipo}"`);
-                    }
                     return false;
                 }
 
@@ -171,22 +166,15 @@ export const useGroupedCatalogFilters = ({ products, itemsPerPage = 12 }: UseGro
             } else {
                 // Si es TODOS, verificar que el rubro sea workwear o basic
                 const isValidRubro = rubroNormalizado === 'WORKWEAR' || rubroNormalizado === 'BASIC';
-                if (!isValidRubro && process.env.NODE_ENV === 'development') {
-                    console.log(`⚠️ Producto con rubro inválido: "${productName}" - Rubro normalizado: "${rubroNormalizado}"`);
-                }
                 return isValidRubro;
             }
         });
 
-        if (process.env.NODE_ENV === 'development') {
-            if (process.env.NODE_ENV === 'development') {
-            console.log('✅ Después de filtro de categoría:', filtered.length);
-        }
-        }
 
         // Filtro por término de búsqueda (insensible a acentos)
-        if (filters.searchTerm) {
-            const normalizedSearchTerm = normalizeString(filters.searchTerm);
+        // Usar debouncedSearchTerm en lugar de filters.searchTerm para evitar re-renderizados en cada tipeo
+        if (debouncedSearchTerm) {
+            const normalizedSearchTerm = normalizeString(debouncedSearchTerm);
             filtered = filtered.filter(product => {
                 const nombre = normalizeString(product.displayProduct.nombreBase || product.displayProduct.item || '');
                 const descripcion = normalizeString(product.displayProduct.item || '');
@@ -210,10 +198,6 @@ export const useGroupedCatalogFilters = ({ products, itemsPerPage = 12 }: UseGro
         //     }
         //     return hasImages;
         // });
-
-        if (process.env.NODE_ENV === 'development') {
-            console.log('✅ Después de filtro de imágenes:', filtered.length);
-        }
 
         // Filtro por subrubro
         if (filters.subrubro !== 'TODOS') {
@@ -307,7 +291,7 @@ export const useGroupedCatalogFilters = ({ products, itemsPerPage = 12 }: UseGro
         }
 
         return filtered;
-    }, [products, filters]);
+    }, [products, filters.categoriaTipo, filters.subrubro, filters.genero, filters.colores, filters.talles, filters.onlyFeatured, filters.sortBy, debouncedSearchTerm]);
 
     // Paginación
     const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);

@@ -235,7 +235,7 @@ const Nosotros = () => {
                         >
                             <div className="aspect-[4/5] bg-gray-200">
                                 <Image
-                                    src="/imgs/about.png"
+                                    src="/imgs/nosotros2.jpg"
                                     alt="Equipo Natural Design"
                                     className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
                                     width={20000}

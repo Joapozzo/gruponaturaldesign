@@ -207,7 +207,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-gray-500 text-sm">
                                         <span>Subtotal sin impuestos</span>
-                                        <span>${(total / 1.21).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                                        <span>${subtotal.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
                                     </div>
                                     <div className="flex justify-between text-xl font-bold text-black pt-3 border-t border-gray-300">
                                         <span className="tracking-wide">TOTAL</span>

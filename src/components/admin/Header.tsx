@@ -159,7 +159,6 @@ export default function Header() {
                         className="w-full text-left px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
                         onClick={() => {
                           // Lógica de logout
-                          console.log('Logout');
                         }}
                       >
                         Cerrar Sesión
