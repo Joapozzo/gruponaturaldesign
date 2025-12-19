@@ -1,13 +1,13 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useGroupedProducts } from './useGroupedProducts';
-import { GroupedProduct } from '../types/producto';
+import { useProductsV2 } from './useProductsV2';
+import { GroupedProductV2 } from '../types/producto-v2';
 
-// Función para extraer género del código o nombre del producto (mismo que en useGroupedCatalogFilters)
-const extractGender = (product: GroupedProduct): string | null => {
-    const nombre = (product.displayProduct.NOMBRE || product.displayProduct.Descripcion || '').toLowerCase();
-    const codigo = (product.displayProduct.Codigo || '').toLowerCase();
+// Función para extraer género del código o nombre del producto
+const extractGender = (product: GroupedProductV2): string | null => {
+    const nombre = (product.nombre || product.item || '').toLowerCase();
+    const codigo = (product.codigo || '').toLowerCase();
     
     if (nombre.includes('dama') || codigo.includes('dama') || codigo.includes('d')) {
         return 'dama';
@@ -29,79 +29,44 @@ export interface ShopCategories {
 }
 
 export function useShopCategories() {
-    // Usar directamente useGroupedProducts sin filtros - COMPARTE TODA LA LÓGICA DE CARGA
-    // Esto asegura que siempre use la misma fuente de datos que el resto de la app
-    const { groupedProducts, isLoading, isFetched } = useGroupedProducts({});
+    // Usar useProductsV2 - LA MISMA FUENTE QUE FilterModal
+    // Esto asegura que siempre use la misma fuente de datos (CSV) que el resto de la app
+    const { products, rubros, subrubros, isLoading, isFetched } = useProductsV2({});
 
     const categories = useMemo<ShopCategories>(() => {
-        // Solo retornar vacío si realmente no hay datos Y ya se intentó cargar
-        if ((isLoading && !isFetched) || !groupedProducts || groupedProducts.length === 0) {
+        // Si está cargando y no se ha fetcheado, retornar vacío
+        if (isLoading && !isFetched) {
             return { rubros: [], subrubros: [], generos: [] };
         }
 
-        const rubrosSet = new Set<string>();
-        const subrubrosSet = new Set<string>();
+        // Usar rubros y subrubros directamente de useProductsV2 (ya vienen normalizados)
+        const rubrosList = rubros.map(r => r.nombreNormalizado).filter(Boolean);
+        const subrubrosList = subrubros.map(s => s.nombre).filter(Boolean);
+
+        // Extraer géneros de los productos
         const generosSet = new Set<string>();
-
-        // Función para normalizar rubro: PRODUCTO OFFICE → BASIC, PRODUCTO WORKWEAR → WORKWEAR
-        const normalizeRubroForDisplay = (rubro: string): string => {
-            if (!rubro) return '';
-            const rubroUpper = rubro.toUpperCase().trim();
-            
-            // Si contiene "WORKWEAR", retornar "WORKWEAR"
-            if (rubroUpper.includes('WORKWEAR')) {
-                return 'WORKWEAR';
-            }
-            
-            // Si contiene "OFFICE", retornar "BASIC"
-            if (rubroUpper.includes('OFFICE')) {
-                return 'BASIC';
-            }
-            
-            // Si ya es "BASIC" o "WORKWEAR", retornarlo tal cual
-            if (rubroUpper === 'BASIC' || rubroUpper === 'WORKWEAR') {
-                return rubroUpper;
-            }
-            
-            // Por defecto, retornar el rubro original
-            return rubro.trim();
-        };
-
-        groupedProducts.forEach(product => {
-            // Rubros - normalizar para mostrar
-            if (product.displayProduct.Rubro) {
-                const normalizedRubro = normalizeRubroForDisplay(product.displayProduct.Rubro);
-                if (normalizedRubro) {
-                    rubrosSet.add(normalizedRubro);
-                }
-            }
-
-            // Subrubros
-            if (product.displayProduct.Subrubro) {
-                subrubrosSet.add(product.displayProduct.Subrubro.trim());
-            }
-
-            // Géneros
+        products.forEach(product => {
             const gender = extractGender(product);
             if (gender) {
-                // Convertir a mayúsculas para mostrar en el menú
                 generosSet.add(gender.toUpperCase());
             }
         });
 
         return {
-            rubros: Array.from(rubrosSet).sort(),
-            subrubros: Array.from(subrubrosSet).sort(),
+            rubros: rubrosList.length > 0 ? rubrosList : [],
+            subrubros: subrubrosList.length > 0 ? subrubrosList : [],
             generos: Array.from(generosSet).sort(),
         };
-    }, [groupedProducts, isLoading]);
+    }, [products, rubros, subrubros, isLoading, isFetched]);
 
     // Debug en desarrollo
     if (process.env.NODE_ENV === 'development') {
         console.log('[useShopCategories]', {
             isLoading,
             isFetched,
-            groupedProductsCount: groupedProducts?.length || 0,
+            productsCount: products?.length || 0,
+            rubrosCount: rubros?.length || 0,
+            subrubrosCount: subrubros?.length || 0,
             categoriesCount: {
                 rubros: categories.rubros.length,
                 subrubros: categories.subrubros.length,
