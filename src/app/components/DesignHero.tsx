@@ -53,7 +53,7 @@ const DesignHero = () => {
             className="lg:col-span-4 relative h-[60vh] sm:h-[70vh] lg:h-[80vh] xl:h-[85vh] w-full"
           >
             <Image
-              src="/imgs/nosotros.jpg"
+              src="/imgs/nosotros.png"
               alt="Modelos vistiendo uniformes profesionales"
               fill
               className="object-cover"
@@ -67,4 +67,3 @@ const DesignHero = () => {
 };
 
 export default DesignHero;
-

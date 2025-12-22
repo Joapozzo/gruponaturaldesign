@@ -20,10 +20,10 @@ export default function ProductHeader({ groupedProduct, displayProduct }: Produc
         <Section
             id="product-header"
             className="bg-gray-50"
-            contentClassName="max-w-7xl mx-auto"
+            contentClassName="max-w-[1600px] mx-auto"
             noPadding
         >
-            <div className="py-3 sm:py-4 lg:py-6">
+            <div className="py-2 sm:py-3 lg:py-4">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}

@@ -23,8 +23,8 @@ export default function ProductResources({ product }: ProductResourcesProps) {
 
     return (
         <>
-            <div className="space-y-2 sm:space-y-3">
-                <div className="grid grid-cols-1 gap-2 sm:gap-3">
+            <div className="space-y-1.5 sm:space-y-2">
+                <div className="grid grid-cols-1 gap-1.5 sm:gap-2">
                     {product.fotosDriveUrl && (
                         <motion.a
                             href={product.fotosDriveUrl}

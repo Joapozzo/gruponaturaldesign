@@ -24,7 +24,7 @@ const CatalogContent = () => {
     
     // Estado para productos expandidos
     const [expandedSku, setExpandedSku] = useState<string | null>(null);
-    
+
     // Ref para evitar loops infinitos al sincronizar URL <-> Filtros
     const isInitialized = useRef(false);
     const isUpdatingFromURL = useRef(false);

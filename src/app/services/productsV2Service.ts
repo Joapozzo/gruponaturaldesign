@@ -35,28 +35,29 @@ class ProductsV2Service {
 
     /**
      * Normaliza el género en el nombre del producto
-     * "D" → "DAMA", "H" → "HOMBRE"
+     * "D" → "Dama", "H" → "Hombre"
      * IMPORTANTE: Normaliza tanto abreviaciones como palabras completas para unificar productos
      * Solo reemplaza cuando "D" o "H" están solos (no como parte de otra palabra)
+     * Normaliza a Title Case (Hombre, Dama) en lugar de mayúsculas
      */
     private normalizeGenero(nombre: string): string {
-        // PRIMERO: Normalizar palabras completas a mayúsculas para consistencia
-        // "Dama" o "dama" → "DAMA", "Hombre" o "hombre" → "HOMBRE"
-        nombre = nombre.replace(/\b(DAMA|DAMAS)\b/gi, 'DAMA');
-        nombre = nombre.replace(/\b(HOMBRE|HOMBRES)\b/gi, 'HOMBRE');
+        // PRIMERO: Normalizar palabras completas a Title Case para consistencia
+        // "DAMA", "Dama", "dama" → "Dama", "HOMBRE", "Hombre", "hombre" → "Hombre"
+        nombre = nombre.replace(/\b(DAMA|DAMAS|Dama|Damas|dama|damas)\b/gi, 'Dama');
+        nombre = nombre.replace(/\b(HOMBRE|HOMBRES|Hombre|Hombres|hombre|hombres)\b/gi, 'Hombre');
         
-        // SEGUNDO: Normalizar " D " (espacio D espacio) a " DAMA " (mayúsculas para consistencia)
+        // SEGUNDO: Normalizar " D " (espacio D espacio) a " Dama " (Title Case para consistencia)
         // También " D " al inicio o final, pero no si es parte de otra palabra
-        // IMPORTANTE: Solo si NO hay "DAMA" ya presente para evitar duplicados
-        if (!/\bDAMA\b/i.test(nombre)) {
-            nombre = nombre.replace(/(^|\s+)D(\s+|$)/gi, '$1DAMA$2');
+        // IMPORTANTE: Solo si NO hay "Dama" ya presente para evitar duplicados
+        if (!/\bDama\b/i.test(nombre)) {
+            nombre = nombre.replace(/(^|\s+)D(\s+|$)/gi, '$1Dama$2');
         }
         
-        // TERCERO: Normalizar " H " (espacio H espacio) a " HOMBRE " (mayúsculas para consistencia)
+        // TERCERO: Normalizar " H " (espacio H espacio) a " Hombre " (Title Case para consistencia)
         // También " H " al inicio o final, pero no si es parte de otra palabra
-        // IMPORTANTE: Solo si NO hay "HOMBRE" ya presente para evitar duplicados
-        if (!/\bHOMBRE\b/i.test(nombre)) {
-            nombre = nombre.replace(/(^|\s+)H(\s+|$)/gi, '$1HOMBRE$2');
+        // IMPORTANTE: Solo si NO hay "Hombre" ya presente para evitar duplicados
+        if (!/\bHombre\b/i.test(nombre)) {
+            nombre = nombre.replace(/(^|\s+)H(\s+|$)/gi, '$1Hombre$2');
         }
         
         // Limpiar espacios múltiples que puedan quedar
@@ -674,7 +675,7 @@ class ProductsV2Service {
         products.forEach(product => {
             // Normalizar el nombre base para unificar variaciones
             // Esto asegura que productos con "D" y "Dama" se agrupen juntos
-            let nombreBaseNormalizado = this.normalizeGenero(product.nombreBase.trim());
+            const nombreBaseNormalizado = this.normalizeGenero(product.nombreBase.trim());
             
             // Usar el nombre base normalizado como clave de agrupación
             const groupKey = nombreBaseNormalizado;
@@ -705,7 +706,31 @@ class ProductsV2Service {
                 return a.codigo.localeCompare(b.codigo);
             });
 
-            const primerProducto = sortedVariants[0];
+            // FILTRAR: Excluir "Camisa Drill Hombre" en color blanco
+            const filteredVariants = sortedVariants.filter(v => {
+                const nombreBaseLower = nombreBase.toLowerCase();
+                const colorLower = v.color?.toLowerCase() || '';
+                
+                // Excluir si es "Camisa Drill Hombre" (o variaciones) y tiene color blanco
+                const isCamisaDrillHombre = nombreBaseLower.includes('camisa') && 
+                                           nombreBaseLower.includes('drill') && 
+                                           nombreBaseLower.includes('hombre');
+                const isBlanco = colorLower === 'blanco';
+                
+                // Si es Camisa Drill Hombre en blanco, excluir
+                if (isCamisaDrillHombre && isBlanco) {
+                    return false;
+                }
+                
+                return true;
+            });
+
+            // Si después del filtro no quedan variantes, saltar este grupo
+            if (filteredVariants.length === 0) {
+                continue;
+            }
+
+            const primerProducto = filteredVariants[0];
             // IMPORTANTE: Normalizar el nombre base para el skuBase final
             // Esto asegura consistencia entre productos con "D" y "Dama"
             const nombreBaseNormalizado = this.normalizeGenero(nombreBase);
@@ -715,20 +740,44 @@ class ProductsV2Service {
             const coloresSet = new Set<string>();
             const tallesSet = new Set<string>();
 
-            sortedVariants.forEach(v => {
+            filteredVariants.forEach(v => {
                 if (v.color) coloresSet.add(v.color);
                 if (v.talle) tallesSet.add(v.talle);
             });
 
-            const availableColors = Array.from(coloresSet);
-            const availableSizes = Array.from(tallesSet);
+            // Ordenar colores priorizando blanco y negro primero
+            const sortColorsByPriority = (colors: string[]): string[] => {
+                const priorityColors = ['Blanco', 'Negro'];
+                const prioritySet = new Set(priorityColors.map(c => c.toLowerCase()));
+                
+                return colors.sort((a, b) => {
+                    const aLower = a.toLowerCase();
+                    const bLower = b.toLowerCase();
+                    const aIsPriority = prioritySet.has(aLower);
+                    const bIsPriority = prioritySet.has(bLower);
+                    
+                    // Si ambos son prioritarios o ninguno, mantener orden original
+                    if (aIsPriority && !bIsPriority) return -1;
+                    if (!aIsPriority && bIsPriority) return 1;
+                    
+                    // Si ambos son prioritarios, ordenar: Blanco primero, luego Negro
+                    if (aIsPriority && bIsPriority) {
+                        if (aLower === 'blanco') return -1;
+                        if (bLower === 'blanco') return 1;
+                        if (aLower === 'negro') return -1;
+                        if (bLower === 'negro') return 1;
+                    }
+                    
+                    return 0;
+                });
+            };
 
             // Organizar imágenes por color para que cambien cuando se selecciona un color
             // Mapa: color -> Set de imágenes (para evitar duplicados)
             const imagenesPorColorSet = new Map<string, Set<string>>();
             const todasLasImagenes = new Set<string>();
             
-            sortedVariants.forEach(v => {
+            filteredVariants.forEach(v => {
                 if (v.color && v.imagenes && v.imagenes.length > 0) {
                     // Agrupar imágenes por color
                     const color = v.color; // Guardar en constante para type safety
@@ -766,13 +815,40 @@ class ProductsV2Service {
                 imagenesPorColor.set(color, Array.from(imgSet));
             });
             
+            // IMPORTANTE: Filtrar colores disponibles para que solo incluyan los que tienen imágenes
+            // Esto evita mostrar colores sin imágenes (como blanco cuando no existe la foto)
+            const coloresConImagenes = Array.from(coloresSet).filter(color => 
+                imagenesPorColor.has(color) && imagenesPorColor.get(color)!.length > 0
+            );
+            
+            // Ordenar colores priorizando blanco y negro, pero solo los que tienen imágenes
+            const availableColors = sortColorsByPriority(coloresConImagenes);
+            const availableSizes = Array.from(tallesSet);
+            
             // Obtener todas las imágenes únicas (para el displayProduct)
             const imagenes = Array.from(todasLasImagenes);
             
-            // Seleccionar imagen principal: primera imagen del primer color disponible
+            // Seleccionar imagen principal: priorizar blanco o negro CON IMÁGENES, luego el primer color disponible CON IMÁGENES
             let imagen: string | undefined;
-            if (availableColors.length > 0 && imagenesPorColor.has(availableColors[0])) {
-                const primerasImagenes = imagenesPorColor.get(availableColors[0])!;
+            const priorityColors = ['Blanco', 'Negro'];
+            
+            // Buscar primero en colores prioritarios (blanco o negro) que TENGAN IMÁGENES
+            let colorSeleccionado = availableColors.find(c => 
+                priorityColors.some(priority => c.toLowerCase() === priority.toLowerCase()) &&
+                imagenesPorColor.has(c) &&
+                imagenesPorColor.get(c)!.length > 0
+            );
+            
+            // Si no hay color prioritario con imágenes, usar el primero disponible CON IMÁGENES
+            if (!colorSeleccionado && availableColors.length > 0) {
+                colorSeleccionado = availableColors.find(c => 
+                    imagenesPorColor.has(c) && imagenesPorColor.get(c)!.length > 0
+                );
+            }
+            
+            // Obtener imagen del color seleccionado
+            if (colorSeleccionado && imagenesPorColor.has(colorSeleccionado)) {
+                const primerasImagenes = imagenesPorColor.get(colorSeleccionado)!;
                 imagen = primerasImagenes[0];
             } else if (imagenes.length > 0) {
                 imagen = imagenes[0];
@@ -786,7 +862,7 @@ class ProductsV2Service {
             };
 
             // Crear variantes con imágenes organizadas por color
-            const productVariants: ProductV2Variant[] = sortedVariants.map(v => {
+            const productVariants: ProductV2Variant[] = filteredVariants.map(v => {
                 // Obtener imágenes específicas del color de esta variante
                 let imagenesVariante = imagenes;
                 let imagenVariante = imagen;

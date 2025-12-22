@@ -149,7 +149,7 @@ export default function ProductImageGallery({
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="space-y-4"
+            className="space-y-2 sm:space-y-3"
         >
             {/* Mostrar imágenes desde Drive si hay URL */}
             {product.fotosDriveUrl ? (
@@ -158,18 +158,20 @@ export default function ProductImageGallery({
                     productName={productName}
                 />
             ) : (
-                /* Fallback: mostrar galería local con miniaturas */
-                <div className="space-y-2 sm:space-y-3 lg:space-y-4">
-                    {/* Imagen principal */}
-                    <div className="relative group max-w-md lg:max-w-lg">
-                        <div
-                            ref={imageRef}
-                            className="relative aspect-[3/4] bg-white rounded-lg overflow-hidden cursor-zoom-in"
-                            onClick={onOpenModal}
-                            onMouseMove={handleMouseMove}
-                            onMouseEnter={handleMouseEnter}
-                            onMouseLeave={handleMouseLeave}
-                        >
+                // Fallback: mostrar galería local con miniaturas
+                <div className="space-y-1.5 sm:space-y-2 flex flex-col max-h-[100vh] overflow-hidden items-start">
+                    {/* Dos imágenes grandes lado a lado */}
+                    <div className="flex gap-2 sm:gap-3 w-full">
+                        {/* Primera imagen (principal) */}
+                        <div className="relative group flex-1">
+                            <div
+                                ref={imageRef}
+                                className="relative aspect-[3/4] bg-white rounded-lg overflow-hidden cursor-zoom-in"
+                                onClick={onOpenModal}
+                                onMouseMove={handleMouseMove}
+                                onMouseEnter={handleMouseEnter}
+                                onMouseLeave={handleMouseLeave}
+                            >
                             {displayImages.length > 0 && displayImages[adjustedIndex] ? (
                                 <>
                                     <Image
@@ -246,35 +248,80 @@ export default function ProductImageGallery({
                             )}
                         </div>
                     </div>
-
-                    {/* Miniaturas de imágenes */}
+                        
+                    {/* Segunda imagen (si existe) */}
                     {displayImages.length > 1 && (
-                        <div className="max-w-md lg:max-w-lg">
-                            <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
-                                {displayImages.map((img, index) => (
-                                <div
-                                    key={`${img}-${index}`}
-                                    className={`relative ${
-                                        adjustedIndex === index
-                                            ? 'p-0.5'
-                                            : ''
-                                    }`}
-                                >
-                                    <motion.button
-                                        onClick={() => {
-                                            // Encontrar el índice original en images para mantener consistencia
-                                            const originalIndex = validImages.indexOf(img);
-                                            if (originalIndex !== -1) {
-                                                onImageChange(originalIndex);
-                                            } else {
-                                                onImageChange(index);
-                                            }
-                                        }}
-                                        className={`relative aspect-square rounded-lg border-2 transition-all duration-300 w-full ${
-                                            adjustedIndex === index
-                                                ? 'border-black ring-2 ring-black ring-offset-2'
-                                                : 'border-gray-200 hover:border-gray-400 overflow-hidden'
+                        <div className="relative group flex-1">
+                            <div
+                                className="relative aspect-[3/4] bg-white rounded-lg overflow-hidden cursor-zoom-in"
+                                onClick={() => {
+                                    const secondImageIndex = validImages.indexOf(displayImages[1]);
+                                    if (secondImageIndex !== -1) {
+                                        onImageChange(secondImageIndex);
+                                        onOpenModal();
+                                    }
+                                }}
+                            >
+                                {displayImages[1] ? (
+                                    <Image
+                                        src={displayImages[1]}
+                                        alt={`${productName} - Imagen 2`}
+                                        className="w-full h-full object-cover"
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, 50vw"
+                                        unoptimized={true}
+                                        onLoad={() => handleImageLoad(displayImages[1])}
+                                        onError={() => handleImageError(displayImages[1])}
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                                        <Package className="w-16 h-16 sm:w-20 sm:h-20 text-gray-400" />
+                                    </div>
+                                )}
+                                {displayImages.length > 1 && (
+                                    <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full p-1.5 sm:p-2 transition-all duration-300 z-20">
+                                        <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                    {/* Miniaturas de imágenes restantes (desde la 3ra en adelante) */}
+                    {displayImages.length > 2 && (
+                        <div className="w-full">
+                            <div className="flex gap-2 sm:gap-3 justify-start flex-wrap">
+                                {displayImages.slice(2).map((img, index) => {
+                                    const actualIndex = index + 2;
+                                    return (
+                                    <div
+                                        key={`${img}-${actualIndex}`}
+                                        className={`relative ${
+                                            adjustedIndex === actualIndex
+                                                ? 'p-0.5'
+                                                : ''
                                         }`}
+                                        style={{ 
+                                            flex: '0 0 calc(25% - 0.375rem)',
+                                            maxWidth: 'calc(25% - 0.375rem)'
+                                        }}
+                                    >
+                                        <motion.button
+                                            onClick={() => {
+                                                // Encontrar el índice original en images para mantener consistencia
+                                                const originalIndex = validImages.indexOf(img);
+                                                if (originalIndex !== -1) {
+                                                    onImageChange(originalIndex);
+                                                } else {
+                                                    onImageChange(actualIndex);
+                                                }
+                                            }}
+                                            className={`relative aspect-square rounded-lg border-2 transition-all duration-300 w-full ${
+                                                adjustedIndex === actualIndex
+                                                    ? 'border-black ring-2 ring-black ring-offset-2'
+                                                    : 'border-gray-200 hover:border-gray-400 overflow-hidden'
+                                            }`}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                         aria-label={`Ver imagen ${index + 1}`}
@@ -295,13 +342,14 @@ export default function ProductImageGallery({
                                                 onError={() => handleImageError(img)}
                                             />
                                         )}
-                                        {/* Overlay cuando está seleccionada */}
-                                        {adjustedIndex === index && (
-                                            <div className="absolute inset-0 bg-black/20 rounded-lg" />
-                                        )}
-                                    </motion.button>
-                                </div>
-                            ))}
+                                            {/* Overlay cuando está seleccionada */}
+                                            {adjustedIndex === actualIndex && (
+                                                <div className="absolute inset-0 bg-black/20 rounded-lg" />
+                                            )}
+                                        </motion.button>
+                                    </div>
+                                );
+                                })}
                             </div>
                         </div>
                     )}
@@ -310,4 +358,3 @@ export default function ProductImageGallery({
         </motion.div>
     );
 }
-

@@ -25,14 +25,14 @@ export default function ProductVariantSelector({
     if (groupedProduct.totalVariants <= 1) return null;
 
     return (
-        <div className="space-y-4 sm:space-y-6 bg-gray-50 p-3 sm:p-4 lg:p-6 rounded-lg">
+        <div className="space-y-3 sm:space-y-4">
             {/* Selector de Colores */}
             {groupedProduct.availableColors && groupedProduct.availableColors.length > 0 && (
-                <div className="space-y-2 sm:space-y-3">
+                <div className="space-y-1.5 sm:space-y-2">
                     <label className="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wide">
                         Color {selectedColor && `- ${selectedColor}`}
                     </label>
-                    <div className="flex flex-wrap gap-2 sm:gap-3">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
                         {groupedProduct.availableColors.map((color) => {
                             const variantWithColor = groupedProduct.variants.find(v => v.color === color);
                             const colorHex = variantWithColor?.colorHex || getColorHex(color);
@@ -43,22 +43,17 @@ export default function ProductVariantSelector({
                                     key={color}
                                     onClick={() => onColorSelect(color)}
                                     className={`
-                                        relative flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-1.5 sm:py-2.5 rounded-lg
-                                        text-xs sm:text-sm font-medium transition-all duration-200
+                                        relative w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 transition-all duration-200
                                         ${isSelected
-                                            ? 'bg-black text-white ring-1 sm:ring-2 ring-black ring-offset-1 sm:ring-offset-2'
-                                            : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                                            ? 'ring-2 ring-black ring-offset-2'
+                                            : 'border-gray-300 hover:border-gray-400'
                                         }
                                     `}
-                                    whileHover={{ scale: 1.05 }}
+                                    style={{ backgroundColor: colorHex }}
+                                    whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.95 }}
+                                    title={color}
                                 >
-                                    <div
-                                        className={`w-3.5 h-3.5 sm:w-5 sm:h-5 rounded-full border sm:border-2 ${isSelected ? 'border-white' : 'border-gray-400'
-                                            }`}
-                                        style={{ backgroundColor: colorHex }}
-                                    />
-                                    <span className="text-xs sm:text-sm">{color}</span>
                                     {isSelected && (
                                         <motion.div
                                             className="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 bg-[#Ed3237] rounded-full p-0.5 sm:p-1"
@@ -78,11 +73,11 @@ export default function ProductVariantSelector({
 
             {/* Selector de Talles */}
             {selectedColor && availableSizes.length > 0 && (
-                <div className="space-y-2 sm:space-y-3">
+                <div className="space-y-1.5 sm:space-y-2 mb-3 sm:mb-4">
                     <label className="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wide">
                         Talle {selectedSize && `- ${selectedSize}`}
                     </label>
-                    <div className="flex flex-wrap gap-2 sm:gap-3">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
                         {availableSizes.map((size) => {
                             const isSelected = selectedSize === size;
                             
@@ -99,8 +94,8 @@ export default function ProductVariantSelector({
                                     onClick={() => onSizeSelect(size)}
                                     disabled={!variant || isOutOfStock}
                                     className={`
-                                        relative min-w-[44px] sm:min-w-[60px] px-2.5 sm:px-4 py-2 sm:py-3 rounded-lg
-                                        text-xs sm:text-sm font-bold transition-all duration-200
+                                        relative min-w-[40px] sm:min-w-[50px] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg
+                                        text-xs font-bold transition-all duration-200
                                         ${isSelected
                                             ? 'bg-black text-white ring-1 sm:ring-2 ring-black ring-offset-1 sm:ring-offset-2'
                                             : isOutOfStock

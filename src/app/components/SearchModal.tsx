@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, ArrowRight } from 'lucide-react';
+import { Search, X, ArrowRight, Package } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useProductsV2 } from '@/app/hooks/useProductsV2';
@@ -127,7 +127,7 @@ const SearchProductItem: React.FC<SearchProductItemProps> = ({ product, onClick 
   const selectedColor = firstVariant?.color || null;
   
   // Usar el mismo hook que ProductCardGrouped
-  const { mainImage, handleImageError } = useProductCardImage({
+  const { mainImage, hasValidImage, handleImageError } = useProductCardImage({
     product: productToUse,
     productName,
     selectedColor,
@@ -144,15 +144,21 @@ const SearchProductItem: React.FC<SearchProductItemProps> = ({ product, onClick 
     >
       <div className="relative w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
         {/* Siempre renderizar una imagen, incluso si es placeholder - igual que ProductCardImage */}
-        <Image
-          src={mainImage}
-          alt={productName}
-          fill
-          className="object-cover group-hover:scale-110 transition-transform"
-          sizes="80px"
-          unoptimized={true}
-          onError={handleImageError}
-        />
+        {!hasValidImage || !mainImage || mainImage.includes('producto-placeholder') || mainImage.includes('.png') ? (
+          <div className="w-full h-full flex items-center justify-center bg-gray-200">
+            <Package className="w-8 h-8 text-gray-400" />
+          </div>
+        ) : (
+          <Image
+            src={mainImage}
+            alt={productName}
+            fill
+            className="object-cover group-hover:scale-110 transition-transform"
+            sizes="80px"
+            unoptimized={true}
+            onError={handleImageError}
+          />
+        )}
       </div>
       <div className="flex-1 min-w-0">
         <h3 className="font-semibold text-sm text-black line-clamp-2 group-hover:text-[#Ed3237] transition-colors">

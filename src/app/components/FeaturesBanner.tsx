@@ -7,23 +7,23 @@ const FeaturesBanner = () => {
   const features = [
     {
       icon: RotateCcw,
-      title: "CAMBIOS Y DEVOLUCIONES",
+      title: "Cambios y devoluciones",
       description: "Tenes 30 días para cambiar tu pedido"
     },
     {
       icon: CreditCard,
-      title: "MEDIO DE PAGO",
-      description: "3 CUOTAS SIN INTERÉS • 15% OFF CON TRANSFERENCIA"
+      title: "Medio de pago",
+      description: "3 cuotas sin interés • 15% off con transferencia"
     },
     {
       icon: Store,
-      title: "PICK UP STORE",
+      title: "Pick up store",
       description: "Coordiná para retirar tu pedido"
     },
     {
       icon: Truck,
-      title: "ENVÍO GRATIS",
-      description: "ENVÍO GRATIS A SUCURSAL EN COMPRAS SUPERIORES A $200.000"
+      title: "Envío gratis",
+      description: "Envío gratis a sucursal en compras superiores a $200.000"
     }
   ];
 

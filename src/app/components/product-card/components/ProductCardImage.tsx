@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { ArrowRight, Eye } from 'lucide-react';
+import { ArrowRight, Eye, Package } from 'lucide-react';
 import { ProductWithImage } from '@/app/types/producto';
 
 interface ProductCardImageProps {
@@ -32,7 +32,7 @@ export default function ProductCardImage({
     return (
         <div
             className={`relative overflow-hidden rounded-t-lg bg-gray-100 cursor-pointer flex-shrink-0 ${
-                isMobile ? 'h-[240px]' : 'h-[550px]'
+                isMobile ? 'h-[240px]' : 'h-[450px]'
             }`}
             onClick={onClick}
             role="button"
@@ -58,17 +58,27 @@ export default function ProductCardImage({
                 }
                 transition={{ duration: 0.5, ease: 'easeOut' }}
             >
-                <Image
-                    src={mainImage}
-                    alt={product.Descripcion || product.NOMBRE || 'Producto'}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    loading="lazy"
-                    quality={85}
-                    onError={onImageError}
-                    onLoad={onImageLoad}
-                />
+                {!hasValidImage || mainImage.includes('producto-placeholder') || mainImage.includes('.png') ? (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                        <Package className={`text-gray-400 ${isMobile ? 'w-16 h-16' : 'w-24 h-24'}`} />
+                    </div>
+                ) : (
+                    <Image
+                        src={mainImage}
+                        alt={product.Descripcion || product.NOMBRE || 'Producto'}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        loading="lazy"
+                        quality={85}
+                        onError={(e) => {
+                            // Manejar error silenciosamente y mostrar Package icon
+                            onImageError(e);
+                        }}
+                        onLoad={onImageLoad}
+                        unoptimized={false}
+                    />
+                )}
             </motion.div>
 
             {/* Overlay gradient */}

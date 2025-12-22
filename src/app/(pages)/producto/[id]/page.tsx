@@ -1,6 +1,5 @@
 "use client";
 import React, { Suspense, useMemo, useEffect } from 'react';
-import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import Section from '@/app/components/Section';
 import ErrorBoundary from '@/app/components/ErrorBoundary';
@@ -23,20 +22,8 @@ import { useConfirmModal } from '@/app/components/hooks/useModal';
 import ConfirmModal from '@/app/components/modal/ConfirmModal';
 import BordadoSwitch from '@/app/components/product-card/components/BordadoSwitch';
 
-// Dynamic import para RelatedProducts (componente pesado con Swiper)
-const RelatedProducts = dynamic(() => import('./components/RelatedProducts'), {
-    loading: () => (
-        <div className="py-8">
-            <h2 className="text-2xl font-bold mb-6">Productos relacionados</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {[...Array(4)].map((_, i) => (
-                    <div key={i} className="animate-pulse bg-gray-200 rounded-lg h-96" />
-                ))}
-            </div>
-        </div>
-    ),
-    ssr: false, // Swiper no necesita SSR
-});
+// Import directo de RelatedProducts (ya no usa Swiper, es más liviano)
+import RelatedProducts from './components/RelatedProducts';
 
 const ProductDetailPageContent = () => {
     const router = useRouter();
@@ -171,13 +158,13 @@ const ProductDetailPageContent = () => {
             {/* Contenido principal */}
             <Section
                 id="product-content"
-                className="py-4 sm:py-6 lg:py-8"
-                contentClassName="max-w-7xl mx-auto"
+                className="py-3 sm:py-4 lg:py-5"
+                contentClassName="max-w-[1600px] mx-auto"
                 noPadding
             >
-                <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-6 mb-8 sm:mb-12 lg:mb-16">
+                <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-4 sm:mb-6">
                     {/* Galería de imágenes */}
-                    <div>
+                    <div className="flex flex-col">
                         <ProductImageGallery
                             product={selectedVariant.producto}
                             productName={productName}
@@ -188,22 +175,43 @@ const ProductDetailPageContent = () => {
                             onPrev={prevImage}
                             onOpenModal={openModal}
                         />
-
-                        {/* Badge de selección actual */}
-                        {/* <ProductVariantBadge
-                            selectedColor={selectedColor}
-                            selectedSize={selectedSize}
-                            selectedVariant={selectedVariant}
-                        /> */}
+                        
+                        {/* Código y Categoría debajo de las imágenes */}
+                        <div className="mt-2 sm:mt-3">
+                            <ProductSpecs
+                                selectedVariant={selectedVariant}
+                                displayProduct={displayProduct}
+                            />
+                        </div>
                     </div>
 
                     {/* Información del producto */}
-                    <div>
+                    <div className="space-y-3 sm:space-y-4">
+                        {/* Nombre y Bordado en fila */}
+                        <div className="flex items-center justify-between w-full gap-3 mb-2">
+                            <h1 className="text-lg sm:text-xl lg:text-2xl font-medium text-gray-900 font-display leading-tight flex-1">
+                                {productName}
+                            </h1>
+                            <div className="flex-shrink-0">
+                                <BordadoSwitch
+                                    value={bordado}
+                                    onChange={(value) => {
+                                        setBordado(value);
+                                        handleBordadoChange(value);
+                                    }}
+                                    isMobile={false}
+                                    size="large"
+                                />
+                            </div>
+                        </div>
+                        
+                        {/* Información del producto (precio, descripción, etc.) */}
                         <ProductInfo
                             productName={productName}
                             displayProduct={displayProduct}
                             selectedVariant={selectedVariant}
                             price={selectedVariant.producto.PrecioVenta}
+                            hideTitle
                         />
 
                         {/* Selectores de Color y Talle */}
@@ -215,25 +223,6 @@ const ProductDetailPageContent = () => {
                             onColorSelect={handleColorSelect}
                             onSizeSelect={handleSizeSelect}
                         />
-
-                        {/* Especificaciones */}
-                        <ProductSpecs
-                            selectedVariant={selectedVariant}
-                            displayProduct={displayProduct}
-                        />
-
-                        {/* Switch de Bordado */}
-                        <div className="mt-4">
-                            <BordadoSwitch
-                                value={bordado}
-                                onChange={(value) => {
-                                    setBordado(value);
-                                    handleBordadoChange(value);
-                                }}
-                                isMobile={false}
-                                size="large"
-                            />
-                        </div>
 
                         {/* Controles de cantidad */}
                         <QuantityControlsProductPage

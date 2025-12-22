@@ -310,7 +310,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
             viewport={{ once: true }}
             className={`group relative bg-white rounded-lg shadow-md transition-all duration-500 h-auto flex flex-col self-start ${
                 !isMobile
-                    ? 'w-full mb-6 sm:mb-8 hover:shadow-xl hover:scale-[1.02] hover:-translate-y-2 min-h-[700px]'
+                    ? 'w-full mb-4 hover:shadow-xl hover:scale-[1.02] hover:-translate-y-2 min-h-[590px]'
                     : 'w-full mb-3 min-h-[280px]'
             }`}
             onMouseEnter={handleMouseEnter}
@@ -331,8 +331,8 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
 
             {/* Información del producto */}
             <motion.div
-                className={`flex flex-col justify-between gap-1.5 sm:gap-2 flex-1 ${
-                    isMobile ? 'p-2' : 'p-3 sm:p-4'
+                className={`flex flex-col justify-between gap-1 sm:gap-1.5 flex-1 ${
+                    isMobile ? 'p-2' : 'p-2.5 sm:p-3'
                 }`}
                 animate={!isMobile ? { backgroundColor: isHovered ? '#f9fafb' : '#ffffff' } : {}}
                 transition={{ duration: 0.4 }}
@@ -340,7 +340,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                 {/* Nombre del producto */}
                 <motion.h3
                     className={`font-semibold text-gray-900 transition-colors line-clamp-2 ${
-                        isMobile ? 'text-xs mb-1' : 'text-base'
+                        isMobile ? 'text-xs mb-1' : 'text-sm mb-0.5'
                     }`}
                     animate={!isMobile ? { color: isHovered ? '#111827' : '#1f2937', scale: isHovered ? 1.02 : 1 } : {}}
                     transition={{ duration: 0.3 }}
@@ -375,12 +375,28 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
 
                                             {/* Selector de Talles */}
                                             {selectedColor && availableSizes.length > 0 && (
-                                                <SizeSelector
-                                                    sizes={availableSizes}
-                                                    selectedSize={selectedSize}
-                                                    isMobile={isMobile}
-                                                    onSizeSelect={handleSizeSelect}
-                                                />
+                                                <>
+                                                    <SizeSelector
+                                                        sizes={availableSizes}
+                                                        selectedSize={selectedSize}
+                                                        isMobile={isMobile}
+                                                        onSizeSelect={handleSizeSelect}
+                                                    />
+                                                    {/* Switch de Bordado - Solo cuando se despliegan los talles */}
+                                                    <div className="mt-1.5">
+                                                        <BordadoSwitch
+                                                            value={bordado}
+                                                            onChange={(value) => {
+                                                                setBordado(value);
+                                                                // Si el item ya está en el carrito, actualizar el bordado
+                                                                if (cartItem && cartItem.especificaciones === currentSpecs) {
+                                                                    updateBordado(selectedVariantId, value);
+                                                                }
+                                                            }}
+                                                            isMobile={isMobile}
+                                                        />
+                                                    </div>
+                                                </>
                                             )}
                                         </motion.div>
                                     )}
@@ -398,21 +414,6 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                     </div>
                 )}
 
-                {/* Switch de Bordado */}
-                <div className="mt-2">
-                    <BordadoSwitch
-                        value={bordado}
-                        onChange={(value) => {
-                            setBordado(value);
-                            // Si el item ya está en el carrito, actualizar el bordado
-                            if (cartItem && cartItem.especificaciones === currentSpecs) {
-                                updateBordado(selectedVariantId, value);
-                            }
-                        }}
-                        isMobile={isMobile}
-                    />
-                </div>
-
                 {/* Precio y botón */}
                 <div
                     className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 ${
@@ -420,37 +421,34 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                     }`}
                 >
                     <div className={`flex flex-col ${isMobile ? 'w-full' : ''}`}>
-                        {!isMobile && (
-                            <span className="text-xs sm:text-sm text-gray-500 font-medium">Precio</span>
-                        )}
                         <div className="flex flex-col">
-                            {/* Precio lista - bien grande */}
+                            {/* Precio lista */}
                             <span
-                                className={`font-bold text-gray-900 ${isMobile ? 'text-sm' : 'text-base sm:text-lg'}`}
+                                className={`font-bold text-gray-900 ${isMobile ? 'text-base' : 'text-base'}`}
                             >
                                 {formattedPrice}
                             </span>
-                            {/* Precio transfer - abajo del precio de lista */}
+                            {/* Precio transfer - abajo */}
                             {formattedTransfer && (
-                                <span className={`text-gray-700 mt-1 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                                <span className={`text-gray-700 mt-0.5 ${isMobile ? 'text-xs' : 'text-xs'}`}>
                                     Transfer: {formattedTransfer}
                                 </span>
                             )}
-                            {/* Precio cuotas - abajo del transfer */}
+                            {/* Precio cuotas - abajo */}
                             {formatted3Cuotas && (
-                                <span className={`text-gray-700 mt-0.5 ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                                    3 cuotas de {formatted3Cuotas}
+                                <span className={`text-gray-700 mt-0.5 ${isMobile ? 'text-xs' : 'text-xs'}`}>
+                                    3 cuotas: {formatted3Cuotas}
                                 </span>
                             )}
-                            {/* Precio sin impuestos - más chico y en gris */}
+                            {/* Precio sin impuestos - abajo */}
                             {formattedSImp && (
-                                <span className={`text-gray-500 mt-0.5 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-                                    Sin impuestos: {formattedSImp}
+                                <span className={`text-gray-500 mt-0.5 ${isMobile ? 'text-[10px]' : 'text-[10px]'}`}>
+                                    Sin imp: {formattedSImp}
                                 </span>
                             )}
                             {/* Mensaje de stock bajo (sin mostrar número exacto) */}
                             {stockMessage && (
-                                <span className={`text-xs font-semibold mt-1 ${
+                                <span className={`text-[10px] font-semibold mt-0.5 ${
                                     stockMessage === 'ÚLTIMAS UNIDADES' 
                                         ? 'text-orange-600' 
                                         : 'text-red-600'

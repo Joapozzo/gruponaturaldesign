@@ -22,6 +22,8 @@ const ProductosDestacados = () => {
     const [expandedSku, setExpandedSku] = useState<string | null>(null);
     const swiperRef = useRef<SwiperType | null>(null);
     const currentSlideIndexRef = useRef<number>(0);
+    const prevButtonRef = useRef<HTMLButtonElement>(null);
+    const nextButtonRef = useRef<HTMLButtonElement>(null);
     
     // Usar la misma fuente de datos que ProductsGrid (productos V2 del CSV)
     const { products: productsV2, isLoading } = useProductsV2();
@@ -137,8 +139,8 @@ const ProductosDestacados = () => {
     // Adaptar productos V2 a formato compatible (misma lógica que ProductsGrid)
     const groupedProducts = productsV2.map(adaptGroupedProductV2ToGroupedProduct);
 
-    // Tomar solo los primeros 8 productos (sin mutar el array original)
-    const productDestacados = groupedProducts.slice(0, 8);
+    // Tomar solo los primeros 6 productos (sin mutar el array original)
+    const productDestacados = groupedProducts.slice(0, 6);
 
     // Pausar/reanudar autoplay cuando un producto está expandido
     useEffect(() => {
@@ -156,10 +158,8 @@ const ProductosDestacados = () => {
                     }
                 }
                 
-                // Bloquear completamente el movimiento
+                // Bloquear completamente el movimiento táctil, pero mantener las flechas funcionales
                 swiperRef.current.allowTouchMove = false;
-                swiperRef.current.allowSlideNext = false;
-                swiperRef.current.allowSlidePrev = false;
                 
                 // Forzar que se mantenga en el slide actual
                 swiperRef.current.slideTo(currentSlideIndexRef.current, 0);
@@ -170,8 +170,17 @@ const ProductosDestacados = () => {
                 }
                 // Permitir el movimiento del slider
                 swiperRef.current.allowTouchMove = true;
-                swiperRef.current.allowSlideNext = true;
-                swiperRef.current.allowSlidePrev = true;
+            }
+        }
+        
+        // Actualizar estado visual de los botones de navegación
+        if (prevButtonRef.current && nextButtonRef.current) {
+            if (expandedSku) {
+                prevButtonRef.current.disabled = true;
+                nextButtonRef.current.disabled = true;
+            } else {
+                prevButtonRef.current.disabled = false;
+                nextButtonRef.current.disabled = false;
             }
         }
     }, [expandedSku]);
@@ -191,7 +200,7 @@ const ProductosDestacados = () => {
                 contentClassName='max-w-7xl mx-auto px-10'
             >
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {[...Array(4)].map((_, i) => (
+                    {[...Array(6)].map((_, i) => (
                         <div key={i} className="animate-pulse">
                             <div className="bg-gray-200 rounded-lg h-[550px] w-full"></div>
                         </div>
@@ -254,7 +263,8 @@ const ProductosDestacados = () => {
                         disableOnInteraction: false,
                         pauseOnMouseEnter: true,
                     }}
-                    loop={productDestacados.length >= 3}
+                    loop={productDestacados.length >= 6}
+                    loopAdditionalSlides={2}
                     breakpoints={{
                         320: {
                             slidesPerView: 1.5,
@@ -266,19 +276,19 @@ const ProductosDestacados = () => {
                         },
                         640: {
                             slidesPerView: 2,
-                            spaceBetween: 16,
+                            spaceBetween: 14,
                         },
                         768: {
                             slidesPerView: 2,
-                            spaceBetween: 20,
+                            spaceBetween: 16,
                         },
                         1024: {
-                            slidesPerView: 3,
-                            spaceBetween: 24,
+                            slidesPerView: 4,
+                            spaceBetween: 12,
                         },
                         1280: {
-                            slidesPerView: 3,
-                            spaceBetween: 28,
+                            slidesPerView: 4,
+                            spaceBetween: 14,
                         },
                     }}
                     className="pb-12"
@@ -297,10 +307,18 @@ const ProductosDestacados = () => {
 
                 {/* Navegación personalizada */}
                 <div className="flex justify-center items-center space-x-4 mt-8">
-                    <button className="swiper-button-prev-custom w-12 h-12 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-all duration-300 group">
+                    <button 
+                        ref={prevButtonRef}
+                        className="swiper-button-prev-custom w-12 h-12 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-all duration-300 group disabled:opacity-50 disabled:cursor-not-allowed"
+                        aria-label="Anterior"
+                    >
                         <ArrowRight className="w-5 h-5 text-gray-700 rotate-180 group-hover:text-gray-900" />
                     </button>
-                    <button className="swiper-button-next-custom w-12 h-12 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-all duration-300 group">
+                    <button 
+                        ref={nextButtonRef}
+                        className="swiper-button-next-custom w-12 h-12 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-all duration-300 group disabled:opacity-50 disabled:cursor-not-allowed"
+                        aria-label="Siguiente"
+                    >
                         <ArrowRight className="w-5 h-5 text-gray-700 group-hover:text-gray-900" />
                     </button>
                 </div>

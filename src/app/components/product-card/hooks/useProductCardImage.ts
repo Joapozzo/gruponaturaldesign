@@ -70,44 +70,13 @@ export function useProductCardImage({
 
     // Manejar error de carga de imagen
     const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-        const target = e.target as HTMLImageElement;
-
-        // Intentar con otros colores disponibles
-        if (productName && availableColors.length > 0 && imageLoadAttempts < availableColors.length) {
-            const currentColorIndex = selectedColor ? availableColors.indexOf(selectedColor) : -1;
-
-            // Intentar con el siguiente color
-            const nextColorIndex = (currentColorIndex + 1 + imageLoadAttempts) % availableColors.length;
-            const nextColor = availableColors[nextColorIndex];
-
-            if (nextColor) {
-                const colorImages = getProductImagesByColor(productName, nextColor);
-                if (colorImages.length > 0) {
-                    setImageLoadAttempts((prev) => prev + 1);
-                    target.src = colorImages[0];
-                    return;
-                }
-            }
-        }
-
-        // Si ya intentamos con todos los colores o no hay más opciones, usar placeholder
-        // SIEMPRE mostrar algo, nunca dejar sin imagen
-        if (imageLoadAttempts >= availableColors.length || availableColors.length === 0) {
-            // Intentar con la primera imagen disponible del producto (cualquier color)
-            if (productName) {
-                const firstImage = getFirstProductImage(productName);
-                if (firstImage && firstImage !== PLACEHOLDER_IMAGE) {
-                    target.src = firstImage;
-                    setImageLoadAttempts((prev) => prev + 1);
-                    return;
-                }
-            }
-            // Último recurso: usar placeholder pero mantener hasValidImage en true
-            target.src = PLACEHOLDER_IMAGE;
-            setHasValidImage(true); // Siempre mostrar algo
-        } else {
-            setImageLoadAttempts((prev) => prev + 1);
-        }
+        // Si la imagen falla (404 o cualquier error), mostrar Package icon directamente
+        // No intentar cambiar el src, simplemente marcar como inválida para mostrar el fallback
+        setHasValidImage(false);
+        
+        // Prevenir que el error se propague y cause problemas en la consola
+        e.preventDefault?.();
+        e.stopPropagation?.();
     };
 
     return {
