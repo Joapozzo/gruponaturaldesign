@@ -60,8 +60,8 @@ const Hero = () => {
             <Button
               variant="lightWhiteOutline"
               onClick={() => scrollToSection("categorias")}
-              size="sm"
-              className="font-light tracking-wide mx-auto text-xs"
+              size="lg"
+              className="font-light tracking-wide mx-auto"
             >
               Comenzá ya
             </Button>

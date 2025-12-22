@@ -196,7 +196,7 @@ const ProductosDestacados = () => {
         return (
             <Section
                 id="productos"
-                className="bg-gray-50"
+                className="bg-gray-50 pb-10"
                 title='Productos destacados'
                 subtitle='Lo mejor de nuestro shop online en diseño, calidad y funcionalidad.'
                 contentClassName='max-w-7xl mx-auto px-10'
@@ -208,6 +208,24 @@ const ProductosDestacados = () => {
                         </div>
                     ))}
                 </div>
+                {/* Call to Action */}
+                <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.3 }}
+                    viewport={{ once: true }}
+                    className="text-center mt-10"
+                >
+                    <Button
+                        variant="black"
+                        size="sm"
+                        className="tracking-wide inline-flex items-center space-x-2 text-xs"
+                        onClick={goToPage}
+                    >
+                        <span>VER SHOP COMPLETO</span>
+                        <ArrowRight className="w-4 h-4" />
+                    </Button>
+                </motion.div>
             </Section>
         );
     }
@@ -216,7 +234,7 @@ const ProductosDestacados = () => {
         return (
             <Section
                 id="productos"
-                className="bg-gray-50"
+                className="bg-gray-50 pb-10"
                 title='Productos destacados'
                 subtitle='Lo mejor de nuestro shop online en diseño, calidad y funcionalidad.'
                 contentClassName='max-w-7xl mx-auto px-10'
@@ -224,6 +242,24 @@ const ProductosDestacados = () => {
                 <div className="text-center py-20 text-gray-500">
                     No hay productos disponibles
                 </div>
+                {/* Call to Action */}
+                <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.3 }}
+                    viewport={{ once: true }}
+                    className="text-center mt-10"
+                >
+                    <Button
+                        variant="black"
+                        size="sm"
+                        className="tracking-wide inline-flex items-center space-x-2 text-xs"
+                        onClick={goToPage}
+                    >
+                        <span>VER SHOP COMPLETO</span>
+                        <ArrowRight className="w-4 h-4" />
+                    </Button>
+                </motion.div>
             </Section>
         );
     }
@@ -231,7 +267,7 @@ const ProductosDestacados = () => {
     return (
         <Section
             id="productos"
-            className="bg-gray-50"
+            className="bg-gray-50 pb-10"
             title='Productos destacados'
             subtitle='Lo mejor de nuestro shop online en diseño, calidad y funcionalidad.'
             contentClassName='max-w-7xl mx-auto px-10'
