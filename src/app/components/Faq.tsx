@@ -42,7 +42,7 @@ const AccordionItem: React.FC<AccordionItemProps> = ({ faq, index, isOpen, onTog
                     >
                         <Icon className="text-gray-700 group-hover:scale-110 transition-transform duration-300 group-hover:text-gray-900" size={24} />
                     </motion.div>
-                    <span className="font-semibold text-sm md:text-md text-gray-900 group-hover:text-gray-700 transition-colors duration-300">
+                    <span className="font-semibold text-xs md:text-sm text-gray-900 group-hover:text-gray-700 transition-colors duration-300">
                         {faq.pregunta}
                     </span>
                 </div>
@@ -99,7 +99,7 @@ const AccordionItem: React.FC<AccordionItemProps> = ({ faq, index, isOpen, onTog
                                 animate={{ scale: 1 }}
                                 transition={{ duration: 0.3, delay: 0.2 }}
                             />
-                            <p className="text-gray-600 leading-relaxed font-medium">
+                            <p className="text-gray-600 leading-relaxed font-medium text-xs md:text-sm">
                                 {faq.respuesta}
                             </p>
                         </motion.div>
@@ -144,7 +144,7 @@ const WorkProcessCard: React.FC<WorkProcessCardProps> = ({ item, index }) => {
                 </motion.div>
 
                 <motion.h3
-                    className="text-lg md:text-md font-semibold text-gray-900 mb-4 group-hover:text-gray-700 transition-colors duration-300 font-display"
+                    className="text-sm md:text-base font-semibold text-gray-900 mb-3 group-hover:text-gray-700 transition-colors duration-300 font-display"
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
                     transition={{ duration: 0.6, delay: index * 0.2 + 0.3 }}
@@ -154,7 +154,7 @@ const WorkProcessCard: React.FC<WorkProcessCardProps> = ({ item, index }) => {
                 </motion.h3>
 
                 <motion.p
-                    className="text-sm md:text-md text-gray-600 leading-relaxed flex-grow group-hover:text-gray-800 transition-colors duration-300"
+                    className="text-xs md:text-sm text-gray-600 leading-relaxed flex-grow group-hover:text-gray-800 transition-colors duration-300"
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
                     transition={{ duration: 0.6, delay: index * 0.2 + 0.5 }}
@@ -260,7 +260,7 @@ const Faq: React.FC = () => {
                 className="text-center mb-16"
             >
                 <motion.h2
-                    className="text-3xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-6 font-display"
+                    className="text-xl sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-4 font-display"
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.2 }}
@@ -269,7 +269,7 @@ const Faq: React.FC = () => {
                     CÓMO TRABAJAMOS
                 </motion.h2>
                 <motion.p
-                    className="text-md md:text-lg text-gray-600 max-w-4xl mx-auto"
+                    className="text-sm md:text-base text-gray-600 max-w-4xl mx-auto"
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
                     transition={{ duration: 0.8, delay: 0.4 }}
@@ -307,7 +307,7 @@ const Faq: React.FC = () => {
                     transition={{ duration: 0.3 }}
                 >
                     <motion.h3
-                        className="text-3xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4 font-display"
+                        className="text-xl sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 font-display"
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
@@ -316,7 +316,7 @@ const Faq: React.FC = () => {
                         ¿Tenés más consultas?
                     </motion.h3>
                     <motion.p
-                        className="text-gray-600 mb-8 text-md md:text-lg max-w-2xl mx-auto leading-relaxed"
+                        className="text-gray-600 mb-6 text-sm md:text-base max-w-2xl mx-auto leading-relaxed"
                         initial={{ opacity: 0 }}
                         whileInView={{ opacity: 1 }}
                         transition={{ duration: 0.6, delay: 0.4 }}

@@ -21,6 +21,14 @@ const BordadoSwitch: React.FC<BordadoSwitchProps> = ({
     // Determinar tamaños según el prop size
     const sizeClasses = {
         small: {
+            container: 'text-[10px] gap-1',
+            label: 'text-[10px]',
+            switch: 'h-4 w-7',
+            thumb: 'h-3 w-3',
+            thumbX: 16,
+            text: 'text-[10px]',
+        },
+        medium: {
             container: 'text-xs gap-1.5',
             label: 'text-xs',
             switch: 'h-5 w-9',
@@ -28,21 +36,13 @@ const BordadoSwitch: React.FC<BordadoSwitchProps> = ({
             thumbX: 20,
             text: 'text-xs',
         },
-        medium: {
+        large: {
             container: 'text-sm gap-2',
             label: 'text-sm',
             switch: 'h-6 w-11',
             thumb: 'h-4 w-4',
             thumbX: 24,
             text: 'text-sm',
-        },
-        large: {
-            container: 'text-base gap-3',
-            label: 'text-base',
-            switch: 'h-7 w-12',
-            thumb: 'h-5 w-5',
-            thumbX: 28,
-            text: 'text-base',
         },
     };
 

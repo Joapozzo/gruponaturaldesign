@@ -24,10 +24,10 @@ export default function QuantityControls({
     className = '',
 }: QuantityControlsProps) {
     return (
-        <div className={`flex items-center space-x-2 bg-gray-100 rounded-lg p-1 ${className}`}>
+        <div className={`flex items-center space-x-1 bg-gray-100 rounded-lg p-0.5 ${className}`}>
             {/* Botón Decremento */}
             <motion.button
-                className={`w-7 h-8 sm:h-7 flex items-center justify-center rounded-md transition-all ${
+                className={`w-5 h-5 flex items-center justify-center rounded transition-all ${
                     quantity <= 1 || disabled
                         ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                         : 'bg-white text-black hover:bg-gray-50 shadow-sm'
@@ -38,11 +38,11 @@ export default function QuantityControls({
                 whileTap={quantity > 1 && !disabled ? { scale: 0.95 } : {}}
                 aria-label="Disminuir cantidad"
             >
-                <Minus className="w-3 h-3" />
+                <Minus className="w-2.5 h-2.5" />
             </motion.button>
 
             {/* Cantidad */}
-            <span className={`w-8 text-center font-bold text-sm ${
+            <span className={`w-6 text-center font-bold text-xs ${
                 maxReached ? 'text-gray-500' : 'text-black'
             }`}>
                 {quantity}
@@ -50,7 +50,7 @@ export default function QuantityControls({
 
             {/* Botón Incremento */}
             <motion.button
-                className={`w-7 h-8 sm:h-7 flex items-center justify-center rounded-md transition-all ${
+                className={`w-5 h-5 flex items-center justify-center rounded transition-all ${
                     !canAddMore || maxReached || disabled
                         ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                         : 'bg-white text-black hover:bg-gray-50 shadow-sm'
@@ -61,7 +61,7 @@ export default function QuantityControls({
                 whileTap={canAddMore && !maxReached && !disabled ? { scale: 0.95 } : {}}
                 aria-label="Aumentar cantidad"
             >
-                <Plus className="w-3 h-3" />
+                <Plus className="w-2.5 h-2.5" />
             </motion.button>
         </div>
     );

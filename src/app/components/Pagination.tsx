@@ -69,11 +69,11 @@ const Pagination: React.FC<PaginationProps> = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="mt-12"
+            className="mt-6 sm:mt-12"
         >
             {/* Información de resultados */}
-            <div className="text-center mb-6">
-                <p className="text-gray-600">
+            <div className="text-center mb-3 sm:mb-6">
+                <p className="text-xs sm:text-sm text-gray-600">
                     Mostrando <span className="font-semibold text-gray-900">{showingFrom}</span> a{' '}
                     <span className="font-semibold text-gray-900">{showingTo}</span> de{' '}
                     <span className="font-semibold text-gray-900">{totalProducts}</span> productos
@@ -81,33 +81,33 @@ const Pagination: React.FC<PaginationProps> = ({
             </div>
 
             {/* Controles de paginación */}
-            <div className="flex items-center justify-center space-x-2">
+            <div className="flex items-center justify-center space-x-1 sm:space-x-2">
                 {/* Botón anterior */}
                 <Button
                     variant="grayOutline"
                     size="sm"
                     onClick={() => onPageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="flex items-center space-x-2"
+                    className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-3"
                 >
-                    <ChevronLeft size={16} />
+                    <ChevronLeft size={12} />
                     <span className="hidden sm:inline">Anterior</span>
                 </Button>
 
                 {/* Números de página */}
-                <div className="flex items-center space-x-1">
+                <div className="flex items-center space-x-0.5 sm:space-x-1">
                     {visiblePages.map((page, index) => (
                         <React.Fragment key={index}>
                             {page === 'ellipsis' ? (
-                                <div className="flex items-center justify-center w-10 h-10">
-                                    <MoreHorizontal size={16} className="text-gray-400" />
+                                <div className="flex items-center justify-center w-7 h-7 sm:w-10 sm:h-10">
+                                    <MoreHorizontal size={12} className="text-gray-400" />
                                 </div>
                             ) : (
                                 <motion.button
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => onPageChange(page)}
-                                    className={`w-8 h-8 flex items-center justify-center rounded-lg font-medium transition-all duration-200 ${currentPage === page
+                                    className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${currentPage === page
                                             ? 'bg-gray-900 text-white shadow-lg'
                                             : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-gray-300'
                                         }`}
@@ -125,19 +125,19 @@ const Pagination: React.FC<PaginationProps> = ({
                     size="sm"
                     onClick={() => onPageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="flex items-center space-x-2"
+                    className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-3"
                 >
                     <span className="hidden sm:inline">Siguiente</span>
-                    <ChevronRight size={16} />
+                    <ChevronRight size={12} />
                 </Button>
             </div>
 
             {/* Navegación rápida (móvil) */}
-            <div className="mt-4 flex items-center justify-center space-x-4 sm:hidden">
+            <div className="mt-3 sm:mt-4 flex items-center justify-center space-x-2 sm:space-x-4 sm:hidden">
                 <select
                     value={currentPage}
                     onChange={(e) => onPageChange(parseInt(e.target.value))}
-                    className="px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-900 focus:border-gray-500 outline-none"
+                    className="px-2 py-1.5 text-xs border border-gray-200 rounded-lg bg-white text-gray-900 focus:border-gray-500 outline-none"
                 >
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                         <option key={page} value={page}>
@@ -145,7 +145,7 @@ const Pagination: React.FC<PaginationProps> = ({
                         </option>
                     ))}
                 </select>
-                <span className="text-sm text-gray-600">de {totalPages}</span>
+                <span className="text-xs text-gray-600">de {totalPages}</span>
             </div>
         </motion.div>
     );

@@ -154,35 +154,35 @@ const FilterModal: React.FC<FilterModalProps> = ({
                         animate={{ x: 0 }}
                         exit={{ x: '-100%' }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className="fixed left-0 top-0 h-full w-full max-w-md bg-white shadow-2xl z-50 overflow-y-auto"
+                        className="fixed left-0 top-0 h-full w-full max-w-sm bg-white shadow-2xl z-50 overflow-y-auto"
                     >
-                        <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
-                            <div className="flex items-center justify-between p-4">
-                                <div className="flex items-center space-x-2">
-                                    <Filter className="w-5 h-5 text-gray-700" />
-                                    <h2 className="text-xl font-bold text-gray-900">Filtrar por</h2>
+                        <div className="sticky top-0 bg-white border-b border-gray-200 z-10 pt-[24px] lg:pt-[24px]">
+                            <div className="flex items-center justify-between p-3 sm:p-4">
+                                <div className="flex items-center space-x-1.5 sm:space-x-2">
+                                    <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-700" />
+                                    <h2 className="text-sm sm:text-base font-bold text-gray-900">Filtrar por</h2>
                                 </div>
                                 <button
                                     onClick={onClose}
-                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                    className="p-1 sm:p-1.5 hover:bg-gray-100 rounded-full transition-colors"
                                 >
-                                    <X className="w-5 h-5 text-gray-700" />
+                                    <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-700" />
                                 </button>
                             </div>
                         </div>
 
-                        <div className="p-4 space-y-6">
+                        <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
                             {/* Ordenar por */}
                             <div>
-                                <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">
+                                <h3 className="text-[10px] sm:text-xs font-semibold text-gray-900 mb-1.5 sm:mb-2 uppercase tracking-wide">
                                     Ordenar por
                                 </h3>
                                 <div className="relative">
-                                    <ArrowUpDown className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+                                    <ArrowUpDown className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={12} />
                                     <select
                                         value={filters.sortBy}
                                         onChange={(e) => onUpdateFilter('sortBy', e.target.value as FilterState['sortBy'])}
-                                        className="w-full pl-10 pr-10 py-3 border-2 border-gray-200 focus:border-gray-500 outline-none transition-colors bg-white rounded-lg text-gray-900 appearance-none cursor-pointer"
+                                        className="w-full pl-7 pr-7 py-1.5 sm:py-2 text-[10px] sm:text-xs border border-gray-200 focus:border-gray-500 outline-none transition-colors bg-white rounded-lg text-gray-900 appearance-none cursor-pointer"
                                     >
                                         <option value="alfabetico-asc">A - Z</option>
                                         <option value="alfabetico-desc">Z - A</option>
@@ -190,8 +190,8 @@ const FilterModal: React.FC<FilterModalProps> = ({
                                         <option value="precio-desc">Precio: Mayor a Menor</option>
                                         <option value="destacados">Destacados</option>
                                     </select>
-                                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                        <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                         </svg>
                                     </div>
@@ -200,23 +200,23 @@ const FilterModal: React.FC<FilterModalProps> = ({
 
                             {/* Categoría Tipo */}
                             <div>
-                                <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">
+                                <h3 className="text-[10px] sm:text-xs font-semibold text-gray-900 mb-1.5 sm:mb-2 uppercase tracking-wide">
                                     Categoría
                                 </h3>
-                                <div className="space-y-2">
+                                <div className="space-y-1 sm:space-y-1.5">
                                     {categoriaOptions.map((tipo) => (
                                         <label
                                             key={tipo}
-                                            className="flex items-center space-x-3 p-3 border-2 border-gray-200 rounded-lg hover:border-gray-300 transition-colors cursor-pointer"
+                                            className="flex items-center space-x-1.5 sm:space-x-2 p-1.5 sm:p-2 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors cursor-pointer"
                                         >
                                             <input
                                                 type="radio"
                                                 name="categoriaTipo"
                                                 checked={filters.categoriaTipo === tipo}
                                                 onChange={() => onUpdateFilter('categoriaTipo', tipo)}
-                                                className="w-4 h-4 text-gray-600 accent-gray-600"
+                                                className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-600 accent-gray-600"
                                             />
-                                            <span className="text-sm font-medium text-gray-700">
+                                            <span className="text-[10px] sm:text-xs font-medium text-gray-700">
                                                 {tipo === 'TODOS' ? 'Todas' : tipo}
                                             </span>
                                         </label>
@@ -227,23 +227,23 @@ const FilterModal: React.FC<FilterModalProps> = ({
                             {/* Subrubro */}
                             {subrubroOptions.length > 1 && (
                                 <div>
-                                    <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">
+                                    <h3 className="text-[10px] sm:text-xs font-semibold text-gray-900 mb-1.5 sm:mb-2 uppercase tracking-wide">
                                         Tipo de Prenda
                                     </h3>
-                                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                                    <div className="space-y-1 sm:space-y-1.5 max-h-48 sm:max-h-64 overflow-y-auto">
                                         {subrubroOptions.map((subrubro) => (
                                             <label
                                                 key={subrubro}
-                                                className="flex items-center space-x-3 p-3 border-2 border-gray-200 rounded-lg hover:border-gray-300 transition-colors cursor-pointer"
+                                                className="flex items-center space-x-1.5 sm:space-x-2 p-1.5 sm:p-2 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors cursor-pointer"
                                             >
                                                 <input
                                                     type="radio"
                                                     name="subrubro"
                                                     checked={filters.subrubro === subrubro}
                                                     onChange={() => onUpdateFilter('subrubro', subrubro)}
-                                                    className="w-4 h-4 text-gray-600 accent-gray-600"
+                                                    className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-600 accent-gray-600"
                                                 />
-                                                <span className="text-sm font-medium text-gray-700 capitalize">
+                                                <span className="text-[10px] sm:text-xs font-medium text-gray-700 capitalize">
                                                     {subrubro === 'TODOS' ? 'Todos' : subrubro}
                                                 </span>
                                             </label>
@@ -254,23 +254,23 @@ const FilterModal: React.FC<FilterModalProps> = ({
 
                             {/* Género */}
                             <div>
-                                <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">
+                                <h3 className="text-[10px] sm:text-xs font-semibold text-gray-900 mb-1.5 sm:mb-2 uppercase tracking-wide">
                                     Género
                                 </h3>
-                                <div className="space-y-2">
+                                <div className="space-y-1 sm:space-y-1.5">
                                     {(['dama', 'hombre', 'unisex', 'TODOS'] as const).map((genero) => (
                                         <label
                                             key={genero}
-                                            className="flex items-center space-x-3 p-3 border-2 border-gray-200 rounded-lg hover:border-gray-300 transition-colors cursor-pointer"
+                                            className="flex items-center space-x-1.5 sm:space-x-2 p-1.5 sm:p-2 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors cursor-pointer"
                                         >
                                             <input
                                                 type="radio"
                                                 name="genero"
                                                 checked={filters.genero === genero}
                                                 onChange={() => onUpdateFilter('genero', genero)}
-                                                className="w-4 h-4 text-gray-600 accent-gray-600"
+                                                className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-600 accent-gray-600"
                                             />
-                                            <span className="text-sm font-medium text-gray-700 capitalize">
+                                            <span className="text-[10px] sm:text-xs font-medium text-gray-700 capitalize">
                                                 {genero === 'TODOS' ? 'Todos' : genero}
                                             </span>
                                         </label>
@@ -281,16 +281,16 @@ const FilterModal: React.FC<FilterModalProps> = ({
                             {/* Colores */}
                             {sortedColores.length > 0 && (
                                 <div>
-                                    <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">
+                                    <h3 className="text-[10px] sm:text-xs font-semibold text-gray-900 mb-1.5 sm:mb-2 uppercase tracking-wide">
                                         Color
                                     </h3>
-                                    <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+                                    <div className="grid grid-cols-2 gap-1 sm:gap-1.5 max-h-48 sm:max-h-64 overflow-y-auto">
                                         {sortedColores.map((color) => {
                                             const isSelected = filters.colores.includes(color);
                                             return (
                                                 <label
                                                     key={color}
-                                                    className={`flex items-center space-x-3 p-3 border-2 rounded-lg transition-colors cursor-pointer ${
+                                                    className={`flex items-center space-x-1.5 sm:space-x-2 p-1.5 sm:p-2 border rounded-lg transition-colors cursor-pointer ${
                                                         isSelected
                                                             ? 'border-gray-900 bg-gray-50'
                                                             : 'border-gray-200 hover:border-gray-300'
@@ -300,13 +300,13 @@ const FilterModal: React.FC<FilterModalProps> = ({
                                                         type="checkbox"
                                                         checked={isSelected}
                                                         onChange={() => onToggleColor(color)}
-                                                        className="w-4 h-4 text-gray-600 accent-gray-600"
+                                                        className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-600 accent-gray-600"
                                                     />
                                                     <div
-                                                        className="w-4 h-4 rounded border border-gray-300"
+                                                        className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded border border-gray-300"
                                                         style={{ backgroundColor: getColorHex(color) }}
                                                     />
-                                                    <span className="text-sm font-medium text-gray-700 flex-1 capitalize">
+                                                    <span className="text-[10px] sm:text-xs font-medium text-gray-700 flex-1 capitalize">
                                                         {color}
                                                     </span>
                                                 </label>
@@ -319,16 +319,16 @@ const FilterModal: React.FC<FilterModalProps> = ({
                             {/* Talles */}
                             {sortedTalles.length > 0 && (
                                 <div>
-                                    <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">
+                                    <h3 className="text-[10px] sm:text-xs font-semibold text-gray-900 mb-1.5 sm:mb-2 uppercase tracking-wide">
                                         Talle
                                     </h3>
-                                    <div className="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto">
+                                    <div className="grid grid-cols-4 gap-1 sm:gap-1.5 max-h-48 sm:max-h-64 overflow-y-auto">
                                         {sortedTalles.map((talle) => {
                                             const isSelected = filters.talles.includes(talle);
                                             return (
                                                 <label
                                                     key={talle}
-                                                    className={`flex items-center justify-center p-3 border-2 rounded-lg transition-colors cursor-pointer ${
+                                                    className={`flex items-center justify-center p-1.5 sm:p-2 border rounded-lg transition-colors cursor-pointer ${
                                                         isSelected
                                                             ? 'border-gray-900 bg-gray-900 text-white'
                                                             : 'border-gray-200 hover:border-gray-300 text-gray-700'
@@ -340,7 +340,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                                                         onChange={() => onToggleTalle(talle)}
                                                         className="sr-only"
                                                     />
-                                                    <span className="text-sm font-medium">
+                                                    <span className="text-[10px] sm:text-xs font-medium">
                                                         {talle}
                                                     </span>
                                                 </label>
@@ -351,18 +351,18 @@ const FilterModal: React.FC<FilterModalProps> = ({
                             )}
 
                             {/* Botones de acción */}
-                            <div className="sticky bottom-0 bg-white border-t border-gray-200 pt-4 pb-4 space-y-2">
+                            <div className="sticky bottom-0 bg-white border-t border-gray-200 pt-3 sm:pt-4 pb-3 sm:pb-4 px-3 sm:px-4 space-y-1 sm:space-y-1.5">
                                 {hasActiveFilters && (
                                     <button
                                         onClick={onClearFilters}
-                                        className="w-full py-3 px-4 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                                        className="w-full py-1.5 sm:py-2 px-2 sm:px-3 text-[10px] sm:text-xs border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
                                     >
                                         Limpiar Filtros
                                     </button>
                                 )}
                                 <button
                                     onClick={onClose}
-                                    className="w-full py-3 px-4 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-800 transition-colors"
+                                    className="w-full py-1.5 sm:py-2 px-2 sm:px-3 text-[10px] sm:text-xs bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-800 transition-colors"
                                 >
                                     Aplicar Filtros
                                 </button>

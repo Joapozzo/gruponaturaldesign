@@ -1,3 +1,5 @@
+import { WHATSAPP_PHONE_NUMBER, getWhatsAppNumberForUrl } from '@/app/utils/constants';
+
 export const metadata = {
     title: 'Políticas de Cambio y Devolución | NTDS Natural Design',
     description: 'Políticas de cambio y devolución de NTDS Natural Design. Conocé nuestros términos y condiciones para cambios y devoluciones.',
@@ -41,7 +43,7 @@ export default function PoliticasCambioDevolucion() {
                     </h2>
 
                     <p className="text-base md:text-lg leading-relaxed">
-                        Comunícate con nuestro Centro de Atención al Cliente a través de WhatsApp al número <a href="https://wa.me/5493517136311" className="text-[#Ed3237] hover:underline">+54 9 3517 13-6311</a> indicando: número de pedido, producto que deseás cambiar y el motivo. Para facilitar el trabajo de nuestros asesores podés adjuntarnos una foto.
+                        Comunícate con nuestro Centro de Atención al Cliente a través de WhatsApp al número <a href={`https://wa.me/${getWhatsAppNumberForUrl()}`} className="text-[#Ed3237] hover:underline">{WHATSAPP_PHONE_NUMBER}</a> indicando: número de pedido, producto que deseás cambiar y el motivo. Para facilitar el trabajo de nuestros asesores podés adjuntarnos una foto.
                     </p>
 
                     <p className="text-base md:text-lg leading-relaxed">

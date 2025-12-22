@@ -3,6 +3,7 @@ import nodemailer from 'nodemailer';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { CustomerData, ShippingData, PaymentData, CartItem } from '@/app/types/cart';
+import { WHATSAPP_PHONE_NUMBER } from '@/app/utils/constants';
 
 interface EmailRequestBody {
   to: string;
@@ -689,7 +690,7 @@ function generateOrderEmailHTML(data: {
       <div class="contact-info">
         <div class="contact-row">
           <span>📞</span>
-          <span>+54 9 3517 13-6311</span>
+          <span>${WHATSAPP_PHONE_NUMBER}</span>
         </div>
         <div class="contact-row">
           <span>📧</span>

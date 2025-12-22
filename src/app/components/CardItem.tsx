@@ -94,11 +94,11 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, o
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, x: -100 }}
             transition={{ duration: 0.3 }}
-            className="flex gap-4 p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all duration-300"
+            className="flex gap-2 p-2 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all duration-300"
         >
             {/* Imagen - Clickable */}
             <div 
-                className="relative w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden cursor-pointer"
+                className="relative w-14 h-14 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden cursor-pointer"
                 onClick={handleProductClick}
             >
                 {product.imagen ? (
@@ -107,7 +107,7 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, o
                         alt={product.nombre}
                         fill
                         className="object-cover"
-                        sizes="80px"
+                        sizes="56px"
                         unoptimized={true}
                         onError={() => {
                             // El error se maneja mostrando el Package icon
@@ -115,58 +115,59 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, o
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                        <Package className="w-8 h-8 text-gray-400" />
+                        <Package className="w-5 h-5 text-gray-400" />
                     </div>
                 )}
             </div>
 
             {/* Info del producto */}
             <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-start mb-2">
+                <div className="flex justify-between items-start mb-1">
                     <div 
-                        className="flex-1 pr-2 cursor-pointer"
+                        className="flex-1 pr-1 cursor-pointer"
                         onClick={handleProductClick}
                     >
-                        <h4 className="font-bold text-black text-sm leading-tight mb-1 line-clamp-2 hover:text-[#Ed3237] transition-colors">
+                        <h4 className="font-bold text-black text-xs leading-tight mb-0.5 line-clamp-2 hover:text-[#Ed3237] transition-colors">
                             {product.nombre}
                         </h4>
-                        <p className="text-xs text-gray-500 font-medium tracking-wide uppercase">
+                        <p className="text-[10px] text-gray-500 font-medium tracking-wide uppercase">
                             {product.categoria}
                         </p>
                     </div>
                     <motion.button
                         onClick={handleRemove}
-                        className="text-gray-400 hover:text-red-600 transition-colors p-1"
+                        className="text-gray-400 hover:text-red-600 transition-colors p-0.5"
                         whileHover={{ scale: 1.2 }}
                         whileTap={{ scale: 0.9 }}
                         aria-label="Eliminar producto"
                     >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3 h-3" />
                     </motion.button>
                 </div>
 
                 {/* Especificaciones si existen */}
                 {especificaciones && (
-                    <p className="text-xs text-gray-600 mb-2 line-clamp-1">
+                    <p className="text-[10px] text-gray-600 mb-1 line-clamp-1">
                         {especificaciones}
                     </p>
                 )}
 
                 {/* Switch de Bordado */}
                 {onUpdateBordado && (
-                    <div className="mb-2">
+                    <div className="mb-1">
                         <BordadoSwitch
                             value={bordado}
                             onChange={(value) => {
                                 onUpdateBordado(product.id, value);
                             }}
                             isMobile={false}
+                            size="small"
                         />
                     </div>
                 )}
 
                 {/* Precio y controles */}
-                <div className="flex items-center justify-between mt-3">
+                <div className="flex items-center justify-between mt-1.5">
                     {/* Controles de cantidad */}
                     <div className="flex justify-center">
                         <QuantityControlsUI
@@ -180,12 +181,12 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, o
 
                     {/* Subtotal con precio sin IVA */}
                     <div className="text-right">
-                        <p className="text-xs text-gray-500 mb-0.5">Subtotal</p>
-                        <p className="text-base font-bold text-black">
+                        <p className="text-[10px] text-gray-500 mb-0.5">Subtotal</p>
+                        <p className="text-sm font-bold text-black">
                             {formatPrice(subtotal)}
                         </p>
                         {subtotal > 0 && (
-                            <p className="text-xs text-gray-500 mt-0.5">
+                            <p className="text-[10px] text-gray-500 mt-0.5">
                                 {formatPriceWithoutIVA(subtotal)}
                             </p>
                         )}
@@ -195,7 +196,7 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, o
                 {/* Indicador de stock bajo */}
                 {product.stock && product.stock <= 10 && (
                     <motion.p
-                        className="text-xs text-orange-600 mt-2 font-medium"
+                        className="text-[10px] text-orange-600 mt-1 font-medium"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}

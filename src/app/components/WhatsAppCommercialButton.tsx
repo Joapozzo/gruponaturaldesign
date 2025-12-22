@@ -2,11 +2,12 @@
 import React from 'react';
 import { useWhatsApp } from './hooks/useWhatsApp';
 import { WhatsApp } from './logos/WhatsApp';
+import { WHATSAPP_PHONE_NUMBER } from '@/app/utils/constants';
 
 const WhatsAppCommercialButton = () => {
     // Usar número de ventas para WhatsApp comercial
     const { openWhatsApp } = useWhatsApp({
-        phoneNumber: "+5493517136311",
+        phoneNumber: WHATSAPP_PHONE_NUMBER,
         defaultMessage: "¡Hola! Quiero uniformar a mi equipo 💼👕"
     });
 

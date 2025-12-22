@@ -86,12 +86,12 @@ const Testimonios = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.3 }}
                 viewport={{ once: true }}
-                className="w-full text-center mt-20 p-8 lg:p-12 shadow-sm bg-gray-800 flex flex-col items-center justify-center gap-4"
+                className="w-full text-center mt-12 p-6 lg:p-8 shadow-sm bg-gray-800 flex flex-col items-center justify-center gap-3"
             >
-                <h3 className="text-3xl lg:text-3xl font-bold text-gray-200 mb-4 font-display">
+                <h3 className="text-xl lg:text-2xl font-bold text-gray-200 mb-3 font-display">
                     ¿Querés ser parte de nuestros clientes satisfechos?
                 </h3>
-                <p className="text-md text-gray-200 mb-5 max-w-2xl mx-auto leading-relaxed">
+                <p className="text-sm text-gray-200 mb-4 max-w-2xl mx-auto leading-relaxed">
                     Contactanos y descubrí por qué más de 500 empresas eligen NTDS para
                     sus uniformes.
                 </p>

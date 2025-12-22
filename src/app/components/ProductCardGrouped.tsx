@@ -23,6 +23,7 @@ interface ProductCardGroupedProps {
     index: number;
     expandedSku?: string | null;
     onExpandChange?: (sku: string | null) => void;
+    compact?: boolean;
 }
 
 const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
@@ -30,6 +31,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
     index,
     expandedSku,
     onExpandChange,
+    compact = false,
 }) => {
     const router = useRouter();
     const { addToCart, updateQuantity, getProductQuantity, canAddToCart, updateBordado, items } = useCart();
@@ -69,7 +71,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
 
     // Usar la variante seleccionada para mostrar
     const product = selectedVariant.producto;
-    const productName = product.NOMBRE || group.skuBase;
+    const productName = product.NOMBRE || group.skuBase || product.Descripcion || '';
     
     // Obtener stock de la variante seleccionada
     const stock = selectedVariant.stock;
@@ -310,29 +312,32 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
             viewport={{ once: true }}
             className={`group relative bg-white rounded-lg shadow-md transition-all duration-500 h-auto flex flex-col self-start ${
                 !isMobile
-                    ? 'w-full mb-4 hover:shadow-xl hover:scale-[1.02] hover:-translate-y-2 min-h-[590px]'
-                    : 'w-full mb-3 min-h-[280px]'
+                    ? `w-full mb-2 hover:shadow-xl ${compact ? 'hover:scale-[1.01]' : 'hover:scale-[1.02]'} hover:-translate-y-1`
+                    : 'w-full mb-4'
             }`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
-            {/* Imagen del producto */}
-            <ProductCardImage
-                product={product}
-                mainImage={mainImage}
-                hasValidImage={hasValidImage}
-                isHovered={isHovered}
-                isMobile={isMobile}
-                onImageError={handleImageError}
-                onImageLoad={() => setHasValidImage(true)}
-                onClick={handleProductClick}
-                onQuickView={handleQuickView}
-            />
+            {/* Imagen del producto - Full width sin padding */}
+            <div className="w-full">
+                <ProductCardImage
+                    product={product}
+                    mainImage={mainImage}
+                    hasValidImage={hasValidImage}
+                    isHovered={isHovered}
+                    isMobile={isMobile}
+                    onImageError={handleImageError}
+                    onImageLoad={() => setHasValidImage(true)}
+                    onClick={handleProductClick}
+                    onQuickView={handleQuickView}
+                    stockMessage={stockMessage}
+                />
+            </div>
 
             {/* Información del producto */}
             <motion.div
-                className={`flex flex-col justify-between gap-1 sm:gap-1.5 flex-1 ${
-                    isMobile ? 'p-2' : 'p-2.5 sm:p-3'
+                className={`flex flex-col gap-0.5 flex-1 ${
+                    isMobile ? 'p-3' : compact ? 'p-2.5' : 'p-3'
                 }`}
                 animate={!isMobile ? { backgroundColor: isHovered ? '#f9fafb' : '#ffffff' } : {}}
                 transition={{ duration: 0.4 }}
@@ -340,7 +345,11 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                 {/* Nombre del producto */}
                 <motion.h3
                     className={`font-semibold text-gray-900 transition-colors line-clamp-2 ${
-                        isMobile ? 'text-xs mb-1' : 'text-sm mb-0.5'
+                        isMobile 
+                            ? 'text-xs mb-1' 
+                            : compact 
+                                ? 'text-[11px] mb-0.5' 
+                                : 'text-xs mb-0.5'
                     }`}
                     animate={!isMobile ? { color: isHovered ? '#111827' : '#1f2937', scale: isHovered ? 1.02 : 1 } : {}}
                     transition={{ duration: 0.3 }}
@@ -350,7 +359,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
 
                 {/* Selector de opciones - Estilo E-commerce */}
                 {group.totalVariants > 1 && (
-                    <div className="space-y-1.5">
+                    <div className="space-y-1">
                         {hasColorSizeData ? (
                             <>
                                 <AnimatePresence>
@@ -360,7 +369,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                                             animate={{ height: 'auto', opacity: 1 }}
                                             exit={{ height: 0, opacity: 0 }}
                                             transition={{ duration: 0.3 }}
-                                            className="space-y-2 sm:space-y-2.5 overflow-visible"
+                                            className="space-y-1.5 sm:space-y-2 overflow-visible"
                                         >
                                             {/* Selector de Colores */}
                                             {group.availableColors && group.availableColors.length > 0 && (
@@ -383,7 +392,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                                                         onSizeSelect={handleSizeSelect}
                                                     />
                                                     {/* Switch de Bordado - Solo cuando se despliegan los talles */}
-                                                    <div className="mt-1.5">
+                                                    <div className="mt-1">
                                                         <BordadoSwitch
                                                             value={bordado}
                                                             onChange={(value) => {
@@ -414,51 +423,43 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                     </div>
                 )}
 
-                {/* Precio y botón */}
-                <div
-                    className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 ${
-                        isMobile ? 'gap-1.5 mt-0' : 'mt-1.5'
-                    }`}
-                >
-                    <div className={`flex flex-col ${isMobile ? 'w-full' : ''}`}>
-                        <div className="flex flex-col">
-                            {/* Precio lista */}
-                            <span
-                                className={`font-bold text-gray-900 ${isMobile ? 'text-base' : 'text-base'}`}
-                            >
-                                {formattedPrice}
+                {/* Precio */}
+                <div className={`flex flex-col ${isMobile ? 'w-full' : ''}`}>
+                    <div className="flex flex-col">
+                        {/* Precio lista */}
+                        <span
+                            className={`font-bold text-gray-900 ${isMobile ? 'text-sm' : compact ? 'text-xs' : 'text-sm'}`}
+                        >
+                            {formattedPrice}
+                        </span>
+                        {/* Precio transfer - abajo */}
+                        {formattedTransfer && (
+                            <span className={`text-gray-700 mt-0.5 ${isMobile ? 'text-[10px]' : compact ? 'text-[9px]' : 'text-[10px]'}`}>
+                                Transfer: {formattedTransfer}
                             </span>
-                            {/* Precio transfer - abajo */}
-                            {formattedTransfer && (
-                                <span className={`text-gray-700 mt-0.5 ${isMobile ? 'text-xs' : 'text-xs'}`}>
-                                    Transfer: {formattedTransfer}
-                                </span>
-                            )}
-                            {/* Precio cuotas - abajo */}
-                            {formatted3Cuotas && (
-                                <span className={`text-gray-700 mt-0.5 ${isMobile ? 'text-xs' : 'text-xs'}`}>
-                                    3 cuotas: {formatted3Cuotas}
-                                </span>
-                            )}
-                            {/* Precio sin impuestos - abajo */}
-                            {formattedSImp && (
-                                <span className={`text-gray-500 mt-0.5 ${isMobile ? 'text-[10px]' : 'text-[10px]'}`}>
-                                    Sin imp: {formattedSImp}
-                                </span>
-                            )}
-                            {/* Mensaje de stock bajo (sin mostrar número exacto) */}
-                            {stockMessage && (
-                                <span className={`text-[10px] font-semibold mt-0.5 ${
-                                    stockMessage === 'ÚLTIMAS UNIDADES' 
-                                        ? 'text-orange-600' 
-                                        : 'text-red-600'
-                                }`}>
-                                    {stockMessage}
-                                </span>
-                            )}
-                        </div>
+                        )}
+                        {/* Precio cuotas - abajo */}
+                        {formatted3Cuotas && (
+                            <span className={`text-gray-700 mt-0.5 ${isMobile ? 'text-[10px]' : compact ? 'text-[9px]' : 'text-[10px]'}`}>
+                                3 cuotas: {formatted3Cuotas}
+                            </span>
+                        )}
                     </div>
+                </div>
 
+                {/* Precio sin impuestos y botón - al final */}
+                <div className={`flex items-center justify-between gap-2 mt-1 ${
+                    isMobile ? 'flex-col items-stretch pt-2 pb-0' : 'flex-row pt-1'
+                }`}>
+                    {/* Precio sin impuestos */}
+                    {formattedSImp && (
+                        <span className={`text-gray-500 ${isMobile ? 'text-[9px]' : compact ? 'text-[8px]' : 'text-[9px]'}`}>
+                            Sin imp: {formattedSImp}
+                        </span>
+                    )}
+                    {!formattedSImp && <div></div>}
+                    
+                    {/* Botón de agregar */}
                     <QuantityControls
                         productId={selectedVariantId}
                         currentQuantity={currentQuantity}

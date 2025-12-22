@@ -52,7 +52,7 @@ const Categorias = () => {
                                 onClick={() => handleCategoryClick(categoria.route)}
                             >
                                 {/* Imagen de fondo - Más alta/rectangular */}
-                                <div className="relative h-[85vh] w-full overflow-hidden">
+                                <div className="relative h-[95vh] w-full overflow-hidden">
                                     <motion.img
                                         src={categoria.imagen}
                                         alt={categoria.nombre}
@@ -76,18 +76,18 @@ const Categorias = () => {
                                 </div>
 
                                 {/* Contenido de texto */}
-                                <div className="absolute bottom-0 left-0 right-0 p-8 lg:p-12 text-white">
+                                <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-8 text-white">
                                     <motion.div
                                         animate={{
-                                            y: hoveredCategory === categoria.id ? -10 : 0,
+                                            y: hoveredCategory === categoria.id ? -8 : 0,
                                             opacity: 1
                                         }}
                                         transition={{ duration: 0.3 }}
                                     >
-                                        <h3 className="text-3xl lg:text-4xl font-bold mb-4 font-display">
+                                        <h3 className="text-xl lg:text-2xl font-bold mb-3 font-display">
                                             {categoria.nombre}
                                         </h3>
-                                        <p className="md:text-lg text-sm  opacity-90 mb-6 max-w-md leading-relaxed">
+                                        <p className="md:text-sm text-xs opacity-90 mb-4 max-w-md leading-relaxed">
                                             {categoria.descripcion}
                                         </p>
 
@@ -99,24 +99,24 @@ const Categorias = () => {
                                                 x: hoveredCategory === categoria.id ? 0 : -20
                                             }}
                                             transition={{ duration: 0.3, delay: 0.1 }}
-                                            className="flex items-center space-x-3"
+                                            className="flex items-center space-x-2"
                                         >
-                                            <span className="text-lg font-semibold">EXPLORAR COLECCIÓN</span>
-                                            <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform duration-300" />
+                                            <span className="text-sm font-semibold">EXPLORAR COLECCIÓN</span>
+                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform duration-300" />
                                         </motion.div>
                                     </motion.div>
                                 </div>
 
                                 {/* Ícono de expansión */}
                                 <motion.div
-                                    className="absolute top-6 right-6 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center"
+                                    className="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center"
                                     animate={{
                                         scale: hoveredCategory === categoria.id ? 1.1 : 1,
                                         backgroundColor: hoveredCategory === categoria.id ? 'rgba(239, 68, 68, 0.9)' : 'rgba(255, 255, 255, 0.2)'
                                     }}
                                     transition={{ duration: 0.3 }}
                                 >
-                                    <Plus className="w-6 h-6 text-white" />
+                                    <Plus className="w-5 h-5 text-white" />
                                 </motion.div>
                             </motion.div>
                         ))}

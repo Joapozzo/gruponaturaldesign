@@ -63,8 +63,8 @@ export default function AddToCartButton({
             )}
 
             <motion.button
-                className={`flex items-center justify-center space-x-2 rounded-lg font-medium transition-all duration-300 ${
-                    isMobile ? 'w-full px-2 py-1.5 text-xs' : 'w-full sm:w-auto px-4 py-2.5 text-sm'
+                className={`flex items-center justify-center space-x-1.5 rounded-lg font-medium transition-all duration-300 ${
+                    isMobile ? 'w-full px-1.5 py-1 text-[10px]' : 'w-full sm:w-auto px-3 py-1.5 text-xs'
                 } ${getButtonClass()}`}
                 onClick={onClick}
                 disabled={isDisabled}
@@ -73,7 +73,7 @@ export default function AddToCartButton({
                 animate={isAdding ? { scale: [1, 1.1, 1] } : {}}
                 transition={{ duration: 0.3 }}
             >
-                <ShoppingCart className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
+                <ShoppingCart className={isMobile ? 'w-2.5 h-2.5' : 'w-3.5 h-3.5'} />
                 <span>{getButtonText()}</span>
             </motion.button>
         </div>

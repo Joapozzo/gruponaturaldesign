@@ -46,35 +46,35 @@ export default function CheckoutPage() {
 
       {/* Breadcrumb Navigation - Fixed */}
       <div className="sticky top-0 bg-white border-b border-gray-200 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <nav className="flex items-center gap-2 text-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5 sm:py-2">
+          <nav className="flex items-center gap-1.5 text-xs">
             <motion.button
               onClick={() => router.push('/#inicio')}
-              className="flex items-center gap-1 text-gray-600 hover:text-[#Ed3237] transition-colors font-medium"
+              className="flex items-center gap-0.5 text-gray-600 hover:text-[#Ed3237] transition-colors font-medium"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Home className="w-4 h-4" />
+              <Home className="w-3 h-3" />
               <span>Home</span>
             </motion.button>
-            <ChevronRight className="w-4 h-4 text-gray-400" />
+            <ChevronRight className="w-3 h-3 text-gray-400" />
             <span className="text-black font-semibold">Checkout</span>
           </nav>
         </div>
       </div>
 
       {/* Header - Compact */}
-      <div className="flex-shrink-0 border-b border-gray-200 py-3 sticky top-[45px] bg-white z-10">
+      <div className="flex-shrink-0 border-b border-gray-200 py-1.5 sm:py-2 sticky top-[32px] sm:top-[38px] bg-white z-10">
         <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-lg font-bold text-black">CHECKOUT</h1>
+          <h1 className="text-sm sm:text-base font-bold text-black">CHECKOUT</h1>
 
           {/* Step Indicator - Horizontal Compact */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             {STEPS.map((step, index) => (
               <div key={step.number} className="flex items-center">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <div
-                    className={`rounded-lg w-7 h-7 flex items-center justify-center font-bold text-xs border transition-all ${
+                    className={`rounded w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center font-bold text-[10px] sm:text-xs border transition-all ${
                       currentStep === step.number
                         ? 'bg-black text-white border-black'
                         : currentStep > step.number
@@ -83,7 +83,7 @@ export default function CheckoutPage() {
                     }`}
                   >
                     {currentStep > step.number ? (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                     ) : (
@@ -91,7 +91,7 @@ export default function CheckoutPage() {
                     )}
                   </div>
                   <span
-                    className={`text-xs font-semibold hidden sm:inline ${
+                    className={`text-[10px] sm:text-xs font-semibold hidden sm:inline ${
                       currentStep >= step.number ? 'text-black' : 'text-gray-400'
                     }`}
                   >
@@ -100,7 +100,7 @@ export default function CheckoutPage() {
                 </div>
                 {index < STEPS.length - 1 && (
                   <div
-                    className={`w-8 h-px mx-2 transition-all ${
+                    className={`w-4 sm:w-6 h-px mx-1 transition-all ${
                       currentStep > step.number ? 'bg-red-600' : 'bg-gray-300'
                     }`}
                   />

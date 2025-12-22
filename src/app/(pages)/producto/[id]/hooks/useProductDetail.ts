@@ -425,10 +425,11 @@ export function useProductDetail() {
             setGroupedProduct(foundProduct);
 
             // Obtener productos relacionados usando la función de outfit matching
+            // Usar un número grande para obtener todos los productos relacionados posibles
             const related = findRelatedProductsForOutfit(
                 foundProduct,
                 groupedProducts,
-                12
+                999
             );
             setRelatedProducts(related);
         } else {

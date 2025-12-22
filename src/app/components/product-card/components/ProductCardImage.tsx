@@ -16,6 +16,7 @@ interface ProductCardImageProps {
     onImageLoad: () => void;
     onClick: () => void;
     onQuickView: (e: React.MouseEvent) => void;
+    stockMessage?: string | null;
 }
 
 export default function ProductCardImage({
@@ -28,11 +29,12 @@ export default function ProductCardImage({
     onImageLoad,
     onClick,
     onQuickView,
+    stockMessage,
 }: ProductCardImageProps) {
     return (
         <div
-            className={`relative overflow-hidden rounded-t-lg bg-gray-100 cursor-pointer flex-shrink-0 ${
-                isMobile ? 'h-[240px]' : 'h-[450px]'
+            className={`relative overflow-hidden bg-gray-100 cursor-pointer flex-shrink-0 ${
+                isMobile ? 'h-[220px]' : 'h-[280px]'
             }`}
             onClick={onClick}
             role="button"
@@ -88,10 +90,23 @@ export default function ProductCardImage({
                 transition={{ duration: 0.4 }}
             />
 
+            {/* Mensaje de stock - sobre la imagen arriba */}
+            {stockMessage && (
+                <div className="absolute top-2 left-2 z-10">
+                    <span className={`text-[8px] font-semibold px-1.5 py-0.5 rounded ${
+                        stockMessage === 'ÚLTIMAS UNIDADES' 
+                            ? 'bg-orange-500 text-white' 
+                            : 'bg-red-500 text-white'
+                    }`}>
+                        {stockMessage}
+                    </span>
+                </div>
+            )}
+
             {/* Botón de vista rápida */}
             <motion.div
                 className={`absolute bg-white/20 rounded-lg backdrop-blur-sm flex items-center justify-center ${
-                    isMobile ? 'top-1 right-1 w-6 h-6' : 'top-5 right-3 w-10 h-10'
+                    isMobile ? 'top-1 right-1 w-5 h-5' : 'top-2 right-2 w-7 h-7'
                 }`}
                 style={{ overflow: 'visible' }}
                 animate={
@@ -115,22 +130,22 @@ export default function ProductCardImage({
                     }
                 }}
             >
-                <Eye className={isMobile ? 'w-4 h-4 text-white' : 'w-5 h-5 text-white'} aria-hidden="true" />
+                <Eye className={isMobile ? 'w-3 h-3 text-white' : 'w-4 h-4 text-white'} aria-hidden="true" />
             </motion.div>
 
             {/* Información overlay en hover - Solo desktop */}
             {!isMobile && (
                 <motion.div
-                    className="absolute bottom-3 left-3 right-3 text-white"
+                    className="absolute bottom-2 left-2 right-2 text-white"
                     animate={{
                         opacity: isHovered ? 1 : 0,
-                        y: isHovered ? 0 : 15,
+                        y: isHovered ? 0 : 10,
                     }}
                     transition={{ duration: 0.4, delay: isHovered ? 0.1 : 0 }}
                 >
                     <div className="flex items-center justify-between">
                         <motion.span
-                            className="text-xs font-semibold bg-black/50 backdrop-blur-sm px-3 py-1 rounded-lg"
+                            className="text-[9px] font-semibold bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-lg"
                             animate={{
                                 scale: isHovered ? 1.05 : 1,
                             }}
@@ -150,14 +165,14 @@ export default function ProductCardImage({
                             })()}
                         </motion.span>
                         <motion.div
-                            className="flex items-center space-x-1 text-xs font-semibold"
+                            className="flex items-center space-x-0.5 text-[9px] font-semibold"
                             animate={{
-                                x: isHovered ? 5 : 0,
+                                x: isHovered ? 3 : 0,
                             }}
                             transition={{ duration: 0.3 }}
                         >
                             <span>VER</span>
-                            <ArrowRight size={12} />
+                            <ArrowRight size={10} />
                         </motion.div>
                     </div>
                 </motion.div>

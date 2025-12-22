@@ -55,8 +55,8 @@ export default function QuantityControls({
                     </span>
                 )}
                 <motion.button
-                    className={`flex items-center justify-center space-x-2 rounded-lg font-medium transition-all duration-300 ${
-                        isMobile ? 'w-full px-2 py-1.5 text-xs' : 'w-full sm:w-auto px-4 py-2.5 text-sm'
+                    className={`flex items-center justify-center space-x-1 rounded font-medium transition-all duration-300 ${
+                        isMobile ? 'w-full px-1.5 py-1 text-[9px]' : 'w-full sm:w-auto px-2 py-1 text-[10px]'
                     } bg-black text-white hover:bg-gray-800`}
                     onClick={onIncrement}
                     whileHover={{ scale: 1.05 }}
@@ -73,8 +73,8 @@ export default function QuantityControls({
         return (
             <div className="flex flex-col gap-1 w-full sm:w-auto">
                 <motion.button
-                    className={`flex items-center justify-center space-x-2 rounded-lg font-medium transition-all duration-300 ${
-                        isMobile ? 'w-full px-2 py-1.5 text-xs' : 'w-full sm:w-auto px-4 py-2.5 text-sm'
+                    className={`flex items-center justify-center space-x-1 rounded font-medium transition-all duration-300 ${
+                        isMobile ? 'w-full px-1.5 py-1 text-[9px]' : 'w-full sm:w-auto px-2 py-1 text-[10px]'
                     } ${isAdding ? 'bg-green-600 text-white' : 'bg-black text-white hover:bg-gray-800'}`}
                     onClick={onIncrement}
                     disabled={isAdding}

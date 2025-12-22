@@ -60,7 +60,7 @@ const InstagramCTA = () => {
                     initial={{ opacity: 0, x: -50 }}
                     animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }}
                     transition={{ duration: 0.8 }}
-                    className="space-y-8"
+                    className="space-y-6"
                 >
                     {/* Header con icono animado */}
                     <motion.div
@@ -75,7 +75,7 @@ const InstagramCTA = () => {
                             whileTap={{ scale: 0.95 }}
                             transition={{ duration: 0.3 }}
                         >
-                            <Instagram className="w-5 h-5 text-white md:w-10 md:h-10" />
+                            <Instagram className="w-4 h-4 text-white md:w-8 md:h-8" />
 
                             {/* Partículas flotantes */}
                             <motion.div
@@ -122,7 +122,7 @@ const InstagramCTA = () => {
                                 </motion.div> */}
                             </motion.div>
                             <motion.h3
-                                className="text-xl font-bold text-gray-900 font-display md:text-2xl"
+                                className="text-base font-bold text-gray-900 font-display md:text-lg"
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
                                 transition={{ duration: 0.6, delay: 0.5 }}
@@ -138,7 +138,7 @@ const InstagramCTA = () => {
                         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
                         transition={{ duration: 0.8, delay: 0.3 }}
                     >
-                        <h2 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-gray-900 mb-3 font-display leading-tight">
+                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 font-display leading-tight">
                             <span className="bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 bg-clip-text text-transparent uppercase">
                                 Novedades
                             </span>
@@ -153,10 +153,10 @@ const InstagramCTA = () => {
                         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
                         transition={{ duration: 0.8, delay: 0.5 }}
                     >
-                        <p className="text-sm md:text-xl text-gray-700 leading-relaxed ">
+                        <p className="text-xs md:text-sm text-gray-700 leading-relaxed ">
                             Descubrí nuestros últimos diseños, proyectos exclusivos y el proceso creativo detrás de cada prenda.
                         </p>
-                        <p className="text-sm md:text-lg text-gray-600 leading-relaxed ">
+                        <p className="text-xs md:text-sm text-gray-600 leading-relaxed ">
                             Únete a nuestra comunidad y mantente al día con tendencias, consejos de diseño y contenido exclusivo.
                         </p>
                     </motion.div>
@@ -181,14 +181,14 @@ const InstagramCTA = () => {
                                 animate={isHovered ? { x: '100%' } : { x: '-100%' }}
                                 transition={{ duration: 0.6 }}
                             /> */}
-                            <Instagram className="w-5 h-5 relative z-10" />
-                            <span className="relative z-10">SEGUINOS</span>
+                            <Instagram className="w-4 h-4 relative z-10" />
+                            <span className="relative z-10 text-xs">SEGUINOS</span>
                             <motion.div
                                 animate={{ x: isHovered ? 5 : 0 }}
                                 transition={{ duration: 0.3 }}
                                 className="relative z-10"
                             >
-                                <ArrowRight className="w-5 h-5" />
+                                <ArrowRight className="w-4 h-4" />
                             </motion.div>
                         </Button>
                     </motion.div>

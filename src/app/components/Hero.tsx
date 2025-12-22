@@ -47,7 +47,7 @@ const Hero = () => {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1 }}
-            className="text-3xl md:text-5xl font-light mb-6 2xl:text-7xl"
+            className="text-4xl md:text-5xl font-light mb-4 2xl:text-6xl"
           >
             <span className="font-bold">Vestí</span> a tu equipo con<br />Grupo Natural Design
           </motion.h1>
@@ -55,15 +55,15 @@ const Hero = () => {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.3 }}
-            className="mb-8"
+            className="mb-6"
           >
             <Button
               variant="lightWhiteOutline"
               onClick={() => scrollToSection("categorias")}
-              size="md"
-              className="font-light tracking-wide mx-auto"
+              size="sm"
+              className="font-light tracking-wide mx-auto text-xs"
             >
-              Comenza ya
+              Comenzá ya
             </Button>
           </motion.div>
         </div>
@@ -74,7 +74,7 @@ const Hero = () => {
           transition={{ delay: 1.5 }}
           className="absolute bottom-32 md:bottom-36 left-1/2 transform -translate-x-1/2"
         >
-          <ChevronDown className="text-white animate-bounce" size={40} />
+          <ChevronDown className="text-white animate-bounce" size={30} />
         </motion.div>
       </section>
     );

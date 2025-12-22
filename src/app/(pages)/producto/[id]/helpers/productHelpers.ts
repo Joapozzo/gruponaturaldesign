@@ -7,7 +7,8 @@
  * Remueve frases descriptivas comunes que no están en los nombres de carpetas
  * Ejemplo: "REMERA GENTLE ESCOTE EN V DAMA" → "REMERA GENTLE DAMA"
  */
-function simplifyProductNameForImages(nombre: string): string {
+function simplifyProductNameForImages(nombre: string | null | undefined): string {
+    if (!nombre) return '';
     let simplified = nombre;
     
     // Frases descriptivas comunes que se deben remover para las carpetas de imágenes
@@ -44,7 +45,8 @@ function simplifyProductNameForImages(nombre: string): string {
  * Convierte un nombre a slug URL-friendly
  * Simplifica nombres largos removiendo frases descriptivas para coincidir con carpetas de imágenes
  */
-export function nombreToSlug(nombre: string): string {
+export function nombreToSlug(nombre: string | null | undefined): string {
+    if (!nombre) return '';
     // Primero simplificar el nombre para que coincida con las carpetas de imágenes
     const simplified = simplifyProductNameForImages(nombre);
     
@@ -169,10 +171,11 @@ function normalizeColorForFile(color: string | null | undefined): string[] {
  * IMPORTANTE: Genera hasta 20 imágenes (el componente verificará cuáles existen realmente)
  */
 export function getProductImagesByColor(
-    productName: string,
+    productName: string | null | undefined,
     color: string | null | undefined,
     basePath: string = '/imgs/products'
 ): string[] {
+    if (!productName) return [];
     const productSlug = nombreToSlug(productName);
     const colorVariants = normalizeColorForFile(color);
     
@@ -205,9 +208,10 @@ export function getProductImagesByColor(
  * Prioriza: negro, azul, celeste, gris, blanco, gristopo
  */
 export function getFirstProductImage(
-    productName: string,
+    productName: string | null | undefined,
     basePath: string = '/imgs/products'
 ): string {
+    if (!productName) return '/imgs/producto-placeholder.png';
     const productSlug = nombreToSlug(productName);
     
     // Colores comunes para buscar (en orden de prioridad)

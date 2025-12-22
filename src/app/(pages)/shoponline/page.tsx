@@ -7,7 +7,6 @@ import FilterControls from '@/app/components/FilterControls';
 import ProductsGrid from '@/app/components/catalog/ProductsGrid';
 import EmptyState from '@/app/components/catalog/EmptyState';
 import LoadingState from '@/app/components/catalog/LoadingState';
-import ScrollToTop from '@/app/components/catalog/ScrollToTop';
 import Pagination from '@/app/components/Pagination';
 import Section from '@/app/components/Section';
 import CatalogCategoriesHero from '@/app/components/CatalogCategoriesHero';
@@ -257,9 +256,6 @@ const CatalogContent = () => {
                     showingTo={showingTo}
                     totalProducts={totalProducts}
                 />
-
-                {/* Botón volver arriba */}
-                <ScrollToTop show={currentPage > 1} />
             </Section>
         </div>
     );

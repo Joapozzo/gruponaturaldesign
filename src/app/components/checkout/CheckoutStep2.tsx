@@ -7,6 +7,7 @@ import { useCart } from '../hooks/useCart';
 import Button from '../ui/Button';
 import { CustomerData, ShippingData } from '@/app/types/cart';
 import { formatPrice } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
+import { WHATSAPP_PHONE_NUMBER, getWhatsAppNumberForUrl } from '@/app/utils/constants';
 
 interface CheckoutStep2Props {
   onNext: () => void;
@@ -266,18 +267,18 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
       {/* LEFT SIDE - Formulario */}
       <div className="flex-1 flex flex-col min-w-0">
-        <h2 className="text-base lg:text-xl font-bold text-black mb-3 lg:mb-4">DATOS DEL CLIENTE</h2>
+        <h2 className="text-xs sm:text-sm font-bold text-black mb-2 sm:mb-3">DATOS DEL CLIENTE</h2>
 
         {/* Scrollable Form */}
-        <div className="max-h-[60vh] lg:max-h-[70vh] overflow-y-auto pr-2 space-y-4">
+        <div className="max-h-[60vh] lg:max-h-[70vh] overflow-y-auto pr-2 space-y-3 sm:space-y-4">
           {/* Información Personal */}
-          <div className="bg-white border-l-2 border-black p-4 rounded-lg space-y-3">
-            <h3 className="text-sm font-bold text-black">INFORMACIÓN PERSONAL</h3>
+          <div className="bg-white border-l-2 border-black p-3 sm:p-4 rounded-lg space-y-2 sm:space-y-3">
+            <h3 className="text-xs sm:text-sm font-bold text-black">INFORMACIÓN PERSONAL</h3>
 
             {/* Nombre y Apellido */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">
                   Nombre <span className="text-red-600">*</span>
                 </label>
                 <input
@@ -285,7 +286,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                   value={formData.nombre}
                   onChange={(e) => handleCustomerChange('nombre', e.target.value)}
                   onBlur={() => handleBlur('nombre')}
-                  className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                  className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg text-xs sm:text-sm text-black focus:outline-none focus:border-red-600 ${
                     errors.nombre && touched.nombre ? 'border-red-500' : 'border-gray-300'
                   }`}
                   style={{
@@ -295,12 +296,12 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                   placeholder="Juan"
                 />
                 {errors.nombre && touched.nombre && (
-                  <p className="text-red-600 text-xs mt-1">{errors.nombre}</p>
+                  <p className="text-red-600 text-[10px] sm:text-xs mt-0.5 sm:mt-1">{errors.nombre}</p>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">
                   Apellido <span className="text-red-600">*</span>
                 </label>
                 <input
@@ -308,7 +309,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                   value={formData.apellido}
                   onChange={(e) => handleCustomerChange('apellido', e.target.value)}
                   onBlur={() => handleBlur('apellido')}
-                  className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                  className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg text-xs sm:text-sm text-black focus:outline-none focus:border-red-600 ${
                     errors.apellido && touched.apellido ? 'border-red-500' : 'border-gray-300'
                   }`}
                   style={{
@@ -318,14 +319,14 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                   placeholder="Pérez"
                 />
                 {errors.apellido && touched.apellido && (
-                  <p className="text-red-600 text-xs mt-1">{errors.apellido}</p>
+                  <p className="text-red-600 text-[10px] sm:text-xs mt-0.5 sm:mt-1">{errors.apellido}</p>
                 )}
               </div>
             </div>
 
             {/* Email */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">
                 Email <span className="text-red-600">*</span>
               </label>
               <input
@@ -333,7 +334,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                 value={formData.email}
                 onChange={(e) => handleCustomerChange('email', e.target.value)}
                 onBlur={() => handleBlur('email')}
-                className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg text-xs sm:text-sm text-black focus:outline-none focus:border-red-600 ${
                   errors.email && touched.email ? 'border-red-500' : 'border-gray-300'
                 }`}
                 style={{
@@ -343,13 +344,13 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                 placeholder="juan@ejemplo.com"
               />
               {errors.email && touched.email && (
-                <p className="text-red-600 text-xs mt-1">{errors.email}</p>
+                <p className="text-red-600 text-[10px] sm:text-xs mt-0.5 sm:mt-1">{errors.email}</p>
               )}
             </div>
 
             {/* Confirmar Email */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">
                 Confirmar Email <span className="text-red-600">*</span>
               </label>
               <input
@@ -357,7 +358,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                 value={confirmEmail}
                 onChange={(e) => handleConfirmEmailChange(e.target.value)}
                 onBlur={() => handleBlur('confirmEmail')}
-                className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg text-xs sm:text-sm text-black focus:outline-none focus:border-red-600 ${
                   errors.confirmEmail && touched.confirmEmail ? 'border-red-500' : 'border-gray-300'
                 }`}
                 style={{
@@ -367,13 +368,13 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                 placeholder="juan@ejemplo.com"
               />
               {errors.confirmEmail && touched.confirmEmail && (
-                <p className="text-red-600 text-xs mt-1">{errors.confirmEmail}</p>
+                <p className="text-red-600 text-[10px] sm:text-xs mt-0.5 sm:mt-1">{errors.confirmEmail}</p>
               )}
             </div>
 
             {/* Teléfono */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">
                 Teléfono <span className="text-red-600">*</span>
               </label>
               <input
@@ -381,7 +382,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                 value={formData.telefono}
                 onChange={(e) => handleCustomerChange('telefono', e.target.value)}
                 onBlur={() => handleBlur('telefono')}
-                className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg text-xs sm:text-sm text-black focus:outline-none focus:border-red-600 ${
                   errors.telefono && touched.telefono ? 'border-red-500' : 'border-gray-300'
                 }`}
                 style={{
@@ -391,20 +392,20 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                 placeholder="+54 11 1234-5678"
               />
               {errors.telefono && touched.telefono && (
-                <p className="text-red-600 text-xs mt-1">{errors.telefono}</p>
+                <p className="text-red-600 text-[10px] sm:text-xs mt-0.5 sm:mt-1">{errors.telefono}</p>
               )}
             </div>
 
             {/* Tipo Doc y Número (en una fila) */}
             <div className="grid grid-cols-12 gap-3">
               <div className="col-span-3">
-                <label className="block text-xs font-medium text-gray-700 mb-1">Tipo</label>
+                <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">Tipo</label>
                 <select
                   value={formData.tipo_documento}
                   onChange={(e) =>
                     handleCustomerChange('tipo_documento', e.target.value as 'DNI' | 'CUIT' | 'CUIL')
                   }
-                  className="w-full px-2 py-2 border border-gray-300 rounded-lg text-sm text-black bg-white focus:outline-none focus:border-red-600"
+                  className="w-full px-1.5 sm:px-2 py-1.5 sm:py-2 border border-gray-300 rounded-lg text-xs sm:text-sm text-black bg-white focus:outline-none focus:border-red-600"
                 >
                   <option value="DNI">DNI</option>
                   <option value="CUIT">CUIT</option>
@@ -413,7 +414,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
               </div>
 
               <div className="col-span-9">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">
                   Número de Documento
                 </label>
                 <input
@@ -421,7 +422,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                   value={formData.documento}
                   onChange={(e) => handleCustomerChange('documento', e.target.value)}
                   onBlur={() => handleBlur('documento')}
-                  className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                  className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg text-xs sm:text-sm text-black focus:outline-none focus:border-red-600 ${
                     errors.documento && touched.documento ? 'border-red-500' : 'border-gray-300'
                   }`}
                   style={{
@@ -431,7 +432,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                   placeholder="12345678"
                 />
                 {errors.documento && touched.documento && (
-                  <p className="text-red-600 text-xs mt-1">{errors.documento}</p>
+                  <p className="text-red-600 text-[10px] sm:text-xs mt-0.5 sm:mt-1">{errors.documento}</p>
                 )}
               </div>
             </div>
@@ -439,12 +440,12 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
             {/* Empresa y CUIT */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Empresa (Opcional)</label>
+                <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">Empresa (Opcional)</label>
                 <input
                   type="text"
                   value={formData.empresa}
                   onChange={(e) => handleCustomerChange('empresa', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:outline-none focus:border-red-600"
+                  className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg text-xs sm:text-sm text-black focus:outline-none focus:border-red-600"
                   style={{
                     color: '#000000',
                     backgroundColor: '#ffffff',
@@ -453,12 +454,12 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">CUIT (Opcional)</label>
+                <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">CUIT (Opcional)</label>
                 <input
                   type="text"
                   value={formData.cuit}
                   onChange={(e) => handleCustomerChange('cuit', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:outline-none focus:border-red-600"
+                  className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg text-xs sm:text-sm text-black focus:outline-none focus:border-red-600"
                   style={{
                     color: '#000000',
                     backgroundColor: '#ffffff',
@@ -470,14 +471,14 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
 
             {/* Fecha de Nacimiento */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">
                 Fecha de Nacimiento (Opcional)
               </label>
               <input
                 type="date"
                 value={formData.fecha_nacimiento}
                 onChange={(e) => handleCustomerChange('fecha_nacimiento', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black bg-white focus:outline-none focus:border-red-600"
+                className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg text-xs sm:text-sm text-black bg-white focus:outline-none focus:border-red-600"
                 style={{
                   color: '#000000',
                   backgroundColor: '#ffffff',
@@ -485,7 +486,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                 max={new Date().toISOString().split('T')[0]}
               />
               {formData.fecha_nacimiento && (
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-[10px] sm:text-xs text-gray-600 mt-0.5 sm:mt-1">
                   🎉 ¡Te enviaremos promociones especiales por tu cumpleaños!
                 </p>
               )}
@@ -493,15 +494,15 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
           </div>
 
           {/* Datos de Envío */}
-          <div className="bg-white border-l-2 border-black p-4 rounded-lg space-y-3">
-            <h3 className="text-sm font-bold text-black">DATOS DE ENVÍO</h3>
+          <div className="bg-white border-l-2 border-black p-3 sm:p-4 rounded-lg space-y-2 sm:space-y-3">
+            <h3 className="text-xs sm:text-sm font-bold text-black">DATOS DE ENVÍO</h3>
 
             {/* Tipo de Entrega */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-2">
+              <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-1.5 sm:mb-2">
                 Tipo de Entrega <span className="text-red-600">*</span>
               </label>
-              <div className="flex gap-4">
+              <div className="flex gap-3 sm:gap-4">
                 <label className="flex items-center cursor-pointer">
                   <input
                     type="radio"
@@ -509,9 +510,9 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                     value="envio"
                     checked={shipping.tipo === 'envio'}
                     onChange={(e) => handleShippingChange('tipo', e.target.value as 'envio' | 'retiro')}
-                    className="mr-2"
+                    className="mr-1.5 sm:mr-2 w-3 h-3 sm:w-4 sm:h-4"
                   />
-                  <span className="text-sm text-black">Envío a domicilio</span>
+                  <span className="text-xs sm:text-sm text-black">Envío a domicilio</span>
                 </label>
                 <label className="flex items-center cursor-pointer">
                   <input
@@ -520,9 +521,9 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                     value="retiro"
                     checked={shipping.tipo === 'retiro'}
                     onChange={(e) => handleShippingChange('tipo', e.target.value as 'envio' | 'retiro')}
-                    className="mr-2"
+                    className="mr-1.5 sm:mr-2 w-3 h-3 sm:w-4 sm:h-4"
                   />
-                  <span className="text-sm text-black">Retiro en tienda</span>
+                  <span className="text-xs sm:text-sm text-black">Retiro en tienda</span>
                 </label>
               </div>
             </div>
@@ -537,7 +538,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
               >
                 {/* Dirección */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">
                     Dirección <span className="text-red-600">*</span>
                   </label>
                   <input
@@ -545,7 +546,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                     value={shipping.direccion}
                     onChange={(e) => handleShippingChange('direccion', e.target.value)}
                     onBlur={() => handleBlur('direccion')}
-                    className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                    className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg text-xs sm:text-sm text-black focus:outline-none focus:border-red-600 ${
                       errors.direccion && touched.direccion ? 'border-red-500' : 'border-gray-300'
                     }`}
                     style={{
@@ -555,14 +556,14 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                     placeholder="Av. Corrientes 1234"
                   />
                   {errors.direccion && touched.direccion && (
-                    <p className="text-red-600 text-xs mt-1">{errors.direccion}</p>
+                    <p className="text-red-600 text-[10px] sm:text-xs mt-0.5 sm:mt-1">{errors.direccion}</p>
                   )}
                 </div>
 
                 {/* Localidad y Provincia */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                    <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">
                       Localidad <span className="text-red-600">*</span>
                     </label>
                     <input
@@ -570,7 +571,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                       value={shipping.localidad}
                       onChange={(e) => handleShippingChange('localidad', e.target.value)}
                       onBlur={() => handleBlur('localidad')}
-                      className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                      className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg text-xs sm:text-sm text-black focus:outline-none focus:border-red-600 ${
                         errors.localidad && touched.localidad ? 'border-red-500' : 'border-gray-300'
                       }`}
                       style={{
@@ -580,12 +581,12 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                       placeholder="Buenos Aires"
                     />
                     {errors.localidad && touched.localidad && (
-                      <p className="text-red-600 text-xs mt-1">{errors.localidad}</p>
+                      <p className="text-red-600 text-[10px] sm:text-xs mt-0.5 sm:mt-1">{errors.localidad}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                    <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">
                       Provincia <span className="text-red-600">*</span>
                     </label>
                     <input
@@ -593,7 +594,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                       value={shipping.provincia}
                       onChange={(e) => handleShippingChange('provincia', e.target.value)}
                       onBlur={() => handleBlur('provincia')}
-                      className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                      className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg text-xs sm:text-sm text-black focus:outline-none focus:border-red-600 ${
                         errors.provincia && touched.provincia ? 'border-red-500' : 'border-gray-300'
                       }`}
                       style={{
@@ -603,14 +604,14 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                       placeholder="Buenos Aires"
                     />
                     {errors.provincia && touched.provincia && (
-                      <p className="text-red-600 text-xs mt-1">{errors.provincia}</p>
+                      <p className="text-red-600 text-[10px] sm:text-xs mt-0.5 sm:mt-1">{errors.provincia}</p>
                     )}
                   </div>
                 </div>
 
                 {/* Código Postal */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">
                     Código Postal <span className="text-red-600">*</span>
                   </label>
                   <input
@@ -618,7 +619,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                     value={shipping.codigo_postal}
                     onChange={(e) => handleShippingChange('codigo_postal', e.target.value)}
                     onBlur={() => handleBlur('codigo_postal')}
-                    className={`w-full px-3 py-2 border rounded-lg text-sm text-black focus:outline-none focus:border-red-600 ${
+                    className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg text-xs sm:text-sm text-black focus:outline-none focus:border-red-600 ${
                       errors.codigo_postal && touched.codigo_postal ? 'border-red-500' : 'border-gray-300'
                     }`}
                     style={{
@@ -628,7 +629,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                     placeholder="1000"
                   />
                   {errors.codigo_postal && touched.codigo_postal && (
-                    <p className="text-red-600 text-xs mt-1">{errors.codigo_postal}</p>
+                    <p className="text-red-600 text-[10px] sm:text-xs mt-0.5 sm:mt-1">{errors.codigo_postal}</p>
                   )}
                 </div>
               </motion.div>
@@ -636,14 +637,14 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
 
             {/* Notas */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">
                 Notas adicionales
               </label>
               <textarea
                 value={shipping.notas}
                 onChange={(e) => handleShippingChange('notas', e.target.value)}
                 rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:outline-none focus:border-red-600 resize-none"
+                className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg text-xs sm:text-sm text-black focus:outline-none focus:border-red-600 resize-none"
                 style={{
                   color: '#000000',
                   backgroundColor: '#ffffff',
@@ -657,22 +658,22 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
 
       {/* RIGHT SIDE - Resumen del Carrito Fijo */}
       <div className="w-full lg:w-80 flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
-        <h2 className="text-base lg:text-xl font-bold text-black">RESUMEN DEL PEDIDO</h2>
+        <h2 className="text-xs sm:text-sm font-bold text-black">RESUMEN DEL PEDIDO</h2>
 
         {/* Resumen del Carrito */}
-        <div className="bg-white border-l-2 border-black p-4 rounded-lg space-y-4">
+        <div className="bg-white border-l-2 border-black p-3 sm:p-4 rounded-lg space-y-3">
           {/* Lista de productos */}
-          <div className="space-y-2 max-h-64 overflow-y-auto">
+          <div className="space-y-1.5 sm:space-y-2 max-h-64 overflow-y-auto">
             {items.map((item) => (
-              <div key={item.product.id} className="flex items-start gap-2 text-xs">
+              <div key={item.product.id} className="flex items-start gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
                 <span className="text-gray-500">{item.quantity}x</span>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-black line-clamp-1">{item.product.nombre}</p>
                   {item.especificaciones && (
-                    <p className="text-gray-500 text-[10px] line-clamp-1">{item.especificaciones}</p>
+                    <p className="text-gray-500 text-[9px] sm:text-[10px] line-clamp-1">{item.especificaciones}</p>
                   )}
                   {item.bordado && (
-                    <p className="text-[10px] text-red-600 font-semibold mt-0.5">✨ Bordado: SÍ</p>
+                    <p className="text-[9px] sm:text-[10px] text-red-600 font-semibold mt-0.5">✨ Bordado: SÍ</p>
                   )}
                 </div>
                 <span className="font-semibold text-black">{formatPrice(item.subtotal)}</span>
@@ -681,16 +682,16 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
           </div>
           
           {/* Totales */}
-          <div className="pt-4 border-t border-gray-200 space-y-2">
-            <div className="flex justify-between text-sm text-gray-600">
+          <div className="pt-3 border-t border-gray-200 space-y-1.5">
+            <div className="flex justify-between text-xs sm:text-sm text-gray-600">
               <span>Total de productos</span>
               <span className="font-semibold">{itemCount}</span>
             </div>
-            <div className="flex justify-between text-xs text-gray-500">
+            <div className="flex justify-between text-[10px] sm:text-xs text-gray-500">
               <span>Subtotal sin impuestos nacionales</span>
               <span>{formatPrice(subtotal)}</span>
             </div>
-            <div className="flex justify-between text-lg font-bold text-black pt-2 border-t border-gray-300">
+            <div className="flex justify-between text-sm sm:text-base font-bold text-black pt-1.5 border-t border-gray-300">
               <span>TOTAL</span>
               <span>{formatPrice(total)}</span>
             </div>
@@ -698,9 +699,9 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
         </div>
 
         {/* Shipping Info */}
-        <div className="bg-black text-white rounded-lg p-4 space-y-3">
-          <h3 className="text-sm font-bold mb-2">MEDIOS DE ENVÍO</h3>
-          <div className="text-xs space-y-2 text-gray-300">
+        <div className="bg-black text-white rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-3">
+          <h3 className="text-xs sm:text-sm font-bold mb-1.5 sm:mb-2">MEDIOS DE ENVÍO</h3>
+          <div className="text-[10px] sm:text-xs space-y-1.5 sm:space-y-2 text-gray-300">
             <div>
               <p className="font-semibold text-white mb-1">📍 Dentro de Ciudad de Cba:</p>
               <p className="ml-2">Servicio de cadetería a coordinar con el vendedor</p>
@@ -714,17 +715,17 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
             <div>
               <p className="font-semibold text-white mb-1">🏬 PICK UP:</p>
               <p className="ml-2">Coordina tu retiro por nuestro punto en Alta Cba.</p>
-              <p className="ml-2">Comunícate a través de WhatsApp al <a href="https://wa.me/5493517136311" target="_blank" rel="noopener noreferrer" className="text-red-400 hover:text-red-300 underline">+54 9 3517 13-6311</a> indicando tu nombre y número de pedido.</p>
+              <p className="ml-2">Comunícate a través de WhatsApp al <a href={`https://wa.me/${getWhatsAppNumberForUrl()}`} target="_blank" rel="noopener noreferrer" className="text-red-400 hover:text-red-300 underline">{WHATSAPP_PHONE_NUMBER}</a> indicando tu nombre y número de pedido.</p>
             </div>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col gap-3 mt-auto">
-          <Button variant="black" size="lg" fullWidth onClick={handleSubmit}>
+        <div className="flex flex-col gap-2 sm:gap-2.5 mt-auto">
+          <Button variant="black" size="sm" fullWidth onClick={handleSubmit} className="text-xs sm:text-sm py-1.5 sm:py-2">
             CONTINUAR
           </Button>
-          <Button variant="blackOutline" size="md" fullWidth onClick={onBack}>
+          <Button variant="blackOutline" size="sm" fullWidth onClick={onBack} className="text-xs sm:text-sm py-1.5 sm:py-2">
             VOLVER
           </Button>
         </div>

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, CheckCircle, AlertCircle } from 'lucide-react';
 import Button from './ui/Button';
 import { useContactForm } from '../hooks/useContactForm';
+import { WHATSAPP_PHONE_NUMBER } from '@/app/utils/constants';
 
 const Contacto = () => {
     const {
@@ -18,33 +19,33 @@ const Contacto = () => {
     } = useContactForm();
 
     return (
-        <section id="contacto" className="py-20 bg-gray-200 overflow-hidden">
+        <section id="contacto" className="py-12 bg-gray-200 overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
                     viewport={{ once: true }}
-                    className="text-center mb-16"
+                    className="text-center mb-10"
                 >
-                    <h2 className="text-3xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-black mb-6">
+                    <h2 className="text-lg sm:text-lg md:text-xl lg:text-2xl font-bold text-black mb-3">
                         Contactanos
                     </h2>
-                    <p className="text-md md:text-lg text-gray-600">
+                    <p className="text-xs md:text-sm text-gray-600">
                         Estamos listos para asesorarte en tu próximo proyecto.
                     </p>
                 </motion.div>
 
-                <div className="grid lg:grid-cols-2 gap-16">
+                <div className="grid lg:grid-cols-2 gap-10">
                     {/* Formulario */}
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8 }}
                         viewport={{ once: true }}
-                        className="bg-gray-50 p-6 sm:p-10 rounded-lg"
+                        className="bg-gray-50 p-4 sm:p-6 rounded-lg"
                     >
-                        <h3 className="text-lg sm:text-2xl font-bold text-gray-900 mb-6 sm:mb-8">
+                        <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-3 sm:mb-4">
                             SOLICITAR COTIZACIÓN
                         </h3>
 
@@ -82,7 +83,7 @@ const Contacto = () => {
                             </motion.div>
                         )}
 
-                        <form onSubmit={handleSubmit(submitForm)} className="space-y-4 sm:space-y-6">
+                        <form onSubmit={handleSubmit(submitForm)} className="space-y-3 sm:space-y-4">
                             {/* Campo honeypot oculto para detectar bots */}
                             <input
                                 type="text"
@@ -92,66 +93,66 @@ const Contacto = () => {
                                 autoComplete="off"
                             />
                             <div>
-                                <label className="block text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3 tracking-wide">
+                                <label className="block text-[10px] sm:text-xs font-semibold text-gray-900 mb-1.5 sm:mb-2 tracking-wide">
                                     EMAIL *
                                 </label>
                                 <input
                                     {...register('email')}
                                     type="email"
-                                    className={`w-full px-3 py-3 sm:px-4 sm:py-4 border-2 ${errors.email ? 'border-red-500' : 'border-gray-200'
-                                        } focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-sm sm:text-base`}
+                                    className={`w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border-2 ${errors.email ? 'border-red-500' : 'border-gray-200'
+                                        } focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-xs sm:text-sm`}
                                     placeholder="ejemplo@empresa.com"
                                 />
                                 {errors.email && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                                    <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>
                                 )}
                             </div>
 
                             <div>
-                                <label className="block text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3 tracking-wide">
+                                <label className="block text-[10px] sm:text-xs font-semibold text-gray-900 mb-1.5 sm:mb-2 tracking-wide">
                                     EMPRESA *
                                 </label>
                                 <input
                                     {...register('empresa')}
                                     type="text"
-                                    className={`w-full px-3 py-3 sm:px-4 sm:py-4 border-2 ${errors.empresa ? 'border-red-500' : 'border-gray-200'
-                                        } focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-sm sm:text-base`}
+                                    className={`w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border-2 ${errors.empresa ? 'border-red-500' : 'border-gray-200'
+                                        } focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-xs sm:text-sm`}
                                     placeholder="Ej: Distribuidora San Martín S.A."
                                 />
                                 {errors.empresa && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.empresa.message}</p>
+                                    <p className="mt-1 text-xs text-red-600">{errors.empresa.message}</p>
                                 )}
                             </div>
 
                             <div>
-                                <label className="block text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3 tracking-wide">
+                                <label className="block text-[10px] sm:text-xs font-semibold text-gray-900 mb-1.5 sm:mb-2 tracking-wide">
                                     TELÉFONO *
                                 </label>
                                 <input
                                     {...register('telefono')}
                                     type="tel"
-                                    className={`w-full px-3 py-3 sm:px-4 sm:py-4 border-2 ${errors.telefono ? 'border-red-500' : 'border-gray-200'
-                                        } focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-sm sm:text-base`}
+                                    className={`w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border-2 ${errors.telefono ? 'border-red-500' : 'border-gray-200'
+                                        } focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-xs sm:text-sm`}
                                     placeholder="Ej: 351 123-4567"
                                 />
                                 {errors.telefono && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.telefono.message}</p>
+                                    <p className="mt-1 text-xs text-red-600">{errors.telefono.message}</p>
                                 )}
                             </div>
 
                             <div>
-                                <label className="block text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3 tracking-wide">
+                                <label className="block text-[10px] sm:text-xs font-semibold text-gray-900 mb-1.5 sm:mb-2 tracking-wide">
                                     MENSAJE *
                                 </label>
                                 <textarea
                                     {...register('mensaje')}
-                                    rows={5}
-                                    className={`w-full px-3 py-3 sm:px-4 sm:py-4 border-2 ${errors.mensaje ? 'border-red-500' : 'border-gray-200'
-                                        } focus:border-red-500 outline-none transition-colors resize-none bg-white rounded-lg placeholder-gray-400 text-gray-900 text-sm sm:text-base`}
+                                    rows={4}
+                                    className={`w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border-2 ${errors.mensaje ? 'border-red-500' : 'border-gray-200'
+                                        } focus:border-red-500 outline-none transition-colors resize-none bg-white rounded-lg placeholder-gray-400 text-gray-900 text-xs sm:text-sm`}
                                     placeholder="Necesito cotización para uniformes de trabajo. Me interesa conocer opciones de diseño y tiempos de entrega..."
                                 ></textarea>
                                 {errors.mensaje && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.mensaje.message}</p>
+                                    <p className="mt-1 text-xs text-red-600">{errors.mensaje.message}</p>
                                 )}
                             </div>
 
@@ -201,38 +202,38 @@ const Contacto = () => {
                         viewport={{ once: true }}
                         className="space-y-8"
                     >
-                        <div className="bg-gray-50 p-8 rounded-lg hover:shadow-lg transition-shadow">
-                            <div className="flex items-center mb-6">
-                                <Phone className="text-red-500 mr-4" size={24} />
-                                <h4 className="text-md md:text-xl font-bold text-gray-900">TELÉFONO</h4>
+                        <div className="bg-gray-50 p-4 sm:p-6 rounded-lg hover:shadow-lg transition-shadow">
+                            <div className="flex items-center mb-3 sm:mb-4">
+                                <Phone className="text-red-500 mr-2 sm:mr-3" size={18} />
+                                <h4 className="text-xs sm:text-sm font-bold text-gray-900">TELÉFONO</h4>
                             </div>
-                            <div className="space-y-2">
-                                <p className="text-sm md:text-lg text-gray-600">
-                                    <span className="font-semibold">Ventas:</span> +54 9 3517 13 - 6316
+                            <div className="space-y-1">
+                                <p className="text-[10px] sm:text-xs text-gray-600">
+                                    <span className="font-semibold">Ventas:</span> {WHATSAPP_PHONE_NUMBER}
                                 </p>
                             </div>
-                            <p className="text-sm text-gray-500 mt-2">Lunes a Viernes de 8:00 a 18:00hs</p>
+                            <p className="text-[9px] sm:text-[10px] text-gray-500 mt-1">Lunes a Viernes de 8:00 a 18:00hs</p>
                         </div>
 
-                        <div className="bg-gray-50 p-8 rounded-lg hover:shadow-lg transition-shadow">
-                            <div className="flex items-center mb-6">
-                                <Mail className="text-red-500 mr-4" size={24} />
-                                <h4 className="text-md md:text-xl font-bold text-gray-900">EMAIL</h4>
+                        <div className="bg-gray-50 p-4 sm:p-6 rounded-lg hover:shadow-lg transition-shadow">
+                            <div className="flex items-center mb-3 sm:mb-4">
+                                <Mail className="text-red-500 mr-2 sm:mr-3" size={18} />
+                                <h4 className="text-xs sm:text-sm font-bold text-gray-900">EMAIL</h4>
                             </div>
-                            <p className="text-sm md:text-lg text-gray-600">ventas@naturalonline.com.ar</p>
-                            <p className="text-xs text-gray-500 mt-2">Respuesta en menos de 24hs</p>
+                            <p className="text-[10px] sm:text-xs text-gray-600">ventas@naturalonline.com.ar</p>
+                            <p className="text-[9px] sm:text-[10px] text-gray-500 mt-1">Respuesta en menos de 24hs</p>
                         </div>
 
-                        <div className="bg-gray-50 p-8 rounded-lg hover:shadow-lg transition-shadow">
-                            <div className="flex items-center mb-6">
-                                <MapPin className="text-red-500 mr-4" size={24} />
-                                <h4 className="text-md md:text-xl font-bold text-gray-900">UBICACIÓN</h4>
+                        <div className="bg-gray-50 p-4 sm:p-6 rounded-lg hover:shadow-lg transition-shadow">
+                            <div className="flex items-center mb-3 sm:mb-4">
+                                <MapPin className="text-red-500 mr-2 sm:mr-3" size={18} />
+                                <h4 className="text-xs sm:text-sm font-bold text-gray-900">UBICACIÓN</h4>
                             </div>
-                            <p className="text-sm md:text-lg text-gray-600">
+                            <p className="text-[10px] sm:text-xs text-gray-600">
                                 Rivera Indarte 2143<br />
                                 Córdoba, Argentina
                             </p>
-                            <p className="text-sm text-gray-500 mt-2">Showroom con cita previa</p>
+                            <p className="text-[9px] sm:text-[10px] text-gray-500 mt-1">Showroom con cita previa</p>
                         </div>
 
                         {/* Mapa */}
@@ -255,8 +256,8 @@ const Contacto = () => {
                                 title="Ubicación NTDS - Rivera Indarte 2143, Córdoba"
                             ></iframe>
                             <div className="absolute inset-0 bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                            <div className="absolute bottom-4 left-4 bg-white px-3 py-2 rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                <p className="text-sm font-semibold text-gray-800">📍 Nuestro Showroom</p>
+                            <div className="absolute bottom-4 left-4 bg-white px-2 py-1.5 rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <p className="text-xs font-semibold text-gray-800">📍 Nuestro Showroom</p>
                             </div>
                         </motion.div>
                     </motion.div>

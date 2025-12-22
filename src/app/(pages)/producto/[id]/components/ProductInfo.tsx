@@ -53,25 +53,25 @@ export default function ProductInfo({ productName, displayProduct, selectedVaria
             {/* Título y precio */}
             <div className="w-full">
                 {!hideTitle && (
-                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-medium text-gray-900 mb-1.5 sm:mb-2 font-display leading-tight">
+                    <h1 className="text-sm sm:text-base lg:text-lg font-medium text-gray-900 mb-1 font-display leading-tight">
                         {productName}
                     </h1>
                 )}
-                <div className="flex flex-col items-start space-y-1 mb-2 sm:mb-3">
+                <div className="flex flex-col items-start space-y-0.5 mb-3">
                     {/* Precio lista - más grande */}
-                    <span className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+                    <span className="text-sm sm:text-base lg:text-lg font-bold text-gray-900">
                         {formattedPrice}
                     </span>
                     {/* Transfer y cuotas - más pequeños, lado a lado */}
                     {(formattedTransfer || formatted3Cuotas) && (
-                        <div className="flex flex-row gap-3 mt-1">
+                        <div className="flex flex-row gap-2 mt-0.5">
                             {formattedTransfer && (
-                                <span className="text-xs text-gray-600">
+                                <span className="text-[10px] sm:text-xs text-gray-600">
                                     Transfer: {formattedTransfer}
                                 </span>
                             )}
                             {formatted3Cuotas && (
-                                <span className="text-xs text-gray-600">
+                                <span className="text-[10px] sm:text-xs text-gray-600">
                                     3 cuotas: {formatted3Cuotas}
                                 </span>
                             )}
@@ -79,13 +79,13 @@ export default function ProductInfo({ productName, displayProduct, selectedVaria
                     )}
                     {/* Precio sin impuestos - más pequeño, abajo */}
                     {formattedSImp && (
-                        <span className="text-xs text-gray-500 mt-1">
+                        <span className="text-[10px] sm:text-xs text-gray-500 mt-0.5">
                             Sin impuestos: {formattedSImp}
                         </span>
                     )}
                     {/* Mensaje de stock bajo (sin mostrar número exacto) */}
                     {stockMessage && (
-                        <span className={`text-xs font-semibold mt-1 ${
+                        <span className={`text-[10px] sm:text-xs font-semibold mt-0.5 ${
                             stockMessage === 'ÚLTIMAS UNIDADES' 
                                 ? 'text-orange-600' 
                                 : 'text-red-600'
@@ -96,33 +96,33 @@ export default function ProductInfo({ productName, displayProduct, selectedVaria
                 </div>
                 {/* Descripción completa del producto */}
                 {description && (
-                    <div className="mb-2 sm:mb-3">
-                        <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wide mb-1">
+                    <div className="mb-2">
+                        <h3 className="text-[10px] sm:text-xs font-bold text-gray-900 uppercase tracking-wide mb-0.5">
                             Descripción
                         </h3>
-                        <p className="text-gray-700 text-xs leading-relaxed">
+                        <p className="text-gray-700 text-[10px] sm:text-xs leading-relaxed">
                             {description}
                         </p>
                     </div>
                 )}
                 {/* Textiles */}
                 {textiles && (
-                    <div className="mb-2 sm:mb-3">
-                        <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wide mb-1">
+                    <div className="mb-1.5">
+                        <h3 className="text-[10px] sm:text-xs font-bold text-gray-900 uppercase tracking-wide mb-0.5">
                             Textiles
                         </h3>
-                        <p className="text-gray-700 text-xs leading-relaxed">
+                        <p className="text-gray-700 text-[10px] sm:text-xs leading-relaxed">
                             {textiles}
                         </p>
                     </div>
                 )}
                 {/* Material (fallback si no hay textiles) */}
                 {!textiles && displayProduct.Material && (
-                    <div className="mb-2 sm:mb-3">
-                        <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wide mb-1">
+                    <div className="mb-1.5">
+                        <h3 className="text-[10px] sm:text-xs font-bold text-gray-900 uppercase tracking-wide mb-0.5">
                             Material
                         </h3>
-                        <p className="text-gray-700 text-xs">
+                        <p className="text-gray-700 text-[10px] sm:text-xs">
                             {displayProduct.Material}
                         </p>
                     </div>

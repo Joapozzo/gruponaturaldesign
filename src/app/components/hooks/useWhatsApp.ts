@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { WHATSAPP_PHONE_NUMBER } from '@/app/utils/constants';
 
 interface UseWhatsAppProps {
     phoneNumber?: string;
@@ -6,7 +7,7 @@ interface UseWhatsAppProps {
 }
 
 export const useWhatsApp = ({
-    phoneNumber = "+549351713-6316",
+    phoneNumber = WHATSAPP_PHONE_NUMBER,
     defaultMessage = "¡Hola! Me interesa conocer más sobre los uniformes de NTDS. ¿Te gustaría hablar conmigo?"
 }: UseWhatsAppProps = {}) => {
 

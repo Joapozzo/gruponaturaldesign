@@ -1,3 +1,5 @@
+import { WHATSAPP_PHONE_NUMBER, WHATSAPP_PHONE_NUMBER_FORMATTED } from './constants';
+
 export const seoConfig = {
     defaultTitle: 'NTDS - Uniformes Empresariales y Escolares de Diseño | Natural Design',
     titleTemplate: '%s | NTDS Natural Design',
@@ -24,7 +26,7 @@ export const seoConfig = {
         },
         contactPoint: {
             '@type': 'ContactPoint',
-            telephone: '+54-351-7136316',
+            telephone: WHATSAPP_PHONE_NUMBER_FORMATTED,
             contactType: 'customer service',
             email: 'ventas@naturalonline.com.ar',
             availableLanguage: 'Spanish'
@@ -46,7 +48,7 @@ export const seoConfig = {
         '@id': 'https://naturalonline.com.ar',
         name: 'NTDS Natural Design',
         image: 'https://naturalonline.com.ar/og-image.jpg',
-        telephone: '+54-351-7136316',
+        telephone: WHATSAPP_PHONE_NUMBER_FORMATTED,
         email: 'ventas@naturalonline.com.ar',
         address: {
             '@type': 'PostalAddress',

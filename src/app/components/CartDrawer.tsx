@@ -146,41 +146,41 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                         style={{ zIndex: 100000 }}
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-white flex-shrink-0">
-                            <div className="flex items-center space-x-3">
+                        <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-white flex-shrink-0">
+                            <div className="flex items-center space-x-2">
                                 <motion.div
-                                    className="w-10 h-10 bg-black rounded-lg flex items-center justify-center"
+                                    className="w-7 h-7 bg-black rounded-lg flex items-center justify-center"
                                     whileHover={{ scale: 1.05 }}
                                     transition={{ duration: 0.2 }}
                                 >
-                                    <ShoppingCart className="w-5 h-5 text-white" />
+                                    <ShoppingCart className="w-4 h-4 text-white" />
                                 </motion.div>
                                 <div>
-                                    <h2 className="text-xl font-bold text-black tracking-wide">
+                                    <h2 className="text-sm font-bold text-black tracking-wide">
                                         MI CARRITO
                                     </h2>
-                                    <p className="text-sm text-gray-500 font-medium">
+                                    <p className="text-xs text-gray-500 font-medium">
                                         {itemCount} {itemCount === 1 ? 'producto' : 'productos'}
                                     </p>
                                 </div>
                             </div>
                             <motion.button
                                 onClick={onClose}
-                                className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-all duration-300"
+                                className="w-7 h-7 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-all duration-300"
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.95 }}
                                 aria-label="Cerrar carrito"
                             >
-                                <X className="w-5 h-5 text-gray-600" />
+                                <X className="w-4 h-4 text-gray-600" />
                             </motion.button>
                         </div>
 
                         {/* Content */}
-                        <div className="flex-1 overflow-y-auto p-6 bg-gray-50 min-h-0">
+                        <div className="flex-1 overflow-y-auto p-3 bg-gray-50 min-h-0">
                             {isEmpty ? (
                                 <EmptyCart onClose={onClose} />
                             ) : (
-                                <div className="space-y-4">
+                                <div className="space-y-2">
                                     {sortedItems.map((item) => {
                                         // Verificar si se puede agregar más unidades de este producto
                                         const canAddMore = canAddToCart(item.product.id, 1).canAdd;
@@ -201,15 +201,15 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
 
                         {/* Footer */}
                         {!isEmpty && (
-                            <div className="border-t border-gray-200 p-6 space-y-4 bg-white shadow-lg flex-shrink-0">
+                            <div className="border-t border-gray-200 p-3 space-y-2 bg-white shadow-lg flex-shrink-0">
 
                                 {/* Resumen de precios */}
-                                <div className="space-y-2">
-                                    <div className="flex justify-between text-gray-500 text-sm">
+                                <div className="space-y-1">
+                                    <div className="flex justify-between text-gray-500 text-xs">
                                         <span>Subtotal sin impuestos</span>
                                         <span>${subtotal.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
                                     </div>
-                                    <div className="flex justify-between text-xl font-bold text-black pt-3 border-t border-gray-300">
+                                    <div className="flex justify-between text-base font-bold text-black pt-2 border-t border-gray-300">
                                         <span className="tracking-wide">TOTAL</span>
                                         <span>${total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
                                     </div>
@@ -217,14 +217,14 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
 
                                 {/* Alerta Mayorista centralizada - Si tiene 20+ artículos */}
                                 {itemCount >= 20 && (
-                                    <div className="bg-gradient-to-r from-[#Ed3237] to-red-700 text-white p-4 rounded-lg border-2 border-[#Ed3237]">
-                                        <div className="flex items-start gap-2 mb-3">
-                                            <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div className="bg-gradient-to-r from-[#Ed3237] to-red-700 text-white p-2 rounded border border-[#Ed3237]">
+                                        <div className="flex items-start gap-1.5 mb-2">
+                                            <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                             <div className="flex-1">
-                                                <h3 className="font-bold text-sm mb-1">🏢 COMPRA MAYORISTA</h3>
-                                                <p className="text-xs text-white/95 leading-relaxed mb-3">
+                                                <h3 className="font-bold text-xs mb-0.5">🏢 COMPRA MAYORISTA</h3>
+                                                <p className="text-[10px] text-white/95 leading-relaxed mb-2">
                                                     Tu pedido de {itemCount} unidades requiere compra mayorista. Las compras mayoristas deben realizarse directamente a través de nuestro sistema mayorista.
                                                 </p>
                                             </div>
@@ -233,7 +233,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                 )}
 
                                 {/* Botones de acción */}
-                                <div className="space-y-3">
+                                <div className="space-y-2">
                                     {itemCount >= 20 ? (
                                         <>
                                             <button
@@ -241,17 +241,17 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                                     onClose();
                                                     router.push('/mayorista');
                                                 }}
-                                                className="w-full bg-[#Ed3237] text-white px-4 py-3 rounded-lg font-semibold text-sm hover:bg-red-700 transition-colors inline-flex items-center justify-center space-x-2 tracking-wide"
+                                                className="w-full bg-[#Ed3237] text-white px-3 py-2 rounded-lg font-semibold text-xs hover:bg-red-700 transition-colors inline-flex items-center justify-center space-x-1.5 tracking-wide"
                                             >
                                                 <span>IR A COMPRA MAYORISTA</span>
-                                                <ArrowRight className="w-5 h-5" />
+                                                <ArrowRight className="w-4 h-4" />
                                             </button>
                                             <button
                                                 onClick={() => {
                                                     onClose();
                                                     router.push('/shoponline');
                                                 }}
-                                                className="w-full text-sm text-gray-600 hover:text-[#Ed3237] transition-colors py-2 font-medium tracking-wide border border-gray-300 rounded-lg hover:border-[#Ed3237]"
+                                                className="w-full text-xs text-gray-600 hover:text-[#Ed3237] transition-colors py-1.5 font-medium tracking-wide border border-gray-300 rounded-lg hover:border-[#Ed3237]"
                                             >
                                                 Seguir con compra minorista
                                             </button>
@@ -259,20 +259,20 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                     ) : (
                                         <Button
                                             variant="black"
-                                            size="lg"
+                                            size="sm"
                                             fullWidth
                                             onClick={handleGoToCart}
-                                            className="inline-flex items-center justify-center space-x-2 tracking-wide"
+                                            className="inline-flex items-center justify-center space-x-1.5 tracking-wide text-xs py-2"
                                         >
                                             <span>GENERAR PEDIDO</span>
-                                            <ArrowRight className="w-5 h-5" />
+                                            <ArrowRight className="w-4 h-4" />
                                         </Button>
                                     )}
 
                                     {!isInCheckout && (
                                         <motion.button
                                             onClick={handleClearCart}
-                                            className="w-full text-sm text-gray-600 hover:text-red-600 transition-colors py-2 font-medium tracking-wide"
+                                            className="w-full text-xs text-gray-600 hover:text-red-600 transition-colors py-1.5 font-medium tracking-wide"
                                             whileHover={{ scale: 1.02 }}
                                             whileTap={{ scale: 0.98 }}
                                         >
@@ -280,7 +280,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                         </motion.button>
                                     )}
                                     {isInCheckout && (
-                                        <div className="w-full text-xs text-gray-500 text-center py-2 font-medium tracking-wide">
+                                        <div className="w-full text-[10px] text-gray-500 text-center py-1.5 font-medium tracking-wide">
                                             No se puede modificar el carrito durante el checkout
                                         </div>
                                     )}

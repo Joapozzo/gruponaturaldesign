@@ -5,7 +5,6 @@ import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Button from '@/app/components/ui/Button';
-import Section from '@/app/components/Section';
 import { GroupedProduct, ProductWithImage } from '@/app/types/producto';
 
 interface ProductHeaderProps {
@@ -17,22 +16,17 @@ export default function ProductHeader({ groupedProduct, displayProduct }: Produc
     const router = useRouter();
 
     return (
-        <Section
-            id="product-header"
-            className="bg-gray-50"
-            contentClassName="max-w-[1600px] mx-auto"
-            noPadding
-        >
-            <div className="py-2 sm:py-3 lg:py-4">
+        <div className="w-full pt-4 relative">
+            <div className="w-full max-w-[1600px] mx-auto">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
-                    className="flex flex-col lg:flex-row lg:items-center lg:justify-between"
+                    className="flex flex-col lg:flex-row lg:items-center lg:justify-between py-1.5 sm:py-1.5"
                 >
-                    <div className="mb-4 lg:mb-0">
+                    <div className="mb-2 lg:mb-0">
                         {/* Breadcrumb */}
-                        <nav className="flex items-center space-x-1.5 sm:space-x-2 text-xs sm:text-sm text-gray-600 mb-2 sm:mb-4">
+                        <nav className="flex items-center space-x-1 text-[10px] sm:text-xs text-gray-600 mb-1">
                             <Link href="/" className="hover:text-gray-900 transition-colors">
                                 Inicio
                             </Link>
@@ -45,28 +39,23 @@ export default function ProductHeader({ groupedProduct, displayProduct }: Produc
                                 {groupedProduct.skuBase || displayProduct.NOMBRE}
                             </span>
                         </nav>
-
-                        {/* Badge de categoría */}
-                        {/* <div className="inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium bg-gray-100 text-gray-800 mb-1 sm:mb-2">
-                            {displayProduct.Rubro || 'Sin categoría'}
-                        </div> */}
                     </div>
 
                     {/* Acciones */}
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
                         <Button
                             variant="grayOutline"
                             size="sm"
                             onClick={() => router.back()}
-                            className="inline-flex items-center space-x-2"
+                            className="inline-flex items-center space-x-1.5 px-2.5 py-1.5 text-xs"
                         >
-                            <ArrowLeft size={16} />
+                            <ArrowLeft size={14} />
                             <span>Volver</span>
                         </Button>
                     </div>
                 </motion.div>
             </div>
-        </Section>
+        </div>
     );
 }
 

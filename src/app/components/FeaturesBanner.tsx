@@ -28,9 +28,9 @@ const FeaturesBanner = () => {
   ];
 
   return (
-    <div className="w-full bg-gray-100 py-8 lg:py-12">
+    <div className="w-full bg-gray-100 py-6 lg:py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
             return (
@@ -42,16 +42,16 @@ const FeaturesBanner = () => {
                 transition={{ delay: index * 0.1 }}
                 className="flex flex-col items-center text-center"
               >
-                <div className="mb-4">
+                <div className="mb-3">
                   <IconComponent 
-                    className="w-12 h-12 lg:w-16 lg:h-16 text-gray-600" 
+                    className="w-10 h-10 lg:w-12 lg:h-12 text-gray-600" 
                     strokeWidth={1.5}
                   />
                 </div>
-                <h3 className="text-sm lg:text-base font-semibold text-gray-800 mb-2 tracking-wide">
+                <h3 className="text-xs lg:text-sm font-semibold text-gray-800 mb-1.5 tracking-wide">
                   {feature.title}
                 </h3>
-                <p className="text-xs lg:text-sm text-gray-600 leading-relaxed">
+                <p className="text-[10px] lg:text-xs text-gray-600 leading-relaxed">
                   {feature.description}
                 </p>
               </motion.div>

@@ -126,7 +126,7 @@ const Navbar = () => {
     // Clases de texto UNIFORMES para todas las páginas - SIEMPRE IGUALES
     // Usar valores hexadecimales directos para asegurar que siempre se vean igual
     const textClasses = {
-        active: 'text-[#Ed3237] border-b-2 border-[#Ed3237] pb-1 font-semibold',
+        active: 'text-[#Ed3237] font-semibold',
         inactive: 'text-[#000000] hover:text-[#Ed3237]'
     };
 
@@ -137,12 +137,12 @@ const Navbar = () => {
                 initial={{ y: -100 }}
                 animate={{ y: 0 }}
                 transition={{ duration: 0.2, ease: 'easeInOut' }}
-                className="bg-white sticky top-[40px] w-full z-50 border-b border-gray-200 shadow-sm relative"
+                className="bg-white fixed top-[18px] left-0 right-0 w-full z-50 border-b border-gray-200 shadow-sm"
                 style={{ backgroundColor: '#FFFFFF' }}
             >
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
                     {/* Primera fila: Buscador - Logo - User/Carrito */}
-                    <div className="relative flex justify-between items-center h-16 lg:h-20">
+                    <div className="relative flex justify-between items-center h-9 sm:h-12 lg:h-14">
                         {/* Buscador a la izquierda (Desktop) */}
                         <div className="hidden lg:flex items-center flex-1">
                             <motion.button
@@ -152,21 +152,21 @@ const Navbar = () => {
                                 className={`transition-all duration-300 ${textClasses.inactive}`}
                                 aria-label="Buscar productos"
                             >
-                                <Search className="w-6 h-6" />
+                                <Search className="w-5 h-5" />
                             </motion.button>
                         </div>
 
-                        {/* Logo centrado */}
+                        {/* Logo centrado - Solo Desktop */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="absolute left-1/2 transform -translate-x-1/2 z-10"
+                            className="hidden lg:block absolute left-1/2 transform -translate-x-1/2 z-10"
                         >
                             <Image
                                 src="/logos/logo-1.svg"
                                 alt="NTDS Natural Design Logo"
-                                width={70}
-                                height={30}
+                                width={50}
+                                height={22}
                                 className="cursor-pointer"
                                 onClick={() => window.location.href = '/#inicio'}
                                 priority
@@ -180,7 +180,7 @@ const Navbar = () => {
                                 className="text-gray-400 opacity-50 cursor-not-allowed pointer-events-none"
                                 aria-label="Mi cuenta (no disponible)"
                             >
-                                <User className="w-6 h-6" />
+                                <User className="w-5 h-5" />
                             </button>
                             {!isInCheckout && (
                                 <motion.button
@@ -190,12 +190,12 @@ const Navbar = () => {
                                     className={`relative transition-all duration-300 ${textClasses.inactive}`}
                                     aria-label="Carrito de compras"
                                 >
-                                    <ShoppingCart className="w-6 h-6" />
+                                    <ShoppingCart className="w-5 h-5" />
                                     {itemCount > 0 && (
                                         <motion.span
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1 }}
-                                            className="absolute -top-2 -right-2 bg-[#Ed3237] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold"
+                                            className="absolute -top-1.5 -right-1.5 bg-[#Ed3237] text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-semibold"
                                         >
                                             {itemCount}
                                         </motion.span>
@@ -215,14 +215,14 @@ const Navbar = () => {
                                 <Image
                                     src="/logos/logo-1.svg"
                                     alt="NTDS Natural Design Logo"
-                                    width={70}
-                                    height={30}
+                                    width={50}
+                                    height={22}
                                     className="cursor-pointer"
                                     onClick={() => window.location.href = '/#inicio'}
                                     priority
                                 />
                             </motion.div>
-                            <div className='flex items-center space-x-3 flex-1 justify-end'>
+                            <div className='flex items-center space-x-2 sm:space-x-3 flex-1 justify-end'>
                                 {!isInCheckout && (
                                     <motion.button
                                         whileHover={{ scale: 1.1 }}
@@ -231,12 +231,12 @@ const Navbar = () => {
                                         className={`relative transition-all duration-300 ${textClasses.inactive}`}
                                         aria-label="Carrito de compras"
                                     >
-                                        <ShoppingCart className="w-6 h-6" />
+                                        <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6" />
                                         {itemCount > 0 && (
                                             <motion.span
                                                 initial={{ scale: 0 }}
                                                 animate={{ scale: 1 }}
-                                                className="absolute -top-2 -right-2 bg-[#Ed3237] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold"
+                                                className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 bg-[#Ed3237] text-white text-[9px] sm:text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-semibold"
                                             >
                                                 {itemCount}
                                             </motion.span>
@@ -247,7 +247,7 @@ const Navbar = () => {
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={toggleMenu}
-                                    className={`p-2 transition-all duration-300 ${textClasses.inactive}`}
+                                    className={`p-1 sm:p-2 transition-all duration-300 ${textClasses.inactive}`}
                                     aria-label={isMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
                                     aria-expanded={isMenuOpen}
                                 >
@@ -255,7 +255,7 @@ const Navbar = () => {
                                         animate={{ rotate: isMenuOpen ? 90 : 0 }}
                                         transition={{ duration: 0.3 }}
                                     >
-                                        {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                                        {isMenuOpen ? <X size={16} /> : <Menu size={16} />}
                                     </motion.div>
                                 </motion.button>
                             </div>
@@ -264,7 +264,7 @@ const Navbar = () => {
 
                     {/* Segunda fila: Links de navegación (Desktop) */}
                     <div className="hidden lg:block border-t border-gray-100">
-                        <div className="flex items-center justify-center space-x-8 py-3">
+                        <div className="flex items-center justify-center space-x-4 py-1.5">
                             {menuItems.map((item, index) => {
                                 if (item.id === 'shoponline') {
                                     return (
@@ -280,13 +280,13 @@ const Navbar = () => {
                                                 animate={{ y: 0, opacity: 1 }}
                                                 transition={{ delay: index * 0.1 }}
                                                 onClick={() => handleNavigation(item)}
-                                                className={`text-xs font-medium transition-all duration-300 tracking-wide flex items-center gap-1 ${
+                                                className={`text-[10px] font-medium transition-all duration-300 tracking-wide flex items-center gap-1 ${
                                                     isLinkActive(item) ? textClasses.active : textClasses.inactive
                                                 }`}
                                                 aria-label={`Ir a ${item.label}`}
                                             >
                                                 {item.label}
-                                                <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isShopSubmenuOpen ? 'rotate-180' : ''}`} />
+                                                <ChevronDown className={`w-2.5 h-2.5 transition-transform duration-300 ${isShopSubmenuOpen ? 'rotate-180' : ''}`} />
                                             </motion.button>
                                         </div>
                                     );
@@ -299,7 +299,7 @@ const Navbar = () => {
                                         animate={{ y: 0, opacity: 1 }}
                                         transition={{ delay: index * 0.1 }}
                                         onClick={() => handleNavigation(item)}
-                                        className={`text-xs font-medium transition-all duration-300 tracking-wide ${
+                                        className={`text-[10px] font-medium transition-all duration-300 tracking-wide ${
                                             isLinkActive(item) ? textClasses.active : textClasses.inactive
                                         }`}
                                         aria-label={`Ir a sección ${item.label}`}
@@ -323,7 +323,7 @@ const Navbar = () => {
                                     onMouseEnter={() => setIsShopSubmenuOpen(true)}
                                     onMouseLeave={() => setIsShopSubmenuOpen(false)}
                                 >
-                                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                                    <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4">
                                         {categoriesLoading ? (
                                             <div className="text-center py-4 text-gray-500 text-sm">Cargando categorías...</div>
                                         ) : categories && Array.isArray(categories.rubros) && Array.isArray(categories.subrubros) && Array.isArray(categories.generos) && (categories.rubros.length > 0 || categories.subrubros.length > 0 || categories.generos.length > 0) ? (
@@ -332,13 +332,13 @@ const Navbar = () => {
                                                 {/* Géneros */}
                                                 {categories?.generos && categories.generos.length > 0 && (
                                                 <div>
-                                                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-200">GÉNERO</h3>
+                                                    <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 pb-1.5 border-b border-gray-200">GÉNERO</h3>
                                                     <div className="flex flex-wrap gap-2">
                                                         {categories.generos.map((genero) => (
                                                             <button
                                                                 key={genero}
                                                                 onClick={() => handleCategoryNavigation('genero', genero.toLowerCase())}
-                                                                className="px-3 py-1.5 text-xs text-gray-700 hover:text-[#Ed3237] hover:bg-gray-50 rounded transition-all duration-200 whitespace-nowrap"
+                                                                className="px-2 py-1 text-[10px] text-gray-700 hover:text-[#Ed3237] hover:bg-gray-50 rounded transition-all duration-200 whitespace-nowrap"
                                                             >
                                                                 {genero}
                                                             </button>
@@ -350,13 +350,13 @@ const Navbar = () => {
                                             {/* Rubros */}
                                             {categories?.rubros && categories.rubros.length > 0 && (
                                                 <div>
-                                                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-200">RUBROS</h3>
+                                                    <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 pb-1.5 border-b border-gray-200">RUBROS</h3>
                                                     <div className="flex flex-wrap gap-2">
                                                         {categories.rubros.map((rubro) => (
                                                             <button
                                                                 key={rubro}
                                                                 onClick={() => handleCategoryNavigation('rubro', rubro)}
-                                                                className="px-3 py-1.5 text-xs text-gray-700 hover:text-[#Ed3237] hover:bg-gray-50 rounded transition-all duration-200 whitespace-nowrap"
+                                                                className="px-2 py-1 text-[10px] text-gray-700 hover:text-[#Ed3237] hover:bg-gray-50 rounded transition-all duration-200 whitespace-nowrap"
                                                             >
                                                                 {rubro}
                                                             </button>
@@ -368,13 +368,13 @@ const Navbar = () => {
                                             {/* Subrubros */}
                                             {categories?.subrubros && categories.subrubros.length > 0 && (
                                                 <div>
-                                                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-200">CATEGORÍAS</h3>
+                                                    <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 pb-1.5 border-b border-gray-200">CATEGORÍAS</h3>
                                                     <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
                                                         {categories.subrubros.map((subrubro) => (
                                                             <button
                                                                 key={subrubro}
                                                                 onClick={() => handleCategoryNavigation('subrubro', subrubro)}
-                                                                className="px-3 py-1.5 text-xs text-gray-700 hover:text-[#Ed3237] hover:bg-gray-50 rounded transition-all duration-200 whitespace-nowrap"
+                                                                className="px-2 py-1 text-[10px] text-gray-700 hover:text-[#Ed3237] hover:bg-gray-50 rounded transition-all duration-200 whitespace-nowrap"
                                                             >
                                                                 {subrubro}
                                                             </button>
@@ -385,13 +385,13 @@ const Navbar = () => {
                                             </div>
 
                                             {/* Ver todo */}
-                                            <div className="mt-4 pt-4 border-t border-gray-200 text-center">
+                                            <div className="mt-3 pt-3 border-t border-gray-200 text-center">
                                                 <button
                                                     onClick={() => {
                                                         router.push('/shoponline');
                                                         setIsShopSubmenuOpen(false);
                                                     }}
-                                                    className="px-6 py-2 text-xs font-semibold text-[#Ed3237] hover:bg-[#Ed3237] hover:text-white rounded transition-all duration-200"
+                                                    className="px-4 py-1.5 text-[10px] font-semibold text-[#Ed3237] hover:bg-[#Ed3237] hover:text-white rounded transition-all duration-200"
                                                 >
                                                     VER TODO
                                                 </button>
@@ -430,10 +430,10 @@ const Navbar = () => {
                             animate={{ opacity: 1, height: 'auto', y: 0 }}
                             exit={{ opacity: 0, height: 0, y: -20 }}
                             transition={{ duration: 0.4, ease: 'easeInOut' }}
-                            className="lg:hidden bg-white border-t border-gray-200 max-h-[calc(100vh-80px)] overflow-y-auto"
+                            className="lg:hidden bg-white border-t border-gray-200 max-h-[calc(100vh-60px)] overflow-y-auto"
                             style={{ backgroundColor: '#FFFFFF' }}
                         >
-                            <div className="px-4 py-6 space-y-2">
+                            <div className="px-2 sm:px-3 py-2 sm:py-4 space-y-1 sm:space-y-1.5">
                                 {/* Botón de búsqueda en mobile */}
                                 <motion.button
                                     initial={{ x: -50, opacity: 0 }}
@@ -443,10 +443,10 @@ const Navbar = () => {
                                         setIsSearchOpen(true);
                                         toggleMenu();
                                     }}
-                                    className="w-full flex items-center gap-3 px-3 py-2 font-medium tracking-wide transition-all duration-300 rounded-lg text-[#000000] hover:text-[#Ed3237] hover:bg-gray-50 border border-gray-200"
+                                    className="w-full flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1 sm:py-1.5 text-[9px] sm:text-[10px] font-medium tracking-wide transition-all duration-300 rounded-lg text-[#000000] hover:text-[#Ed3237] hover:bg-gray-50 border border-gray-200"
                                     aria-label="Buscar productos"
                                 >
-                                    <Search className="w-5 h-5" />
+                                    <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                     <span>BUSCAR PRODUCTOS</span>
                                 </motion.button>
                                 
@@ -459,7 +459,7 @@ const Navbar = () => {
                                                     animate={{ x: 0, opacity: 1 }}
                                                     transition={{ delay: index * 0.1 }}
                                                     onClick={() => setIsMobileShopSubmenuOpen(!isMobileShopSubmenuOpen)}
-                                                    className={`w-full flex items-center justify-between px-3 py-2 font-medium tracking-wide transition-all duration-300 rounded-lg ${
+                                                    className={`w-full flex items-center justify-between px-2 sm:px-2.5 py-1 sm:py-1.5 text-[9px] sm:text-[10px] font-medium tracking-wide transition-all duration-300 rounded-lg ${
                                                         isLinkActive(item)
                                                             ? 'text-[#Ed3237] bg-gray-50 font-semibold'
                                                             : 'text-[#000000] hover:text-[#Ed3237] hover:bg-gray-50'
@@ -467,7 +467,7 @@ const Navbar = () => {
                                                     aria-label={`Ir a ${item.label}`}
                                                 >
                                                     <span>{item.label}</span>
-                                                    <ChevronRight className={`w-4 h-4 transition-transform duration-300 ${isMobileShopSubmenuOpen ? 'rotate-90' : ''}`} />
+                                                    <ChevronRight className={`w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform duration-300 ${isMobileShopSubmenuOpen ? 'rotate-90' : ''}`} />
                                                 </motion.button>
 
                                                 {/* Submenú Mobile - Horizontal con scroll */}
@@ -480,22 +480,22 @@ const Navbar = () => {
                                                             transition={{ duration: 0.3 }}
                                                             className="overflow-hidden"
                                                         >
-                                                            <div className="pl-6 pr-3 py-3 bg-gray-50 rounded-lg mt-1">
+                                                            <div className="pl-3 sm:pl-4 pr-2 py-1.5 sm:py-2 bg-gray-50 rounded-lg mt-1">
                                                                 {categoriesLoading ? (
-                                                                    <div className="text-center py-4 text-gray-500 text-sm">Cargando categorías...</div>
+                                                                    <div className="text-center py-2 sm:py-4 text-gray-500 text-xs sm:text-sm">Cargando categorías...</div>
                                                                 ) : categories && Array.isArray(categories.rubros) && Array.isArray(categories.subrubros) && Array.isArray(categories.generos) && (categories.rubros.length > 0 || categories.subrubros.length > 0 || categories.generos.length > 0) ? (
                                                                     <>
                                                                 {/* Géneros */}
                                                                 {categories?.generos && categories.generos.length > 0 && (
-                                                                    <div className="mb-4">
-                                                                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">GÉNERO</h3>
+                                                                    <div className="mb-3 sm:mb-4">
+                                                                        <h3 className="text-[9px] sm:text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 sm:mb-1.5">GÉNERO</h3>
                                                                         <div className="overflow-x-auto -mx-2 px-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                                                                            <div className="flex gap-2 pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
+                                                                            <div className="flex gap-1.5 sm:gap-2 pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
                                                                                 {categories.generos.map((genero) => (
                                                                                     <button
                                                                                         key={genero}
                                                                                         onClick={() => handleCategoryNavigation('genero', genero.toLowerCase())}
-                                                                                        className="flex-shrink-0 px-4 py-2 text-xs text-gray-700 hover:text-[#Ed3237] hover:bg-white rounded transition-all duration-200 whitespace-nowrap border border-gray-200"
+                                                                                        className="flex-shrink-0 px-2 sm:px-3 py-1 sm:py-1.5 text-[9px] sm:text-[10px] text-gray-700 hover:text-[#Ed3237] hover:bg-white rounded transition-all duration-200 whitespace-nowrap border border-gray-200"
                                                                                     >
                                                                                         {genero}
                                                                                     </button>
@@ -507,15 +507,15 @@ const Navbar = () => {
 
                                                                 {/* Rubros */}
                                                                 {categories?.rubros && categories.rubros.length > 0 && (
-                                                                    <div className="mb-4 border-t border-gray-200 pt-4">
-                                                                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">RUBROS</h3>
+                                                                    <div className="mb-2 sm:mb-3 border-t border-gray-200 pt-2 sm:pt-3">
+                                                                        <h3 className="text-[9px] sm:text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 sm:mb-1.5">RUBROS</h3>
                                                                         <div className="overflow-x-auto -mx-2 px-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                                                                            <div className="flex gap-2 pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
+                                                                            <div className="flex gap-1.5 sm:gap-2 pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
                                                                                 {categories.rubros.map((rubro) => (
                                                                                     <button
                                                                                         key={rubro}
                                                                                         onClick={() => handleCategoryNavigation('rubro', rubro)}
-                                                                                        className="flex-shrink-0 px-4 py-2 text-xs text-gray-700 hover:text-[#Ed3237] hover:bg-white rounded transition-all duration-200 whitespace-nowrap border border-gray-200"
+                                                                                        className="flex-shrink-0 px-2 sm:px-3 py-1 sm:py-1.5 text-[9px] sm:text-[10px] text-gray-700 hover:text-[#Ed3237] hover:bg-white rounded transition-all duration-200 whitespace-nowrap border border-gray-200"
                                                                                     >
                                                                                         {rubro}
                                                                                     </button>
@@ -527,15 +527,15 @@ const Navbar = () => {
 
                                                                 {/* Subrubros */}
                                                                 {categories?.subrubros && categories.subrubros.length > 0 && (
-                                                                    <div className="mb-4 border-t border-gray-200 pt-4">
-                                                                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">CATEGORÍAS</h3>
+                                                                    <div className="mb-2 sm:mb-3 border-t border-gray-200 pt-2 sm:pt-3">
+                                                                        <h3 className="text-[9px] sm:text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 sm:mb-1.5">CATEGORÍAS</h3>
                                                                         <div className="overflow-x-auto -mx-2 px-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                                                                            <div className="flex gap-2 pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
+                                                                            <div className="flex gap-1.5 sm:gap-2 pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
                                                                                 {categories.subrubros.map((subrubro) => (
                                                                                     <button
                                                                                         key={subrubro}
                                                                                         onClick={() => handleCategoryNavigation('subrubro', subrubro)}
-                                                                                        className="flex-shrink-0 px-4 py-2 text-xs text-gray-700 hover:text-[#Ed3237] hover:bg-white rounded transition-all duration-200 whitespace-nowrap border border-gray-200"
+                                                                                        className="flex-shrink-0 px-2 sm:px-3 py-1 sm:py-1.5 text-[9px] sm:text-[10px] text-gray-700 hover:text-[#Ed3237] hover:bg-white rounded transition-all duration-200 whitespace-nowrap border border-gray-200"
                                                                                     >
                                                                                         {subrubro}
                                                                                     </button>
@@ -546,14 +546,14 @@ const Navbar = () => {
                                                                 )}
 
                                                                 {/* Ver todo */}
-                                                                <div className="border-t border-gray-200 pt-4">
+                                                                <div className="border-t border-gray-200 pt-2 sm:pt-3">
                                                                     <button
                                                                         onClick={() => {
                                                                             router.push('/shoponline');
                                                                             setIsMobileShopSubmenuOpen(false);
                                                                             if (isMenuOpen) toggleMenu();
                                                                         }}
-                                                                        className="w-full text-center px-3 py-2 text-xs font-semibold text-[#Ed3237] hover:bg-[#Ed3237] hover:text-white rounded transition-all duration-200"
+                                                                        className="w-full text-center px-2 sm:px-3 py-1 sm:py-1.5 text-[9px] sm:text-[10px] font-semibold text-[#Ed3237] hover:bg-[#Ed3237] hover:text-white rounded transition-all duration-200"
                                                                     >
                                                                         VER TODO
                                                                     </button>
@@ -592,7 +592,7 @@ const Navbar = () => {
                                             animate={{ x: 0, opacity: 1 }}
                                             transition={{ delay: index * 0.1 }}
                                             onClick={() => handleNavigation(item)}
-                                            className={`block w-full text-left px-3 py-2 font-medium tracking-wide transition-all duration-300 rounded-lg ${
+                                            className={`block w-full text-left px-2 sm:px-2.5 py-1 sm:py-1.5 text-[9px] sm:text-[10px] font-medium tracking-wide transition-all duration-300 rounded-lg ${
                                                 isLinkActive(item)
                                                     ? 'text-[#Ed3237] bg-gray-50 font-semibold'
                                                     : 'text-[#000000] hover:text-[#Ed3237] hover:bg-gray-50'

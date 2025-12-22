@@ -24,7 +24,9 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
       <>
         <PromoBanner />
         <Navbar />
-        {children}
+        <div className="pt-[54px] lg:pt-[104px]">
+          {children}
+        </div>
         <Footer />
         <WhatsAppCommercialButton />
       </>
@@ -36,7 +38,9 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
     <>
       <PromoBanner />
       <Navbar />
-      {children}
+      <div className="pt-[54px] lg:pt-[104px]">
+        {children}
+      </div>
       <Footer />
       <WhatsAppButton />
     </>

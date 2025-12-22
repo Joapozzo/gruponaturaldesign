@@ -80,7 +80,7 @@ const StatCard: React.FC<StatCardProps> = ({
             </motion.div>
 
             <motion.div
-                className="text-lg md:text-xl font-bold text-gray-900 mb-2 font-display"
+                className="text-base md:text-lg font-bold text-gray-900 mb-2 font-display"
                 animate={isInView ? {
                     scale: [1, 1.05, 1],
                     opacity: [0.7, 1, 1]
@@ -90,7 +90,7 @@ const StatCard: React.FC<StatCardProps> = ({
                 {count}{suffix}
             </motion.div>
 
-            <div className="text-xs md:text-md text-gray-500 font-medium tracking-wide uppercase">
+            <div className="text-[10px] md:text-xs text-gray-500 font-medium tracking-wide uppercase">
                 {label}
             </div>
         </motion.div>
@@ -124,7 +124,7 @@ const Nosotros = () => {
                         transition={{ duration: 0.8, delay: 0.2 }}
                         viewport={{ once: true }}
                     >
-                        <h2 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-gray-900 mb-6 font-display leading-tight">
+                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4 font-display leading-tight">
                             NATURAL DESIGN
                         </h2>
                         <div className="w-20 h-1 bg-gray-300 rounded-lg"></div>
@@ -132,7 +132,7 @@ const Nosotros = () => {
 
                     {/* Descripción principal */}
                     <motion.p
-                        className="text-sm md:text-xl text-gray-700 leading-relaxed"
+                        className="text-xs md:text-sm text-gray-700 leading-relaxed"
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.4 }}
@@ -149,10 +149,10 @@ const Nosotros = () => {
                         transition={{ duration: 0.8, delay: 0.6 }}
                         viewport={{ once: true }}
                     >
-                        <p className="text-sm md:text-lg text-gray-600 leading-relaxed">
+                        <p className="text-xs md:text-sm text-gray-600 leading-relaxed">
                             Un buen diseño puede mejorar la experiencia de tu equipo creando un entorno seguro y motivador. Más de 25 años de experiencia nos respaldan.
                         </p>
-                        <p className="text-sm md:text-lg text-gray-800 font-medium">
+                        <p className="text-xs md:text-sm text-gray-800 font-medium">
                             ¿Querés ser parte de nuestros clientes satisfechos? Contactanos y descubrí por qué más de 500 empresas ya nos eligieron.
                         </p>
                     </motion.div>
@@ -255,8 +255,8 @@ const Nosotros = () => {
                             viewport={{ once: true }}
                             whileHover={{ scale: 1.05 }}
                         >
-                            <div className="text-lg font-bold mb-1 font-display">NATURAL DESIGN</div>
-                            <div className="text-sm text-gray-300 tracking-wide">CALIDAD Y DISEÑO</div>
+                            <div className="text-base font-bold mb-1 font-display">NATURAL DESIGN</div>
+                            <div className="text-xs text-gray-300 tracking-wide">CALIDAD Y DISEÑO</div>
 
                             {/* Indicador de estado */}
                             <motion.div

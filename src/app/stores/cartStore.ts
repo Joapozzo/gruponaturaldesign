@@ -2,9 +2,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CartState, CartProduct, CartItem, CustomerData, ShippingData, PaymentData } from '../types/cart';
 
-import { IVA_RATE } from '@/app/utils/constants';
+import { IVA_RATE, WHATSAPP_PHONE_NUMBER, getWhatsAppNumberForUrl } from '@/app/utils/constants';
 import { canAddQuantity } from '@/app/services/stockService';
-const WHATSAPP_NUMBER = '+5493517136311';
 
 export const useCartStore = create<CartState>()(
     persist(
@@ -277,6 +276,6 @@ function calculateTotals(items: CartItem[]) {
 
 export const sendOrderViaWhatsApp = (message: string) => {
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER.replace(/\D/g, '')}?text=${encodedMessage}`;
+    const whatsappUrl = `https://wa.me/${getWhatsAppNumberForUrl()}?text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
 };

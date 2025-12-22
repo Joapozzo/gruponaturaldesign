@@ -17,7 +17,7 @@ const DesignHero = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="lg:col-span-6 flex flex-col justify-center px-8 lg:pl-20 lg:pr-12 xl:pl-24 xl:pr-16 py-16 lg:py-24 relative z-20"
+            className="lg:col-span-6 flex flex-col justify-center px-6 lg:pl-12 lg:pr-8 xl:pl-16 xl:pr-10 py-12 lg:py-16 relative z-20"
           >
             {/* Título principal */}
             <motion.h2
@@ -25,7 +25,7 @@ const DesignHero = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-3xl sm:text-4xl lg:text-5xl xl:text-5xl 2xl:text-7xl font-bold text-black mb-6 lg:mb-8 leading-[1.1] font-display tracking-tight"
+              className="text-2xl sm:text-3xl lg:text-4xl xl:text-4xl 2xl:text-5xl font-bold text-black mb-4 lg:mb-6 leading-[1.1] font-display tracking-tight"
             >
               DISEÑADA PARA<br />
               TRABAJAR, CREADA<br />
@@ -38,7 +38,7 @@ const DesignHero = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-base sm:text-lg lg:text-xl text-gray-600 leading-relaxed max-w-xl mt-4"
+              className="text-sm sm:text-base lg:text-lg text-gray-600 leading-relaxed max-w-xl mt-3"
             >
               Una colección pensada para quienes valoran la comodidad y la funcionalidad sin renunciar al estilo.
             </motion.p>
@@ -50,7 +50,7 @@ const DesignHero = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="lg:col-span-4 relative h-[60vh] sm:h-[70vh] lg:h-[80vh] xl:h-[85vh] w-full"
+            className="lg:col-span-4 relative h-[50vh] sm:h-[60vh] lg:h-[70vh] xl:h-[75vh] w-full"
           >
             <Image
               src="/imgs/nosotros.png"

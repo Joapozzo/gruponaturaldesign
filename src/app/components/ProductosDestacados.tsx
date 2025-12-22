@@ -139,8 +139,9 @@ const ProductosDestacados = () => {
     // Adaptar productos V2 a formato compatible (misma lógica que ProductsGrid)
     const groupedProducts = productsV2.map(adaptGroupedProductV2ToGroupedProduct);
 
-    // Tomar solo los primeros 6 productos (sin mutar el array original)
-    const productDestacados = groupedProducts.slice(0, 6);
+    // Mostrar todos los productos en el slider
+    const productDestacados = groupedProducts;
+
 
     // Pausar/reanudar autoplay cuando un producto está expandido
     useEffect(() => {
@@ -184,6 +185,7 @@ const ProductosDestacados = () => {
             }
         }
     }, [expandedSku]);
+
 
     const goToPage = () => {
         router.push(`/shoponline`);
@@ -251,8 +253,8 @@ const ProductosDestacados = () => {
                     }}
                     allowTouchMove={!expandedSku}
                     navigation={{
-                        nextEl: '.swiper-button-next-custom',
-                        prevEl: '.swiper-button-prev-custom',
+                        nextEl: '#swiper-button-next-destacados',
+                        prevEl: '#swiper-button-prev-destacados',
                     }}
                     pagination={{
                         clickable: true,
@@ -263,8 +265,8 @@ const ProductosDestacados = () => {
                         disableOnInteraction: false,
                         pauseOnMouseEnter: true,
                     }}
-                    loop={productDestacados.length >= 6}
-                    loopAdditionalSlides={2}
+                    loop={productDestacados.length > 4}
+                    loopAdditionalSlides={productDestacados.length > 4 ? 3 : 0}
                     breakpoints={{
                         320: {
                             slidesPerView: 1.5,
@@ -275,11 +277,11 @@ const ProductosDestacados = () => {
                             spaceBetween: 12,
                         },
                         640: {
-                            slidesPerView: 2,
+                            slidesPerView: 2.5,
                             spaceBetween: 14,
                         },
                         768: {
-                            slidesPerView: 2,
+                            slidesPerView: 3,
                             spaceBetween: 16,
                         },
                         1024: {
@@ -287,7 +289,7 @@ const ProductosDestacados = () => {
                             spaceBetween: 12,
                         },
                         1280: {
-                            slidesPerView: 4,
+                            slidesPerView: 5,
                             spaceBetween: 14,
                         },
                     }}
@@ -305,21 +307,25 @@ const ProductosDestacados = () => {
                     ))}
                 </Swiper>
 
-                {/* Navegación personalizada */}
-                <div className="flex justify-center items-center space-x-4 mt-8">
+                {/* Navegación personalizada - debajo del Swiper */}
+                <div className="flex justify-center items-center space-x-3 mt-4">
                     <button 
                         ref={prevButtonRef}
-                        className="swiper-button-prev-custom w-12 h-12 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-all duration-300 group disabled:opacity-50 disabled:cursor-not-allowed"
+                        id="swiper-button-prev-destacados"
+                        onClick={() => swiperRef.current?.slidePrev()}
+                        className="swiper-button-prev-custom w-8 h-8 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-all duration-300 group disabled:opacity-50 disabled:cursor-not-allowed"
                         aria-label="Anterior"
                     >
-                        <ArrowRight className="w-5 h-5 text-gray-700 rotate-180 group-hover:text-gray-900" />
+                        <ArrowRight className="w-3.5 h-3.5 text-gray-700 rotate-180 group-hover:text-gray-900" />
                     </button>
                     <button 
                         ref={nextButtonRef}
-                        className="swiper-button-next-custom w-12 h-12 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-all duration-300 group disabled:opacity-50 disabled:cursor-not-allowed"
+                        id="swiper-button-next-destacados"
+                        onClick={() => swiperRef.current?.slideNext()}
+                        className="swiper-button-next-custom w-8 h-8 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-all duration-300 group disabled:opacity-50 disabled:cursor-not-allowed"
                         aria-label="Siguiente"
                     >
-                        <ArrowRight className="w-5 h-5 text-gray-700 group-hover:text-gray-900" />
+                        <ArrowRight className="w-3.5 h-3.5 text-gray-700 group-hover:text-gray-900" />
                     </button>
                 </div>
 
@@ -333,12 +339,12 @@ const ProductosDestacados = () => {
                 >
                     <Button
                         variant="black"
-                        size="md"
-                        className="tracking-wide inline-flex items-center space-x-3"
+                        size="sm"
+                        className="tracking-wide inline-flex items-center space-x-2 text-xs"
                         onClick={goToPage}
                     >
                         <span>VER SHOP COMPLETO</span>
-                        <ArrowRight className="w-5 h-5" />
+                        <ArrowRight className="w-4 h-4" />
                     </Button>
                 </motion.div>
             </div>

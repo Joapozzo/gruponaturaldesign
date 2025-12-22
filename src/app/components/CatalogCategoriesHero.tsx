@@ -65,7 +65,7 @@ const CatalogCategoriesHero = ({ onCategorySelect, selectedCategory = 'TODOS' }:
                             onClick={() => handleCategoryClick(categoria.filterValue)}
                         >
                             {/* Imagen de fondo - Altura completa */}
-                            <div className="relative h-[85vh] w-full overflow-hidden">
+                            <div className="relative h-[60vh] sm:h-[75vh] lg:h-[85vh] w-full overflow-hidden">
                                 <motion.img
                                     src={categoria.imagen}
                                     alt={categoria.nombre}
@@ -95,7 +95,7 @@ const CatalogCategoriesHero = ({ onCategorySelect, selectedCategory = 'TODOS' }:
                             </div>
 
                             {/* Contenido de texto */}
-                            <div className="absolute bottom-0 left-0 right-0 p-8 lg:p-12 text-white">
+                            <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-12 text-white">
                                 <motion.div
                                     animate={{
                                         y: hoveredCategory === categoria.id || isSelected ? -10 : 0,
@@ -103,10 +103,10 @@ const CatalogCategoriesHero = ({ onCategorySelect, selectedCategory = 'TODOS' }:
                                     }}
                                     transition={{ duration: 0.3 }}
                                 >
-                                    <h3 className="text-3xl lg:text-4xl font-bold mb-4 font-display">
+                                    <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 sm:mb-4 font-display">
                                         {categoria.nombre}
                                     </h3>
-                                    <p className="md:text-lg text-sm opacity-90 mb-6 max-w-md leading-relaxed">
+                                    <p className="text-xs sm:text-sm md:text-base lg:text-base opacity-90 mb-3 sm:mb-6 max-w-md leading-relaxed">
                                         {categoria.descripcion}
                                     </p>
 
@@ -118,26 +118,26 @@ const CatalogCategoriesHero = ({ onCategorySelect, selectedCategory = 'TODOS' }:
                                             x: hoveredCategory === categoria.id || isSelected ? 0 : -20
                                         }}
                                         transition={{ duration: 0.3, delay: 0.1 }}
-                                        className="flex items-center space-x-3"
+                                        className="flex items-center space-x-2 sm:space-x-3"
                                     >
-                                        <span className="text-lg font-semibold">
+                                        <span className="text-xs sm:text-sm lg:text-base font-semibold">
                                             {isSelected ? 'VER TODOS' : 'EXPLORAR COLECCIÓN'}
                                         </span>
-                                        <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform duration-300" />
+                                        <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 lg:w-5 lg:h-5 group-hover:translate-x-2 transition-transform duration-300" />
                                     </motion.div>
                                 </motion.div>
                             </div>
 
                             {/* Ícono de expansión */}
                             <motion.div
-                                className={`absolute top-6 right-6 w-12 h-12 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-300 ${
+                                className={`absolute top-3 right-3 sm:top-6 sm:right-6 w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-300 ${
                                     isSelected ? 'bg-[#Ed3237]/90' : 'bg-white/20'
                                 }`}
                                 animate={{
                                     scale: hoveredCategory === categoria.id || isSelected ? 1.1 : 1,
                                 }}
                             >
-                                <Plus className="w-6 h-6 text-white" />
+                                <Plus className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
                             </motion.div>
 
                             {/* Indicador de selección */}
@@ -145,7 +145,7 @@ const CatalogCategoriesHero = ({ onCategorySelect, selectedCategory = 'TODOS' }:
                                 <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
-                                    className="absolute top-6 left-6 bg-[#Ed3237] text-white px-4 py-2 rounded-lg font-semibold text-sm"
+                                    className="absolute top-3 left-3 sm:top-6 sm:left-6 bg-[#Ed3237] text-white px-2 py-1 sm:px-4 sm:py-2 rounded-lg font-semibold text-[10px] sm:text-xs lg:text-sm"
                                 >
                                     SELECCIONADO
                                 </motion.div>

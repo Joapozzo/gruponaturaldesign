@@ -3,6 +3,7 @@ import { Poppins, Montserrat } from "next/font/google";
 import "./globals.css";
 import ConditionalLayout from "./components/ConditionalLayout";
 import { Providers } from "./components/Providers";
+import { WHATSAPP_PHONE_NUMBER, WHATSAPP_PHONE_NUMBER_FORMATTED } from "./utils/constants";
 
 // Fuentes según el manual de marca NTDS
 // Franklin Gothic Heavy no está en Google Fonts, usamos Poppins como fallback principal
@@ -105,7 +106,7 @@ export const metadata: Metadata = {
     "business:contact_data:region": "Córdoba",
     "business:contact_data:postal_code": "5000",
     "business:contact_data:country_name": "Argentina",
-    "business:contact_data:phone_number": "+54 9 3517 13-6311",
+    "business:contact_data:phone_number": WHATSAPP_PHONE_NUMBER,
     "business:contact_data:email": "ventas@naturalonline.com.ar",
   },
 
@@ -203,7 +204,7 @@ export default function RootLayout({
               },
               "contactPoint": {
                 "@type": "ContactPoint",
-                "telephone": "+54-351-7136316",
+                "telephone": WHATSAPP_PHONE_NUMBER_FORMATTED,
                 "contactType": "customer service",
                 "email": "ventas@naturalonline.com.ar",
                 "availableLanguage": "Spanish"

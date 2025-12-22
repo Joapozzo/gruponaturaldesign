@@ -150,6 +150,7 @@ export default function ProductImageGallery({
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
             className="space-y-2 sm:space-y-3"
+            style={{ overflow: 'visible' }}
         >
             {/* Mostrar imágenes desde Drive si hay URL */}
             {product.fotosDriveUrl ? (
@@ -158,197 +159,210 @@ export default function ProductImageGallery({
                     productName={productName}
                 />
             ) : (
-                // Fallback: mostrar galería local con miniaturas
-                <div className="space-y-1.5 sm:space-y-2 flex flex-col max-h-[100vh] overflow-hidden items-start">
-                    {/* Dos imágenes grandes lado a lado */}
-                    <div className="flex gap-2 sm:gap-3 w-full">
-                        {/* Primera imagen (principal) */}
-                        <div className="relative group flex-1">
-                            <div
-                                ref={imageRef}
-                                className="relative aspect-[3/4] bg-white rounded-lg overflow-hidden cursor-zoom-in"
-                                onClick={onOpenModal}
-                                onMouseMove={handleMouseMove}
-                                onMouseEnter={handleMouseEnter}
-                                onMouseLeave={handleMouseLeave}
-                            >
-                            {displayImages.length > 0 && displayImages[adjustedIndex] ? (
-                                <>
-                                    <Image
-                                        src={displayImages[adjustedIndex]}
-                                        alt={`${productName} - Imagen ${adjustedIndex + 1}`}
-                                        className="w-full h-full object-cover"
-                                        fill
-                                        sizes="(max-width: 768px) 100vw, 50vw"
-                                        unoptimized={true}
-                                        onLoad={() => handleImageLoad(displayImages[adjustedIndex])}
-                                        onError={() => {
-                                            handleImageError(displayImages[adjustedIndex]);
-                                        }}
-                                    />
-                                    {/* Efecto de zoom en círculo */}
-                                    {isHovering && mousePosition && imageRef.current && displayImages[adjustedIndex] && (
-                                        <div
-                                            className="absolute pointer-events-none z-10 rounded-full border-2 border-white shadow-2xl overflow-hidden"
-                                            style={{
-                                                width: '150px',
-                                                height: '150px',
-                                                left: `${mousePosition.x}px`,
-                                                top: `${mousePosition.y}px`,
-                                                transform: 'translate(-50%, -50%)',
-                                            }}
-                                        >
-                                            <div
-                                                className="w-full h-full"
-                                                style={{
-                                                    backgroundImage: `url(${displayImages[adjustedIndex]})`,
-                                                    backgroundSize: `${(imageRef.current.offsetWidth / 150) * 100}% auto`,
-                                                    backgroundPosition: `${(mousePosition.x / imageRef.current.offsetWidth) * 100}% ${(mousePosition.y / imageRef.current.offsetHeight) * 100}%`,
-                                                    backgroundRepeat: 'no-repeat',
-                                                }}
-                                            />
-                                        </div>
-                                    )}
-                                    {/* Botón para expandir */}
-                                    {displayImages.length > 1 && (
-                                        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full p-1.5 sm:p-2 transition-all duration-300 z-20">
-                                            <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                                        </div>
-                                    )}
-                                    {/* Navegación con flechas si hay más de una imagen */}
-                                    {images.length > 1 && (
-                                        <>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onPrev();
-                                                }}
-                                                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full p-1.5 sm:p-2 transition-all duration-300 opacity-0 group-hover:opacity-100 z-20"
-                                                aria-label="Imagen anterior"
-                                            >
-                                                <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
-                                            </button>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onNext();
-                                                }}
-                                                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full p-1.5 sm:p-2 transition-all duration-300 opacity-0 group-hover:opacity-100 z-20"
-                                                aria-label="Siguiente imagen"
-                                            >
-                                                <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
-                                            </button>
-                                        </>
-                                    )}
-                                </>
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                                    <Package className="w-16 h-16 sm:w-20 sm:h-20 text-gray-400" />
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                        
-                    {/* Segunda imagen (si existe) */}
+                // Fallback: mostrar galería local con imagen grande y miniaturas
+                // En mobile: miniaturas abajo, en desktop: miniaturas a la izquierda
+                <div className="flex flex-col sm:flex-row gap-0 w-full max-w-lg mx-auto overflow-visible">
+                    {/* Miniaturas - En mobile: abajo (horizontal), en desktop: izquierda (vertical) */}
                     {displayImages.length > 1 && (
-                        <div className="relative group flex-1">
-                            <div
-                                className="relative aspect-[3/4] bg-white rounded-lg overflow-hidden cursor-zoom-in"
-                                onClick={() => {
-                                    const secondImageIndex = validImages.indexOf(displayImages[1]);
-                                    if (secondImageIndex !== -1) {
-                                        onImageChange(secondImageIndex);
-                                        onOpenModal();
-                                    }
-                                }}
-                            >
-                                {displayImages[1] ? (
-                                    <Image
-                                        src={displayImages[1]}
-                                        alt={`${productName} - Imagen 2`}
-                                        className="w-full h-full object-cover"
-                                        fill
-                                        sizes="(max-width: 768px) 100vw, 50vw"
-                                        unoptimized={true}
-                                        onLoad={() => handleImageLoad(displayImages[1])}
-                                        onError={() => handleImageError(displayImages[1])}
-                                    />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                                        <Package className="w-16 h-16 sm:w-20 sm:h-20 text-gray-400" />
+                        <>
+                            {/* Miniaturas verticales a la izquierda - Solo en desktop */}
+                            <div className="hidden sm:flex flex-col gap-2 sm:gap-3 flex-shrink-0 mr-3 sm:mr-4 overflow-visible">
+                                {displayImages.map((img, index) => {
+                                    const actualIndex = validImages.indexOf(img);
+                                    const isActive = adjustedIndex === actualIndex;
+                                    return (
+                                        <motion.button
+                                            key={`${img}-${index}`}
+                                            onClick={() => {
+                                                if (actualIndex !== -1) {
+                                                    onImageChange(actualIndex);
+                                                } else {
+                                                    onImageChange(index);
+                                                }
+                                            }}
+                                            className={`relative w-16 sm:w-20 h-16 sm:h-20 rounded-lg transition-all duration-300 ${
+                                                isActive
+                                                    ? 'border-2 border-black'
+                                                    : 'border-2 border-gray-200 hover:border-gray-400'
+                                            }`}
+                                            style={{
+                                                boxSizing: 'border-box',
+                                                overflow: 'visible'
+                                            }}
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            aria-label={`Ver imagen ${index + 1}`}
+                                        >
+                                            <div className="w-full h-full rounded-lg overflow-hidden">
+                                                {imageLoadStatus[img] === 'error' ? (
+                                                    <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                                                        <Package className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+                                                    </div>
+                                                ) : (
+                                                    <Image
+                                                        src={img}
+                                                        alt={`${productName} - Miniatura ${index + 1}`}
+                                                        className="w-full h-full object-cover"
+                                                        width={80}
+                                                        height={80}
+                                                        unoptimized={true}
+                                                        onLoad={() => handleImageLoad(img)}
+                                                        onError={() => handleImageError(img)}
+                                                    />
+                                                )}
+                                            </div>
+                                            {/* Overlay cuando está seleccionada */}
+                                            {isActive && (
+                                                <div className="absolute inset-0 bg-black/20" />
+                                            )}
+                                        </motion.button>
+                                    );
+                                })}
+                            </div>
+                        </>
+                    )}
+                    
+                    {/* Imagen principal grande */}
+                    <div className="relative group flex-1 flex justify-center w-full">
+                        <div
+                            ref={imageRef}
+                            className="relative aspect-[3/4] bg-white rounded-lg overflow-hidden cursor-zoom-in max-h-[75vh] w-full"
+                            onClick={onOpenModal}
+                            onMouseMove={handleMouseMove}
+                            onMouseEnter={handleMouseEnter}
+                            onMouseLeave={handleMouseLeave}
+                        >
+                        {displayImages.length > 0 && displayImages[adjustedIndex] ? (
+                            <>
+                                <Image
+                                    src={displayImages[adjustedIndex]}
+                                    alt={`${productName} - Imagen ${adjustedIndex + 1}`}
+                                    className="w-full h-full object-cover"
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, 50vw"
+                                    unoptimized={true}
+                                    onLoad={() => handleImageLoad(displayImages[adjustedIndex])}
+                                    onError={() => {
+                                        handleImageError(displayImages[adjustedIndex]);
+                                    }}
+                                />
+                                {/* Efecto de zoom en círculo */}
+                                {isHovering && mousePosition && imageRef.current && displayImages[adjustedIndex] && (
+                                    <div
+                                        className="absolute pointer-events-none z-10 rounded-full border-2 border-white shadow-2xl overflow-hidden"
+                                        style={{
+                                            width: '150px',
+                                            height: '150px',
+                                            left: `${mousePosition.x}px`,
+                                            top: `${mousePosition.y}px`,
+                                            transform: 'translate(-50%, -50%)',
+                                        }}
+                                    >
+                                        <div
+                                            className="w-full h-full"
+                                            style={{
+                                                backgroundImage: `url(${displayImages[adjustedIndex]})`,
+                                                backgroundSize: `${(imageRef.current.offsetWidth / 150) * 100}% auto`,
+                                                backgroundPosition: `${(mousePosition.x / imageRef.current.offsetWidth) * 100}% ${(mousePosition.y / imageRef.current.offsetHeight) * 100}%`,
+                                                backgroundRepeat: 'no-repeat',
+                                            }}
+                                        />
                                     </div>
                                 )}
+                                {/* Botón para expandir */}
                                 {displayImages.length > 1 && (
                                     <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full p-1.5 sm:p-2 transition-all duration-300 z-20">
                                         <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                                     </div>
                                 )}
+                                {/* Navegación con flechas si hay más de una imagen */}
+                                {images.length > 1 && (
+                                    <>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onPrev();
+                                            }}
+                                            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full p-1.5 sm:p-2 transition-all duration-300 opacity-0 group-hover:opacity-100 z-20"
+                                            aria-label="Imagen anterior"
+                                        >
+                                            <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onNext();
+                                            }}
+                                            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full p-1.5 sm:p-2 transition-all duration-300 opacity-0 group-hover:opacity-100 z-20"
+                                            aria-label="Siguiente imagen"
+                                        >
+                                            <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+                                        </button>
+                                    </>
+                                )}
+                            </>
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                                <Package className="w-16 h-16 sm:w-20 sm:h-20 text-gray-400" />
                             </div>
+                        )}
                         </div>
-                    )}
-                </div>
-
-                    {/* Miniaturas de imágenes restantes (desde la 3ra en adelante) */}
-                    {displayImages.length > 2 && (
-                        <div className="w-full">
-                            <div className="flex gap-2 sm:gap-3 justify-start flex-wrap">
-                                {displayImages.slice(2).map((img, index) => {
-                                    const actualIndex = index + 2;
+                    </div>
+                    
+                    {/* Miniaturas horizontales abajo - Solo en mobile - 100% del ancho de la imagen principal */}
+                    {displayImages.length > 1 && (
+                        <div className="sm:hidden mt-3 w-full" style={{ overflow: 'visible', padding: '2px' }}>
+                            <div className="grid grid-cols-4 gap-2.5 w-full" style={{ overflow: 'visible' }}>
+                                {displayImages.map((img, index) => {
+                                    const actualIndex = validImages.indexOf(img);
+                                    const isActive = adjustedIndex === actualIndex;
                                     return (
-                                    <div
-                                        key={`${img}-${actualIndex}`}
-                                        className={`relative ${
-                                            adjustedIndex === actualIndex
-                                                ? 'p-0.5'
-                                                : ''
-                                        }`}
-                                        style={{ 
-                                            flex: '0 0 calc(25% - 0.375rem)',
-                                            maxWidth: 'calc(25% - 0.375rem)'
-                                        }}
-                                    >
                                         <motion.button
+                                            key={`${img}-${index}-mobile`}
                                             onClick={() => {
-                                                // Encontrar el índice original en images para mantener consistencia
-                                                const originalIndex = validImages.indexOf(img);
-                                                if (originalIndex !== -1) {
-                                                    onImageChange(originalIndex);
-                                                } else {
+                                                if (actualIndex !== -1) {
                                                     onImageChange(actualIndex);
+                                                } else {
+                                                    onImageChange(index);
                                                 }
                                             }}
-                                            className={`relative aspect-square rounded-lg border-2 transition-all duration-300 w-full ${
-                                                adjustedIndex === actualIndex
-                                                    ? 'border-black ring-2 ring-black ring-offset-2'
-                                                    : 'border-gray-200 hover:border-gray-400 overflow-hidden'
+                                            className={`relative w-full aspect-square rounded-lg transition-all duration-300 ${
+                                                isActive
+                                                    ? 'border-2 border-black'
+                                                    : 'border-2 border-gray-200 hover:border-gray-400'
                                             }`}
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        aria-label={`Ver imagen ${index + 1}`}
-                                    >
-                                        {imageLoadStatus[img] === 'error' ? (
-                                            <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-lg overflow-hidden">
-                                                <Package className="w-6 h-6 text-gray-400" />
+                                            style={{
+                                                boxSizing: 'border-box',
+                                                overflow: 'visible'
+                                            }}
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            aria-label={`Ver imagen ${index + 1}`}
+                                        >
+                                            <div className="w-full h-full rounded-lg overflow-hidden">
+                                                {imageLoadStatus[img] === 'error' ? (
+                                                    <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                                                        <Package className="w-4 h-4 text-gray-400" />
+                                                    </div>
+                                                ) : (
+                                                    <Image
+                                                        src={img}
+                                                        alt={`${productName} - Miniatura ${index + 1}`}
+                                                        className="w-full h-full object-cover"
+                                                        fill
+                                                        sizes="25vw"
+                                                        unoptimized={true}
+                                                        onLoad={() => handleImageLoad(img)}
+                                                        onError={() => handleImageError(img)}
+                                                    />
+                                                )}
                                             </div>
-                                        ) : (
-                                            <Image
-                                                src={img}
-                                                alt={`${productName} - Miniatura ${index + 1}`}
-                                                className="w-full h-full object-cover rounded-lg overflow-hidden"
-                                                width={120}
-                                                height={120}
-                                                unoptimized={true}
-                                                onLoad={() => handleImageLoad(img)}
-                                                onError={() => handleImageError(img)}
-                                            />
-                                        )}
                                             {/* Overlay cuando está seleccionada */}
-                                            {adjustedIndex === actualIndex && (
+                                            {isActive && (
                                                 <div className="absolute inset-0 bg-black/20 rounded-lg" />
                                             )}
                                         </motion.button>
-                                    </div>
-                                );
+                                    );
                                 })}
                             </div>
                         </div>

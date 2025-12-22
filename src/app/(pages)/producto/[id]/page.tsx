@@ -148,7 +148,7 @@ const ProductDetailPageContent = () => {
     const displayProduct = groupedProduct.displayProduct;
 
     return (
-        <div className="min-h-screen bg-white px-3 sm:px-4">
+        <div className="min-h-screen bg-white px-3 sm:px-6 md:px-8 lg:px-12">
             {/* Header */}
             <ProductHeader
                 groupedProduct={groupedProduct}
@@ -158,11 +158,11 @@ const ProductDetailPageContent = () => {
             {/* Contenido principal */}
             <Section
                 id="product-content"
-                className="py-3 sm:py-4 lg:py-5"
+                className="pt-2 sm:pt-4 pb-4 sm:pb-6"
                 contentClassName="max-w-[1600px] mx-auto"
                 noPadding
             >
-                <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-4 sm:mb-6">
+                <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8" style={{ overflow: 'visible' }}>
                     {/* Galería de imágenes */}
                     <div className="flex flex-col">
                         <ProductImageGallery
@@ -176,20 +176,30 @@ const ProductDetailPageContent = () => {
                             onOpenModal={openModal}
                         />
                         
-                        {/* Código y Categoría debajo de las imágenes */}
-                        <div className="mt-2 sm:mt-3">
-                            <ProductSpecs
-                                selectedVariant={selectedVariant}
-                                displayProduct={displayProduct}
-                            />
+                        {/* Código y Categoría debajo de las imágenes - alineado solo con la imagen principal */}
+                        <div className="mt-3 w-full max-w-lg mx-auto">
+                            {/* Replicar la estructura flex del ProductImageGallery para alineación exacta */}
+                            <div className="flex flex-col sm:flex-row gap-0">
+                                {/* Espacio para miniaturas en desktop (igual que en ProductImageGallery) */}
+                                {groupedProduct.displayProduct.imagenes && groupedProduct.displayProduct.imagenes.length > 1 && (
+                                    <div className="hidden sm:block w-20 mr-4 flex-shrink-0"></div>
+                                )}
+                                {/* Contenedor que coincide exactamente con flex-1 de la imagen principal */}
+                                <div className="flex-1 w-full">
+                                    <ProductSpecs
+                                        selectedVariant={selectedVariant}
+                                        displayProduct={displayProduct}
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     {/* Información del producto */}
-                    <div className="space-y-3 sm:space-y-4">
+                    <div className="space-y-4 sm:space-y-6" style={{ overflow: 'visible' }}>
                         {/* Nombre y Bordado en fila */}
-                        <div className="flex items-center justify-between w-full gap-3 mb-2">
-                            <h1 className="text-lg sm:text-xl lg:text-2xl font-medium text-gray-900 font-display leading-tight flex-1">
+                        <div className="flex items-center justify-between w-full gap-2 mb-3 sm:mb-4">
+                            <h1 className="text-sm sm:text-base lg:text-xl font-bold text-gray-900 font-display leading-tight flex-1">
                                 {productName}
                             </h1>
                             <div className="flex-shrink-0">
@@ -200,7 +210,7 @@ const ProductDetailPageContent = () => {
                                         handleBordadoChange(value);
                                     }}
                                     isMobile={false}
-                                    size="large"
+                                    size="small"
                                 />
                             </div>
                         </div>
@@ -215,17 +225,20 @@ const ProductDetailPageContent = () => {
                         />
 
                         {/* Selectores de Color y Talle */}
-                        <ProductVariantSelector
-                            groupedProduct={groupedProduct}
-                            selectedColor={selectedColor}
-                            selectedSize={selectedSize}
-                            availableSizes={orderedAvailableSizes}
-                            onColorSelect={handleColorSelect}
-                            onSizeSelect={handleSizeSelect}
-                        />
+                        <div className="mt-4" style={{ overflow: 'visible', padding: '4px' }}>
+                            <ProductVariantSelector
+                                groupedProduct={groupedProduct}
+                                selectedColor={selectedColor}
+                                selectedSize={selectedSize}
+                                availableSizes={orderedAvailableSizes}
+                                onColorSelect={handleColorSelect}
+                                onSizeSelect={handleSizeSelect}
+                            />
+                        </div>
 
                         {/* Controles de cantidad */}
-                        <QuantityControlsProductPage
+                        <div className="mt-4 px-1 sm:px-0">
+                            <QuantityControlsProductPage
                             currentQuantity={currentQuantity}
                             isAdding={isAdding}
                             isInCart={inCart}
@@ -235,13 +248,18 @@ const ProductDetailPageContent = () => {
                             onIncrement={handleIncrement}
                             onDecrement={handleDecrement}
                             disabled={selectedVariant?.producto?._isVirtual === true}
-                        />
+                            />
+                        </div>
 
                         {/* Enlaces a recursos externos */}
-                        <ProductResources product={selectedVariant.producto} />
+                        <div className="mt-4">
+                            <ProductResources product={selectedVariant.producto} />
+                        </div>
 
                         {/* Información adicional */}
-                        <ProductShowroomInfo />
+                        <div className="mt-4">
+                            <ProductShowroomInfo />
+                        </div>
                     </div>
                 </div>
 
