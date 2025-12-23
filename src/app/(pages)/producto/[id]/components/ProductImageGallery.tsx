@@ -14,7 +14,7 @@ interface ProductImageGalleryProps {
     onImageChange: (index: number) => void;
     onNext: () => void;
     onPrev: () => void;
-    onOpenModal: () => void;
+    onOpenModal: (validImages?: string[], validIndex?: number) => void;
 }
 
 export default function ProductImageGallery({
@@ -227,7 +227,7 @@ export default function ProductImageGallery({
                         <div
                             ref={imageRef}
                             className="relative aspect-[3/4] bg-white rounded-lg overflow-hidden cursor-zoom-in max-h-[75vh] w-full"
-                            onClick={onOpenModal}
+                            onClick={() => onOpenModal(displayImages, adjustedIndex)}
                             onMouseMove={handleMouseMove}
                             onMouseEnter={handleMouseEnter}
                             onMouseLeave={handleMouseLeave}

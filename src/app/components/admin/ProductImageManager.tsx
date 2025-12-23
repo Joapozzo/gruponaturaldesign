@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   useProductImages,
   useProductImagesByColor,
@@ -8,7 +8,7 @@ import {
   useDeleteProductImage,
 } from '../../hooks/useProductImages';
 import Button from '../ui/Button';
-import { X, Upload, Trash2, Image as ImageIcon } from 'lucide-react';
+import { X, Upload, Trash2, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface ProductImageManagerProps {
@@ -23,6 +23,8 @@ export function ProductImageManager({
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Queries
@@ -122,6 +124,15 @@ export function ProductImageManager({
     }
   }, [selectedColor, selectedFiles, productoWebId, uploadMutation]);
 
+  // Obtener todas las imágenes en un array plano para navegación
+  const allImages = React.useMemo(() => {
+    return imagesByColor
+      ? Object.entries(imagesByColor).flatMap(([color, images]) =>
+          images.map((img) => ({ ...img, color }))
+        )
+      : [];
+  }, [imagesByColor]);
+
   // Eliminar imagen
   const handleDelete = useCallback(
     async (imageId: number) => {
@@ -132,13 +143,18 @@ export function ProductImageManager({
       try {
         await deleteMutation.mutateAsync(imageId);
         toast.success('Imagen eliminada exitosamente');
+        
+        // Si la imagen eliminada está abierta en el lightbox, cerrarlo
+        if (lightboxOpen && allImages[lightboxIndex]?.id === imageId) {
+          setLightboxOpen(false);
+        }
       } catch (error) {
         toast.error(
           error instanceof Error ? error.message : 'Error al eliminar imagen'
         );
       }
     },
-    [deleteMutation]
+    [deleteMutation, lightboxOpen, lightboxIndex, allImages]
   );
 
   // Remover preview
@@ -146,6 +162,53 @@ export function ProductImageManager({
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
     setPreviews((prev) => prev.filter((_, i) => i !== index));
   }, []);
+
+  // Abrir lightbox
+  const openLightbox = useCallback((imageId: number) => {
+    const index = allImages.findIndex((img) => img.id === imageId);
+    if (index !== -1) {
+      setLightboxIndex(index);
+      setLightboxOpen(true);
+    }
+  }, [allImages]);
+
+  // Cerrar lightbox
+  const closeLightbox = useCallback(() => {
+    setLightboxOpen(false);
+  }, []);
+
+  // Navegar a la imagen anterior
+  const goToPrevious = useCallback(() => {
+    setLightboxIndex((prev) => (prev > 0 ? prev - 1 : allImages.length - 1));
+  }, [allImages.length]);
+
+  // Navegar a la imagen siguiente
+  const goToNext = useCallback(() => {
+    setLightboxIndex((prev) => (prev < allImages.length - 1 ? prev + 1 : 0));
+  }, [allImages.length]);
+
+  // Manejar teclado para navegación
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (!lightboxOpen) return;
+      if (e.key === 'ArrowLeft') {
+        goToPrevious();
+      } else if (e.key === 'ArrowRight') {
+        goToNext();
+      } else if (e.key === 'Escape') {
+        closeLightbox();
+      }
+    },
+    [lightboxOpen, goToPrevious, goToNext, closeLightbox]
+  );
+
+  // Agregar listener de teclado
+  React.useEffect(() => {
+    if (lightboxOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [lightboxOpen, handleKeyDown]);
 
   const isLoading = isLoadingImages || isLoadingSingle;
   const isUploading = uploadMutation.isPending;
@@ -264,20 +327,30 @@ export function ProductImageManager({
                 </h4>
                 <div className="grid grid-cols-4 gap-4">
                   {images.map((image) => (
-                    <div key={image.id} className="relative group">
+                    <div 
+                      key={image.id} 
+                      className="relative group cursor-pointer"
+                      onClick={() => openLightbox(image.id)}
+                    >
                       <img
                         src={image.imagenUrl}
                         alt={`${color} - ${image.orden}`}
-                        className="w-full h-32 object-cover rounded-lg"
+                        className="w-full h-32 object-cover rounded-lg transition-transform duration-200 group-hover:scale-105"
                       />
+                      {/* Overlay oscuro al hover para indicar que es clickeable */}
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-opacity duration-200" />
                       <button
-                        onClick={() => handleDelete(image.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(image.id);
+                        }}
                         disabled={isDeleting}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 z-10"
+                        aria-label="Eliminar imagen"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
-                      <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                      <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded z-10">
                         #{image.orden}
                       </div>
                     </div>
@@ -288,6 +361,95 @@ export function ProductImageManager({
           </div>
         )}
       </div>
+
+      {/* Lightbox Modal */}
+      {lightboxOpen && allImages.length > 0 && (
+        <div
+          className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center"
+          onClick={closeLightbox}
+        >
+          {/* Botón cerrar */}
+          <button
+            onClick={closeLightbox}
+            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10"
+            aria-label="Cerrar"
+          >
+            <X className="h-8 w-8" />
+          </button>
+
+          {/* Botón anterior */}
+          {allImages.length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                goToPrevious();
+              }}
+              className="absolute left-4 text-white hover:text-gray-300 transition-colors z-10 bg-black bg-opacity-50 rounded-full p-3"
+              aria-label="Imagen anterior"
+            >
+              <ChevronLeft className="h-8 w-8" />
+            </button>
+          )}
+
+          {/* Imagen */}
+          <div
+            className="relative max-w-7xl max-h-[90vh] mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={allImages[lightboxIndex].imagenUrl}
+              alt={`Imagen ${lightboxIndex + 1} de ${allImages.length}`}
+              className="max-w-full max-h-[90vh] object-contain rounded-lg select-none"
+              draggable={false}
+            />
+            {/* Información de la imagen */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-lg text-sm">
+              <p>
+                {allImages[lightboxIndex].color || 'Sin color'} - Orden: #{allImages[lightboxIndex].orden}
+              </p>
+              <p className="text-xs text-gray-300 mt-1">
+                {lightboxIndex + 1} de {allImages.length}
+              </p>
+            </div>
+          </div>
+
+          {/* Áreas táctiles para navegación en móvil - izquierda y derecha */}
+          {allImages.length > 1 && (
+            <>
+              <div
+                className="absolute left-0 top-0 bottom-0 w-1/4 cursor-pointer md:hidden"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToPrevious();
+                }}
+                aria-label="Imagen anterior"
+              />
+              <div
+                className="absolute right-0 top-0 bottom-0 w-1/4 cursor-pointer md:hidden"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToNext();
+                }}
+                aria-label="Imagen siguiente"
+              />
+            </>
+          )}
+
+          {/* Botón siguiente */}
+          {allImages.length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                goToNext();
+              }}
+              className="absolute right-4 text-white hover:text-gray-300 transition-colors z-10 bg-black bg-opacity-50 rounded-full p-3"
+              aria-label="Imagen siguiente"
+            >
+              <ChevronRight className="h-8 w-8" />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

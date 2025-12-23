@@ -12,10 +12,9 @@ export function useProductCardState({
     expandedSku,
     onExpandChange,
 }: UseProductCardStateProps) {
-    // Función para encontrar la variante inicial priorizando blanco o negro CON IMÁGENES
+    // Función para encontrar la variante inicial usando el orden de availableColors
+    // availableColors ya está ordenado por prioridad según el producto (incluye excepciones)
     const getInitialVariant = useCallback((): ProductVariant => {
-        const priorityColors = ['Blanco', 'Negro'];
-        
         // Función helper para verificar si una variante tiene imágenes válidas
         const hasValidImages = (variant: ProductVariant): boolean => {
             if (!variant.producto.imagenes || variant.producto.imagenes.length === 0) {
@@ -31,19 +30,22 @@ export function useProductCardState({
             return true;
         };
         
-        // Buscar primero una variante con color blanco o negro QUE TENGA IMÁGENES
-        for (const priorityColor of priorityColors) {
-            const variantWithPriorityColor = group.variants.find(v => 
-                v.color && 
-                v.color.toLowerCase() === priorityColor.toLowerCase() &&
-                hasValidImages(v)
-            );
-            if (variantWithPriorityColor) {
-                return variantWithPriorityColor;
+        // Usar el orden de availableColors que ya está ordenado por prioridad
+        // Esto respeta las excepciones para productos específicos (Tostado, Cemento, Azul Marino)
+        if (group.availableColors && group.availableColors.length > 0) {
+            for (const priorityColor of group.availableColors) {
+                const variantWithPriorityColor = group.variants.find(v => 
+                    v.color && 
+                    v.color.toLowerCase() === priorityColor.toLowerCase() &&
+                    hasValidImages(v)
+                );
+                if (variantWithPriorityColor) {
+                    return variantWithPriorityColor;
+                }
             }
         }
         
-        // Si no hay blanco o negro con imágenes, buscar la primera variante CON IMÁGENES
+        // Si no hay colores prioritarios con imágenes, buscar la primera variante CON IMÁGENES
         const variantWithImages = group.variants.find(v => hasValidImages(v));
         if (variantWithImages) {
             return variantWithImages;
@@ -51,7 +53,7 @@ export function useProductCardState({
         
         // Si ninguna tiene imágenes, usar la primera variante disponible (fallback)
         return group.variants[0];
-    }, [group.variants]);
+    }, [group.variants, group.availableColors]);
 
     const initialVariant = getInitialVariant();
     
@@ -84,20 +86,22 @@ export function useProductCardState({
         }
     }, [isExpanded, onExpandChange]);
 
-    // Actualizar variante inicial cuando cambia el grupo (priorizando blanco/negro)
+    // Actualizar variante inicial cuando cambia el grupo (usando orden de availableColors)
     useEffect(() => {
         const newInitialVariant = getInitialVariant();
-        // Solo actualizar si la variante actual no es de color prioritario
-        const priorityColors = ['Blanco', 'Negro'];
+        // Verificar si la variante actual es de un color prioritario según availableColors
         const currentIsPriority = selectedVariant.color && 
-            priorityColors.some(pc => selectedVariant.color?.toLowerCase() === pc.toLowerCase());
+            group.availableColors && 
+            group.availableColors.length > 0 &&
+            group.availableColors[0]?.toLowerCase() === selectedVariant.color.toLowerCase();
         
+        // Solo actualizar si la variante actual no es el color prioritario
         if (!currentIsPriority) {
             setSelectedVariant(newInitialVariant);
             setSelectedColor(newInitialVariant.color || null);
             setSelectedSize(newInitialVariant.talle || null);
         }
-    }, [group.variants, getInitialVariant, selectedVariant.color]);
+    }, [group.variants, group.availableColors, getInitialVariant, selectedVariant.color]);
 
     // Detectar si tiene data de color/talle
     const hasColorSizeData: boolean = group.variants.some((v) => v.color && v.talle);

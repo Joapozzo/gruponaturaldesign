@@ -1,7 +1,7 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Package } from 'lucide-react';
+import { X, Package, ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 
 interface ProductImageModalProps {
@@ -10,6 +10,8 @@ interface ProductImageModalProps {
     images: string[];
     currentImageIndex: number;
     productName: string;
+    onNext?: () => void;
+    onPrev?: () => void;
 }
 
 export default function ProductImageModal({
@@ -18,6 +20,8 @@ export default function ProductImageModal({
     images,
     currentImageIndex,
     productName,
+    onNext,
+    onPrev,
 }: ProductImageModalProps) {
     const [imageError, setImageError] = useState(false);
 
@@ -25,6 +29,45 @@ export default function ProductImageModal({
     React.useEffect(() => {
         setImageError(false);
     }, [currentImageIndex, isOpen]);
+
+    // Navegar a la imagen anterior
+    const handlePrev = useCallback(() => {
+        if (onPrev) {
+            onPrev();
+        }
+    }, [onPrev]);
+
+    // Navegar a la imagen siguiente
+    const handleNext = useCallback(() => {
+        if (onNext) {
+            onNext();
+        }
+    }, [onNext]);
+
+    // Manejar teclado para navegación
+    const handleKeyDown = useCallback(
+        (e: KeyboardEvent) => {
+            if (!isOpen) return;
+            if (e.key === 'ArrowLeft' && onPrev) {
+                handlePrev();
+            } else if (e.key === 'ArrowRight' && onNext) {
+                handleNext();
+            } else if (e.key === 'Escape') {
+                onClose();
+            }
+        },
+        [isOpen, onPrev, onNext, handlePrev, handleNext, onClose]
+    );
+
+    // Agregar listener de teclado
+    useEffect(() => {
+        if (isOpen) {
+            window.addEventListener('keydown', handleKeyDown);
+            return () => window.removeEventListener('keydown', handleKeyDown);
+        }
+    }, [isOpen, handleKeyDown]);
+
+    const hasMultipleImages = images.length > 1;
     return (
         <AnimatePresence>
             {isOpen && (
@@ -63,10 +106,74 @@ export default function ProductImageModal({
                         {/* Botón cerrar */}
                         <button
                             onClick={onClose}
-                            className="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+                            className="absolute top-4 right-4 w-10 h-10 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors z-10"
+                            aria-label="Cerrar"
                         >
                             <X size={20} />
                         </button>
+
+                        {/* Botón anterior */}
+                        {hasMultipleImages && onPrev && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlePrev();
+                                }}
+                                className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors z-10"
+                                aria-label="Imagen anterior"
+                            >
+                                <ChevronLeft size={24} />
+                            </button>
+                        )}
+
+                        {/* Botón siguiente */}
+                        {hasMultipleImages && onNext && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleNext();
+                                }}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors z-10"
+                                aria-label="Imagen siguiente"
+                            >
+                                <ChevronRight size={24} />
+                            </button>
+                        )}
+
+                        {/* Información de la imagen */}
+                        {hasMultipleImages && (
+                            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-lg text-sm z-10">
+                                <p className="text-xs text-gray-300">
+                                    {currentImageIndex + 1} de {images.length}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Áreas táctiles para navegación en móvil - izquierda y derecha */}
+                        {hasMultipleImages && (
+                            <>
+                                {onPrev && (
+                                    <div
+                                        className="absolute left-0 top-0 bottom-0 w-1/4 cursor-pointer md:hidden z-10"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handlePrev();
+                                        }}
+                                        aria-label="Imagen anterior"
+                                    />
+                                )}
+                                {onNext && (
+                                    <div
+                                        className="absolute right-0 top-0 bottom-0 w-1/4 cursor-pointer md:hidden z-10"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleNext();
+                                        }}
+                                        aria-label="Imagen siguiente"
+                                    />
+                                )}
+                            </>
+                        )}
                     </motion.div>
                 </motion.div>
             )}

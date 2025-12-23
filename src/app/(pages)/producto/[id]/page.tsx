@@ -64,6 +64,8 @@ const ProductDetailPageContent = () => {
         images,
         currentImageIndex,
         isImageModalOpen,
+        modalImages,
+        modalImageIndex,
         nextImage,
         prevImage,
         goToImage,
@@ -197,22 +199,11 @@ const ProductDetailPageContent = () => {
 
                     {/* Información del producto */}
                     <div className="space-y-4 sm:space-y-6" style={{ overflow: 'visible' }}>
-                        {/* Nombre y Bordado en fila */}
-                        <div className="flex items-center justify-between w-full gap-2 mb-3 sm:mb-4">
-                            <h1 className="text-sm sm:text-base lg:text-xl font-bold text-gray-900 font-display leading-tight flex-1">
+                        {/* Nombre del producto */}
+                        <div className="mb-3 sm:mb-4">
+                            <h1 className="text-sm sm:text-base lg:text-xl font-bold text-gray-900 font-display leading-tight">
                                 {productName}
                             </h1>
-                            <div className="flex-shrink-0">
-                                <BordadoSwitch
-                                    value={bordado}
-                                    onChange={(value) => {
-                                        setBordado(value);
-                                        handleBordadoChange(value);
-                                    }}
-                                    isMobile={false}
-                                    size="small"
-                                />
-                            </div>
                         </div>
                         
                         {/* Información del producto (precio, descripción, etc.) */}
@@ -224,8 +215,22 @@ const ProductDetailPageContent = () => {
                             hideTitle
                         />
 
-                        {/* Selectores de Color y Talle */}
-                        <div className="mt-4" style={{ overflow: 'visible', padding: '4px' }}>
+                        {/* Sección de personalización: Bordado, Color y Talle */}
+                        <div className="mt-4 space-y-3" style={{ overflow: 'visible', padding: '4px' }}>
+                            {/* Switch de Bordado */}
+                            <div className="flex items-center justify-start">
+                                <BordadoSwitch
+                                    value={bordado}
+                                    onChange={(value) => {
+                                        setBordado(value);
+                                        handleBordadoChange(value);
+                                    }}
+                                    isMobile={false}
+                                    size="small"
+                                />
+                            </div>
+
+                            {/* Selectores de Color y Talle */}
                             <ProductVariantSelector
                                 groupedProduct={groupedProduct}
                                 selectedColor={selectedColor}
@@ -271,9 +276,11 @@ const ProductDetailPageContent = () => {
             <ProductImageModal
                 isOpen={isImageModalOpen}
                 onClose={closeModal}
-                images={images}
-                currentImageIndex={currentImageIndex}
+                images={modalImages}
+                currentImageIndex={modalImageIndex}
                 productName={productName}
+                onNext={nextImage}
+                onPrev={prevImage}
             />
 
             {/* Modal de confirmación mayorista */}

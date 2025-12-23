@@ -746,8 +746,36 @@ class ProductsV2Service {
             });
 
             // Ordenar colores priorizando blanco y negro primero
+            // EXCEPCIONES: Para productos específicos, priorizar otros colores sobre negro
+            const nombreBaseLower = nombreBase.toLowerCase();
+            // Detectar productos específicos (después de normalización, "H" ya es "Hombre")
+            const isChinoConfortFitHombre = nombreBaseLower.includes('chino') && 
+                                          nombreBaseLower.includes('confort') && 
+                                          nombreBaseLower.includes('fit') && 
+                                          nombreBaseLower.includes('hombre');
+            const isCargoImpactedUnisex = nombreBaseLower.includes('cargo') && 
+                                         nombreBaseLower.includes('impacted') && 
+                                         nombreBaseLower.includes('unisex');
+            const isCargoBalanceHombre = nombreBaseLower.includes('cargo') && 
+                                        nombreBaseLower.includes('balance') && 
+                                        nombreBaseLower.includes('hombre');
+            
             const sortColorsByPriority = (colors: string[]): string[] => {
-                const priorityColors = ['Blanco', 'Negro'];
+                // Colores prioritarios por defecto
+                let priorityColors = ['Blanco', 'Negro'];
+                
+                // Excepciones específicas por producto
+                if (isChinoConfortFitHombre) {
+                    // Chino Confort Fit Hombre: priorizar Tostado sobre Negro
+                    priorityColors = ['Blanco', 'Tostado', 'Negro'];
+                } else if (isCargoImpactedUnisex) {
+                    // Cargo Impacted Unisex: priorizar Cemento sobre Negro
+                    priorityColors = ['Blanco', 'Cemento', 'Negro'];
+                } else if (isCargoBalanceHombre) {
+                    // Cargo Balance Hombre: priorizar Azul Marino sobre Negro
+                    priorityColors = ['Blanco', 'Azul Marino', 'Negro'];
+                }
+                
                 const prioritySet = new Set(priorityColors.map(c => c.toLowerCase()));
                 
                 return colors.sort((a, b) => {
@@ -760,12 +788,14 @@ class ProductsV2Service {
                     if (aIsPriority && !bIsPriority) return -1;
                     if (!aIsPriority && bIsPriority) return 1;
                     
-                    // Si ambos son prioritarios, ordenar: Blanco primero, luego Negro
+                    // Si ambos son prioritarios, ordenar según la lista de prioridad
                     if (aIsPriority && bIsPriority) {
-                        if (aLower === 'blanco') return -1;
-                        if (bLower === 'blanco') return 1;
-                        if (aLower === 'negro') return -1;
-                        if (bLower === 'negro') return 1;
+                        const aIndex = priorityColors.findIndex(p => p.toLowerCase() === aLower);
+                        const bIndex = priorityColors.findIndex(p => p.toLowerCase() === bLower);
+                        if (aIndex !== -1 && bIndex !== -1) {
+                            return aIndex - bIndex;
+                        }
+                        // Si no se encuentra en la lista, mantener orden original
                     }
                     
                     return 0;
@@ -828,22 +858,18 @@ class ProductsV2Service {
             // Obtener todas las imágenes únicas (para el displayProduct)
             const imagenes = Array.from(todasLasImagenes);
             
-            // Seleccionar imagen principal: priorizar blanco o negro CON IMÁGENES, luego el primer color disponible CON IMÁGENES
+            // Seleccionar imagen principal: usar el primer color disponible CON IMÁGENES
+            // availableColors ya está ordenado por prioridad según el producto
             let imagen: string | undefined;
-            const priorityColors = ['Blanco', 'Negro'];
+            let colorSeleccionado: string | undefined;
             
-            // Buscar primero en colores prioritarios (blanco o negro) que TENGAN IMÁGENES
-            let colorSeleccionado = availableColors.find(c => 
-                priorityColors.some(priority => c.toLowerCase() === priority.toLowerCase()) &&
-                imagenesPorColor.has(c) &&
-                imagenesPorColor.get(c)!.length > 0
-            );
-            
-            // Si no hay color prioritario con imágenes, usar el primero disponible CON IMÁGENES
-            if (!colorSeleccionado && availableColors.length > 0) {
-                colorSeleccionado = availableColors.find(c => 
-                    imagenesPorColor.has(c) && imagenesPorColor.get(c)!.length > 0
-                );
+            // Buscar el primer color disponible que tenga imágenes
+            // availableColors ya está ordenado por sortColorsByPriority que respeta las excepciones
+            for (const color of availableColors) {
+                if (imagenesPorColor.has(color) && imagenesPorColor.get(color)!.length > 0) {
+                    colorSeleccionado = color;
+                    break;
+                }
             }
             
             // Obtener imagen del color seleccionado
