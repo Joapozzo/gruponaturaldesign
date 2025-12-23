@@ -22,15 +22,15 @@ export default function ColorSelector({
     onColorSelect,
 }: ColorSelectorProps) {
     return (
-        <div className="space-y-1.5">
+        <div className="space-y-1">
             <label
                 className={`font-semibold text-gray-700 uppercase tracking-wide ${
-                    isMobile ? 'text-xs' : 'text-sm'
+                    isMobile ? 'text-xs' : 'text-[10px]'
                 }`}
             >
                 Color
             </label>
-            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+            <div className="flex flex-wrap gap-1 sm:gap-1.5">
                 {colors.map((color) => {
                     const variantWithColor = variants.find((v) => v.color === color);
                     const colorHex = variantWithColor?.colorHex || getColorHex(color);
@@ -43,10 +43,10 @@ export default function ColorSelector({
                             className={`
                                 relative flex items-center justify-center rounded-full
                                 transition-all duration-200
-                                ${isMobile ? 'w-8 h-8' : 'w-10 h-10'}
+                                ${isMobile ? 'w-8 h-8' : 'w-7 h-7'}
                                 ${isSelected
-                                    ? 'ring-2 ring-black ring-offset-2'
-                                    : 'hover:ring-2 hover:ring-gray-300 ring-offset-2'
+                                    ? 'ring-1 ring-black ring-offset-1'
+                                    : 'hover:ring-1 hover:ring-gray-300 ring-offset-1'
                                 }
                             `}
                             whileHover={{ scale: 1.1 }}
@@ -54,19 +54,19 @@ export default function ColorSelector({
                             title={color}
                         >
                             <div
-                                className={`rounded-full w-full h-full border-2 ${
+                                className={`rounded-full w-full h-full border ${
                                     isSelected ? 'border-white' : 'border-gray-300'
                                 }`}
                                 style={{ backgroundColor: colorHex }}
                             />
                             {isSelected && (
                                 <motion.div
-                                    className="absolute -top-1 -right-1 bg-green-500 rounded-full p-0.5"
+                                    className="absolute -top-0.5 -right-0.5 bg-green-500 rounded-full p-0.5"
                                     initial={{ scale: 0 }}
                                     animate={{ scale: 1 }}
                                     transition={{ duration: 0.2 }}
                                 >
-                                    <Check className={isMobile ? 'w-2 h-2' : 'w-2.5 h-2.5'} />
+                                    <Check className={isMobile ? 'w-2 h-2' : 'w-2 h-2'} />
                                 </motion.div>
                             )}
                         </motion.button>
