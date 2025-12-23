@@ -28,7 +28,7 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   // Base URL para resolver URLs relativas en metadata
   metadataBase: new URL('https://naturalonline.com.ar'),
-  
+
   // Título optimizado para SEO
   title: {
     default: "NTDS - Uniformes Empresariales de diseño | Natural Design",
@@ -82,7 +82,7 @@ export const metadata: Metadata = {
     siteName: "NTDS Natural Design",
     images: [
       {
-        url: "/icon-512.png",
+        url: "https://naturalonline.com.ar/logos/logo-1.svg", // CAMBIAR ESTA LÍNEA
         width: 1200,
         height: 630,
         alt: "NTDS Natural Design - Uniformes Empresariales",
@@ -95,14 +95,13 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "NTDS - Uniformes Empresariales de Diseño",
     description: "Uniformes empresariales y ropa de trabajo de calidad en Córdoba. +25 años de experiencia, +500 clientes satisfechos.",
-    images: ["/twitter-image.jpg"],
+    images: ["https://naturalonline.com.ar/logos/logo-1.svg"], // CAMBIAR ESTA LÍNEA
     creator: "@naturaldesign_ntds",
   },
-
   // Datos estructurados básicos
   other: {
     "business:contact_data:street_address": "Rivera Indarte 2143",
-    "business:contact_data:locality": "Córdoba",
+    "business:contact_data:locality": "Córdo  ba",
     "business:contact_data:region": "Córdoba",
     "business:contact_data:postal_code": "5000",
     "business:contact_data:country_name": "Argentina",
@@ -191,8 +190,8 @@ export default function RootLayout({
               "name": "NTDS Natural Design",
               "alternateName": "Natural Design",
               "url": "https://naturalonline.com.ar",
-              "logo": "https://naturalonline.com.ar/icon-512.png",
-              "image": "https://naturalonline.com.ar/og-image.jpg",
+              "logo": "https://naturalonline.com.ar/logos/logo-1.svg", // CAMBIAR
+              "image": "https://naturalonline.com.ar/logos/logo-1.svg", // CAMBIAR
               "description": "Empresa especializada en uniformes empresariales de diseño, ropa de trabajo y merchandising de diseño con más de 25 años de experiencia en Córdoba, Argentina.",
               "address": {
                 "@type": "PostalAddress",
@@ -243,7 +242,7 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" sizes="32x32" />
         <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
         <link rel="icon" href="/icon-512.png" type="image/png" sizes="512x512" />
-        
+
         {/* Apple touch icon */}
         <link rel="apple-touch-icon" href="/apple-icon-180.png" sizes="180x180" />
 
