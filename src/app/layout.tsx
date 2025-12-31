@@ -5,40 +5,32 @@ import ConditionalLayout from "./components/ConditionalLayout";
 import { Providers } from "./components/Providers";
 import { WHATSAPP_PHONE_NUMBER, WHATSAPP_PHONE_NUMBER_FORMATTED } from "./utils/constants";
 
-// Fuentes según el manual de marca NTDS
-// Franklin Gothic Heavy no está en Google Fonts, usamos Poppins como fallback principal
-// Optimizado: solo cargamos los pesos necesarios (400, 600, 700) para reducir bundle size
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
-  weight: ["400", "600", "700"], // Solo los pesos usados en el sitio
+  weight: ["400", "600", "700"],
   display: "swap",
   preload: true,
 });
 
-// Montserrat como alternativa adicional
 const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin"],
-  weight: ["400", "600", "700"], // Solo los pesos usados en el sitio
+  weight: ["400", "600", "700"],
   display: "swap",
-  preload: false, // No preload ya que es alternativa
+  preload: false,
 });
 
 export const metadata: Metadata = {
-  // Base URL para resolver URLs relativas en metadata
   metadataBase: new URL('https://naturalonline.com.ar'),
 
-  // Título optimizado para SEO
   title: {
     default: "NTDS - Uniformes Empresariales de diseño | Natural Design",
     template: "%s | NTDS Natural Design"
   },
 
-  // Descripción optimizada con keywords
   description: "NTDS Natural Design: Uniformes empresariales, ropa de trabajo y merchandising de diseño en Córdoba. +25 años de experiencia, +500 clientes satisfechos. Calidad y diseño en uniformes profesionales.",
 
-  // Keywords principales
   keywords: [
     "uniformes empresariales",
     "ropa de trabajo",
@@ -58,13 +50,11 @@ export const metadata: Metadata = {
     "textil empresarial"
   ],
 
-  // Información del sitio
   applicationName: "NTDS Natural Design",
   authors: [{ name: "Natural Design", url: "https://naturalonline.com.ar" }],
   creator: "Natural Design",
   publisher: "NTDS Natural Design",
 
-  // Configuración de idioma y región
   alternates: {
     canonical: "https://naturalonline.com.ar",
     languages: {
@@ -72,7 +62,7 @@ export const metadata: Metadata = {
     },
   },
 
-  // Open Graph para redes sociales
+  // ✅ ESTO ES LO IMPORTANTE - Imagen PNG/JPG optimizada
   openGraph: {
     type: "website",
     locale: "es_AR",
@@ -82,26 +72,26 @@ export const metadata: Metadata = {
     siteName: "NTDS Natural Design",
     images: [
       {
-        url: "https://naturalonline.com.ar/logos/logo-1.svg", // CAMBIAR ESTA LÍNEA
+        url: "/og-image.jpg", // ⬅️ CAMBIO PRINCIPAL: archivo local
         width: 1200,
         height: 630,
         alt: "NTDS Natural Design - Uniformes Empresariales",
+        type: "image/jpeg"
       },
     ],
   },
 
-  // Twitter Card
   twitter: {
     card: "summary_large_image",
     title: "NTDS - Uniformes Empresariales de Diseño",
     description: "Uniformes empresariales y ropa de trabajo de calidad en Córdoba. +25 años de experiencia, +500 clientes satisfechos.",
-    images: ["https://naturalonline.com.ar/logos/logo-1.svg"], // CAMBIAR ESTA LÍNEA
+    images: ["/og-image.jpg"], // ⬅️ MISMO ARCHIVO
     creator: "@naturaldesign_ntds",
   },
-  // Datos estructurados básicos
+
   other: {
     "business:contact_data:street_address": "Rivera Indarte 2143",
-    "business:contact_data:locality": "Córdo  ba",
+    "business:contact_data:locality": "Córdoba",
     "business:contact_data:region": "Córdoba",
     "business:contact_data:postal_code": "5000",
     "business:contact_data:country_name": "Argentina",
@@ -109,7 +99,6 @@ export const metadata: Metadata = {
     "business:contact_data:email": "ventas@naturalonline.com.ar",
   },
 
-  // Robots y indexación
   robots: {
     index: true,
     follow: true,
@@ -122,35 +111,27 @@ export const metadata: Metadata = {
     },
   },
 
-  // Verificación y herramientas
   verification: {
     google: "tu-código-de-verificación-google",
-    // yandex: "tu-código-yandex",
-    // bing: "tu-código-bing",
   },
 
-  // Categorización
   category: "Business",
   classification: "Uniformes Empresariales, Ropa de Trabajo, Textil",
 
-  // Información adicional
   generator: "Next.js",
   referrer: "origin-when-cross-origin",
 
-  // Configuración de formato
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
 
-  // Favicon e iconos - Natural Design Logo
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: '32x32' },
       { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
       { url: '/icon-512.png', type: 'image/png', sizes: '512x512' },
-      { url: 'https://naturalonline.com.ar/logos/logo-1.svg', type: 'image/svg+xml' },
     ],
     apple: [
       { url: '/apple-icon-180.png', sizes: '180x180', type: 'image/png' },
@@ -158,7 +139,6 @@ export const metadata: Metadata = {
     shortcut: '/favicon.ico',
   },
 
-  // Manifest
   manifest: '/manifest.json',
 };
 
@@ -181,6 +161,8 @@ export default function RootLayout({
       `,
           }}
         />
+        
+        {/* ✅ JSON-LD actualizado con imagen correcta */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -190,8 +172,8 @@ export default function RootLayout({
               "name": "NTDS Natural Design",
               "alternateName": "Natural Design",
               "url": "https://naturalonline.com.ar",
-              "logo": "https://naturalonline.com.ar/logos/logo-1.svg", // CAMBIAR
-              "image": "https://naturalonline.com.ar/logos/logo-1.svg", // CAMBIAR
+              "logo": "https://naturalonline.com.ar/logo-square.png",
+              "image": "https://naturalonline.com.ar/og-image.jpg",
               "description": "Empresa especializada en uniformes empresariales de diseño, ropa de trabajo y merchandising de diseño con más de 25 años de experiencia en Córdoba, Argentina.",
               "address": {
                 "@type": "PostalAddress",
@@ -234,27 +216,21 @@ export default function RootLayout({
           }}
         />
 
-        {/* Preconnect para optimización de fuentes */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
-        {/* Favicon - Natural Design Logo */}
         <link rel="icon" href="/favicon.ico" sizes="32x32" />
         <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
         <link rel="icon" href="/icon-512.png" type="image/png" sizes="512x512" />
 
-        {/* Apple touch icon */}
         <link rel="apple-touch-icon" href="/apple-icon-180.png" sizes="180x180" />
 
-        {/* Optimización de recursos */}
         <link rel="dns-prefetch" href="//images.unsplash.com" />
         <link rel="dns-prefetch" href="//api.placeholder.com" />
 
-        {/* Theme color */}
         <meta name="theme-color" content="#Ed3237" />
         <meta name="msapplication-TileColor" content="#Ed3237" />
 
-        {/* Security headers */}
         <meta httpEquiv="Content-Security-Policy" content="upgrade-insecure-requests" />
       </head>
       <body
