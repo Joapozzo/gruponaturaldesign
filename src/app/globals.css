@@ -99,3 +99,30 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Fix para Swiper en ProductosDestacados - evitar que las cards se sobrepongan */
+#productos .swiper {
+  width: 100%;
+  max-width: 100%;
+  overflow: visible;
+}
+
+#productos .swiper-wrapper {
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+#productos .swiper-slide {
+  box-sizing: border-box;
+  height: auto;
+  display: flex;
+}
+
+#productos .swiper-slide > div {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+

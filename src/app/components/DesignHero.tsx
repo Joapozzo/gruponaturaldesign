@@ -5,11 +5,11 @@ import Image from 'next/image';
 
 const DesignHero = () => {
   return (
-    <div className="w-full bg-white">
+    <div className="w-full bg-white overflow-x-hidden">
       {/* Barra vertical oscura a la izquierda - solo en desktop */}
       <div className="hidden lg:block absolute left-0 top-0 bottom-0 w-[10%] xl:w-[8%] z-10"></div>
       
-      <div className="max-w-full mx-auto relative w-full">
+      <div className="max-w-full mx-auto relative w-full overflow-x-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-10 gap-0 w-full">
           {/* Texto - 60% (6 de 10 columnas) */}
           <motion.div

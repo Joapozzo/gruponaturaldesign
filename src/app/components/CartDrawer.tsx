@@ -48,6 +48,20 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
         }
     }, [isInCheckout, isOpen, onClose]);
 
+    // Desactivar bordado automáticamente si el carrito baja de 5 prendas
+    React.useEffect(() => {
+        if (itemCount < 5 && items.length > 0) {
+            // Buscar todos los items con bordado activado y desactivarlos
+            const itemsWithBordado = items.filter((item) => item.bordado === true);
+            if (itemsWithBordado.length > 0) {
+                itemsWithBordado.forEach((item) => {
+                    updateBordado(item.product.id, false);
+                });
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [itemCount]); // Solo escuchar itemCount para evitar loops infinitos
+
     // Ordenar items por categoría para agrupar productos del mismo tipo
     const sortedItems = useMemo(() => {
         return [...items].sort((a, b) => {
@@ -192,6 +206,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                                 onRemove={isInCheckout ? () => {} : removeFromCart}
                                                 onUpdateBordado={isInCheckout ? undefined : updateBordado}
                                                 canAddMore={canAddMore}
+                                                totalItemsInCart={itemCount}
                                             />
                                         );
                                     })}
@@ -202,6 +217,18 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                         {/* Footer */}
                         {!isEmpty && (
                             <div className="border-t border-gray-200 p-3 space-y-2 bg-white shadow-lg flex-shrink-0">
+
+                                {/* Mensaje informativo de bordado */}
+                                {itemCount >= 5 && (
+                                    <div className="bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-400 rounded-lg p-2.5 mb-2 shadow-sm">
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-red-600 text-sm">✨</span>
+                                            <p className="text-[11px] text-red-700 font-bold tracking-wide">
+                                                Con {itemCount} prendas puedes bordar tu logo
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Resumen de precios */}
                                 <div className="space-y-1">

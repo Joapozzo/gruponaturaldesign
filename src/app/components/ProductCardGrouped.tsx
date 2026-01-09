@@ -34,7 +34,11 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
     compact = false,
 }) => {
     const router = useRouter();
-    const { addToCart, updateQuantity, getProductQuantity, canAddToCart, updateBordado, items } = useCart();
+    const { addToCart, updateQuantity, getProductQuantity, canAddToCart, updateBordado, items, itemCount } = useCart();
+    
+    // Validar si se puede activar bordado (mínimo 5 prendas)
+    const canActivateBordado = itemCount >= 5;
+    const itemsNeeded = Math.max(0, 5 - itemCount);
     
     // Estado para bordado (por defecto false)
     const [bordado, setBordado] = React.useState(false);
@@ -124,6 +128,17 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
             setBordado(false);
         }
     }, [cartItem]);
+
+    // Desactivar bordado automáticamente si el carrito baja de 5 prendas
+    React.useEffect(() => {
+        if (itemCount < 5 && bordado) {
+            setBordado(false);
+            // Si el item ya está en el carrito, actualizar el bordado
+            if (cartItem && cartItem.especificaciones === currentSpecs) {
+                updateBordado(selectedVariantId, false);
+            }
+        }
+    }, [itemCount, bordado, cartItem, currentSpecs, selectedVariantId, updateBordado]);
     
     // Obtener cantidad actual del producto en el carrito
     // Si tiene especificaciones, solo contar la variante exacta
@@ -312,8 +327,8 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
             viewport={{ once: true }}
             className={`group relative bg-white rounded-lg shadow-md transition-all duration-500 h-auto flex flex-col self-start ${
                 !isMobile
-                    ? `w-full mb-2 hover:shadow-xl ${compact ? 'hover:scale-[1.01]' : 'hover:scale-[1.02]'} hover:-translate-y-1`
-                    : 'w-full mb-4'
+                    ? `w-full mb-3 hover:shadow-xl ${compact ? 'hover:scale-[1.01]' : 'hover:scale-[1.02]'} hover:-translate-y-1`
+                    : 'w-full mb-5'
             }`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
@@ -337,7 +352,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
             {/* Información del producto */}
             <motion.div
                 className={`flex flex-col gap-0.5 flex-1 ${
-                    isMobile ? 'p-3' : compact ? 'p-2.5' : 'p-3'
+                    isMobile ? 'p-4' : compact ? 'p-3' : 'p-4'
                 }`}
                 animate={!isMobile ? { backgroundColor: isHovered ? '#f9fafb' : '#ffffff' } : {}}
                 transition={{ duration: 0.4 }}
@@ -393,17 +408,30 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                                                     />
                                                     {/* Switch de Bordado - Solo cuando se despliegan los talles */}
                                                     <div className="mt-1">
-                                                        <BordadoSwitch
-                                                            value={bordado}
-                                                            onChange={(value) => {
-                                                                setBordado(value);
-                                                                // Si el item ya está en el carrito, actualizar el bordado
-                                                                if (cartItem && cartItem.especificaciones === currentSpecs) {
-                                                                    updateBordado(selectedVariantId, value);
-                                                                }
-                                                            }}
-                                                            isMobile={isMobile}
-                                                        />
+                                                        <div className="flex flex-col gap-0.5">
+                                                            <BordadoSwitch
+                                                                value={bordado}
+                                                                onChange={(value) => {
+                                                                    if (canActivateBordado) {
+                                                                        setBordado(value);
+                                                                        // Si el item ya está en el carrito, actualizar el bordado
+                                                                        if (cartItem && cartItem.especificaciones === currentSpecs) {
+                                                                            updateBordado(selectedVariantId, value);
+                                                                        }
+                                                                    }
+                                                                }}
+                                                                isMobile={isMobile}
+                                                                disabled={!canActivateBordado}
+                                                            />
+                                                            {!canActivateBordado && (
+                                                                <p className={`text-[9px] text-red-600 font-medium ${isMobile ? 'text-[8px]' : ''}`}>
+                                                                    {itemsNeeded > 0 
+                                                                        ? `${itemsNeeded} ${itemsNeeded === 1 ? 'prenda más' : 'prendas más'} para bordado (${itemCount}/5)`
+                                                                        : `Mínimo 5 prendas (${itemCount}/5)`
+                                                                    }
+                                                                </p>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </>
                                             )}
