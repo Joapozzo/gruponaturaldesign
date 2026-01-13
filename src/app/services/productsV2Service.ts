@@ -439,11 +439,32 @@ class ProductsV2Service {
 
     /**
      * Obtiene la imagen de tabla de talles basada en el slug
+     * IMPORTANTE: Corrige automáticamente cuando el producto es de "hombre" pero el slug dice "dama"
+     * Caso específico: "pantalon-chino-confort-fit-hombre" debe usar "pantalon-chino-confort-fit-hombre.jpg"
      */
     private getTablaTallesImage(tallesSlug?: string, subrubro?: string, nombreBase?: string): string | undefined {
         if (tallesSlug) {
+            let correctedSlug = tallesSlug;
+            
+            // CORRECCIÓN: Si el nombre base contiene "hombre" pero el slug de talles contiene "dama",
+            // corregir automáticamente a "hombre"
+            if (nombreBase) {
+                const nombreBaseLower = nombreBase.toLowerCase();
+                const tallesSlugLower = tallesSlug.toLowerCase();
+                
+                // Detectar si es producto de hombre (después de normalización, "H" ya es "Hombre")
+                const isHombre = nombreBaseLower.includes('hombre');
+                
+                // Detectar si el slug tiene "dama" cuando debería ser "hombre"
+                if (isHombre && tallesSlugLower.includes('dama')) {
+                    // Reemplazar "dama" por "hombre" en el slug
+                    // Ejemplo: "pantalon-chino-confort-fit-dama.jpg" → "pantalon-chino-confort-fit-hombre.jpg"
+                    correctedSlug = tallesSlugLower.replace(/dama/g, 'hombre');
+                }
+            }
+            
             // Remover extensión .jpg si ya existe para evitar doble extensión
-            const slugSinExtension = tallesSlug.replace(/\.jpg$/i, '');
+            const slugSinExtension = correctedSlug.replace(/\.jpg$/i, '');
             // Construir path: /imgs/talles/{slug}.jpg
             return `${this.TALLES_BASE_URL}/${slugSinExtension}.jpg`;
         }
