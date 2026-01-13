@@ -193,7 +193,6 @@ const CatalogContent = () => {
         router.replace(pathname, { scroll: false });
     };
 
-
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Categorías Hero - Reemplaza el HeroCatalogo */}

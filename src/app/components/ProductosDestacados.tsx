@@ -270,17 +270,23 @@ const ProductosDestacados = () => {
             className="bg-gray-50 pb-10"
             title='Productos destacados'
             subtitle='Lo mejor de nuestro shop online en diseño, calidad y funcionalidad.'
-            contentClassName='max-w-7xl mx-auto px-10'
+            contentClassName='max-w-8xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20'
         >
             {/* Slider de productos */}
-            <div className="">
+            <div className="w-full max-w-8xl mx-auto overflow-hidden">
                 <Swiper
                     modules={[Navigation, Pagination, Autoplay]}
                     spaceBetween={16}
-                    slidesPerView={1}
+                    slidesPerView={4}
+                    centeredSlides={false}
+                    initialSlide={0}
                     onSwiper={(swiper) => {
                         swiperRef.current = swiper;
                         currentSlideIndexRef.current = swiper.activeIndex;
+                        // Asegurar que comience desde el primer slide
+                        if (swiper.activeIndex !== 0) {
+                            swiper.slideTo(0, 0);
+                        }
                     }}
                     onSlideChange={(swiper) => {
                         if (!expandedSku) {
@@ -302,43 +308,41 @@ const ProductosDestacados = () => {
                         pauseOnMouseEnter: true,
                     }}
                     loop={productDestacados.length > 4}
-                    loopAdditionalSlides={productDestacados.length > 4 ? 3 : 0}
+                    loopAdditionalSlides={productDestacados.length > 4 ? 2 : 0}
                     breakpoints={{
                         320: {
                             slidesPerView: 1.5,
                             spaceBetween: 12,
+                            centeredSlides: false,
                         },
                         480: {
                             slidesPerView: 2,
                             spaceBetween: 12,
+                            centeredSlides: false,
                         },
                         640: {
-                            slidesPerView: 2.5,
-                            spaceBetween: 14,
-                        },
-                        768: {
                             slidesPerView: 3,
                             spaceBetween: 16,
+                            centeredSlides: false,
                         },
                         1024: {
                             slidesPerView: 4,
-                            spaceBetween: 12,
-                        },
-                        1280: {
-                            slidesPerView: 5,
-                            spaceBetween: 14,
+                            spaceBetween: 16,
+                            centeredSlides: false,
                         },
                     }}
                     className="pb-12"
                 >
                     {productDestacados.map((group, index) => (
-                        <SwiperSlide key={group.skuBase} className="mb-5">
-                            <ProductCardGrouped 
-                                group={group} 
-                                index={index}
-                                expandedSku={expandedSku}
-                                onExpandChange={setExpandedSku}
-                            />
+                        <SwiperSlide key={group.skuBase} className="mb-5 !flex">
+                            <div className="w-full h-full flex-shrink-0">
+                                <ProductCardGrouped 
+                                    group={group} 
+                                    index={index}
+                                    expandedSku={expandedSku}
+                                    onExpandChange={setExpandedSku}
+                                />
+                            </div>
                         </SwiperSlide>
                     ))}
                 </Swiper>

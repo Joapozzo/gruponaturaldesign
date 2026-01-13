@@ -3,6 +3,7 @@
 import Sidebar from '@/components/admin/Sidebar';
 import Header from '@/components/admin/Header';
 import { SidebarProvider, useSidebar } from '@/components/admin/SidebarContext';
+import { SyncProvider } from '@/components/admin/SyncContext';
 import { cn } from '@/lib/utils';
 
 function AdminLayoutContent({
@@ -37,10 +38,12 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SidebarProvider>
-      <AdminLayoutContent>
-        {children}
-      </AdminLayoutContent>
-    </SidebarProvider>
+    <SyncProvider>
+      <SidebarProvider>
+        <AdminLayoutContent>
+          {children}
+        </AdminLayoutContent>
+      </SidebarProvider>
+    </SyncProvider>
   );
 }

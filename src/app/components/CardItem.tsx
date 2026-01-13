@@ -29,12 +29,16 @@ interface CartItemProps {
     onRemove: (productId: number) => void;
     onUpdateBordado?: (productId: number, bordado: boolean) => void;
     canAddMore?: boolean;
+    totalItemsInCart?: number;
 }
 
-const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, onUpdateBordado, canAddMore = true }) => {
+const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, onUpdateBordado, canAddMore = true, totalItemsInCart = 0 }) => {
     const { product, quantity, subtotal, especificaciones, bordado = false } = item;
     const { isOpen: isConfirmModalOpen, loading, modalOptions, showModal, closeModal, handleConfirm } = useConfirmModal();
     const router = useRouter();
+    
+    // Validar si se puede activar bordado (mínimo 5 prendas)
+    const canActivateBordado = totalItemsInCart >= 5;
     
     // Parsear especificaciones para obtener color y talle
     const { color, talle } = parseProductSpecs(especificaciones);
@@ -155,14 +159,24 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, o
                 {/* Switch de Bordado */}
                 {onUpdateBordado && (
                     <div className="mb-1">
-                        <BordadoSwitch
-                            value={bordado}
-                            onChange={(value) => {
-                                onUpdateBordado(product.id, value);
-                            }}
-                            isMobile={false}
-                            size="small"
-                        />
+                        <div className="flex flex-col gap-0.5">
+                            <BordadoSwitch
+                                value={bordado}
+                                onChange={(value) => {
+                                    if (canActivateBordado) {
+                                        onUpdateBordado(product.id, value);
+                                    }
+                                }}
+                                isMobile={false}
+                                size="small"
+                                disabled={!canActivateBordado}
+                            />
+                            {!canActivateBordado && (
+                                <p className="text-[9px] text-red-600 font-medium">
+                                    Mínimo 5 prendas para activar bordado ({totalItemsInCart}/5)
+                                </p>
+                            )}
+                        </div>
                     </div>
                 )}
 

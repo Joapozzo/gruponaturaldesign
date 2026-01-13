@@ -21,6 +21,7 @@ import ProductNotFound from './components/ProductNotFound';
 import { useConfirmModal } from '@/app/components/hooks/useModal';
 import ConfirmModal from '@/app/components/modal/ConfirmModal';
 import BordadoSwitch from '@/app/components/product-card/components/BordadoSwitch';
+import { useCart } from '@/app/components/hooks/useCart';
 
 // Import directo de RelatedProducts (ya no usa Swiper, es más liviano)
 import RelatedProducts from './components/RelatedProducts';
@@ -116,6 +117,11 @@ const ProductDetailPageContent = () => {
         bordado
     );
     
+    // Obtener itemCount del carrito para validar bordado (mínimo 5 prendas)
+    const { itemCount } = useCart();
+    const canActivateBordado = itemCount >= 5;
+    const itemsNeeded = Math.max(0, 5 - itemCount);
+    
     // Sincronizar estado de bordado con el carrito
     React.useEffect(() => {
         if (cartItem) {
@@ -124,6 +130,16 @@ const ProductDetailPageContent = () => {
             setBordado(false);
         }
     }, [cartItem]);
+
+    // Desactivar bordado automáticamente si el carrito baja de 5 prendas
+    React.useEffect(() => {
+        if (itemCount < 5 && bordado) {
+            setBordado(false);
+            if (cartItem) {
+                handleBordadoChange(false);
+            }
+        }
+    }, [itemCount, cartItem, bordado, handleBordadoChange]);
 
     // Prefetch productos relacionados cuando estén disponibles
     useEffect(() => {
@@ -218,16 +234,39 @@ const ProductDetailPageContent = () => {
                         {/* Sección de personalización: Bordado, Color y Talle */}
                         <div className="mt-4 space-y-3" style={{ overflow: 'visible', padding: '4px' }}>
                             {/* Switch de Bordado */}
-                            <div className="flex items-center justify-start">
-                                <BordadoSwitch
-                                    value={bordado}
-                                    onChange={(value) => {
-                                        setBordado(value);
-                                        handleBordadoChange(value);
-                                    }}
-                                    isMobile={false}
-                                    size="small"
-                                />
+                            <div className="flex flex-col gap-1.5">
+                                <div className="flex items-center justify-start">
+                                    <BordadoSwitch
+                                        value={bordado}
+                                        onChange={(value) => {
+                                            if (canActivateBordado) {
+                                                setBordado(value);
+                                                handleBordadoChange(value);
+                                            }
+                                        }}
+                                        isMobile={false}
+                                        size="small"
+                                        disabled={!canActivateBordado}
+                                    />
+                                </div>
+                                {!canActivateBordado && (
+                                    <div className="bg-red-50 border border-red-200 rounded-md p-1.5">
+                                        <p className="text-[10px] text-red-700 font-semibold">
+                                            {itemsNeeded > 0 
+                                                ? `Agrega ${itemsNeeded} ${itemsNeeded === 1 ? 'prenda más' : 'prendas más'} al carrito para activar el bordado (${itemCount}/5)`
+                                                : `Mínimo 5 prendas para activar bordado (${itemCount}/5)`
+                                            }
+                                        </p>
+                                    </div>
+                                )}
+                                {canActivateBordado && (
+                                    <div className="bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-400 rounded-md p-1.5">
+                                        <p className="text-[10px] text-red-700 font-bold flex items-center gap-1">
+                                            <span>✨</span>
+                                            <span>Puedes bordar tu logo en todas las prendas</span>
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Selectores de Color y Talle */}

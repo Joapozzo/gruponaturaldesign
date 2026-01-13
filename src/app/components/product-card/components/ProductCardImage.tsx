@@ -33,8 +33,8 @@ export default function ProductCardImage({
 }: ProductCardImageProps) {
     return (
         <div
-            className={`relative overflow-hidden bg-gray-100 cursor-pointer flex-shrink-0 ${
-                isMobile ? 'h-[220px]' : 'h-[280px]'
+            className={`relative overflow-hidden bg-gray-100 cursor-pointer flex-shrink-0 aspect-[3/4] ${
+                isMobile ? 'min-h-[240px]' : 'min-h-[320px]'
             }`}
             onClick={onClick}
             role="button"
