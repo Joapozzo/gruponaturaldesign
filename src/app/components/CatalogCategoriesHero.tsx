@@ -4,36 +4,53 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Plus } from 'lucide-react';
 
 interface CatalogCategoriesHeroProps {
-    onCategorySelect: (category: string) => void;
-    selectedCategory?: string;
+    onCategorySelect: (rubroId: number | null) => void;
+    selectedRubroId?: number | null;
+    // Mapeo opcional de rubroId a nombre para detectar WORKWEAR automáticamente
+    rubroIdToNombre?: Map<number, string>;
 }
 
-const CatalogCategoriesHero = ({ onCategorySelect, selectedCategory = 'TODOS' }: CatalogCategoriesHeroProps) => {
+const CatalogCategoriesHero = ({ 
+    onCategorySelect, 
+    selectedRubroId = null,
+    rubroIdToNombre = new Map()
+}: CatalogCategoriesHeroProps) => {
     const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
 
+    // Detectar rubroId de WORKWEAR desde el mapeo
+    let workwearRubroId: number | null = null;
+    for (const [id, nombre] of rubroIdToNombre.entries()) {
+        const nombreUpper = nombre.toUpperCase();
+        if (nombreUpper.includes('WORKWEAR') || nombreUpper.includes('WORK') || nombreUpper.includes('WEAR')) {
+            workwearRubroId = id;
+            break;
+        }
+    }
+
+    // IDs de rubros: BASIC = 17 (según el usuario), WORKWEAR = detectado automáticamente
     const categorias = [
         {
             id: 'basic',
             nombre: 'BASIC',
             descripcion: 'Prendas esenciales y versátiles para uso diario y profesional.',
             imagen: '/imgs/basic.jpg',
-            filterValue: 'BASIC' as const
+            rubroId: 17, // ID del rubro BASIC en la BD
         },
         {
             id: 'workwear',
             nombre: 'WORKWEAR',
             descripcion: 'Indumentaria especializada para trabajo y entornos industriales.',
             imagen: '/imgs/workwear.jpg',
-            filterValue: 'WORKWEAR' as const
+            rubroId: workwearRubroId, // ID detectado automáticamente
         }
-    ];
+    ].filter(cat => cat.rubroId !== null) as Array<{ id: string; nombre: string; descripcion: string; imagen: string; rubroId: number }>; // Filtrar categorías sin rubroId válido
 
-    const handleCategoryClick = (filterValue: 'BASIC' | 'WORKWEAR') => {
+    const handleCategoryClick = (rubroId: number | null) => {
         // Si ya está seleccionada, deseleccionar (mostrar todos)
-        if (selectedCategory === filterValue) {
-            onCategorySelect('TODOS');
+        if (selectedRubroId === rubroId) {
+            onCategorySelect(null);
         } else {
-            onCategorySelect(filterValue);
+            onCategorySelect(rubroId);
         }
         
         // Scroll suave al contenido del catálogo después de un pequeño delay
@@ -50,7 +67,7 @@ const CatalogCategoriesHero = ({ onCategorySelect, selectedCategory = 'TODOS' }:
             {/* Dos columnas sin separación - 100% ancho */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
                 {categorias.map((categoria, index) => {
-                    const isSelected = selectedCategory === categoria.filterValue;
+                    const isSelected = selectedRubroId === categoria.rubroId;
                     
                     return (
                         <motion.div
@@ -62,7 +79,7 @@ const CatalogCategoriesHero = ({ onCategorySelect, selectedCategory = 'TODOS' }:
                             className="group relative overflow-hidden cursor-pointer"
                             onMouseEnter={() => setHoveredCategory(categoria.id)}
                             onMouseLeave={() => setHoveredCategory(null)}
-                            onClick={() => handleCategoryClick(categoria.filterValue)}
+                            onClick={() => handleCategoryClick(categoria.rubroId)}
                         >
                             {/* Imagen de fondo - Altura completa */}
                             <div className="relative h-[60vh] sm:h-[75vh] lg:h-[85vh] w-full overflow-hidden">

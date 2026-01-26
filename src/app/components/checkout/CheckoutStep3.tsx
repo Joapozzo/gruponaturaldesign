@@ -11,8 +11,9 @@ import { BsCashStack } from "react-icons/bs";
 // import { FaWhatsapp } from "react-icons/fa";
 import { FaRegCreditCard } from "react-icons/fa6";
 import { ArrowLeft } from 'lucide-react';
-import { formatPrice } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
+import { formatPrice } from '@/app/utils/productHelpers';
 import { WHATSAPP_PHONE_NUMBER, getWhatsAppNumberForUrl } from '@/app/utils/constants';
+import { useSales } from '../../contexts/SalesContext';
 
 interface CheckoutStep3Props {
   onBack: () => void;
@@ -63,8 +64,7 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
     iva,
     total,
   } = useCart();
-
-  // No redirigir automáticamente - mostrar alerta cuando llegue a 20 unidades
+  const { isWholesaleLimitReached } = useSales();
 
   const [payment, setPayment] = useState<PaymentData>({
     metodo: paymentData?.metodo || 'transferencia',
@@ -211,7 +211,7 @@ export default function CheckoutStep3({ onBack }: CheckoutStep3Props) {
 
   const handleSubmitOrder = async () => {
     // Validar que no sea compra mayorista antes de procesar
-    if (itemCount >= 20) {
+    if (isWholesaleLimitReached) {
       // No redirigir automáticamente, solo impedir procesar
       // El usuario debe usar el botón de mayorista si lo desea
       return;

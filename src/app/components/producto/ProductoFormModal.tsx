@@ -1,24 +1,32 @@
 'use client';
-import React from 'react';
-import { AnimatePresence } from 'framer-motion';
-import { ChevronLeft } from 'lucide-react';
+
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import FormModal from '../modal/FormModal';
 import Button from '../ui/Button';
-import { ProductoInfoStep } from './steps/ProductoInfoStep';
-import { ProductoImagenesStep } from './steps/ProductoImagenesStep';
-import { useProductoForm } from '@/app/hooks/useProductoForm';
-import { useProductoSteps } from '@/app/hooks/useProductoSteps';
-import { useProductoImages } from '@/app/hooks/useProductoImages';
-import { useProductoValidation } from '@/app/hooks/useProductoValidation';
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { ProductoDatosComunesStep } from './steps/ProductoDatosComunesStep';
+import { ProductoDatosSFactoryStep } from './steps/ProductoDatosSFactoryStep';
+import { ProductoDatosLocalesStep } from './steps/ProductoDatosLocalesStep';
+import { useProductoWizard, type ModoWizard } from '@/app/hooks/useProductoWizard';
+import { useProductoVariante } from '@/app/hooks/useProductoVariante';
+import { useProductosMutations } from '@/app/hooks/useProductosMutations';
+import { useQuery } from '@tanstack/react-query';
+import { productoService } from '@/app/services/producto.service';
+import { productosKeys } from '@/app/utils/productosKeys';
 import { useRubros } from '@/app/hooks/useRubros';
 import { useSubrubros } from '@/app/hooks/useSubrubros';
+import { useUploadProductImages } from '@/app/hooks/useProductImages';
+import toast from 'react-hot-toast';
 import type { ProductoPadreConVariantes } from '@/app/types/producto.types';
+import type { ProductoPadreBusqueda } from '@/app/services/producto.service';
 
 interface ProductoFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: Partial<ProductoPadreConVariantes> & { imagenes?: { principal: string; complementarias: string[] } }) => Promise<void>;
+  onSubmit?: (data: ProductoPadreConVariantes) => Promise<void>;
   producto?: ProductoPadreConVariantes | null;
+  modo?: ModoWizard;
+  productoPadreSeleccionado?: ProductoPadreBusqueda;
   loading?: boolean;
 }
 
@@ -27,218 +35,773 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
   onClose,
   onSubmit,
   producto,
-  loading = false,
+  modo: modoProp,
+  productoPadreSeleccionado: productoPadreProp,
+  loading: loadingProp = false,
 }) => {
-  const isEditMode = !!producto;
+  const empresaId = 1; // TODO: Obtener del contexto de autenticación
+  
+  // Determinar modo
+  const modo: ModoWizard = modoProp || (producto ? 'editar' : 'crear-producto');
+  const isEditMode = modo === 'editar';
 
-  // Hooks de estado y lógica
-  const { formData, handleChange, updateField } = useProductoForm(producto, isOpen);
-  const { currentStep, steps, currentStepIndex, nextStep, previousStep } = useProductoSteps(isOpen);
-  const {
-    imagenes,
-    uploadPrincipal,
-    uploadComplementaria,
-    removePrincipal,
-    removeComplementaria,
-    maxComplementarias,
-  } = useProductoImages(producto, isOpen);
-  const { errors, validate, clearError } = useProductoValidation();
+  // Wizard state
+  const wizard = useProductoWizard(modo);
+  const { state: wizardState, siguientePaso, anteriorPaso, setPaso, updateDatosComunes, updateDatosSFactory, updateDatosLocales, updateVariante, updateImagenesSeleccionadas, setProductoPadreId, setProductoWebId, setItemId, setCreadoEnSFactory, resetWizard } = wizard;
+
+  // Variante hook
+  const varianteHook = useProductoVariante();
+
+  // Mutations
+  const mutations = useProductosMutations({
+    empresaId,
+    onSuccess: (message) => toast.success(message),
+    onError: (message) => toast.error(message),
+  });
+
+  // Mutation para subir imágenes
+  const uploadImagesMutation = useUploadProductImages();
+
+  // Estados locales
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isValidatingCodigo, setIsValidatingCodigo] = useState(false);
+  const [codigoValido, setCodigoValido] = useState<boolean | undefined>(undefined);
+  const [codigoMensaje, setCodigoMensaje] = useState<string>('');
 
   // Cargar rubros y subrubros
-  const empresaId = 1; // TODO: Obtener del contexto de autenticación
   const { data: rubrosData } = useRubros({ empresaId, visibleWeb: true, includeSubrubros: false });
   const { data: subrubrosData } = useSubrubros({
     empresaId,
-    rubroId: formData.rubroId ? parseInt(formData.rubroId) : undefined,
+    rubroId: undefined,
     visibleWeb: true,
   });
 
-  // Handler para cambios de campo con limpieza de errores
-  const handleFieldChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    handleChange(e);
-    if (errors[e.target.name]) {
-      clearError(e.target.name);
-    }
-  };
+  // Query para obtener producto completo en modo edición
+  const { data: productoCompleto, isLoading: isLoadingProductoCompleto } = useQuery({
+    queryKey: productosKeys.completo(producto?.id || 0),
+    queryFn: () => productoService.obtenerProductoCompleto(producto!.id),
+    enabled: isEditMode && !!producto && isOpen,
+  });
 
-  // Handler para cambio de rubro (limpia subrubro)
-  const handleRubroChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    handleChange(e);
-    updateField('subrubroId', '');
-    if (errors.rubroId) {
-      clearError('rubroId');
-    }
-  };
+  // Query para obtener datos plantilla en modo crear-variante
+  const { data: datosPlantilla, isLoading: isLoadingPlantilla } = useQuery({
+    queryKey: productosKeys.datosPlantilla(wizardState.productoPadreId!),
+    queryFn: () => productoService.obtenerDatosPlantilla(wizardState.productoPadreId!),
+    enabled: modo === 'crear-variante' && !!wizardState.productoPadreId && isOpen,
+  });
 
-  // Handler para navegar al siguiente step
-  const handleNext = () => {
-    if (currentStep === 'info') {
-      if (validate(formData)) {
-        nextStep();
+  // Query para obtener variantes por código base
+  const { data: variantesData } = useQuery({
+    queryKey: productosKeys.variantesPorCodigoBase(wizardState.datosComunes.codigoBase),
+    queryFn: () => productoService.obtenerVariantesPorCodigoBase(wizardState.datosComunes.codigoBase),
+    enabled: modo === 'crear-variante' && !!wizardState.datosComunes.codigoBase && wizardState.datosComunes.codigoBase.length > 0 && isOpen,
+  });
+
+  // Inicializar wizard cuando se abre el modal
+  useEffect(() => {
+    if (isOpen) {
+      if (isEditMode && productoCompleto) {
+        // Cargar datos del producto completo
+        // En SFactory, descripcion es el nombre, así que usamos descripcion de SFactory como nombre
+        updateDatosComunes({
+          nombre: productoCompleto.datosSFactory.descripcion || productoCompleto.datosLocales.nombre,
+          codigoBase: productoCompleto.productoPadre.codigoAgrupacion,
+        });
+        updateDatosSFactory(productoCompleto.datosSFactory);
+        updateDatosLocales({
+          descripcionMarketing: productoCompleto.datosLocales.descripcionMarketing ?? '',
+          descripcionCorta: productoCompleto.datosLocales.descripcionCorta ?? '',
+          destacado: productoCompleto.datosLocales.destacado,
+          descripcion: productoCompleto.datosLocales.descripcion ?? '',
+        });
+        if (productoCompleto.variante) {
+          updateVariante({
+            talle: productoCompleto.variante.talle,
+            color: productoCompleto.variante.color,
+          });
+          setProductoWebId(productoCompleto.variante.id);
+          setItemId(productoCompleto.variante.sfactoryId);
+        }
+        setProductoPadreId(productoCompleto.productoPadre.id);
+        setCreadoEnSFactory(true);
+      } else if (modo === 'crear-variante' && productoPadreProp) {
+        // Cargar datos del producto padre seleccionado
+        // Usar la descripcion de SFactory como nombre (o el nombre del padre si no hay)
+        updateDatosComunes({
+          nombre: datosPlantilla?.datosSFactory.descripcion || productoPadreProp.nombre,
+          codigoBase: productoPadreProp.codigoAgrupacion,
+        });
+        setProductoPadreId(productoPadreProp.id);
+        if (datosPlantilla) {
+          updateDatosSFactory(datosPlantilla.datosSFactory);
+          updateDatosLocales({
+            descripcionMarketing: datosPlantilla.datosLocales.descripcionMarketing ?? '',
+            descripcionCorta: datosPlantilla.datosLocales.descripcionCorta ?? '',
+            destacado: datosPlantilla.datosLocales.destacado,
+            descripcion: datosPlantilla.datosLocales.descripcion ?? '',
+          });
+        }
       }
+    } else {
+      // Reset cuando se cierra
+      resetWizard();
+      setErrors({});
+      setCodigoValido(undefined);
+      setCodigoMensaje('');
     }
-  };
+  }, [isOpen, isEditMode, productoCompleto, productoPadreProp, datosPlantilla, modo]);
 
-  // Handler para submit final
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Calcular colores disponibles (incluyendo el color del estado local si existe)
+  const coloresDisponibles = useMemo(() => {
+    // Obtener colores de variantes existentes (si hay)
+    const coloresExistentes: string[] = [];
+    
+    // Si hay variantesData, obtener colores de ahí
+    if (variantesData?.variantes) {
+      variantesData.variantes.forEach(v => {
+        if (v.color && !coloresExistentes.includes(v.color)) {
+          coloresExistentes.push(v.color);
+        }
+      });
+    }
+    
+    // Agregar el color del estado local si existe y no está en la lista
+    const colorLocal = wizardState.variante.color;
+    if (colorLocal && !coloresExistentes.includes(colorLocal)) {
+      coloresExistentes.push(colorLocal);
+    }
+    
+    return coloresExistentes.sort();
+  }, [variantesData, wizardState.variante.color]);
 
-    if (currentStep === 'info') {
-      handleNext();
+  // Validar código en tiempo real
+  const validarCodigo = useCallback(async (codigo: string) => {
+    if (!codigo || codigo.length < 3) {
+      setCodigoValido(undefined);
+      setCodigoMensaje('');
       return;
     }
 
-    // Si estamos en el step de imágenes, hacer submit final
-    const submitData: Partial<ProductoPadreConVariantes> & {
-      imagenes?: { principal: string; complementarias: string[] };
-      sexo?: string;
-      talle?: string;
-    } = {
-      nombre: formData.nombre.trim(),
-      codigoAgrupacion: formData.codigoAgrupacion.trim(),
-      descripcion: formData.descripcion.trim() || null,
-      descripcionCorta: formData.descripcionCorta.trim() || null,
-      descripcionMarketing: formData.descripcionMarketing.trim() || null,
-      rubroId: formData.rubroId ? parseInt(formData.rubroId) : null,
-      subrubroId: formData.subrubroId ? parseInt(formData.subrubroId) : null,
-      sexo: formData.sexo.trim() || undefined,
-      talle: formData.talle.trim() || undefined,
-      publicado: formData.publicado,
-      destacado: formData.destacado,
-      imagenes: imagenes,
-    };
+    setIsValidatingCodigo(true);
+    try {
+      const resultado = await mutations.validarCodigo(codigo);
+      setCodigoValido(!resultado.existe);
+      setCodigoMensaje(resultado.mensaje || '');
+      if (resultado.existe) {
+        setErrors((prev) => ({ ...prev, codigoCompleto: resultado.mensaje || 'Este código ya existe' }));
+      } else {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.codigoCompleto;
+          return newErrors;
+        });
+      }
+    } catch (error) {
+      setCodigoValido(false);
+      setCodigoMensaje('Error al validar código');
+    } finally {
+      setIsValidatingCodigo(false);
+    }
+  }, [mutations]);
 
-    await onSubmit(submitData);
+  // Validar paso 1
+  const validarPaso1 = useCallback((): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    // En modo editar, no validar nombre ni código (están deshabilitados)
+    if (modo !== 'editar') {
+      if (!wizardState.datosComunes.nombre.trim()) {
+        newErrors.nombre = 'El nombre es requerido';
+      }
+    }
+
+    if (modo === 'crear-variante') {
+      // Validar que tenga código base y sufijo (código completo)
+      const codigoCompleto = wizardState.datosComunes.codigoCompleto || 
+                            (wizardState.datosComunes.codigoBase + ''); // Si no hay codigoCompleto, usar codigoBase
+      if (!codigoCompleto.trim() || !wizardState.datosComunes.codigoBase.trim()) {
+        newErrors.codigoCompleto = 'El código completo es requerido';
+      } else if (codigoValido === false) {
+        newErrors.codigoCompleto = codigoMensaje || 'Este código ya existe';
+      }
+    } else if (modo !== 'editar') {
+      // Solo validar código base si no es modo editar
+      if (!wizardState.datosComunes.codigoBase.trim()) {
+        newErrors.codigoBase = 'El código base es requerido';
+      }
+    }
+
+    setErrors(newErrors);
+    
+    // Scroll al primer error si hay errores
+    if (Object.keys(newErrors).length > 0) {
+      setTimeout(() => {
+        const firstErrorField = Object.keys(newErrors)[0];
+        const errorElement = document.getElementById(firstErrorField) || 
+                           document.querySelector(`[name="${firstErrorField}"]`);
+        if (errorElement) {
+          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          errorElement.focus();
+        }
+      }, 100);
+    }
+    
+    return Object.keys(newErrors).length === 0;
+  }, [wizardState, modo, codigoValido, codigoMensaje]);
+
+  // Función para parsear errores del backend y mapearlos a campos
+  const parsearErrorBackend = useCallback((errorMessage: string): Record<string, string> => {
+    const errores: Record<string, string> = {};
+    
+    // Mapeo de mensajes de error comunes a campos (case insensitive)
+    const errorLower = errorMessage.toLowerCase();
+    
+    // Mapeo de patrones de error a campos
+    const mapeoErrores: Array<{ pattern: string | RegExp; campo: string; mensaje: string }> = [
+      { pattern: /subrubro.*id/i, campo: 'subrubro_id', mensaje: 'El subrubro es requerido' },
+      { pattern: /rubro.*id/i, campo: 'rubro_id', mensaje: 'El rubro es requerido' },
+      { pattern: /unidad.*medida.*id/i, campo: 'um_id', mensaje: 'La unidad de medida es requerida' },
+      { pattern: /descripcion/i, campo: 'descripcion', mensaje: 'La descripción es requerida' },
+      { pattern: /tipo/i, campo: 'tipo', mensaje: 'El tipo es requerido' },
+      { pattern: /codigo/i, campo: 'codigo', mensaje: 'El código es requerido' },
+    ];
+
+    // Buscar en el mensaje de error
+    for (const { pattern, campo, mensaje } of mapeoErrores) {
+      if (pattern instanceof RegExp ? pattern.test(errorMessage) : errorLower.includes(pattern.toLowerCase())) {
+        errores[campo] = mensaje;
+        break; // Solo tomar el primer error encontrado
+      }
+    }
+
+    return errores;
+  }, []);
+
+  // Validar paso 2 (solo para crear-producto y editar, no para crear-variante)
+  const validarPaso2 = useCallback((): boolean => {
+    // En modo crear-variante, no validar paso 2 (se salta)
+    if (modo === 'crear-variante') {
+      return true;
+    }
+
+    const newErrors: Record<string, string> = {};
+
+    if (!wizardState.datosSFactory.tipo) {
+      newErrors.tipo = 'El tipo es requerido';
+    }
+
+    // Validar campos requeridos por SFactory
+    if (!wizardState.datosSFactory.rubro_id) {
+      newErrors.rubro_id = 'El rubro es requerido';
+    }
+
+    if (!wizardState.datosSFactory.subrubro_id) {
+      newErrors.subrubro_id = 'El subrubro es requerido';
+    }
+
+    // Validar precio_venta requerido
+    if (!wizardState.datosSFactory.precio_venta || wizardState.datosSFactory.precio_venta <= 0) {
+      newErrors.precio_venta = 'El precio de venta es requerido y debe ser mayor a 0';
+    }
+
+    setErrors(newErrors);
+    
+    // Scroll al primer error si hay errores
+    if (Object.keys(newErrors).length > 0) {
+      setTimeout(() => {
+        const firstErrorField = Object.keys(newErrors)[0];
+        const errorElement = document.getElementById(firstErrorField) || 
+                           document.querySelector(`[name="${firstErrorField}"]`);
+        if (errorElement) {
+          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          errorElement.focus();
+        }
+      }, 100);
+    }
+    
+    return Object.keys(newErrors).length === 0;
+  }, [wizardState, modo]);
+
+  // Validar paso 3
+  const validarPaso3 = useCallback((): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (modo === 'crear-variante') {
+      if (!wizardState.variante.talle) {
+        newErrors.talle = 'El talle es requerido para variantes';
+      }
+      if (!wizardState.variante.color) {
+        newErrors.color = 'El color es requerido para variantes';
+      } else if (variantesData?.variantes) {
+        // Validar si el color ya existe en las variantes del producto padre
+        const coloresExistentes = variantesData.variantes
+          .map(v => v.color)
+          .filter((c): c is string => !!c);
+        
+        if (coloresExistentes.includes(wizardState.variante.color)) {
+          // El color ya existe, mostrar advertencia pero permitir continuar
+          toast(`⚠️ El color "${wizardState.variante.color}" ya existe en este producto. Se creará otra variante con el mismo color.`, {
+            duration: 5000,
+            icon: '⚠️',
+          });
+        }
+      }
+    }
+    
+    // En modo crear-producto:
+    // - Si hay colores disponibles, el color es requerido para poder seleccionar imágenes
+    // - Si no hay colores disponibles, talle y color son opcionales
+    if (modo === 'crear-producto' && coloresDisponibles.length > 0) {
+      // Si hay colores disponibles, requerir color para poder finalizar
+      // (esto permite seleccionar imágenes)
+      if (!wizardState.variante.color) {
+        newErrors.color = 'Debe ingresar un color para poder finalizar';
+      }
+    }
+
+    setErrors(newErrors);
+    
+    // Scroll al primer error si hay errores
+    if (Object.keys(newErrors).length > 0) {
+      setTimeout(() => {
+        const firstErrorField = Object.keys(newErrors)[0];
+        const errorElement = document.getElementById(firstErrorField) || 
+                           document.querySelector(`[name="${firstErrorField}"]`);
+        if (errorElement) {
+          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          errorElement.focus();
+        }
+      }, 100);
+    }
+    
+    return Object.keys(newErrors).length === 0;
+  }, [wizardState, modo, coloresDisponibles, variantesData]);
+
+  // Handler para avanzar al siguiente paso
+  const handleSiguiente = useCallback(async () => {
+    if (wizardState.pasoActual === 1) {
+      if (!validarPaso1()) return;
+
+      // Si es variante, validar código antes de continuar
+      if (modo === 'crear-variante' && wizardState.datosComunes.codigoCompleto) {
+        setIsValidatingCodigo(true);
+        try {
+          const resultado = await mutations.validarCodigo(wizardState.datosComunes.codigoCompleto);
+          if (resultado.existe) {
+            setCodigoValido(false);
+            setCodigoMensaje(resultado.mensaje || 'Este código ya existe');
+            setErrors((prev) => ({ ...prev, codigoCompleto: resultado.mensaje || 'Este código ya existe' }));
+            setIsValidatingCodigo(false);
+            return;
+          } else {
+            setCodigoValido(true);
+            setCodigoMensaje('');
+            setErrors((prev) => {
+              const newErrors = { ...prev };
+              delete newErrors.codigoCompleto;
+              return newErrors;
+            });
+          }
+        } catch (error) {
+          setCodigoValido(false);
+          setCodigoMensaje('Error al validar código');
+          setIsValidatingCodigo(false);
+          return;
+        } finally {
+          setIsValidatingCodigo(false);
+        }
+      }
+
+      // En modo crear-variante, saltar el paso 2 (SFactory) y ir directo al paso 3
+      if (modo === 'crear-variante') {
+        setPaso(3);
+      } else {
+        siguientePaso();
+      }
+    } else if (wizardState.pasoActual === 2) {
+      if (!validarPaso2()) return;
+
+      // Crear en SFactory
+      try {
+        const codigo = modo === 'crear-variante' 
+          ? wizardState.datosComunes.codigoCompleto!
+          : wizardState.datosComunes.codigoBase;
+
+        const datosSFactoryCompletos = {
+          ...wizardState.datosSFactory,
+          codigo: codigo || undefined,
+          tipo: wizardState.datosSFactory.tipo || 'P',
+          descripcion: wizardState.datosComunes.nombre, // El nombre se usa como descripcion en SFactory
+          item_venta: wizardState.datosSFactory.item_venta || 1,
+          um_id: wizardState.datosSFactory.um_id || 1, // Unidad de medida por defecto
+        } as any;
+
+        console.log('📦 Datos que se envían a SFactory:', JSON.stringify(datosSFactoryCompletos, null, 2));
+
+        let productoCreado: ProductoPadreConVariantes;
+        
+        if (isEditMode && wizardState.itemId) {
+          // Actualizar en SFactory
+          productoCreado = await mutations.actualizarProductoEnSFactory({
+            itemId: wizardState.itemId,
+            data: { ...datosSFactoryCompletos, item_id: wizardState.itemId },
+          });
+          console.log('✅ Producto actualizado en SFactory - Respuesta:', JSON.stringify(productoCreado, null, 2));
+        } else {
+          // Crear en SFactory
+          productoCreado = await mutations.crearProducto(datosSFactoryCompletos);
+          console.log('✅ Producto creado en SFactory - Respuesta:', JSON.stringify(productoCreado, null, 2));
+        }
+
+        // Guardar IDs
+        setProductoPadreId(productoCreado.id);
+        if (productoCreado.productosWeb && productoCreado.productosWeb.length > 0) {
+          setProductoWebId(productoCreado.productosWeb[0].id);
+          setItemId(productoCreado.productosWeb[0].sfactoryId);
+        }
+        setCreadoEnSFactory(true);
+
+        toast.success('Producto creado/actualizado en SFactory correctamente');
+        siguientePaso();
+      } catch (error: any) {
+        // Parsear errores del backend y mostrarlos en los campos correspondientes
+        const errorMessage = error.message || 'Error al crear/actualizar producto en SFactory';
+        const erroresBackend = parsearErrorBackend(errorMessage);
+        
+        if (Object.keys(erroresBackend).length > 0) {
+          // Si hay errores específicos de campos, mostrarlos en los inputs
+          setErrors((prev) => ({ ...prev, ...erroresBackend }));
+          
+          // Scroll al primer error
+          setTimeout(() => {
+            const firstErrorField = Object.keys(erroresBackend)[0];
+            const errorElement = document.getElementById(firstErrorField) || 
+                               document.querySelector(`[name="${firstErrorField}"]`);
+            if (errorElement) {
+              errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              errorElement.focus();
+            }
+          }, 100);
+        }
+        
+        toast.error(errorMessage);
+      }
+    }
+  }, [wizardState, modo, isEditMode, validarPaso1, validarPaso2, validarCodigo, codigoValido, mutations, siguientePaso, setProductoPadreId, setProductoWebId, setItemId, setCreadoEnSFactory, parsearErrorBackend]);
+
+  // Handler para finalizar
+  const handleFinalizar = useCallback(async () => {
+    if (!validarPaso3()) return;
+
+    try {
+      let productoWebIdFinal = wizardState.productoWebId;
+      
+      // Si es crear-producto y hay talle y color, crear la primera variante
+      // (Solo si no se creó automáticamente en el useEffect)
+      if (modo === 'crear-producto' && wizardState.variante.talle && wizardState.variante.color && !wizardState.productoWebId) {
+        // Crear variante en SFactory usando el código base + número 1
+        const codigoVariante = `${wizardState.datosComunes.codigoBase}1`;
+        
+        const datosVarianteSFactory = {
+          ...wizardState.datosSFactory,
+          codigo: codigoVariante,
+          tipo: wizardState.datosSFactory.tipo || 'P',
+          descripcion: wizardState.datosComunes.nombre, // El nombre se usa como descripcion en SFactory
+          item_venta: wizardState.datosSFactory.item_venta || 1,
+          um_id: wizardState.datosSFactory.um_id || 1,
+        };
+
+        console.log('📦 Creando primera variante en SFactory:', JSON.stringify(datosVarianteSFactory, null, 2));
+
+        const varianteCreada = await mutations.crearProducto(datosVarianteSFactory);
+        
+        console.log('✅ Variante creada en SFactory - Respuesta:', JSON.stringify(varianteCreada, null, 2));
+        
+        // Guardar IDs de la variante
+        if (varianteCreada.productosWeb && varianteCreada.productosWeb.length > 0) {
+          productoWebIdFinal = varianteCreada.productosWeb[0].id;
+          const itemId = varianteCreada.productosWeb[0].sfactoryId;
+          
+          // Actualizar datos de la variante (talle y color)
+          await mutations.actualizarDatosVariante({
+            productoWebId: productoWebIdFinal,
+            data: {
+              talle: wizardState.variante.talle,
+              color: wizardState.variante.color,
+            },
+          });
+          
+          // Guardar IDs en el wizard state
+          setProductoWebId(productoWebIdFinal);
+          setItemId(itemId);
+          
+          toast.success('Variante creada correctamente');
+        }
+      }
+
+      // Subir imágenes si hay archivos seleccionados y hay color
+      if (wizardState.imagenesSeleccionadas.length > 0 && wizardState.variante.color) {
+        const productoWebIdParaImagenes = productoWebIdFinal || wizardState.productoWebId;
+        if (productoWebIdParaImagenes) {
+          try {
+            console.log('📤 Subiendo imágenes después de crear variante...');
+            await uploadImagesMutation.mutateAsync({
+              productoWebId: productoWebIdParaImagenes,
+              productoPadreId: wizardState.productoPadreId || undefined,
+              color: wizardState.variante.color,
+              files: wizardState.imagenesSeleccionadas,
+            });
+            toast.success(`${wizardState.imagenesSeleccionadas.length} imagen(es) subida(s) exitosamente`);
+          } catch (error: any) {
+            console.error('Error al subir imágenes:', error);
+            toast.error(error.message || 'Error al subir imágenes, pero el producto fue creado');
+          }
+        }
+      }
+
+      // Actualizar datos locales
+      if (wizardState.productoPadreId) {
+        await mutations.actualizarDatosLocales({
+          id: wizardState.productoPadreId,
+          data: {
+            descripcionMarketing: wizardState.datosLocales.descripcionMarketing,
+            descripcionCorta: wizardState.datosLocales.descripcionCorta,
+            destacado: wizardState.datosLocales.destacado,
+            nombre: wizardState.datosComunes.nombre,
+            descripcion: wizardState.datosLocales.descripcion,
+          },
+        });
+      }
+
+      // Crear variante en SFactory si es modo crear-variante
+      if (modo === 'crear-variante' && wizardState.productoPadreId && !wizardState.productoWebId) {
+        // Obtener datos del producto padre para crear la variante
+        const productoPadre = await productoService.obtenerDatosPlantilla(wizardState.productoPadreId);
+        
+        // Crear variante en SFactory usando el código completo
+        // IMPORTANTE: La variante hereda rubro_id, subrubro_id y um_id del producto padre
+        // CRÍTICO: rubro_id y subrubro_id DEBEN estar presentes y no ser null
+        if (!productoPadre.datosSFactory.rubro_id || !productoPadre.datosSFactory.subrubro_id) {
+          throw new Error('El producto padre no tiene rubro_id o subrubro_id. No se puede crear la variante sin estos datos.');
+        }
+
+        const datosVarianteSFactory = {
+          // PRIMERO: Campos críticos heredados del padre (rubro_id, subrubro_id, um_id, moneda_id)
+          rubro_id: productoPadre.datosSFactory.rubro_id,
+          subrubro_id: productoPadre.datosSFactory.subrubro_id,
+          um_id: productoPadre.datosSFactory.um_id || 1, // Heredado del padre
+          moneda_id: productoPadre.datosSFactory.moneda_id || 1, // Heredado del padre, por defecto 1
+          // SEGUNDO: Código
+          codigo: wizardState.datosComunes.codigoCompleto!,
+          // TERCERO: Resto de datos del padre (esto incluye tipo, descripcion, item_venta, etc.)
+          ...productoPadre.datosSFactory,
+          // CUARTO: Sobrescribir campos específicos después del spread
+          tipo: productoPadre.datosSFactory.tipo || 'P',
+          descripcion: productoPadre.datosLocales.nombre, // Usar nombre del producto padre
+          item_venta: productoPadre.datosSFactory.item_venta || 1,
+        };
+
+        console.log('📦 Creando variante en SFactory:', JSON.stringify(datosVarianteSFactory, null, 2));
+
+        const varianteCreada = await mutations.crearProducto(datosVarianteSFactory);
+        
+        console.log('✅ Variante creada en SFactory - Respuesta:', JSON.stringify(varianteCreada, null, 2));
+        
+        // Guardar IDs de la variante
+        if (varianteCreada.productosWeb && varianteCreada.productosWeb.length > 0) {
+          productoWebIdFinal = varianteCreada.productosWeb[0].id;
+          const itemId = varianteCreada.productosWeb[0].sfactoryId;
+          
+          // Actualizar datos de la variante (talle y color)
+          await mutations.actualizarDatosVariante({
+            productoWebId: productoWebIdFinal,
+            data: {
+              talle: wizardState.variante.talle,
+              color: wizardState.variante.color,
+            },
+          });
+          
+          // Guardar IDs en el wizard state
+          setProductoWebId(productoWebIdFinal);
+          setItemId(itemId);
+          
+          toast.success('Variante creada correctamente');
+        }
+      } else if (modo === 'crear-variante' && wizardState.productoWebId) {
+        // Si ya existe, solo actualizar datos
+        await mutations.actualizarDatosVariante({
+          productoWebId: wizardState.productoWebId,
+          data: {
+            talle: wizardState.variante.talle,
+            color: wizardState.variante.color,
+          },
+        });
+      }
+
+      toast.success('Producto guardado correctamente');
+      if (onSubmit && wizardState.productoPadreId) {
+        const productoFinal = await productoService.getById(wizardState.productoPadreId, true);
+        await onSubmit(productoFinal);
+      }
+      onClose();
+    } catch (error: any) {
+      toast.error(error.message || 'Error al guardar datos locales');
+    }
+  }, [wizardState, modo, validarPaso3, mutations, uploadImagesMutation, onSubmit, onClose, setProductoWebId, setItemId]);
+
+  // Handlers de cambios
+  const handleNombreChange = (value: string) => {
+    updateDatosComunes({ nombre: value });
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors.nombre;
+      return newErrors;
+    });
   };
+
+  const handleCodigoBaseChange = (value: string) => {
+    updateDatosComunes({ codigoBase: value });
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors.codigoBase;
+      return newErrors;
+    });
+  };
+
+  const handleCodigoCompletoChange = (value: string) => {
+    updateDatosComunes({ codigoCompleto: value });
+    validarCodigo(value);
+  };
+
+
+  const handleSFactoryFieldChange = (field: string, value: any) => {
+    updateDatosSFactory({ [field]: value });
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[field];
+      return newErrors;
+    });
+  };
+
+  const isLoading = loadingProp || isLoadingProductoCompleto || isLoadingPlantilla;
 
   // Footer actions
   const footerActions = (
-    <>
-      {currentStep === 'imagenes' && (
-        <Button
-          type="button"
-          variant="grayOutline"
-          size="lg"
-          onClick={previousStep}
-          disabled={loading}
-          className="tracking-wide h-12"
-        >
-          <ChevronLeft className="w-4 h-4 mr-2 inline" />
-          Anterior
-        </Button>
-      )}
+    <div className="flex items-center justify-between w-full">
       <Button
         type="button"
         variant="grayOutline"
         size="lg"
-        fullWidth={currentStep === 'info'}
-        onClick={onClose}
-        disabled={loading}
+        onClick={wizardState.pasoActual === 1 ? onClose : (modo === 'crear-variante' && wizardState.pasoActual === 3 ? () => setPaso(1) : anteriorPaso)}
+        disabled={isLoading}
         className="tracking-wide h-12"
       >
-        Cancelar
+        {wizardState.pasoActual === 1 ? (
+          'Cancelar'
+        ) : (
+          <>
+            <ChevronLeft className="w-4 h-4 mr-2" />
+            Anterior
+          </>
+        )}
       </Button>
+
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-gray-500">
+          Paso {modo === 'crear-variante' ? (wizardState.pasoActual === 1 ? 1 : 2) : wizardState.pasoActual} de {modo === 'crear-variante' ? 2 : 3}
+        </span>
+      </div>
+
       <Button
-        type="submit"
+        type="button"
         variant="black"
         size="lg"
-        fullWidth
-        disabled={loading}
-        className="tracking-wide h-12 flex items-center justify-center"
+        onClick={(modo === 'crear-variante' && wizardState.pasoActual === 3) || wizardState.pasoActual === 3 ? handleFinalizar : handleSiguiente}
+        disabled={isLoading}
+        className="tracking-wide h-12 flex items-center justify-center min-w-[120px]"
       >
-        {loading
-          ? 'Procesando...'
-          : currentStep === 'imagenes'
-          ? isEditMode
-            ? 'Guardar Cambios'
-            : 'Crear producto'
-          : 'Siguiente'}
+        {isLoading ? (
+          <>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            Procesando...
+          </>
+        ) : (modo === 'crear-variante' && wizardState.pasoActual === 3) || wizardState.pasoActual === 3 ? (
+          'Finalizar'
+        ) : (
+          <>
+            Siguiente
+            <ChevronRight className="w-4 h-4 ml-2" />
+          </>
+        )}
       </Button>
-    </>
+    </div>
   );
 
   return (
     <FormModal
       isOpen={isOpen}
       onClose={onClose}
-      title={`${isEditMode ? 'Editar' : 'Crear'} Producto`}
-      onSubmit={handleSubmit}
-      submitText={
-        currentStep === 'imagenes'
-          ? isEditMode
-            ? 'Guardar Cambios'
-            : 'Crear producto'
-          : 'Siguiente'
+      title={
+        isEditMode
+          ? 'Editar producto'
+          : modo === 'crear-variante'
+          ? 'Crear Variante'
+          : 'Crear producto nuevo'
       }
-      loading={loading && currentStep === 'imagenes'}
-      size="lg"
+      size="xl"
       showCancel={false}
       footerActions={footerActions}
     >
-      {/* Steps Indicator */}
-      <div className="mb-6 px-2">
-        <div className="flex items-center justify-between mb-2">
-          {steps.map((step, index) => (
-            <React.Fragment key={step.key}>
-              <div className="flex items-center">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
-                    index <= currentStepIndex
-                      ? 'bg-black text-white'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}
-                >
-                  {index + 1}
-                </div>
-                <span
-                  className={`ml-2 text-sm font-medium ${
-                    index <= currentStepIndex ? 'text-black' : 'text-gray-500'
-                  }`}
-                >
-                  {step.label}
-                </span>
-              </div>
-              {index < steps.length - 1 && (
-                <div
-                  className={`flex-1 h-0.5 mx-4 ${
-                    index < currentStepIndex ? 'bg-black' : 'bg-gray-200'
-                  }`}
-                />
-              )}
-            </React.Fragment>
-          ))}
-        </div>
-      </div>
+      {wizardState.pasoActual === 1 && (
+        <ProductoDatosComunesStep
+          modo={modo}
+          nombre={wizardState.datosComunes.nombre}
+          codigoBase={wizardState.datosComunes.codigoBase}
+          codigoCompleto={wizardState.datosComunes.codigoCompleto}
+          productoPadreNombre={productoPadreProp?.nombre}
+          siguienteNumeroSugerido={variantesData?.siguienteSugerido}
+          onNombreChange={handleNombreChange}
+          onCodigoBaseChange={handleCodigoBaseChange}
+          onCodigoCompletoChange={handleCodigoCompletoChange}
+          errors={errors}
+          isValidatingCodigo={isValidatingCodigo}
+          codigoValido={codigoValido}
+          codigoMensaje={codigoMensaje}
+        />
+      )}
 
-      {/* Step Content */}
-      <AnimatePresence mode="wait">
-        {currentStep === 'info' && (
-          <ProductoInfoStep
-            formData={formData}
-            errors={errors}
-            onFieldChange={handleFieldChange}
-            onRubroChange={handleRubroChange}
-            rubrosData={rubrosData?.data}
-            subrubrosData={subrubrosData?.data}
-          />
-        )}
+      {wizardState.pasoActual === 2 && modo !== 'crear-variante' && (
+        <ProductoDatosSFactoryStep
+          datosSFactory={wizardState.datosSFactory}
+          errors={errors}
+          onFieldChange={handleSFactoryFieldChange}
+          bloqueado={isEditMode}
+          rubros={rubrosData?.data}
+          subrubros={subrubrosData?.data}
+        />
+      )}
 
-        {currentStep === 'imagenes' && (
-          <ProductoImagenesStep
-            imagenes={imagenes}
-            onPrincipalUpload={uploadPrincipal}
-            onPrincipalRemove={removePrincipal}
-            onComplementariaUpload={uploadComplementaria}
-            onComplementariaRemove={removeComplementaria}
-            maxComplementarias={maxComplementarias}
-          />
-        )}
-      </AnimatePresence>
+      {wizardState.pasoActual === 3 && (
+        <ProductoDatosLocalesStep
+          datosLocales={wizardState.datosLocales}
+          variante={wizardState.variante}
+          productoPadreId={wizardState.productoPadreId}
+          productoNombre={wizardState.datosComunes.nombre}
+          coloresDisponibles={coloresDisponibles}
+          modo={modo}
+          errors={errors}
+          onDescripcionMarketingChange={(value) => updateDatosLocales({ descripcionMarketing: value })}
+          onDescripcionCortaChange={(value) => updateDatosLocales({ descripcionCorta: value })}
+          onDescripcionChange={(value) => updateDatosLocales({ descripcion: value })}
+          onDestacadoChange={(value) => updateDatosLocales({ destacado: value })}
+          onTalleChange={(value) => updateVariante({ talle: value })}
+          onColorChange={(value) => updateVariante({ color: value })}
+          imagenesSeleccionadas={wizardState.imagenesSeleccionadas}
+          onImagenesChange={updateImagenesSeleccionadas}
+        />
+      )}
     </FormModal>
   );
 };
 
 export default ProductoFormModal;
-

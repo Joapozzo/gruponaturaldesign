@@ -11,7 +11,6 @@ export interface ProductoFormData {
   subrubroId: string;
   sexo: string;
   talle: string;
-  publicado: boolean;
   destacado: boolean;
 }
 
@@ -25,7 +24,6 @@ const initialFormData: ProductoFormData = {
   subrubroId: '',
   sexo: '',
   talle: '',
-  publicado: false,
   destacado: false,
 };
 
@@ -49,7 +47,6 @@ export const useProductoForm = (
         subrubroId: producto.subrubroId?.toString() || '',
         sexo: primeraVariante?.sexo || '',
         talle: primeraVariante?.talle || '',
-        publicado: producto.publicado || false,
         destacado: producto.destacado || false,
       });
     } else {

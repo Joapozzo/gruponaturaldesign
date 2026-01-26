@@ -4,9 +4,10 @@ import React, { useState } from 'react';
 import FormModal from '@/app/components/modal/FormModal';
 import { TextField } from '@/app/components/producto/fields/TextField';
 import { SelectField } from '@/app/components/producto/fields/SelectField';
-import { useClienteForm } from '@/app/hooks/useClienteForm';
+// import { useClienterForm } from '@/app/hooks/useClienteForm';
 import { clienteService } from '@/app/services/cliente.service';
 import type { ClienteResponse } from '@/app/types/cliente.types';
+import { useClienteForm } from '@/app/hooks/useClienteForm';
 
 export interface ClienteFormModalProps {
   isOpen: boolean;
@@ -137,7 +138,7 @@ export const ClienteFormModal: React.FC<ClienteFormModalProps> = ({
     <FormModal
       isOpen={isOpen}
       onClose={handleClose}
-      title={isEditMode ? 'Editar Cliente' : 'Nuevo Cliente'}
+      title={isEditMode ? 'Editar cliente' : 'Nuevo cliente'}
       onSubmit={handleSubmit}
       submitText={isEditMode ? 'Actualizar' : 'Crear'}
       loading={loading}

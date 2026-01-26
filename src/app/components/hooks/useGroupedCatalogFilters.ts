@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { GroupedProductV2 } from '../../types/producto-v2';
 import { FilterState } from './useCatalogFilters';
-import { hasProductImages } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
+import { hasProductImages } from '@/app/utils/productHelpers';
 import { useDebounce } from './useDebounce';
 
 export interface UseGroupedCatalogFiltersProps {
@@ -255,7 +255,7 @@ export const useGroupedCatalogFilters = ({ products, itemsPerPage = 12 }: UseGro
                 });
                 break;
             case 'precio-asc':
-                // Ordenar por precio ascendente (menor a mayor)
+                // Ordenar por precio ascendente (Menor a mayor)
                 filtered.sort((a, b) => {
                     const precioA = a.displayProduct.precioLista || 0;
                     const precioB = b.displayProduct.precioLista || 0;

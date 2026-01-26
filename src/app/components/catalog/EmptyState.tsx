@@ -12,7 +12,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
     onClearFilters,
 }) => {
     return (
-        <div className="text-center py-20">
+        <div className="text-center py-20 flex flex-col items-center justify-center">
             <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Grid3X3 className="w-12 h-12 text-gray-400" />
             </div>
@@ -24,7 +24,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
             </p>
             {hasActiveFilters && (
                 <Button variant="black" size="md" onClick={onClearFilters}>
-                    Limpiar Filtros
+                    Limpiar filtros
                 </Button>
             )}
         </div>

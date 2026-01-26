@@ -1,95 +1,32 @@
 import { motion } from 'framer-motion';
-import { Trash2, Package } from 'lucide-react';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { Trash2 } from 'lucide-react';
 import { useConfirmModal } from './hooks/useModal';
 import ConfirmModal from './modal/ConfirmModal';
 import BordadoSwitch from './product-card/components/BordadoSwitch';
-import { nombreToSlug, parseProductSpecs } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
 import QuantityControlsUI from './ui/QuantityControls';
-import { formatPrice, formatPriceWithoutIVA } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
-import { canAddQuantity, getStockMessage } from '@/app/services/stockService';
+import { formatPrice } from '@/app/utils/productHelpers';
+import { canAddQuantity } from '@/app/services/stockService';
+import { ProductImage } from './product-card/components/ProductImage';
+import { CartItemProps } from '../types/producto-publicado.types';
+import { useCartItemActions } from './hooks/useCartItemActions';
+import { useSales } from '@/app/contexts/SalesContext';
 
-interface CartItemProps {
-    item: {
-        product: {
-            id: number;
-            nombre: string;
-            imagen: string;
-            precio: number;
-            stock?: number;
-            categoria: string;
-        };
-        quantity: number;
-        subtotal: number;
-        especificaciones?: string;
-        bordado?: boolean;
-    };
-    onUpdateQuantity: (productId: number, quantity: number) => void;
-    onRemove: (productId: number) => void;
-    onUpdateBordado?: (productId: number, bordado: boolean) => void;
-    canAddMore?: boolean;
-    totalItemsInCart?: number;
-}
-
-const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, onUpdateBordado, canAddMore = true, totalItemsInCart = 0 }) => {
+const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, onUpdateBordado, canAddMore = true }) => {
     const { product, quantity, subtotal, especificaciones, bordado = false } = item;
-    const { isOpen: isConfirmModalOpen, loading, modalOptions, showModal, closeModal, handleConfirm } = useConfirmModal();
-    const router = useRouter();
+    const { isOpen: isConfirmModalOpen, loading, modalOptions, closeModal, handleConfirm, showModal } = useConfirmModal();
+    const { canActivateBordado, itemsNeededForBordado, config } = useSales();
     
-    // Validar si se puede activar bordado (mínimo 5 prendas)
-    const canActivateBordado = totalItemsInCart >= 5;
-    
-    // Parsear especificaciones para obtener color y talle
-    const { color, talle } = parseProductSpecs(especificaciones);
-    
-    // Construir URL del producto con query params
-    const handleProductClick = () => {
-        // Usar skuBaseSlug si está disponible, sino generar desde nombre
-        const productSlug = (product as any).skuBaseSlug || nombreToSlug(product.nombre);
-        const params = new URLSearchParams();
-        
-        if (color) params.set('color', color.toLowerCase());
-        if (talle) params.set('talle', talle);
-        
-        const queryString = params.toString();
-        const url = queryString 
-            ? `/producto/${productSlug}?${queryString}`
-            : `/producto/${productSlug}`;
-        
-        router.push(url);
-    };
-
-    const handleIncrement = () => {
-        // Validar stock disponible usando el servicio (lógica separada y delicada)
-        if (!canAddQuantity(product.stock, quantity, 1)) {
-            // No mostrar el número exacto de stock, solo un mensaje genérico
-            return;
-        }
-        onUpdateQuantity(product.id, quantity + 1);
-    };
-
-    const handleDecrement = () => {
-        if (quantity > 1) {
-            onUpdateQuantity(product.id, quantity - 1);
-        }
-    };
-
-    const handleRemove = () => {
-        showModal({
-            title: 'Eliminar Producto',
-            message: `¿Eliminar ${product.nombre} del carrito?`,
-            type: 'warning',
-            confirmText: 'Sí, eliminar',
-            cancelText: 'No, mantener',
-            onConfirm: async () => {
-                // Tu lógica aquí
-                onRemove(product.id);
-                // Puede ser async
-                // await deleteFromAPI();
-            }
-        });
-    };
+    const {
+        handleProductClick,
+        handleIncrement,
+        handleDecrement,
+        handleRemove,
+    } = useCartItemActions({
+        item,
+        onUpdateQuantity,
+        onRemove,
+        showModal,
+    });
 
     return (
         <motion.div
@@ -105,23 +42,13 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, o
                 className="relative w-14 h-14 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden cursor-pointer"
                 onClick={handleProductClick}
             >
-                {product.imagen ? (
-                    <Image
-                        src={product.imagen}
-                        alt={product.nombre}
-                        fill
-                        className="object-cover"
-                        sizes="56px"
-                        unoptimized={true}
-                        onError={() => {
-                            // El error se maneja mostrando el Package icon
-                        }}
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                        <Package className="w-5 h-5 text-gray-400" />
-                    </div>
-                )}
+                <ProductImage
+                    src={product.imagen}
+                    alt={product.nombre}
+                    fill
+                    sizes="56px"
+                    objectFit="cover"
+                />
             </div>
 
             {/* Info del producto */}
@@ -173,7 +100,7 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, o
                             />
                             {!canActivateBordado && (
                                 <p className="text-[9px] text-red-600 font-medium">
-                                    Mínimo 5 prendas para activar bordado ({totalItemsInCart}/5)
+                                    Mínimo {config.BORDADO_MIN_ITEMS} prendas para activar bordado (faltan {itemsNeededForBordado})
                                 </p>
                             )}
                         </div>
@@ -193,17 +120,15 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, o
                         />
                     </div>
 
-                    {/* Subtotal con precio sin IVA */}
+                    {/* Subtotal con precio lista */}
                     <div className="text-right">
                         <p className="text-[10px] text-gray-500 mb-0.5">Subtotal</p>
                         <p className="text-sm font-bold text-black">
                             {formatPrice(subtotal)}
                         </p>
-                        {subtotal > 0 && (
-                            <p className="text-[10px] text-gray-500 mt-0.5">
-                                {formatPriceWithoutIVA(subtotal)}
-                            </p>
-                        )}
+                        <p className="text-[10px] text-gray-500 mt-0.5">
+                            {formatPrice(product.precioLista)} c/u
+                        </p>
                     </div>
                 </div>
 

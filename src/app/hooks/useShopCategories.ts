@@ -90,28 +90,6 @@ export function useShopCategories() {
             generos: generosSet.size > 0 ? Array.from(generosSet).sort() : HARDCODED_CATEGORIES.generos,
         };
 
-        // Debug en desarrollo y producción (para diagnosticar el problema)
-        console.log('[useShopCategories]', {
-            isLoading,
-            isFetched,
-            isError,
-            productsCount: validProducts.length,
-            rubrosCount: validRubros.length,
-            subrubrosCount: validSubrubros.length,
-            usingHardcoded: {
-                rubros: rubrosList.length === 0,
-                subrubros: subrubrosList.length === 0,
-                generos: generosSet.size === 0,
-            },
-            categoriesCount: {
-                rubros: result.rubros.length,
-                subrubros: result.subrubros.length,
-                generos: result.generos.length,
-            },
-            rubrosList: result.rubros,
-            subrubrosList: result.subrubros.slice(0, 5), // Primeros 5 para no saturar
-        });
-
         return result;
     }, [products, rubros, subrubros, isLoading, isFetched, isError, error]);
 

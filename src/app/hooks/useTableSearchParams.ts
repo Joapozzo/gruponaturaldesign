@@ -29,8 +29,8 @@ export function useTableSearchParams(options: UseTableSearchParamsOptions = {}) 
   // Ref para rastrear el último valor sincronizado (evitar loops)
   const lastSyncedSearch = useRef(searchParam);
 
-  // Debounce del search input (500ms)
-  const debouncedSearch = useDebounce(searchInput, 500);
+  // Debounce del search input (800ms) - espera más tiempo para evitar búsquedas innecesarias mientras el usuario tipea
+  const debouncedSearch = useDebounce(searchInput, 800);
 
   // Sincronizar debouncedSearch con URL cuando cambia
   useEffect(() => {

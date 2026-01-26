@@ -15,12 +15,16 @@ import { useProductosFiltersWithParams } from '@/app/filters/hooks/useProductosF
 import { ProductosFilters } from '@/app/filters/components/ProductosFilters';
 import { getProductosColumns } from '@/app/components/admin/productos/columns';
 import { BulkActions } from '@/app/components/admin/productos/BulkActions';
+import type { ProductoPadreConVariantes } from '@/app/types/producto.types';
+import type { ProductoPadreBusqueda } from '@/app/services/producto.service';
 import { Search } from 'lucide-react';
 
 // Lazy load modales
+const ProductoSeleccionModal = React.lazy(() => import('@/app/components/producto/ProductoSeleccionModal'));
 const ProductoFormModal = React.lazy(() => import('@/app/components/modal/ProductoFormModal'));
 const ConfirmModal = React.lazy(() => import('@/app/components/modal/ConfirmModal'));
 const AlertModal = React.lazy(() => import('@/app/components/modal/AlertModal'));
+const VariantesManagementModal = React.lazy(() => import('@/app/components/admin/productos/VariantesManagementModal'));
 
 interface ProductosTableClientProps {
   empresaId: number;
@@ -67,7 +71,14 @@ export function ProductosTableClient({ empresaId }: ProductosTableClientProps) {
   // Acciones
   const actions = useProductosActions({
     bulkSelection,
-    mutations,
+    mutations: {
+      ...mutations,
+      // Agregar saveProducto como stub ya que el guardado se maneja en el wizard del modal
+      saveProducto: async () => {
+        // El guardado se maneja dentro del ProductoFormModal wizard
+        // Esta función es requerida por la interfaz pero no se usa
+      },
+    },
     confirmModal: modals.confirmModal,
     showAlert: modals.showAlert,
     openEdit: modals.openEdit,
@@ -75,7 +86,38 @@ export function ProductosTableClient({ empresaId }: ProductosTableClientProps) {
   });
 
   // Evento global para abrir modal de creación
-  useOpenCreateProductoEvent(modals.openCreate);
+  useOpenCreateProductoEvent(() => setIsSeleccionModalOpen(true));
+  
+  // Handlers para modal de selección
+  const handleSeleccionarCrearProducto = () => {
+    setIsSeleccionModalOpen(false);
+    setWizardMode('crear-producto');
+    setProductoPadreSeleccionado(undefined);
+    modals.openCreate();
+  };
+  
+  const handleSeleccionarCrearVariante = (productoPadre: ProductoPadreBusqueda) => {
+    setIsSeleccionModalOpen(false);
+    setWizardMode('crear-variante');
+    setProductoPadreSeleccionado(productoPadre);
+    modals.openCreate();
+  };
+  
+  // Cuando se abre edición, establecer modo
+  React.useEffect(() => {
+    if (modals.isFormModalOpen && modals.selectedProducto) {
+      setWizardMode('editar');
+      setProductoPadreSeleccionado(undefined);
+    }
+  }, [modals.isFormModalOpen, modals.selectedProducto]);
+
+  // Estado para modal de gestión de variantes
+  const [selectedProductoForVariantes, setSelectedProductoForVariantes] = React.useState<ProductoPadreConVariantes | null>(null);
+  
+  // Estado para modal de selección y modo del wizard
+  const [isSeleccionModalOpen, setIsSeleccionModalOpen] = React.useState(false);
+  const [wizardMode, setWizardMode] = React.useState<'crear-producto' | 'crear-variante' | 'editar'>('crear-producto');
+  const [productoPadreSeleccionado, setProductoPadreSeleccionado] = React.useState<ProductoPadreBusqueda | undefined>(undefined);
 
   // Columnas
   const columns = useMemo(
@@ -87,6 +129,7 @@ export function ProductosTableClient({ empresaId }: ProductosTableClientProps) {
         onEdit: actions.handleEdit,
         onTogglePublicado: actions.handleTogglePublicado,
         onToggleDestacado: actions.handleToggleDestacado,
+        onManageVariantes: (producto) => setSelectedProductoForVariantes(producto),
         isUpdatingDestacado: mutations.isUpdatingDestacado,
         isUpdatingPublicado: mutations.isUpdatingPublicado,
         productosCount: productosConVariantes.length,
@@ -104,11 +147,14 @@ export function ProductosTableClient({ empresaId }: ProductosTableClientProps) {
     ]
   );
 
+  const disabled =
+  productosConVariantes.length === 0 && !filters.hasActiveFilters;
+
   return (
     <>
       <div className="mt-8 space-y-4">
         {/* Filtros Avanzados */}
-        <ProductosFilters filters={filters} />
+        <ProductosFilters filters={filters} disabled={disabled} />
 
         {/* Búsqueda y Acciones Bulk */}
         <Card variant="elevated" padding="md">
@@ -168,12 +214,27 @@ export function ProductosTableClient({ empresaId }: ProductosTableClientProps) {
 
       {/* Modales con Suspense */}
       <Suspense fallback={null}>
+        <ProductoSeleccionModal
+          isOpen={isSeleccionModalOpen}
+          onClose={() => setIsSeleccionModalOpen(false)}
+          onSeleccionarCrearProducto={handleSeleccionarCrearProducto}
+          onSeleccionarCrearVariante={handleSeleccionarCrearVariante}
+        />
+      </Suspense>
+
+      <Suspense fallback={null}>
         <ProductoFormModal
           isOpen={modals.isFormModalOpen}
           onClose={modals.closeFormModal}
-          onSubmit={actions.handleSaveProducto}
+          onSubmit={async () => {
+            // El producto ya fue guardado en el wizard
+            modals.closeFormModal();
+            modals.showAlert('Éxito', 'Producto guardado correctamente', 'success');
+          }}
           producto={modals.selectedProducto}
-          loading={mutations.isSaving}
+          modo={wizardMode}
+          productoPadreSeleccionado={productoPadreSeleccionado}
+          loading={mutations.isCreandoProducto || mutations.isActualizandoSFactory || mutations.isActualizandoLocales}
         />
       </Suspense>
 
@@ -199,6 +260,18 @@ export function ProductosTableClient({ empresaId }: ProductosTableClientProps) {
           title={modals.alertConfig.title}
           message={modals.alertConfig.message}
           type={modals.alertConfig.type}
+        />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <VariantesManagementModal
+          isOpen={selectedProductoForVariantes !== null}
+          onClose={() => setSelectedProductoForVariantes(null)}
+          producto={selectedProductoForVariantes}
+          onSuccess={() => {
+            setSelectedProductoForVariantes(null);
+            // Refetch productos
+          }}
         />
       </Suspense>
     </>

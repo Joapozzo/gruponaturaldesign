@@ -10,6 +10,7 @@ interface TextAreaFieldProps {
   rows?: number;
   error?: string;
   required?: boolean;
+  disabled?: boolean;
 }
 
 export const TextAreaField: React.FC<TextAreaFieldProps> = ({
@@ -22,6 +23,7 @@ export const TextAreaField: React.FC<TextAreaFieldProps> = ({
   rows = 4,
   error,
   required = false,
+  disabled = false,
 }) => {
   return (
     <div>
@@ -34,9 +36,10 @@ export const TextAreaField: React.FC<TextAreaFieldProps> = ({
         value={value}
         onChange={onChange}
         rows={rows}
+        disabled={disabled}
         className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black resize-none ${
           error ? 'border-red-500' : 'border-gray-300'
-        }`}
+        } ${disabled ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`}
         placeholder={placeholder}
       />
       {error && <p className="text-red-500 text-xs mt-1">{error}</p>}

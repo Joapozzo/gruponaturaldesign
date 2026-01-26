@@ -15,6 +15,7 @@ export const productosKeys = {
     sexo?: string,
     color?: string,
     talle?: string,
+    publicado?: boolean,
     stockMin?: number,
     stockMax?: number,
     orderBy?: string,
@@ -31,6 +32,7 @@ export const productosKeys = {
       sexo,
       color,
       talle,
+      publicado,
       stockMin,
       stockMax,
       orderBy,
@@ -38,5 +40,10 @@ export const productosKeys = {
     ] as const,
   details: () => [...productosKeys.all, 'detail'] as const,
   detail: (id: number) => [...productosKeys.details(), id] as const,
+  completo: (id: number) => [...productosKeys.details(), 'completo', id] as const,
+  variantesPorCodigoBase: (codigoBase: string) => [...productosKeys.all, 'variantes', codigoBase] as const,
+  combinaciones: (productoPadreId: number) => [...productosKeys.all, 'combinaciones', productoPadreId] as const,
+  buscarPadre: (params: Record<string, unknown>) => [...productosKeys.all, 'buscar-padre', params] as const,
+  datosPlantilla: (productoPadreId: number) => [...productosKeys.all, 'datos-plantilla', productoPadreId] as const,
 };
 

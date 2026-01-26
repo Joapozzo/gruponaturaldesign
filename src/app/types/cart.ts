@@ -4,7 +4,10 @@ export interface CartProduct {
     nombre: string;
     descripcion: string;
     categoria: string;
-    precio: number;
+    precio: number; // Mantener por compatibilidad, pero usar precioLista
+    precioLista: number; // Precio base (lista)
+    precioTransfer?: number | null; // Precio con transferencia (15% desc)
+    precioSinImp?: number | null; // Precio sin impuestos
     imagen: string;
     stock?: number;
     um_id?: number;
@@ -16,7 +19,9 @@ export interface CartProduct {
 export interface CartItem {
     product: CartProduct;
     quantity: number;
-    subtotal: number;
+    subtotal: number; // Subtotal con precio lista
+    subtotalTransfer?: number; // Subtotal con precio transfer
+    subtotalSinImp?: number; // Subtotal sin impuestos
     especificaciones?: string;
     bordado?: boolean;
 }
@@ -59,9 +64,12 @@ export interface CartState {
     paymentData: PaymentData | null;
 
     itemCount: number;
-    subtotal: number;
+    subtotal: number; // Subtotal sin impuestos (precio lista)
+    subtotalTransfer: number; // Subtotal con precio transfer
+    totalLista: number; // Total con precio lista (con IVA)
+    totalTransfer: number; // Total con precio transfer (con IVA)
     iva: number;
-    total: number;
+    total: number; // Mantener por compatibilidad (total con lista)
 
     // Actions
     addItem: (product: CartProduct, quantity?: number, especificaciones?: string, bordado?: boolean) => void;

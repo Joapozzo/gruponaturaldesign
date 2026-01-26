@@ -6,8 +6,9 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '../hooks/useCart';
 import Button from '../ui/Button';
 import { CustomerData, ShippingData } from '@/app/types/cart';
-import { formatPrice } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
+import { formatPrice } from '@/app/utils/productHelpers';
 import { WHATSAPP_PHONE_NUMBER, getWhatsAppNumberForUrl } from '@/app/utils/constants';
+import { useSales } from '../../contexts/SalesContext';
 
 interface CheckoutStep2Props {
   onNext: () => void;
@@ -30,6 +31,7 @@ interface FormErrors {
 export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
   const router = useRouter();
   const { customerData, shippingData, setCustomerData, setShippingData, itemCount, items, subtotal, iva, total } = useCart();
+  const { isWholesaleLimitReached } = useSales();
 
   // No redirigir automáticamente - mostrar alerta cuando llegue a 20 unidades
 
@@ -212,7 +214,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
 
   const handleSubmit = () => {
     // Validar que no sea compra mayorista antes de continuar
-    if (itemCount >= 20) {
+    if (isWholesaleLimitReached) {
       // No redirigir automáticamente, solo impedir continuar
       // El usuario debe usar el botón de mayorista si lo desea
       return;

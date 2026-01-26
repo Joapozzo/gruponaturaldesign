@@ -1,5 +1,7 @@
-"use client";
-import React from 'react';
+import React, { Suspense } from 'react';
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+import { createSSRQueryClient } from './utils/createSSRQueryClient';
+import { prefetchProductosDestacados } from './utils/prefetchProductosDestacados';
 import Hero from './components/Hero';
 import Categorias from './components/Categorias';
 import ProductosDestacados from './components/ProductosDestacados';
@@ -10,36 +12,40 @@ import Contacto from './components/Contacto';
 import InstagramCTA from './components/InstagramCTA';
 import DesignHero from './components/DesignHero';
 import CallToAction from './components/CallToAction';
+import ProductosDestacadosSkeleton from './components/skeleton/ProductSectionSkeleton';
 
-const NTDS_Website = () => {
+/**
+ * Página principal (Server Component)
+ * Pre-fetch de datos para mejor performance y SEO
+ */
+export default async function HomePage() {
+  // Crear QueryClient para SSR
+  const queryClient = createSSRQueryClient();
+
+  // Pre-fetch de productos destacados
+  await prefetchProductosDestacados(queryClient, {
+    limit: 20,
+  });
 
   return (
-    <div className="min-h-screen bg-white">
-
-      {/* CSS Variables */}
-      <style jsx global>{`
-        :root {
-          --red: #Ed3237;
-          --red-dark: #A80006;
-          --black: #000000;
-          --white: #FFFFFF;
-          --gray-light: #BDBFC1;
-          --gray-medium: #666666;
-          --gray-bg: #F5F5F5;
-        }
-      `}</style>
-      <Hero />
-      <ProductosDestacados />
-      <Categorias />
-      <DesignHero />
-      <CallToAction />
-      <InstagramCTA />
-      <Nosotros />
-      <Testimonios />
-      <Faq />
-      <Contacto />
-    </div>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <div className="min-h-screen bg-white">
+        <Hero />
+        
+        <Suspense fallback={<ProductosDestacadosSkeleton />}>
+          <ProductosDestacados />
+        </Suspense>
+        
+        <Categorias />
+        <DesignHero />
+        <CallToAction />
+        <InstagramCTA />
+        <Nosotros />
+        <Testimonios />
+        <Faq />
+        <Contacto />
+      </div>
+    </HydrationBoundary>
   );
-};
+}
 
-export default NTDS_Website;

@@ -8,19 +8,22 @@ import { ProductVariant } from '@/app/types/producto';
 
 interface ColorSelectorProps {
     colors: string[];
-    variants: ProductVariant[];
+    variants?: ProductVariant[] | Array<{ color?: string | null; colorHex?: string }>;
     selectedColor: string | null;
-    isMobile: boolean;
-    onColorSelect: (color: string, e: React.MouseEvent) => void;
+    isMobile?: boolean;
+    onColorSelect: (color: string, e?: React.MouseEvent) => void;
 }
 
 export default function ColorSelector({
     colors,
-    variants,
+    variants = [],
     selectedColor,
-    isMobile,
+    isMobile = false,
     onColorSelect,
 }: ColorSelectorProps) {
+    // Validar que variants sea un array válido
+    const safeVariants = Array.isArray(variants) ? variants : [];
+    
     return (
         <div className="space-y-1">
             <label
@@ -31,9 +34,9 @@ export default function ColorSelector({
                 Color
             </label>
             <div className="flex flex-wrap gap-1 sm:gap-1.5">
-                {colors.map((color) => {
-                    const variantWithColor = variants.find((v) => v.color === color);
-                    const colorHex = variantWithColor?.colorHex || getColorHex(color);
+                {colors && Array.isArray(colors) && colors.map((color) => {
+                    const variantWithColor = safeVariants.find((v: any) => v.color === color);
+                    const colorHex = (variantWithColor as any)?.colorHex || getColorHex(color);
                     const isSelected = selectedColor === color;
 
                     return (

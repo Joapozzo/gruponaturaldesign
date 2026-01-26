@@ -43,7 +43,7 @@ export function ProductosPageActions({ empresaId }: ProductosPageActionsProps) {
         <RefreshCw className={`w-4 h-4 mr-2 inline ${isRefreshing ? 'animate-spin' : ''}`} />
         Refrescar
       </Button>
-      <Button
+      {/* <Button
         variant="ghost"
         size="sm"
         onClick={handleExport}
@@ -51,14 +51,14 @@ export function ProductosPageActions({ empresaId }: ProductosPageActionsProps) {
       >
         <Download className="w-4 h-4 mr-2 inline" />
         Exportar
-      </Button>
+      </Button> */}
       <Button
         variant="primary"
         size="sm"
         onClick={handleCreate}
       >
         <Plus className="w-4 h-4 mr-2 inline" />
-        Crear Producto
+        Crear producto
       </Button>
     </div>
   );

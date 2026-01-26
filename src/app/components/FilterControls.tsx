@@ -54,7 +54,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
             case 'alfabetico-desc':
                 return 'Z - A';
             case 'precio-asc':
-                return 'Precio: Menor a Mayor';
+                return 'Precio: Menor a mayor';
             case 'precio-desc':
                 return 'Precio: Mayor a Menor';
             case 'destacados':
@@ -94,17 +94,17 @@ const FilterControls: React.FC<FilterControlsProps> = ({
                                 className="inline-flex items-center space-x-2"
                             >
                                 <X size={16} />
-                                <span>Limpiar Filtros</span>
+                                <span>Limpiar filtros</span>
                             </Button>
                         </motion.div>
                     )}
                 </div>
 
                 {/* Controles de búsqueda y filtros */}
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-end">
                     {/* Búsqueda */}
-                    <div className="relative flex-1">
-                        <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">
+                    <div className="relative flex-1 w-full sm:w-auto">
+                        <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1 h-[14px] sm:h-[16px] flex items-end">
                             Buscar
                         </label>
                         <div className="relative">
@@ -114,14 +114,14 @@ const FilterControls: React.FC<FilterControlsProps> = ({
                                 placeholder="Buscar productos..."
                                 value={filters.searchTerm}
                                 onChange={(e) => onUpdateFilter('searchTerm', e.target.value)}
-                                className="w-full pl-7 pr-2 sm:pr-3 py-1.5 sm:py-2 text-[11px] sm:text-xs border-2 border-gray-200 focus:border-gray-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900"
+                                className="w-full h-[32px] sm:h-[36px] pl-7 pr-2 sm:pr-3 text-[11px] sm:text-xs border-2 border-gray-200 focus:border-gray-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900"
                             />
                         </div>
                     </div>
 
                     {/* Ordenar por */}
-                    <div className="flex flex-col justify-end">
-                        <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">
+                    <div className="relative w-full sm:w-auto">
+                        <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1 h-[14px] sm:h-[16px] flex items-end">
                             Ordenar por
                         </label>
                         <div className="relative">
@@ -129,11 +129,11 @@ const FilterControls: React.FC<FilterControlsProps> = ({
                             <select
                                 value={filters.sortBy}
                                 onChange={(e) => onUpdateFilter('sortBy', e.target.value as FilterState['sortBy'])}
-                                className="w-full pl-7 pr-7 py-1.5 sm:py-2 text-[11px] sm:text-xs border-2 border-gray-200 focus:border-gray-500 outline-none transition-colors bg-white rounded-lg text-gray-900 appearance-none cursor-pointer"
+                                className="w-full h-[32px] sm:h-[36px] pl-7 pr-7 text-[11px] sm:text-xs border-2 border-gray-200 focus:border-gray-500 outline-none transition-colors bg-white rounded-lg text-gray-900 appearance-none cursor-pointer"
                             >
                                 <option value="alfabetico-asc">A - Z</option>
                                 <option value="alfabetico-desc">Z - A</option>
-                                <option value="precio-asc">Precio: Menor a Mayor</option>
+                                <option value="precio-asc">Precio: Menor a mayor</option>
                                 <option value="precio-desc">Precio: Mayor a Menor</option>
                                 <option value="destacados">Destacados</option>
                             </select>
@@ -146,15 +146,15 @@ const FilterControls: React.FC<FilterControlsProps> = ({
                     </div>
 
                     {/* Botón de filtros */}
-                    <div className="flex flex-col justify-end">
-                        <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1 opacity-0">
-                            Filtros
+                    <div className="relative w-full sm:w-auto">
+                        <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1 h-[14px] sm:h-[16px] flex items-end">
+                            <span className="invisible">Filtros</span>
                         </label>
                         <Button
                             variant="grayOutline"
                             size="md"
                             onClick={() => setIsFilterModalOpen(true)}
-                            className="inline-flex items-center space-x-1 w-full sm:w-auto text-[11px] sm:text-xs py-1.5 sm:py-2"
+                            className="inline-flex items-center justify-center space-x-1 w-full sm:w-auto h-[32px] sm:h-[36px] text-[11px] sm:text-xs px-3 sm:px-4"
                         >
                             <Filter size={12} />
                             <span>Filtros</span>

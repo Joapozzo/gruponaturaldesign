@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -8,6 +10,7 @@ import Section from './Section';
 import Button from './ui/Button';
 import { frequentFaqs, workProcessFaqs } from '../data/faqs';
 import { useWhatsApp } from './hooks/useWhatsApp';
+import { WhatsApp } from './logos/WhatsApp';
 
 
 interface AccordionItemProps {
@@ -337,7 +340,7 @@ const Faq: React.FC = () => {
                             className="tracking-wide inline-flex items-center space-x-3"
                             onClick={() => openWhatsApp()}
                         >
-                            <MessageCircle size={20} />
+                            <WhatsApp size={20} />
                             <span>CONTACTANOS AHORA</span>
                         </Button>
                     </motion.div>

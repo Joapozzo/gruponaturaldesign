@@ -4,6 +4,7 @@ import { CartState, CartProduct, CartItem, CustomerData, ShippingData, PaymentDa
 
 import { IVA_RATE, WHATSAPP_PHONE_NUMBER, getWhatsAppNumberForUrl } from '@/app/utils/constants';
 import { canAddQuantity } from '@/app/services/stockService';
+import { SALES_CONFIG } from '../config/sales.config';
 
 export const useCartStore = create<CartState>()(
     persist(
@@ -14,6 +15,9 @@ export const useCartStore = create<CartState>()(
             paymentData: null,
             itemCount: 0,
             subtotal: 0,
+            subtotalTransfer: 0,
+            totalLista: 0,
+            totalTransfer: 0,
             iva: 0,
             total: 0,
 
@@ -27,29 +31,31 @@ export const useCartStore = create<CartState>()(
 
                     let newItems: CartItem[];
 
-                    // Asegurar que el precio sea un número válido
-                    let precio = 0;
-                    if (typeof product.precio === 'number' && product.precio > 0) {
-                        precio = product.precio;
-                    } else {
-                        // Convertir a string y parsear (por si viene como string desde alguna fuente externa)
-                        const precioStr = String(product.precio || '0');
-                        precio = parseFloat(precioStr.replace(/[^0-9.-]+/g, '')) || 0;
-                    }
+                    // Usar precioLista como precio base (si no está, usar precio como fallback)
+                    const precioLista = product.precioLista ?? product.precio ?? 0;
+                    const precioTransfer = product.precioTransfer ?? null;
+                    const precioSinImp = product.precioSinImp ?? null;
                     
                     if (existingIndex > -1) {
                         newItems = [...state.items];
-                        newItems[existingIndex].quantity += quantity;
-                        newItems[existingIndex].subtotal =
-                            newItems[existingIndex].quantity * precio;
+                        const item = newItems[existingIndex];
+                        item.quantity += quantity;
+                        item.subtotal = item.quantity * precioLista;
+                        item.subtotalTransfer = precioTransfer ? item.quantity * precioTransfer : undefined;
+                        item.subtotalSinImp = precioSinImp ? item.quantity * precioSinImp : undefined;
                     } else {
                         const newItem: CartItem = {
                             product: {
                                 ...product,
-                                precio: precio, // Asegurar que el precio en el producto también sea correcto
+                                precio: precioLista, // Mantener compatibilidad
+                                precioLista: precioLista,
+                                precioTransfer: precioTransfer,
+                                precioSinImp: precioSinImp,
                             },
                             quantity,
-                            subtotal: quantity * precio,
+                            subtotal: quantity * precioLista,
+                            subtotalTransfer: precioTransfer ? quantity * precioTransfer : undefined,
+                            subtotalSinImp: precioSinImp ? quantity * precioSinImp : undefined,
                             especificaciones: especificaciones || undefined,
                             bordado: bordado || false,
                         };
@@ -92,20 +98,17 @@ export const useCartStore = create<CartState>()(
                                 return item;
                             }
                             
-                            // Asegurar que el precio sea un número válido
-                            let precio = 0;
-                            if (typeof item.product.precio === 'number' && item.product.precio > 0) {
-                                precio = item.product.precio;
-                            } else {
-                                // Convertir a string y parsear (por si viene como string desde alguna fuente externa)
-                                const precioStr = String(item.product.precio || '0');
-                                precio = parseFloat(precioStr.replace(/[^0-9.-]+/g, '')) || 0;
-                            }
+                            // Usar precioLista como precio base
+                            const precioLista = item.product.precioLista || item.product.precio || 0;
+                            const precioTransfer = item.product.precioTransfer || null;
+                            const precioSinImp = item.product.precioSinImp || null;
                             
                             return {
                                 ...item,
                                 quantity,
-                                subtotal: quantity * precio,
+                                subtotal: quantity * precioLista,
+                                subtotalTransfer: precioTransfer ? quantity * precioTransfer : undefined,
+                                subtotalSinImp: precioSinImp ? quantity * precioSinImp : undefined,
                             };
                         }
                         return item;
@@ -146,6 +149,9 @@ export const useCartStore = create<CartState>()(
                     paymentData: null,
                     itemCount: 0,
                     subtotal: 0,
+                    subtotalTransfer: 0,
+                    totalLista: 0,
+                    totalTransfer: 0,
                     iva: 0,
                     total: 0,
                 });
@@ -161,7 +167,7 @@ export const useCartStore = create<CartState>()(
 
                 if (!customerData) return '';
 
-                const isWholesale = itemCount >= 20;
+                const isWholesale = itemCount >= SALES_CONFIG.WHOLESALE_MIN_ITEMS;
 
                 let message = `🛍️ *${isWholesale ? 'PEDIDO MAYORISTA' : 'NUEVO PEDIDO'} - NTDS*\n\n`;
                 if (isWholesale) {
@@ -207,7 +213,7 @@ export const useCartStore = create<CartState>()(
                 message += `Total de unidades: ${itemCount}\n`;
                 if (isWholesale) {
                     message += `\n🏢 *⚠️ PEDIDO MAYORISTA - REQUIERE COTIZACIÓN ⚠️*\n`;
-                    message += `Este pedido de ${itemCount} unidades requiere compra mayorista (mínimo 20 prendas).\n`;
+                    message += `Este pedido de ${itemCount} unidades requiere compra mayorista (mínimo ${SALES_CONFIG.WHOLESALE_MIN_ITEMS} prendas).\n`;
                     message += `Un asesor especializado se pondrá en contacto para ofrecer:\n`;
                     message += `• Precios mayoristas personalizados\n`;
                     message += `• Opciones de personalización (bordado/estampa)\n`;
@@ -237,6 +243,9 @@ export const useCartStore = create<CartState>()(
                     const totals = calculateTotals(state.items);
                     state.itemCount = totals.itemCount;
                     state.subtotal = totals.subtotal;
+                    state.subtotalTransfer = totals.subtotalTransfer;
+                    state.totalLista = totals.totalLista;
+                    state.totalTransfer = totals.totalTransfer;
                     state.iva = totals.iva;
                     state.total = totals.total;
                 }
@@ -246,31 +255,56 @@ export const useCartStore = create<CartState>()(
 );
 
 function calculateTotals(items: CartItem[]) {
-    // Calcular el total (precio ya incluye IVA)
-    // El precio de los productos ya viene con IVA incluido
-    const total = items.reduce((acc, item) => {
-        // Si el subtotal es 0 pero el producto tiene precio, recalcular
-        if (item.subtotal === 0 && item.product.precio && item.product.precio > 0) {
-            const precio = typeof item.product.precio === 'number' 
-                ? item.product.precio 
-                : parseFloat(String(item.product.precio).replace(/[^0-9.-]+/g, '')) || 0;
-            return acc + (item.quantity * precio);
+    const itemCount = items.reduce((acc, item) => acc + item.quantity, 0);
+    
+    // Calcular totales con precio lista
+    const totalLista = items.reduce((acc, item) => {
+        if (item.subtotal === 0 && item.product.precioLista && item.product.precioLista > 0) {
+            return acc + (item.quantity * item.product.precioLista);
         }
         return acc + item.subtotal;
     }, 0);
     
-    // El total ya incluye IVA, entonces:
-    // - Subtotal sin impuestos = total / 1.21
-    // - IVA = total - subtotal sin impuestos
-    const subtotalSinImpuestos = total / (1 + IVA_RATE);
-    const iva = total - subtotalSinImpuestos;
-    const itemCount = items.reduce((acc, item) => acc + item.quantity, 0);
+    // Calcular totales con precio transfer
+    const totalTransfer = items.reduce((acc, item) => {
+        if (item.subtotalTransfer !== undefined) {
+            return acc + item.subtotalTransfer;
+        }
+        // Si no hay subtotalTransfer pero hay precioTransfer, calcularlo
+        if (item.product.precioTransfer && item.product.precioTransfer > 0) {
+            return acc + (item.quantity * item.product.precioTransfer);
+        }
+        return acc;
+    }, 0);
+    
+    // Calcular subtotal sin impuestos (usando precioSinImp si está disponible, sino calcular)
+    const subtotalSinImp = items.reduce((acc, item) => {
+        if (item.subtotalSinImp !== undefined) {
+            return acc + item.subtotalSinImp;
+        }
+        // Si no hay subtotalSinImp pero hay precioSinImp, calcularlo
+        if (item.product.precioSinImp && item.product.precioSinImp > 0) {
+            return acc + (item.quantity * item.product.precioSinImp);
+        }
+        // Fallback: calcular desde precioLista / 1.21
+        const precioLista = item.product.precioLista || item.product.precio || 0;
+        return acc + (item.quantity * precioLista / (1 + IVA_RATE));
+    }, 0);
+    
+    // El totalLista ya incluye IVA, entonces:
+    // - Subtotal sin impuestos = totalLista / 1.21
+    // - IVA = totalLista - subtotal sin impuestos
+    const subtotalSinImpuestos = totalLista / (1 + IVA_RATE);
+    const iva = totalLista - subtotalSinImpuestos;
 
     return { 
         itemCount, 
-        subtotal: subtotalSinImpuestos,  // Subtotal sin impuestos
+        subtotal: subtotalSinImpuestos,  // Subtotal sin impuestos (precio lista)
+        subtotalTransfer: totalTransfer / (1 + IVA_RATE), // Subtotal transfer sin impuestos
+        totalLista,  // Total con precio lista (con IVA)
+        totalTransfer,  // Total con precio transfer (con IVA)
         iva, 
-        total  // Total con IVA incluido
+        total: totalLista  // Mantener compatibilidad (total con lista)
     };
 }
 

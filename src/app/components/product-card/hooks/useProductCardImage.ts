@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getFirstProductImage, getProductImagesByColor } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
+import { getFirstProductImage, getProductImagesByColor } from '@/app/utils/productHelpers';
 import { ProductWithImage } from '@/app/types/producto';
 
 const PLACEHOLDER_IMAGE = '/imgs/producto-placeholder.png';
@@ -23,6 +23,13 @@ export function useProductCardImage({
 
     // Actualizar imagen cuando cambia el color seleccionado o el producto
     useEffect(() => {
+        // Validar que product no sea undefined
+        if (!product) {
+            setMainImage(PLACEHOLDER_IMAGE);
+            setHasValidImage(true);
+            return;
+        }
+
         setHasValidImage(true);
         setImageLoadAttempts(0);
 
@@ -66,7 +73,7 @@ export function useProductCardImage({
         setMainImage(PLACEHOLDER_IMAGE);
         // No marcar como inválida, siempre mostrar algo
         setHasValidImage(true);
-    }, [selectedColor, productName, product.imagen, product.imagenes, product.Codigo]);
+    }, [selectedColor, productName, product?.imagen, product?.imagenes, product?.Codigo]);
 
     // Manejar error de carga de imagen
     const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {

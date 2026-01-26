@@ -8,7 +8,7 @@ import { GroupedProduct } from '../types/producto';
 import { useCart } from './hooks/useCart';
 import { useProductCardState } from './product-card/hooks/useProductCardState';
 import { useProductCardImage } from './product-card/hooks/useProductCardImage';
-import ProductCardImage from './product-card/components/ProductCardImage';
+import { ProductCardImage } from './product-card/components/ProductCardImage';
 import ColorSelector from './product-card/components/ColorSelector';
 import SizeSelector from './product-card/components/SizeSelector';
 import VariantSelector from './product-card/components/VariantSelector';
@@ -269,7 +269,10 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                     nombre: group.skuBase || product.Descripcion || product.NOMBRE || 'Sin descripción',
                     descripcion: product.DescripcionCorta || product.Descripcion || '',
                     imagen: mainImage || '',
-                    precio: precio,
+                    precio: precio, // Mantener por compatibilidad
+                    precioLista: precio, // Precio base (lista)
+                    precioTransfer: product.precioTransfer || null,
+                    precioSinImp: product.precioSImp || null,
                     categoria: product.Rubro || 'Sin categoría',
                     stock: stock, // Pasar stock al carrito para validaciones
                     skuBaseSlug: group.skuBaseSlug || nombreToSlug(group.skuBase),
@@ -345,7 +348,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                     onImageLoad={() => setHasValidImage(true)}
                     onClick={handleProductClick}
                     onQuickView={handleQuickView}
-                    stockMessage={stockMessage}
+                    stockMessage={stockMessage || undefined}
                 />
             </div>
 
@@ -393,7 +396,18 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                                                     variants={group.variants}
                                                     selectedColor={selectedColor}
                                                     isMobile={isMobile}
-                                                    onColorSelect={handleColorSelect}
+                                                    onColorSelect={(color, e) => {
+                                                        if (e) {
+                                                            handleColorSelect(color, e);
+                                                        } else {
+                                                            // Crear un evento sintético si no se proporciona
+                                                            const syntheticEvent = {
+                                                                stopPropagation: () => {},
+                                                                preventDefault: () => {},
+                                                            } as React.MouseEvent;
+                                                            handleColorSelect(color, syntheticEvent);
+                                                        }
+                                                    }}
                                                 />
                                             )}
 

@@ -19,7 +19,6 @@ export function useProductosPageActions({ empresaId }: UseProductosPageActionsPa
   const [isExporting, setIsExporting] = useState(false);
 
   const { sync, isSyncing } = useProductosSync({
-    empresaId,
     onSuccess: () => {
       router.refresh();
     },

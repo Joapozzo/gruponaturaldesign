@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useProductsV2 } from '@/app/hooks/useProductsV2';
 import { GroupedProductV2 } from '@/app/types/producto-v2';
 import { GroupedProduct, ProductVariant, ProductWithImage } from '@/app/types/producto';
-import { nombreToSlug } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
+import { nombreToSlug } from '@/app/utils/productHelpers';
 import { useProductCardImage } from './product-card/hooks/useProductCardImage';
 import SearchInput from './ui/SearchInput';
 

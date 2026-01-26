@@ -2,7 +2,6 @@
 
 import React, { useState, useCallback, useRef } from 'react';
 import {
-  useProductImages,
   useProductImagesByColor,
   useUploadProductImages,
   useDeleteProductImage,
@@ -30,10 +29,6 @@ export function ProductImageManager({
   // Queries
   const { data: imagesByColor, isLoading: isLoadingImages } =
     useProductImagesByColor(productoWebId);
-  const { data: images, isLoading: isLoadingSingle } = useProductImages(
-    productoWebId,
-    selectedColor || undefined
-  );
 
   // Mutations
   const uploadMutation = useUploadProductImages();
@@ -210,7 +205,7 @@ export function ProductImageManager({
     }
   }, [lightboxOpen, handleKeyDown]);
 
-  const isLoading = isLoadingImages || isLoadingSingle;
+  const isLoading = isLoadingImages;
   const isUploading = uploadMutation.isPending;
   const isDeleting = deleteMutation.isPending;
 

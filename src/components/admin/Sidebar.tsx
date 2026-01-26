@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -12,6 +13,7 @@ import {
   LogOut,
   Menu,
   X,
+  Settings,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -24,14 +26,16 @@ interface MenuItem {
   icon: React.ComponentType<{ className?: string }>;
   href: string;
   badge: number | null;
+  disabled?: boolean; // En desarrollo
 }
 
 const menuItems: MenuItem[] = [
   {
     name: 'Dashboard',
     icon: LayoutDashboard,
-    href: '/admin',
+    href: '/admin/dashboard',
     badge: null,
+    disabled: true, // En desarrollo
   },
   {
     name: 'Productos',
@@ -44,6 +48,7 @@ const menuItems: MenuItem[] = [
     icon: ShoppingCart,
     href: '/admin/pedidos',
     badge: 5,
+    disabled: true, // En desarrollo
   },
   {
     name: 'Clientes',
@@ -51,11 +56,16 @@ const menuItems: MenuItem[] = [
     href: '/admin/clientes',
     badge: null,
   },
+  {
+    name: 'Configuración',
+    icon: Settings,
+    href: '/admin/configuracion',
+    badge: null,
+    disabled: true, // En desarrollo
+  },
 ];
 
-interface SidebarProps {}
-
-export default function Sidebar({}: SidebarProps) {
+export default function Sidebar() {
   const { isCollapsed, toggleSidebar } = useSidebar();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const pathname = usePathname();
@@ -153,7 +163,7 @@ export default function Sidebar({}: SidebarProps) {
           <div className="flex items-center gap-2">
             <button
               onClick={toggleSidebar}
-              className="hidden lg:flex p-1.5 rounded-lg hover:bg-gray-50 transition-colors text-[#000000] hover:text-[#Ed3237]"
+              className="hidden lg:flex p-1.5 rounded-lg hover:bg-gray-50 transition-colors text-[#000000] hover:text-[#ED3237]"
               aria-label="Toggle sidebar"
             >
               {isCollapsed ? (
@@ -164,7 +174,7 @@ export default function Sidebar({}: SidebarProps) {
             </button>
             <button
               onClick={closeMobileSidebar}
-              className="lg:hidden p-1.5 rounded-lg hover:bg-gray-50 transition-colors text-[#000000] hover:text-[#Ed3237]"
+              className="lg:hidden p-1.5 rounded-lg hover:bg-gray-50 transition-colors text-[#000000] hover:text-[#ED3237]"
               aria-label="Close menu"
             >
               <X className="w-5 h-5" />
@@ -177,16 +187,55 @@ export default function Sidebar({}: SidebarProps) {
           <ul className="space-y-1">
             {menuItems.map((item, index) => {
               const Icon = item.icon;
-              // Lógica especial para Dashboard: solo activo en /admin o /admin/
+              const isDisabled = item.disabled === true;
+              // Lógica especial para Dashboard: activo en /admin/dashboard o /admin
               let isActive = false;
-              if (item.href === '/admin') {
-                // Dashboard solo activo cuando el path es exactamente /admin o /admin/
-                isActive = pathname === '/admin' || pathname === '/admin/';
+              if (item.href === '/admin/dashboard') {
+                // Dashboard activo cuando el path es /admin/dashboard, /admin o /admin/
+                isActive = pathname === '/admin/dashboard' || pathname === '/admin' || pathname === '/admin/';
               } else {
                 // Para otras rutas, activo cuando coincide exactamente o empieza con la ruta + /
                 isActive = pathname === item.href || pathname.startsWith(item.href + '/');
               }
-              
+
+              const content = (
+                <>
+                  <Icon className={cn(
+                    'w-5 h-5 flex-shrink-0 transition-colors duration-300',
+                    isActive && !isDisabled ? 'text-[#ED3237]' : isDisabled ? 'text-gray-400' : 'text-[#000000]'
+                  )} />
+                  <AnimatePresence>
+                    {!isCollapsed && (
+                      <motion.span
+                        initial={{ opacity: 0, width: 0 }}
+                        animate={{ opacity: 1, width: 'auto' }}
+                        exit={{ opacity: 0, width: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className={cn(
+                          "flex-1 text-xs font-medium tracking-wide",
+                          isDisabled ? "flex flex-col" : "flex items-center justify-between"
+                        )}
+                      >
+                        <span className={isDisabled ? 'text-gray-400' : ''}>{item.name.toUpperCase()}</span>
+                        {isDisabled && (
+                          <span className="text-[10px] text-gray-400 italic mt-0.5">(En desarrollo)</span>
+                        )}
+                        {item.badge !== null && !isDisabled && (
+                          <span className="bg-[#ED3237] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center min-w-[20px]">
+                            {item.badge}
+                          </span>
+                        )}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                  {isCollapsed && item.badge !== null && !isDisabled && (
+                    <span className="absolute -top-1 -right-1 bg-[#ED3237] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center border-2 border-white">
+                      {item.badge}
+                    </span>
+                  )}
+                </>
+              );
+
               return (
                 <motion.li
                   key={item.href}
@@ -194,44 +243,31 @@ export default function Sidebar({}: SidebarProps) {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Link
-                    href={item.href}
-                    onClick={closeMobileSidebar}
-                    className={cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300',
-                      'text-[#000000] hover:text-[#Ed3237] hover:bg-gray-50',
-                      isActive && 'text-[#Ed3237] bg-gray-50 font-semibold',
-                      isCollapsed && 'justify-center relative'
-                    )}
-                  >
-                    <Icon className={cn(
-                      'w-5 h-5 flex-shrink-0 transition-colors duration-300',
-                      isActive ? 'text-[#Ed3237]' : 'text-[#000000]'
-                    )} />
-                    <AnimatePresence>
-                      {!isCollapsed && (
-                        <motion.span
-                          initial={{ opacity: 0, width: 0 }}
-                          animate={{ opacity: 1, width: 'auto' }}
-                          exit={{ opacity: 0, width: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="flex-1 flex items-center justify-between text-xs font-medium tracking-wide"
-                        >
-                          <span>{item.name.toUpperCase()}</span>
-                          {item.badge !== null && (
-                            <span className="bg-[#Ed3237] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center min-w-[20px]">
-                              {item.badge}
-                            </span>
-                          )}
-                        </motion.span>
+                  {isDisabled ? (
+                    <div
+                      className={cn(
+                        'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300',
+                        'text-gray-400 cursor-not-allowed opacity-60',
+                        isCollapsed && 'justify-center relative'
                       )}
-                    </AnimatePresence>
-                    {isCollapsed && item.badge !== null && (
-                      <span className="absolute -top-1 -right-1 bg-[#Ed3237] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center border-2 border-white">
-                        {item.badge}
-                      </span>
-                    )}
-                  </Link>
+                      title="En desarrollo"
+                    >
+                      {content}
+                    </div>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      onClick={closeMobileSidebar}
+                      className={cn(
+                        'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300',
+                        'text-[#000000] hover:text-[#ED3237] hover:bg-gray-50',
+                        isActive && 'text-[#ED3237] bg-gray-50 font-semibold',
+                        isCollapsed && 'justify-center relative'
+                      )}
+                    >
+                      {content}
+                    </Link>
+                  )}
                 </motion.li>
               );
             })}
@@ -239,7 +275,7 @@ export default function Sidebar({}: SidebarProps) {
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-gray-200 p-4">
+        <div className="border-t border-gray-200 p-4 opacity-60">
           <AnimatePresence mode="wait">
             {!isCollapsed ? (
               <motion.div
@@ -251,15 +287,16 @@ export default function Sidebar({}: SidebarProps) {
               >
                 <div className="flex items-center gap-3 px-2">
                   <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center border-2 border-gray-200">
-                    <span className="text-[#000000] font-semibold text-xs">AD</span>
+                    <span className="text-gray-400 font-semibold text-xs">AD</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[#000000] truncate tracking-wide">Admin User</p>
-                    <p className="text-xs text-gray-500 truncate">Administrador</p>
+                    <p className="text-sm font-semibold text-gray-400 truncate tracking-wide">Admin User</p>
+                    <p className="text-xs text-gray-400 truncate">Administrador</p>
                   </div>
                 </div>
                 <button
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[#000000] hover:text-[#Ed3237] hover:bg-gray-50 transition-all duration-300 text-xs font-medium tracking-wide"
+                  disabled
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 cursor-not-allowed transition-all duration-300 text-xs font-medium tracking-wide"
                   onClick={() => {
                     // Aquí iría la lógica de logout
                   }}
@@ -277,10 +314,11 @@ export default function Sidebar({}: SidebarProps) {
                 className="flex flex-col items-center gap-3"
               >
                 <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center border-2 border-gray-200">
-                  <span className="text-[#000000] font-semibold text-xs">AD</span>
+                  <span className="text-gray-400 font-semibold text-xs">AD</span>
                 </div>
                 <button
-                  className="p-2 rounded-lg text-[#000000] hover:text-[#Ed3237] hover:bg-gray-50 transition-all duration-300"
+                  disabled
+                  className="p-2 rounded-lg text-gray-400 cursor-not-allowed transition-all duration-300"
                   onClick={() => {
                     // Aquí iría la lógica de logout
                   }}

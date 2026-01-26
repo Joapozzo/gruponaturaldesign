@@ -8,7 +8,7 @@ interface BaseModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
-  title?: string;
+  title?: string | React.ReactNode;
   showCloseButton?: boolean;
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   closeOnOverlayClick?: boolean;
@@ -86,7 +86,7 @@ const BaseModal: React.FC<BaseModalProps> = ({
                   damping: 25,
                   stiffness: 300,
                 }}
-                className="bg-white rounded-lg shadow-2xl w-full overflow-hidden flex flex-col max-h-[90vh]"
+                className="bg-white rounded-lg shadow-2xl w-full flex flex-col max-h-[90vh]"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Header */}
@@ -104,20 +104,24 @@ const BaseModal: React.FC<BaseModalProps> = ({
                       </motion.button>
                     )}
                     {title && (
-                      <motion.h3
+                      <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
                         className="text-2xl font-bold text-black pr-10"
                       >
-                        {title}
-                      </motion.h3>
+                        {typeof title === 'string' ? (
+                          <h3>{title}</h3>
+                        ) : (
+                          title
+                        )}
+                      </motion.div>
                     )}
                   </div>
                 )}
 
                 {/* Content - Scrollable */}
-                <div className="p-6 overflow-y-auto flex-1">{children}</div>
+                <div className="p-6 overflow-y-auto flex-1 min-h-0">{children}</div>
               </motion.div>
             </div>
           </div>

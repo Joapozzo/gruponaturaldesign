@@ -22,6 +22,8 @@ type ColorVariant =
     | 'lightWhiteOutline'
     | 'red'
     | 'redOutline'
+    | 'brandRed'
+    | 'brandRedOutline'
     | 'ghost'
     | 'ghostDark'
     | 'minimal';
@@ -79,6 +81,10 @@ const Button: React.FC<ButtonProps> = ({
         // Rojo sólido y outline
         red: 'bg-red-600 hover:bg-red-700 text-white',
         redOutline: 'border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white',
+        
+        // Rojo de marca personalizado (#Ed3237)
+        brandRed: 'bg-[#Ed3237] hover:bg-[#A80006] text-white',
+        brandRedOutline: 'border-2 border-[#Ed3237] text-[#Ed3237] hover:bg-[#Ed3237] hover:text-white',
 
         // Variantes especiales monocromáticas
         ghost: 'text-gray-700 hover:bg-gray-100',
@@ -88,17 +94,17 @@ const Button: React.FC<ButtonProps> = ({
 
     // Tamaños con responsive automático (mobile pequeño, desktop grande)
     const sizeVariants: Record<SizeVariant, string> = {
-        xs: 'px-1 py-0.5 text-[9px] tracking-tight lg:px-1.5 lg:py-0.5 lg:text-[10px] lg:tracking-normal',
-        sm: 'px-1.5 py-1 text-[10px] tracking-tight lg:px-3 lg:py-1.5 lg:text-xs lg:tracking-normal',
-        md: 'px-2 py-1 text-[11px] tracking-tight lg:px-4 lg:py-2 lg:text-sm lg:tracking-normal',
-        lg: 'px-3 py-1.5 text-xs tracking-tight lg:px-6 lg:py-3 lg:text-base lg:tracking-normal',
-        xl: 'px-4 py-2 text-sm tracking-tight lg:px-8 lg:py-4 lg:text-lg lg:tracking-normal',
-        xxl: 'px-6 py-3 text-base tracking-tight lg:px-10 lg:py-5 lg:text-xl lg:tracking-normal',
+        xs: 'px-1.5 py-1 text-[9px] tracking-tight lg:px-2 lg:py-1 lg:text-[10px] lg:tracking-normal',
+        sm: 'px-2 py-1.5 text-[10px] tracking-tight lg:px-4 lg:py-2 lg:text-xs lg:tracking-normal',
+        md: 'px-3 py-1.5 text-[11px] tracking-tight lg:px-5 lg:py-2.5 lg:text-sm lg:tracking-normal',
+        lg: 'px-4 py-2 text-xs tracking-tight lg:px-7 lg:py-3.5 lg:text-base lg:tracking-normal',
+        xl: 'px-5 py-2.5 text-sm tracking-tight lg:px-9 lg:py-5 lg:text-lg lg:tracking-normal',
+        xxl: 'px-7 py-3.5 text-base tracking-tight lg:px-12 lg:py-6 lg:text-xl lg:tracking-normal',
     };
 
     // Si es outline, usar la variante outline correspondiente
     const getVariant = (): ColorVariant => {
-        if (outline && !variant.includes('Outline') && !['ghost', 'ghostDark', 'minimal'].includes(variant)) {
+        if (outline && !variant.includes('Outline') && !['ghost', 'ghostDark', 'minimal', 'brandRed'].includes(variant)) {
             return `${variant}Outline` as ColorVariant;
         }
         return variant;

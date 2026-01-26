@@ -15,7 +15,11 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
 
   // Si estamos en checkout o admin, no renderizar Navbar, Footer, etc.
   if (isInCheckout || isInAdmin) {
-    return <>{children}</>;
+    return (
+      <>
+        {children}
+      </>
+    );
   }
 
   // Si estamos en página mayorista, mostrar PromoBanner y solo WhatsApp comercial

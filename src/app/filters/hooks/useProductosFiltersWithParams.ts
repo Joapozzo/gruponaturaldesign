@@ -35,6 +35,10 @@ export function useProductosFiltersWithParams() {
     const talle = searchParams.get('talle');
     if (talle) urlFilters.talle = talle;
 
+    const publicado = searchParams.get('publicado');
+    if (publicado === 'true') urlFilters.publicado = true;
+    if (publicado === 'false') urlFilters.publicado = false;
+
     const stockMin = searchParams.get('stockMin');
     if (stockMin) urlFilters.stockMin = parseInt(stockMin, 10);
 
@@ -58,6 +62,7 @@ export function useProductosFiltersWithParams() {
     if (urlFilters.sexo) filters.setSexo(urlFilters.sexo);
     if (urlFilters.color) filters.setColor(urlFilters.color);
     if (urlFilters.talle) filters.setTalle(urlFilters.talle);
+    if (urlFilters.publicado !== undefined) filters.setPublicado(urlFilters.publicado);
     if (urlFilters.stockMin !== undefined || urlFilters.stockMax !== undefined) {
       filters.setStockRange(urlFilters.stockMin, urlFilters.stockMax);
     }
@@ -102,6 +107,12 @@ export function useProductosFiltersWithParams() {
       params.set('talle', filters.filters.talle);
     } else {
       params.delete('talle');
+    }
+
+    if (filters.filters.publicado !== undefined) {
+      params.set('publicado', String(filters.filters.publicado));
+    } else {
+      params.delete('publicado');
     }
 
     if (filters.filters.stockMin !== undefined) {

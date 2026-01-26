@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { ArrowRight, Star, Eye, ShoppingCart, Package } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ProductWithImage } from '../types/producto';
-import { getFirstProductImage, nombreToSlug } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
+import { getFirstProductImage } from '@/app/utils/productHelpers';
 import { useCart } from './hooks/useCart';
 
 interface ProductProps {
@@ -52,13 +52,17 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
         setIsAdding(true);
 
         const numericId = getNumericId(product.Codigo);
+        const precio = parseFloat((product.PrecioVenta?.toString() || '0').replace(/[^0-9.-]+/g, ''));
 
         addToCart({
             id: numericId,
             nombre: product.Descripcion || product.NOMBRE || product.Codigo || '',
             descripcion: product.Descripcion || product.NOMBRE || product.Codigo || '',
             imagen: (Array.isArray(product.imagen) ? product.imagen[0] : product.imagen) || product.imagenes?.[0] || '',
-            precio: parseFloat((product.PrecioVenta?.toString() || '0').replace(/[^0-9.-]+/g, '')),
+            precio: precio, // Mantener por compatibilidad
+            precioLista: precio, // Precio base (lista)
+            precioTransfer: product.precioTransfer || null,
+            precioSinImp: product.precioSImp || null,
             categoria: product.Rubro || product.Subrubro || '',
         }, 1);
 
@@ -92,7 +96,7 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
             onClick={handleProductClick}
         >
             {/* Badge de destacado */}
-            {(product as any).destacado && (
+            {('destacado' in product && (product as { destacado?: boolean }).destacado) && (
                 <motion.div
                     className="absolute top-6 left-4 z-10 text-white px-2 py-1 text-xs font-semibold flex items-center space-x-1 rounded-lg"
                     animate={{

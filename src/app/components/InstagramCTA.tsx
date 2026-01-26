@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Instagram, ArrowRight } from 'lucide-react';

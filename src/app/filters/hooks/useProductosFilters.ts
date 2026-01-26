@@ -8,6 +8,7 @@ export interface ProductosFilters {
   talle?: string;
   stockMin?: number;
   stockMax?: number;
+  publicado?: boolean;
   orderBy?: 'name' | 'price';
   orderDirection?: 'asc' | 'desc';
 }
@@ -55,6 +56,10 @@ export function useProductosFilters(options: UseProductosFiltersOptions = {}) {
     setFilters((prev) => ({ ...prev, talle }));
   }, []);
 
+  const setPublicado = useCallback((publicado: boolean | undefined) => {
+    setFilters((prev) => ({ ...prev, publicado }));
+  }, []);
+
   const setStockRange = useCallback((stockMin?: number, stockMax?: number) => {
     setFilters((prev) => ({
       ...prev,
@@ -80,12 +85,13 @@ export function useProductosFilters(options: UseProductosFiltersOptions = {}) {
 
   // Filtros activos (sin valores undefined)
   const activeFilters = useMemo(() => {
-    const active: Record<string, string | number> = {};
+    const active: Record<string, string | number | boolean> = {};
     if (filters.rubroId !== undefined) active.rubroId = filters.rubroId;
     if (filters.subrubroId !== undefined) active.subrubroId = filters.subrubroId;
     if (filters.sexo) active.sexo = filters.sexo;
     if (filters.color) active.color = filters.color;
     if (filters.talle) active.talle = filters.talle;
+    if (filters.publicado !== undefined) active.publicado = filters.publicado;
     if (filters.stockMin !== undefined) active.stockMin = filters.stockMin;
     if (filters.stockMax !== undefined) active.stockMax = filters.stockMax;
     if (filters.orderBy) active.orderBy = filters.orderBy;
@@ -106,6 +112,7 @@ export function useProductosFilters(options: UseProductosFiltersOptions = {}) {
     setSexo,
     setColor,
     setTalle,
+    setPublicado,
     setStockRange,
     setOrderBy,
     setOrderDirection,

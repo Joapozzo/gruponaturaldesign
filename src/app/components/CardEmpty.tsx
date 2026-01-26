@@ -9,7 +9,7 @@ const EmptyCart: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
     const handleGoToProducts = () => {
         onClose();
-        router.push('/#productos');
+        router.push('/shoponline');
     };
 
     return (

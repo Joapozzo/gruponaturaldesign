@@ -117,22 +117,6 @@ export default function NotFound() {
                         </Link>
                     </div>
                 </motion.div>
-
-                {/* Ilustración decorativa */}
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.6, delay: 0.8 }}
-                    className="mt-16 flex justify-center"
-                >
-                    <div className="relative w-64 h-64 sm:w-80 sm:h-80">
-                        <div className="absolute inset-0 bg-gray-100 rounded-full opacity-20"></div>
-                        <div className="absolute inset-4 bg-gray-200 rounded-full opacity-30"></div>
-                        <div className="absolute inset-8 bg-gray-300 rounded-full opacity-40 flex items-center justify-center">
-                            <Search className="w-16 h-16 sm:w-20 sm:h-20 text-gray-400" />
-                        </div>
-                    </div>
-                </motion.div>
             </div>
         </div>
     );

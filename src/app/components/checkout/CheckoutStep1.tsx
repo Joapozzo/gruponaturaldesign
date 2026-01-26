@@ -9,10 +9,12 @@ import Button from '../ui/Button';
 import { Trash2, ArrowRight, Package } from 'lucide-react';
 import QuantityControlsUI from '@/app/components/ui/QuantityControls';
 import BordadoSwitch from '../product-card/components/BordadoSwitch';
-import { formatPrice, formatPriceWithoutIVA } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
+import { formatPrice, formatPriceWithoutIVA } from '@/app/utils/productHelpers';
 import { getStockMessage } from '@/app/services/stockService';
 import { useConfirmModal } from '../hooks/useModal';
 import ConfirmModal from '../modal/ConfirmModal';
+import { useCartQuantityUpdate } from '../hooks/useCartQuantityUpdate';
+import { useSales } from '../../contexts/SalesContext';
 
 interface CheckoutStep1Props {
   onNext: () => void;
@@ -21,68 +23,39 @@ interface CheckoutStep1Props {
 
 export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
   const router = useRouter();
-  const { items, updateQuantity: originalUpdateQuantity, updateBordado, removeFromCart, itemCount, canAddToCart, subtotal, iva, total } = useCart();
+  const { items, updateBordado, removeFromCart, itemCount, canAddToCart, subtotal, iva, total } = useCart();
+  const { config, isWholesaleLimitReached, isNearWholesaleLimit } = useSales();
+  const { updateQuantity: baseUpdateQuantity } = useCartQuantityUpdate({
+    minQuantity: 1,
+    maxQuantity: 99,
+    validateWholesaleLimit: true,
+  });
 
   // Hook para modal de confirmación mayorista
   const { 
     isOpen: isWholesaleModalOpen, 
     loading: isWholesaleModalLoading, 
     modalOptions: wholesaleModalOptions, 
-    showModal: showWholesaleModal, 
     closeModal: closeWholesaleModal, 
     handleConfirm: handleWholesaleConfirm 
   } = useConfirmModal();
 
-  // No redirigir automáticamente - mostrar alerta cuando llegue a 20 unidades
-
+  // Wrapper que agrega validación de stock adicional
   const handleQuantityChange = (productId: number, newQuantity: number) => {
-    if (newQuantity < 1) {
-      originalUpdateQuantity(productId, 1);
-      return;
-    }
-    if (newQuantity > 99) {
-      originalUpdateQuantity(productId, 99);
-      return;
-    }
-    
-    // Calcular la diferencia de cantidad
+    // Validar stock del producto antes de actualizar
     const existingItem = items.find(item => item.product.id === productId);
-    const currentQuantity = existingItem?.quantity || 0;
-    const quantityDifference = newQuantity - currentQuantity;
-
-    // Validar si se puede agregar más unidades
-    if (quantityDifference > 0) {
-      const validation = canAddToCart(productId, quantityDifference);
-      if (!validation.canAdd) {
-        // Mostrar modal de confirmación para ir a mayorista
-        showWholesaleModal({
-          title: 'Límite minorista alcanzado',
-          message: 'Has alcanzado el límite de compra minorista (20 artículos). ¿Deseas continuar con tu compra en nuestro sistema mayorista?',
-          type: 'warning',
-          confirmText: 'Sí, ir a mayorista',
-          cancelText: 'No, cancelar',
-          onConfirm: async () => {
-            router.push('/mayorista');
-          }
+    if (existingItem && existingItem.product.stock !== undefined && newQuantity > existingItem.product.stock) {
+      const stockMessage = getStockMessage(existingItem.product.stock);
+      if (stockMessage) {
+        toast.error(stockMessage, {
+          duration: 4000,
         });
         return;
       }
-      
-      // Validar stock del producto
-      const existingItem = items.find(item => item.product.id === productId);
-      if (existingItem && existingItem.product.stock !== undefined) {
-        const stockMessage = getStockMessage(existingItem.product.stock);
-        if (stockMessage && newQuantity > (existingItem.product.stock || 0)) {
-          toast.error(stockMessage, {
-            duration: 4000,
-          });
-          return;
-        }
-      }
     }
 
-    // Permitir actualizar si es decremento o si pasó la validación
-    originalUpdateQuantity(productId, newQuantity);
+    // Usar el hook base que ya maneja límites y validaciones de mayorista
+    baseUpdateQuantity(productId, newQuantity);
   };
 
   return (
@@ -157,7 +130,7 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
                       onIncrement={() => handleQuantityChange(item.product.id, item.quantity + 1)}
                       onDecrement={() => handleQuantityChange(item.product.id, item.quantity - 1)}
                       canAddMore={canAddToCart(item.product.id, 1).canAdd && (item.product.stock === undefined || item.quantity < (item.product.stock || 0))}
-                      maxReached={item.quantity >= 99 || (item.product.stock !== undefined && item.quantity >= (item.product.stock || 0))}
+                      maxReached={item.quantity >= config.MAX_QUANTITY || (item.product.stock !== undefined && item.quantity >= (item.product.stock || 0))}
                     />
                   </div>
                   {/* Remove Button - Siempre visible */}
@@ -195,7 +168,7 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
         </div>
 
         {/* Alerta Mayorista - Si tiene 20+ artículos, mostrar mensaje y botón para volver */}
-        {itemCount >= 20 ? (
+        {isWholesaleLimitReached ? (
           <div className="bg-gradient-to-r from-[#Ed3237] to-red-700 text-white p-3 sm:p-4 rounded-lg border-2 border-[#Ed3237]">
             <div className="flex items-start gap-1.5 sm:gap-2 mb-3">
               <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -207,7 +180,7 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
                   Tu pedido de {itemCount} unidades requiere compra mayorista. Las compras mayoristas deben realizarse directamente a través de nuestro sistema mayorista.
                 </p>
                 <button
-                  onClick={() => router.push('/mayorista')}
+                  onClick={() => router.push(config.WHOLESALE_ROUTE)}
                   className="w-full bg-white text-[#Ed3237] px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold text-xs sm:text-sm hover:bg-gray-100 transition-colors inline-flex items-center justify-center space-x-1.5 sm:space-x-2 mb-1.5 sm:mb-2"
                 >
                   <span>IR A COMPRA MAYORISTA</span>
@@ -217,7 +190,7 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
                   onClick={() => {
                     // Reducir cantidad hasta estar bajo el límite
                     // Por ahora, simplemente redirigir al catálogo para que puedan reducir manualmente
-                    router.push('/shoponline');
+                    router.push(config.SHOP_ROUTE);
                   }}
                   className="w-full text-xs sm:text-sm text-white hover:text-gray-200 transition-colors py-1.5 sm:py-2 font-medium border border-white/30 rounded-lg hover:border-white/50"
                 >
@@ -255,19 +228,19 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
         )}
 
         {/* Botón para volver a compra minorista si están cerca del límite */}
-        {itemCount >= 15 && itemCount < 20 && (
+        {isNearWholesaleLimit && (
           <div className="bg-yellow-50 border-2 border-yellow-400 text-yellow-900 p-3 sm:p-4 rounded-lg">
             <p className="text-[10px] sm:text-xs font-semibold mb-1.5 sm:mb-2">
               ⚠️ Estás cerca del límite de compra minorista
             </p>
             <p className="text-[10px] sm:text-xs mb-2 sm:mb-3">
-              Si necesitas más de 20 prendas, considera usar nuestro sistema mayorista con mejores precios y beneficios.
+              Si necesitas más de {config.WHOLESALE_MIN_ITEMS} prendas, considera usar nuestro sistema mayorista con mejores precios y beneficios.
             </p>
             <Button
               variant="black"
               size="sm"
               fullWidth
-              onClick={() => router.push('/mayorista')}
+              onClick={() => router.push(config.WHOLESALE_ROUTE)}
               className="inline-flex items-center justify-center space-x-1.5 sm:space-x-2 text-xs sm:text-sm py-1.5 sm:py-2"
             >
               <span>VER OPCIONES MAYORISTAS</span>

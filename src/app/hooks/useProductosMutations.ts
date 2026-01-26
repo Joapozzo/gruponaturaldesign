@@ -97,18 +97,75 @@ export function useProductosMutations({ empresaId, onSuccess, onError }: UseProd
     },
   });
 
-  // Crear/Actualizar (placeholder - no implementado aún)
-  const saveProductoMutation = useMutation({
-    mutationFn: async (data: Partial<ProductoPadreConVariantes>) => {
-      // TODO: Implementar servicio de creación/actualización
-      throw new Error('Creación/actualización no implementada aún');
+  // Crear producto en SFactory
+  const crearProductoMutation = useMutation({
+    mutationFn: async (data: import('../services/producto.service').SFactoryItemCreateData) => {
+      return productoService.crearProducto(data);
     },
     onSuccess: () => {
       invalidateQueries();
-      onSuccess?.('Producto guardado correctamente');
+      onSuccess?.('Producto creado correctamente');
     },
     onError: (error: Error) => {
-      onError?.(error.message || 'Error al guardar el producto');
+      onError?.(error.message || 'Error al crear el producto');
+    },
+  });
+
+  // Actualizar producto en SFactory
+  const actualizarProductoEnSFactoryMutation = useMutation({
+    mutationFn: async ({ itemId, data }: { itemId: number; data: import('../services/producto.service').SFactoryItemEditData }) => {
+      return productoService.actualizarProductoEnSFactory(itemId, data);
+    },
+    onSuccess: () => {
+      invalidateQueries();
+      onSuccess?.('Producto actualizado correctamente');
+    },
+    onError: (error: Error) => {
+      onError?.(error.message || 'Error al actualizar el producto');
+    },
+  });
+
+  // Actualizar datos locales
+  const actualizarDatosLocalesMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: {
+      descripcionMarketing?: string;
+      descripcionCorta?: string;
+      destacado?: boolean;
+      nombre?: string;
+      descripcion?: string;
+    }}) => {
+      return productoService.actualizarDatosLocales(id, data);
+    },
+    onSuccess: () => {
+      invalidateQueries();
+      onSuccess?.('Datos locales actualizados correctamente');
+    },
+    onError: (error: Error) => {
+      onError?.(error.message || 'Error al actualizar datos locales');
+    },
+  });
+
+  // Actualizar datos de variante
+  const actualizarDatosVarianteMutation = useMutation({
+    mutationFn: async ({ productoWebId, data }: { productoWebId: number; data: {
+      talle?: string | null;
+      color?: string | null;
+    }}) => {
+      return productoService.actualizarDatosVariante(productoWebId, data);
+    },
+    onSuccess: () => {
+      invalidateQueries();
+      onSuccess?.('Variante actualizada correctamente');
+    },
+    onError: (error: Error) => {
+      onError?.(error.message || 'Error al actualizar variante');
+    },
+  });
+
+  // Validar código (query, no mutation)
+  const validarCodigoMutation = useMutation({
+    mutationFn: async (codigo: string) => {
+      return productoService.validarCodigo(codigo);
     },
   });
 
@@ -120,7 +177,12 @@ export function useProductosMutations({ empresaId, onSuccess, onError }: UseProd
     bulkDespublicar: bulkDespublicarMutation.mutate,
     bulkDestacar: bulkDestacarMutation.mutate,
     bulkQuitarDestacado: bulkQuitarDestacadoMutation.mutate,
-    saveProducto: saveProductoMutation.mutateAsync,
+    // Nuevas mutaciones
+    crearProducto: crearProductoMutation.mutateAsync,
+    actualizarProductoEnSFactory: actualizarProductoEnSFactoryMutation.mutateAsync,
+    actualizarDatosLocales: actualizarDatosLocalesMutation.mutateAsync,
+    actualizarDatosVariante: actualizarDatosVarianteMutation.mutateAsync,
+    validarCodigo: validarCodigoMutation.mutateAsync,
     // Estados de loading
     isUpdatingDestacado: updateDestacadoMutation.isPending,
     isUpdatingPublicado: updatePublicadoMutation.isPending,
@@ -129,7 +191,11 @@ export function useProductosMutations({ empresaId, onSuccess, onError }: UseProd
     isBulkDespublicando: bulkDespublicarMutation.isPending,
     isBulkDestacando: bulkDestacarMutation.isPending,
     isBulkQuitandoDestacado: bulkQuitarDestacadoMutation.isPending,
-    isSaving: saveProductoMutation.isPending,
+    isCreandoProducto: crearProductoMutation.isPending,
+    isActualizandoSFactory: actualizarProductoEnSFactoryMutation.isPending,
+    isActualizandoLocales: actualizarDatosLocalesMutation.isPending,
+    isActualizandoVariante: actualizarDatosVarianteMutation.isPending,
+    isValidandoCodigo: validarCodigoMutation.isPending,
   };
 }
 

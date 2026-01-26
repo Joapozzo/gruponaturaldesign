@@ -1,15 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Bell, User } from 'lucide-react';
+import { Search, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useSidebar } from './SidebarContext';
+import { UserMenu } from '@/app/components/navbar/UserMenu';
 
 export default function Header() {
   const { isCollapsed } = useSidebar();
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const notifications = [
@@ -57,10 +57,7 @@ export default function Header() {
           {/* Notifications */}
           <div className="relative">
             <button
-              onClick={() => {
-                setShowNotifications(!showNotifications);
-                setShowUserMenu(false);
-              }}
+              onClick={() => setShowNotifications(!showNotifications)}
               className="relative p-2 rounded-lg hover:bg-neutral-100 transition-colors"
               aria-label="Notificaciones"
             >
@@ -117,57 +114,8 @@ export default function Header() {
           </div>
 
           {/* User Avatar */}
-          <div className="relative">
-            <button
-              onClick={() => {
-                setShowUserMenu(!showUserMenu);
-                setShowNotifications(false);
-              }}
-              className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-neutral-100 transition-colors"
-              aria-label="Menú de usuario"
-            >
-              <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">
-                <User className="w-4 h-4 text-neutral-700" />
-              </div>
-              <span className="hidden md:block text-sm font-medium text-neutral-700">
-                Admin
-              </span>
-            </button>
-
-            <AnimatePresence>
-              {showUserMenu && (
-                <>
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 bg-black/20 z-40 md:hidden"
-                    onClick={() => setShowUserMenu(false)}
-                  />
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-neutral-200 z-50"
-                  >
-                    <div className="p-2">
-                      <div className="px-3 py-2 border-b border-neutral-200">
-                        <p className="text-sm font-medium text-neutral-900">Admin User</p>
-                        <p className="text-xs text-neutral-500">admin@ntds.com</p>
-                      </div>
-                      <button
-                        className="w-full text-left px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
-                        onClick={() => {
-                          // Lógica de logout
-                        }}
-                      >
-                        Cerrar Sesión
-                      </button>
-                    </div>
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
+          <div onClick={() => setShowNotifications(false)}>
+            <UserMenu />
           </div>
         </div>
       </div>

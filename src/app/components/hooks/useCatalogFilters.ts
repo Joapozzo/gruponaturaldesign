@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ProductType, CategoriaIndumentaria, GroupedProduct } from '../../types/producto'
+import { ProductType } from '../../types/producto'
 
 export interface FilterState {
     searchTerm: string;
@@ -42,7 +42,6 @@ export const useCatalogFilters = ({ productos, itemsPerPage = 12 }: UseCatalogFi
     // Productos filtrados
     const filteredProducts = useMemo(() => {
         let filtered = [...productos];
-
         // Filtro por término de búsqueda (insensible a acentos)
         if (filters.searchTerm) {
             const normalizedSearchTerm = normalizeString(filters.searchTerm);
@@ -70,7 +69,7 @@ export const useCatalogFilters = ({ productos, itemsPerPage = 12 }: UseCatalogFi
                 filtered.sort((a, b) => b.nombre.localeCompare(a.nombre));
                 break;
             case 'precio-asc':
-                // Ordenar por precio ascendente (menor a mayor)
+                // Ordenar por precio ascendente (Menor a mayor)
                 // Por ahora, si no hay precio numérico, mantener orden alfabético
                 filtered.sort((a, b) => {
                     const precioA = parseFloat(a.precio) || 0;
@@ -103,7 +102,6 @@ export const useCatalogFilters = ({ productos, itemsPerPage = 12 }: UseCatalogFi
 
         return filtered;
     }, [productos, filters]);
-
     // Paginación
     const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
     const paginatedProducts = useMemo(() => {

@@ -172,13 +172,6 @@ export const ProductoInfoStep: React.FC<ProductoInfoStepProps> = ({
 
       <div className="flex flex-col sm:flex-row gap-4 pt-2">
         <CheckboxField
-          name="publicado"
-          label="Publicado"
-          checked={formData.publicado}
-          onChange={onFieldChange}
-        />
-
-        <CheckboxField
           name="destacado"
           label="Destacado"
           checked={formData.destacado}

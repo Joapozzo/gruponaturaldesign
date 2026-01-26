@@ -42,6 +42,7 @@ export async function prefetchProductosTable(
       params.filters?.sexo,
       params.filters?.color,
       params.filters?.talle,
+      params.filters?.publicado,
       params.filters?.stockMin,
       params.filters?.stockMax,
       params.filters?.orderBy,
