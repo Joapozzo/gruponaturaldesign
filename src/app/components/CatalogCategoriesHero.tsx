@@ -17,17 +17,29 @@ const CatalogCategoriesHero = ({
 }: CatalogCategoriesHeroProps) => {
     const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
 
-    // Detectar rubroId de WORKWEAR desde el mapeo
+    // Detectar rubroId de WORKWEAR desde el mapeo - Mejorar lógica de detección
     let workwearRubroId: number | null = null;
     for (const [id, nombre] of rubroIdToNombre.entries()) {
-        const nombreUpper = nombre.toUpperCase();
-        if (nombreUpper.includes('WORKWEAR') || nombreUpper.includes('WORK') || nombreUpper.includes('WEAR')) {
+        const nombreUpper = nombre.toUpperCase().trim();
+        // Buscar WORKWEAR de manera más específica primero
+        if (nombreUpper.includes('WORKWEAR')) {
+            workwearRubroId = id;
+            break;
+        }
+        // Luego buscar variantes
+        if (nombreUpper.includes('WORK') && nombreUpper.includes('WEAR')) {
+            workwearRubroId = id;
+            break;
+        }
+        // Último recurso: solo WORK o WEAR
+        if (nombreUpper.includes('WORK') || nombreUpper.includes('WEAR')) {
             workwearRubroId = id;
             break;
         }
     }
 
     // IDs de rubros: BASIC = 17 (según el usuario), WORKWEAR = detectado automáticamente
+    // IMPORTANTE: Mostrar siempre ambas categorías, incluso si workwearRubroId es null
     const categorias = [
         {
             id: 'basic',
@@ -41,11 +53,16 @@ const CatalogCategoriesHero = ({
             nombre: 'WORKWEAR',
             descripcion: 'Indumentaria especializada para trabajo y entornos industriales.',
             imagen: '/imgs/workwear.jpg',
-            rubroId: workwearRubroId, // ID detectado automáticamente
+            rubroId: workwearRubroId, // ID detectado automáticamente (puede ser null)
         }
-    ].filter(cat => cat.rubroId !== null) as Array<{ id: string; nombre: string; descripcion: string; imagen: string; rubroId: number }>; // Filtrar categorías sin rubroId válido
+    ] as Array<{ id: string; nombre: string; descripcion: string; imagen: string; rubroId: number | null }>;
 
     const handleCategoryClick = (rubroId: number | null) => {
+        // Si el rubroId es null (no se detectó), no hacer nada
+        if (rubroId === null) {
+            return;
+        }
+        
         // Si ya está seleccionada, deseleccionar (mostrar todos)
         if (selectedRubroId === rubroId) {
             onCategorySelect(null);
@@ -67,7 +84,7 @@ const CatalogCategoriesHero = ({
             {/* Dos columnas sin separación - 100% ancho */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
                 {categorias.map((categoria, index) => {
-                    const isSelected = selectedRubroId === categoria.rubroId;
+                    const isSelected = categoria.rubroId !== null && selectedRubroId === categoria.rubroId;
                     
                     return (
                         <motion.div

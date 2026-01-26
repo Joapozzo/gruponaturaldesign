@@ -87,9 +87,9 @@ export const NavbarDesktopMenu: React.FC<NavbarDesktopMenuProps> = ({
                 })}
             </div>
             
-            {/* Submenú posicionado desde el contenedor del menú completo */}
+            {/* Submenú posicionado desde el contenedor del menú completo - Full width */}
             <div
-                className="absolute left-0 right-0"
+                className="absolute left-1/2 -translate-x-1/2 w-screen"
                 onMouseEnter={onShopSubmenuOpen}
                 onMouseLeave={onShopSubmenuClose}
             >

@@ -40,8 +40,7 @@ export const ShopDesktopSubmenu: React.FC<ShopDesktopSubmenuProps> = ({
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="fixed left-0 right-0 w-full bg-white border-t border-gray-200 shadow-lg z-50"
-                    style={{ top: '100%' }}
+                    className="relative bg-white border-t border-gray-200 shadow-lg z-50"
                 >
                     <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4">
                         {categoriesLoading ? (

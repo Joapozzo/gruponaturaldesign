@@ -1,5 +1,6 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback } from 'react';
+import { useNavbarCategoryIds } from './useNavbarCategoryIds';
 
 export interface MenuItem {
     id: string;
@@ -10,15 +11,17 @@ export interface MenuItem {
 
 /**
  * Hook para manejar la lógica de navegación del Navbar
+ * Sincronizado con useCatalogSearchParams para usar los mismos search params
  */
 export const useNavbarNavigation = () => {
     const pathname = usePathname();
     const router = useRouter();
+    const { rubros: rubrosMap, subrubros: subrubrosMap } = useNavbarCategoryIds();
 
     /**
-     * Normaliza un rubro antes de navegar
+     * Normaliza un rubro para buscar su ID
      */
-    const normalizeRubroForNavigation = useCallback((rubro: string): string => {
+    const normalizeRubroForId = useCallback((rubro: string): string => {
         if (!rubro) return '';
         const rubroUpper = rubro.toUpperCase().trim();
         
@@ -37,8 +40,8 @@ export const useNavbarNavigation = () => {
             return rubroUpper;
         }
         
-        // Por defecto, retornar el rubro original
-        return rubro.trim();
+        // Por defecto, retornar el rubro original en mayúsculas
+        return rubroUpper;
     }, []);
 
     /**
@@ -70,6 +73,8 @@ export const useNavbarNavigation = () => {
 
     /**
      * Maneja la navegación con filtros de categoría
+     * Usa los search params correctos: rubroId, subrubroId, genero
+     * Sincronizado con useCatalogSearchParams
      */
     const handleCategoryNavigation = useCallback((
         type: 'rubro' | 'subrubro' | 'genero',
@@ -79,26 +84,44 @@ export const useNavbarNavigation = () => {
         const params = new URLSearchParams();
         
         if (type === 'rubro') {
-            const normalizedRubro = normalizeRubroForNavigation(value);
-            params.set('rubro', normalizedRubro);
+            // Normalizar el nombre del rubro
+            const normalizedRubro = normalizeRubroForId(value);
+            // Buscar el ID del rubro
+            const rubroId = rubrosMap.get(normalizedRubro);
+            if (rubroId) {
+                params.set('rubroId', String(rubroId));
+            }
         } else if (type === 'subrubro') {
-            params.set('subrubro', value);
+            // Buscar el ID del subrubro por nombre
+            const subrubroId = subrubrosMap.get(value.toUpperCase());
+            if (subrubroId) {
+                params.set('subrubroId', String(subrubroId));
+            }
         } else if (type === 'genero') {
-            params.set('genero', value.toLowerCase());
+            // Genero en minúsculas: dama, hombre, unisex
+            const generoLower = value.toLowerCase();
+            if (['dama', 'hombre', 'unisex'].includes(generoLower)) {
+                params.set('genero', generoLower);
+            }
         }
         
-        router.push(`/shoponline?${params.toString()}`);
+        // Navegar a /shoponline con los search params
+        const url = params.toString() 
+            ? `/shoponline?${params.toString()}`
+            : '/shoponline';
+        
+        router.push(url);
         
         if (onNavigate) {
             onNavigate();
         }
-    }, [router, normalizeRubroForNavigation]);
+    }, [router, normalizeRubroForId, rubrosMap, subrubrosMap]);
 
     return {
         isLinkActive,
         handleNavigation,
         handleCategoryNavigation,
-        normalizeRubroForNavigation,
+        normalizeRubroForNavigation: normalizeRubroForId,
     };
 };
 
