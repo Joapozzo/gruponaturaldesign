@@ -436,7 +436,7 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
           um_id: wizardState.datosSFactory.um_id || 1, // Unidad de medida por defecto
         } as any;
 
-        console.log('📦 Datos que se envían a SFactory:', JSON.stringify(datosSFactoryCompletos, null, 2));
+        // console.log('📦 Datos que se envían a SFactory:', JSON.stringify(datosSFactoryCompletos, null, 2));
 
         let productoCreado: ProductoPadreConVariantes;
         
@@ -446,11 +446,11 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
             itemId: wizardState.itemId,
             data: { ...datosSFactoryCompletos, item_id: wizardState.itemId },
           });
-          console.log('✅ Producto actualizado en SFactory - Respuesta:', JSON.stringify(productoCreado, null, 2));
+          // console.log('✅ Producto actualizado en SFactory - Respuesta:', JSON.stringify(productoCreado, null, 2)); 
         } else {
           // Crear en SFactory
           productoCreado = await mutations.crearProducto(datosSFactoryCompletos);
-          console.log('✅ Producto creado en SFactory - Respuesta:', JSON.stringify(productoCreado, null, 2));
+          // console.log('✅ Producto creado en SFactory - Respuesta:', JSON.stringify(productoCreado, null, 2)); 
         }
 
         // Guardar IDs
@@ -511,11 +511,11 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
           um_id: wizardState.datosSFactory.um_id || 1,
         };
 
-        console.log('📦 Creando primera variante en SFactory:', JSON.stringify(datosVarianteSFactory, null, 2));
+        // console.log('📦 Creando primera variante en SFactory:', JSON.stringify(datosVarianteSFactory, null, 2)); 
 
         const varianteCreada = await mutations.crearProducto(datosVarianteSFactory);
         
-        console.log('✅ Variante creada en SFactory - Respuesta:', JSON.stringify(varianteCreada, null, 2));
+        // console.log('✅ Variante creada en SFactory - Respuesta:', JSON.stringify(varianteCreada, null, 2)); 
         
         // Guardar IDs de la variante
         if (varianteCreada.productosWeb && varianteCreada.productosWeb.length > 0) {
@@ -544,13 +544,13 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
         const productoWebIdParaImagenes = productoWebIdFinal || wizardState.productoWebId;
         if (productoWebIdParaImagenes) {
           try {
-            console.log('📤 Subiendo imágenes después de crear variante...');
+            // console.log('📤 Subiendo imágenes después de crear variante...'); 
             await uploadImagesMutation.mutateAsync({
               productoWebId: productoWebIdParaImagenes,
               productoPadreId: wizardState.productoPadreId || undefined,
               color: wizardState.variante.color,
               files: wizardState.imagenesSeleccionadas,
-            });
+            }); 
             toast.success(`${wizardState.imagenesSeleccionadas.length} imagen(es) subida(s) exitosamente`);
           } catch (error: any) {
             console.error('Error al subir imágenes:', error);
@@ -601,11 +601,11 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
           item_venta: productoPadre.datosSFactory.item_venta || 1,
         };
 
-        console.log('📦 Creando variante en SFactory:', JSON.stringify(datosVarianteSFactory, null, 2));
+        // console.log('📦 Creando variante en SFactory:', JSON.stringify(datosVarianteSFactory, null, 2));  
 
         const varianteCreada = await mutations.crearProducto(datosVarianteSFactory);
         
-        console.log('✅ Variante creada en SFactory - Respuesta:', JSON.stringify(varianteCreada, null, 2));
+        // console.log('✅ Variante creada en SFactory - Respuesta:', JSON.stringify(varianteCreada, null, 2)); 
         
         // Guardar IDs de la variante
         if (varianteCreada.productosWeb && varianteCreada.productosWeb.length > 0) {

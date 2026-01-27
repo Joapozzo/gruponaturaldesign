@@ -17,12 +17,12 @@ async function getProductData(slug: string): Promise<ProductoDetailResponse | nu
     const encodedSlug = slug.includes('%') ? slug : encodeURIComponent(slug);
     const url = `${apiUrl}/productos/slug/${encodedSlug}?empresaId=${empresaId}&includeVariantes=true`;
     
-    console.log('[ProductDetailPage] Fetching product:', { 
-      originalSlug: slug, 
-      encodedSlug, 
-      empresaId, 
-      url 
-    });
+    // console.log('[ProductDetailPage] Fetching product:', { 
+    //   originalSlug: slug, 
+    //   encodedSlug, 
+    //   empresaId, 
+    //   url 
+    // });
     
     const response = await fetch(url, {
       next: { revalidate: 60 }, // Revalidar cada 60 segundos
@@ -31,11 +31,11 @@ async function getProductData(slug: string): Promise<ProductoDetailResponse | nu
       },
     });
 
-    console.log('[ProductDetailPage] Response status:', response.status);
+    // console.log('[ProductDetailPage] Response status:', response.status);
 
     if (!response.ok) {
       if (response.status === 404) {
-        console.log('[ProductDetailPage] Product not found (404)');
+        // console.log('[ProductDetailPage] Product not found (404)');
         return null;
       }
       const errorText = await response.text();
@@ -44,11 +44,11 @@ async function getProductData(slug: string): Promise<ProductoDetailResponse | nu
     }
 
     const data = await response.json();
-    console.log('[ProductDetailPage] Response data:', { 
-      success: data.success, 
-      hasData: !!data.data,
-      hasProducto: !!data.data?.producto 
-    });
+    // console.log('[ProductDetailPage] Response data:', { 
+    //   success: data.success, 
+    //   hasData: !!data.data,
+    //   hasProducto: !!data.data?.producto 
+    // });
     
     // Validar estructura de respuesta
     if (data.success && data.data) {

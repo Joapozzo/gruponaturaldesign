@@ -130,8 +130,7 @@ export function ProductosTableClient({ empresaId }: ProductosTableClientProps) {
         onTogglePublicado: actions.handleTogglePublicado,
         onToggleDestacado: actions.handleToggleDestacado,
         onManageVariantes: (producto) => setSelectedProductoForVariantes(producto),
-        isUpdatingDestacado: mutations.isUpdatingDestacado,
-        isUpdatingPublicado: mutations.isUpdatingPublicado,
+        updatingProductoId: mutations.updatingProductoId,
         productosCount: productosConVariantes.length,
       }),
     [
@@ -141,8 +140,7 @@ export function ProductosTableClient({ empresaId }: ProductosTableClientProps) {
       actions.handleEdit,
       actions.handleTogglePublicado,
       actions.handleToggleDestacado,
-      mutations.isUpdatingDestacado,
-      mutations.isUpdatingPublicado,
+      mutations.updatingProductoId,
       productosConVariantes.length,
     ]
   );
@@ -190,7 +188,7 @@ export function ProductosTableClient({ empresaId }: ProductosTableClientProps) {
 
         {/* Tabla */}
         <Card variant="elevated" padding="none">
-          {isLoading || isFetching ? (
+          {isLoading ? (
             <TableSkeleton rows={limit} columns={12} showPagination={true} />
           ) : isError ? (
             <div className="flex items-center justify-center py-12">

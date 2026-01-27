@@ -58,6 +58,8 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'cdn2.naturalonline.com.ar',
+        port: '',
+        pathname: '/**',
       },
     ],
     formats: ['image/avif', 'image/webp'],

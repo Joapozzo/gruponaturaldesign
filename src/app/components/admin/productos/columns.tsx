@@ -11,8 +11,7 @@ interface GetProductosColumnsParams {
   onTogglePublicado: (producto: ProductoPadreConVariantes) => void;
   onToggleDestacado: (producto: ProductoPadreConVariantes) => void;
   onManageVariantes: (producto: ProductoPadreConVariantes) => void;
-  isUpdatingDestacado: boolean;
-  isUpdatingPublicado: boolean;
+  updatingProductoId: number | null;
   productosCount: number;
 }
 
@@ -27,8 +26,7 @@ export function getProductosColumns({
   onTogglePublicado,
   onToggleDestacado,
   onManageVariantes,
-  isUpdatingDestacado,
-  isUpdatingPublicado,
+  updatingProductoId,
   productosCount,
 }: GetProductosColumnsParams): TableColumn<ProductoPadreConVariantes & { 
   variantesCount?: number;
@@ -188,22 +186,23 @@ export function getProductosColumns({
       header: 'Estado',
       cell: ({ row }) => {
         const productoPadre = row.original as ProductoPadreConVariantes;
+        const isUpdating = updatingProductoId === productoPadre.id;
         return (
           <button
             onClick={(e) => {
               e.stopPropagation();
               onTogglePublicado(productoPadre);
             }}
-            disabled={isUpdatingPublicado}
+            disabled={isUpdating}
             className="flex items-center justify-center"
             title={productoPadre.publicado ? 'Despublicar' : 'Publicar'}
           >
             <div
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                 productoPadre.publicado ? 'bg-green-500' : 'bg-gray-300'
-              } ${isUpdatingPublicado ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+              } ${isUpdating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
             >
-              {isUpdatingPublicado ? (
+              {isUpdating ? (
                 <Loader2 className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-white" />
               ) : (
                 <span
@@ -222,16 +221,17 @@ export function getProductosColumns({
       header: 'Destacado',
       cell: ({ row }) => {
         const productoPadre = row.original as ProductoPadreConVariantes;
+        const isUpdating = updatingProductoId === productoPadre.id;
         return (
           <button
             onClick={(e) => {
               e.stopPropagation();
               onToggleDestacado(productoPadre);
             }}
-            disabled={isUpdatingDestacado}
+            disabled={isUpdating}
             className="flex items-center justify-center"
           >
-            {isUpdatingDestacado ? (
+            {isUpdating ? (
               <Loader2 className="w-4 h-4 animate-spin text-neutral-400" />
             ) : productoPadre.destacado ? (
               <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />

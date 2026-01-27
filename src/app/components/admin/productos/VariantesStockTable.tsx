@@ -6,6 +6,7 @@ import Button from '@/app/components/ui/Button';
 import { useVariantesStock } from '@/app/hooks/useVariantesStock';
 import type { ProductoPadreConVariantes, ProductoWebResponse } from '@/app/types/producto.types';
 import { Search, Save, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface VariantesStockTableProps {
   producto: ProductoPadreConVariantes;
@@ -185,9 +186,11 @@ export function VariantesStockTable({
         return v;
       }));
       setPrecioGeneralChanged(false);
-      onSuccess?.();
+      toast.success(`Cambios guardados exitosamente. ${updates.length} variante(s) actualizada(s).`);
     } catch (error) {
       console.error('Error guardando cambios:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido al guardar los cambios';
+      toast.error(`Error al guardar cambios: ${errorMessage}`);
     }
   };
 
@@ -252,7 +255,7 @@ export function VariantesStockTable({
             <option key={talle} value={talle}>{talle}</option>
           ))}
         </select>
-        <div className="flex items-center justify-end flex-shrink-0 ml-auto">
+        <div className="flex items-center justify-end flex-shrink-0 ml-auto mr-2">
           <Button
             onClick={handleSaveAll}
             disabled={!hasChanges || isUpdating}

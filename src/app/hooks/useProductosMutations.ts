@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { productoService } from '@/app/services/producto.service';
 import { productosKeys } from '@/app/utils/productosKeys';
-import type { ProductoPadreConVariantes } from '@/app/types/producto.types';
+import type { ProductoPadreConVariantes, PaginatedResponse } from '@/app/types/producto.types';
 
 interface UseProductosMutationsParams {
   empresaId: number;
@@ -14,26 +15,78 @@ interface UseProductosMutationsParams {
  */
 export function useProductosMutations({ empresaId, onSuccess, onError }: UseProductosMutationsParams) {
   const queryClient = useQueryClient();
+  const [updatingProductoId, setUpdatingProductoId] = useState<number | null>(null);
 
   const invalidateQueries = () => {
     queryClient.invalidateQueries({ queryKey: productosKeys.lists() });
   };
 
-  // Actualizar destacado
+  // Función helper para actualizar el cache optimistamente
+  const updateProductoInCache = (
+    productoId: number,
+    updates: Partial<ProductoPadreConVariantes>
+  ) => {
+    queryClient.setQueriesData<PaginatedResponse<ProductoPadreConVariantes>>(
+      { queryKey: productosKeys.lists() },
+      (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          data: oldData.data.map((producto) =>
+            producto.id === productoId ? { ...producto, ...updates } : producto
+          ),
+        };
+      }
+    );
+  };
+
+  // Actualizar destacado con actualización optimista
   const updateDestacadoMutation = useMutation({
     mutationFn: ({ id, destacado }: { id: number; destacado: boolean }) =>
       productoService.updateDestacado(id, destacado),
-    onSuccess: () => {
-      invalidateQueries();
+    onMutate: async ({ id, destacado }) => {
+      setUpdatingProductoId(id);
+      await queryClient.cancelQueries({ queryKey: productosKeys.lists() });
+      const previousData = queryClient.getQueriesData({ queryKey: productosKeys.lists() });
+      updateProductoInCache(id, { destacado });
+      return { previousData };
+    },
+    onError: (error, variables, context) => {
+      setUpdatingProductoId(null);
+      if (context?.previousData) {
+        context.previousData.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+      onError?.(error.message || 'Error al actualizar destacado');
+    },
+    onSettled: () => {
+      setUpdatingProductoId(null);
     },
   });
 
-  // Actualizar publicado
+  // Actualizar publicado con actualización optimista
   const updatePublicadoMutation = useMutation({
     mutationFn: ({ id, publicado }: { id: number; publicado: boolean }) =>
       productoService.updatePublicado(id, publicado),
-    onSuccess: () => {
-      invalidateQueries();
+    onMutate: async ({ id, publicado }) => {
+      setUpdatingProductoId(id);
+      await queryClient.cancelQueries({ queryKey: productosKeys.lists() });
+      const previousData = queryClient.getQueriesData({ queryKey: productosKeys.lists() });
+      updateProductoInCache(id, { publicado });
+      return { previousData };
+    },
+    onError: (error, variables, context) => {
+      setUpdatingProductoId(null);
+      if (context?.previousData) {
+        context.previousData.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+      onError?.(error.message || 'Error al actualizar publicado');
+    },
+    onSettled: () => {
+      setUpdatingProductoId(null);
     },
   });
 
@@ -186,6 +239,7 @@ export function useProductosMutations({ empresaId, onSuccess, onError }: UseProd
     // Estados de loading
     isUpdatingDestacado: updateDestacadoMutation.isPending,
     isUpdatingPublicado: updatePublicadoMutation.isPending,
+    updatingProductoId,
     isDeleting: deleteMutation.isPending,
     isBulkPublicando: bulkPublicarMutation.isPending,
     isBulkDespublicando: bulkDespublicarMutation.isPending,

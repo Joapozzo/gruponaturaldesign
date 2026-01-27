@@ -22,6 +22,8 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
   rubros = [],
   subrubros = [],
 }) => {
+  // console.log('DEBUG datosSFactory:', datosSFactory);
+
   // Inicializar tipo con valor por defecto 'P' si no existe
   useEffect(() => {
     if (!datosSFactory.tipo && !bloqueado) {
@@ -29,6 +31,7 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Solo al montar el componente
+  
   const rubroOptions = rubros.map((r) => ({
     value: r.sfactoryId?.toString() || '',
     label: r.nombre,
@@ -38,6 +41,12 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
     value: s.sfactoryId?.toString() || '',
     label: s.nombre,
   })).filter((o) => o.value);
+
+  // Helper para obtener el valor de un campo numérico que puede ser 0
+  const getNumericValue = (value: number | null | undefined, defaultValue: string): string => {
+    if (value === null || value === undefined) return defaultValue;
+    return value.toString();
+  };
 
   return (
     <motion.div
@@ -84,7 +93,7 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
           id="stockeable"
           name="stockeable"
           label="Stockeable"
-          value={datosSFactory.stockeable?.toString() || '1'}
+          value={getNumericValue(datosSFactory.stockeable, '1')}
           onChange={(e) => onFieldChange('stockeable', parseInt(e.target.value))}
           options={[
             { value: '1', label: 'Sí' },
@@ -122,7 +131,7 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
           label="Precio Costo"
           type="number"
           step="0.01"
-          value={datosSFactory.precio_costo?.toString() || ''}
+          value={datosSFactory.precio_costo != null ? datosSFactory.precio_costo.toString() : ''}
           onChange={(e) => onFieldChange('precio_costo', e.target.value ? parseFloat(e.target.value) : null)}
           placeholder="0.00"
           disabled={bloqueado}
@@ -134,7 +143,7 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
           label="Precio Venta"
           type="number"
           step="0.01"
-          value={datosSFactory.precio_venta?.toString() || ''}
+          value={datosSFactory.precio_venta != null ? datosSFactory.precio_venta.toString() : ''}
           onChange={(e) => onFieldChange('precio_venta', e.target.value ? parseFloat(e.target.value) : null)}
           placeholder="0.00"
           disabled={bloqueado}
@@ -150,7 +159,7 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
           label="Utilidad Planificada (%)"
           type="number"
           step="0.01"
-          value={datosSFactory.utilidad_planificada?.toString() || ''}
+          value={datosSFactory.utilidad_planificada != null ? datosSFactory.utilidad_planificada.toString() : ''}
           onChange={(e) => onFieldChange('utilidad_planificada', e.target.value ? parseFloat(e.target.value) : null)}
           placeholder="0.00"
           disabled={bloqueado}
@@ -162,7 +171,7 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
           label="IVA (%)"
           type="number"
           step="0.01"
-          value={datosSFactory.iva?.toString() || ''}
+          value={datosSFactory.iva != null ? datosSFactory.iva.toString() : ''}
           onChange={(e) => onFieldChange('iva', e.target.value ? parseFloat(e.target.value) : null)}
           placeholder="21.00"
           disabled={bloqueado}
@@ -173,7 +182,7 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
           name="moneda_id"
           label="Moneda ID"
           type="number"
-          value={datosSFactory.moneda_id?.toString() || ''}
+          value={datosSFactory.moneda_id != null ? datosSFactory.moneda_id.toString() : ''}
           onChange={(e) => onFieldChange('moneda_id', e.target.value ? parseInt(e.target.value) : null)}
           placeholder="1"
           disabled={bloqueado}
@@ -186,7 +195,7 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
           name="stock_minimo"
           label="Stock Mínimo"
           type="number"
-          value={datosSFactory.stock_minimo?.toString() || ''}
+          value={datosSFactory.stock_minimo != null ? datosSFactory.stock_minimo.toString() : ''}
           onChange={(e) => onFieldChange('stock_minimo', e.target.value ? parseInt(e.target.value) : null)}
           placeholder="0"
           disabled={bloqueado}
@@ -197,7 +206,7 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
           name="stock_maximo"
           label="Stock Máximo"
           type="number"
-          value={datosSFactory.stock_maximo?.toString() || ''}
+          value={datosSFactory.stock_maximo != null ? datosSFactory.stock_maximo.toString() : ''}
           onChange={(e) => onFieldChange('stock_maximo', e.target.value ? parseInt(e.target.value) : null)}
           placeholder="0"
           disabled={bloqueado}
@@ -209,7 +218,7 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
           id="rubro_id"
           name="rubro_id"
           label="Rubro ID (SFactory)"
-          value={datosSFactory.rubro_id?.toString() || ''}
+          value={datosSFactory.rubro_id != null ? datosSFactory.rubro_id.toString() : ''}
           onChange={(e) => onFieldChange('rubro_id', e.target.value ? parseInt(e.target.value) : null)}
           options={rubroOptions}
           placeholder="Seleccionar rubro"
@@ -222,7 +231,7 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
           id="subrubro_id"
           name="subrubro_id"
           label="Subrubro ID (SFactory)"
-          value={datosSFactory.subrubro_id?.toString() || ''}
+          value={datosSFactory.subrubro_id != null ? datosSFactory.subrubro_id.toString() : ''}
           onChange={(e) => onFieldChange('subrubro_id', e.target.value ? parseInt(e.target.value) : null)}
           options={subrubroOptions}
           placeholder="Seleccionar subrubro"
@@ -237,7 +246,7 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
           id="item_venta"
           name="item_venta"
           label="Item de Venta"
-          value={datosSFactory.item_venta?.toString() || '1'}
+          value={getNumericValue(datosSFactory.item_venta, '1')}
           onChange={(e) => onFieldChange('item_venta', parseInt(e.target.value))}
           options={[
             { value: '1', label: 'Sí' },
@@ -250,7 +259,7 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
           id="item_compra"
           name="item_compra"
           label="Item de Compra"
-          value={datosSFactory.item_compra?.toString() || ''}
+          value={datosSFactory.item_compra != null ? datosSFactory.item_compra.toString() : ''}
           onChange={(e) => onFieldChange('item_compra', e.target.value ? parseInt(e.target.value) : null)}
           options={[
             { value: '1', label: 'Sí' },
@@ -265,7 +274,7 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
           id="usa_lote"
           name="usa_lote"
           label="Usa Lote"
-          value={datosSFactory.usa_lote ? 'true' : 'false'}
+          value={datosSFactory.usa_lote === true ? 'true' : 'false'}
           onChange={(e) => onFieldChange('usa_lote', e.target.value === 'true')}
           options={[
             { value: 'true', label: 'Sí' },
@@ -279,7 +288,7 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
           name="usa_serie"
           label="Usa Serie"
           type="number"
-          value={datosSFactory.usa_serie?.toString() || '0'}
+          value={getNumericValue(datosSFactory.usa_serie, '0')}
           onChange={(e) => onFieldChange('usa_serie', parseInt(e.target.value))}
           placeholder="0"
           disabled={bloqueado}
