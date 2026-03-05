@@ -86,7 +86,7 @@ const BaseModal: React.FC<BaseModalProps> = ({
                   damping: 25,
                   stiffness: 300,
                 }}
-                className="bg-white rounded-lg shadow-2xl w-full flex flex-col max-h-[90vh]"
+                className="bg-white rounded-lg shadow-2xl w-full flex flex-col max-h-[90vh] overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Header */}
@@ -120,8 +120,8 @@ const BaseModal: React.FC<BaseModalProps> = ({
                   </div>
                 )}
 
-                {/* Content - Scrollable */}
-                <div className="p-6 overflow-y-auto flex-1 min-h-0">{children}</div>
+                {/* Content - Altura según contenido; scroll si supera 90vh */}
+                <div className="p-6 overflow-y-auto overflow-x-hidden flex-1 min-h-0 overscroll-contain">{children}</div>
               </motion.div>
             </div>
           </div>

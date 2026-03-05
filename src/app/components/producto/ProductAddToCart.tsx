@@ -20,16 +20,16 @@ export default function ProductAddToCart({
     const router = useRouter();
 
     return (
-        <div className="space-y-3 sm:space-y-4 mt-4">
+        <div className="space-y-2 sm:space-y-2.5 mt-3 sm:max-w-[200px] lg:max-w-[180px] lg:space-y-2">
             <Button
                 onClick={onAddToCart}
                 disabled={disabled || isAdding}
                 variant={isAdding ? 'brandRed' : isInCart ? 'slate' : 'black'}
-                size="xl"
+                size="lg"
                 fullWidth
-                className="space-x-2 sm:space-x-3"
+                className="sm:!px-4 sm:!py-2 sm:!text-xs lg:!px-3.5 lg:!py-1.5 lg:!text-xs"
             >
-                <ShoppingCart className="w-5 h-5" />
+                <ShoppingCart className="w-[14px] h-[14px] sm:w-3 sm:h-3 shrink-0" />
                 <span>
                     {isAdding
                         ? 'AGREGADO AL CARRITO!'
@@ -40,15 +40,14 @@ export default function ProductAddToCart({
                 </span>
             </Button>
 
-            {/* Botón Quiero comprar por mayor */}
             <Button
                 onClick={() => router.push('/mayorista')}
                 variant="brandRedOutline"
-                size="xl"
+                size="lg"
                 fullWidth
-                className="space-x-2 sm:space-x-3"
+                className="sm:!px-4 sm:!py-2 sm:!text-xs lg:!px-3.5 lg:!py-1.5 lg:!text-xs"
             >
-                <Users className="w-5 h-5" />
+                <Users className="w-[14px] h-[14px] sm:w-3 sm:h-3 shrink-0" />
                 <span>QUIERO COMPRAR POR MAYOR</span>
             </Button>
         </div>

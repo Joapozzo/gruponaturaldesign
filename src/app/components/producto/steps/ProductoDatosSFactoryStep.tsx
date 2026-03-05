@@ -18,20 +18,17 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
   datosSFactory,
   errors,
   onFieldChange,
-  bloqueado = false,
   rubros = [],
   subrubros = [],
 }) => {
-  // console.log('DEBUG datosSFactory:', datosSFactory);
-
-  // Inicializar tipo con valor por defecto 'P' si no existe
+  // Fijar tipo 'P' (producto) al montar
   useEffect(() => {
-    if (!datosSFactory.tipo && !bloqueado) {
+    if (!datosSFactory.tipo) {
       onFieldChange('tipo', 'P');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Solo al montar el componente
-  
+  }, []);
+
   const rubroOptions = rubros.map((r) => ({
     value: r.sfactoryId?.toString() || '',
     label: r.nombre,
@@ -41,12 +38,6 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
     value: s.sfactoryId?.toString() || '',
     label: s.nombre,
   })).filter((o) => o.value);
-
-  // Helper para obtener el valor de un campo numérico que puede ser 0
-  const getNumericValue = (value: number | null | undefined, defaultValue: string): string => {
-    if (value === null || value === undefined) return defaultValue;
-    return value.toString();
-  };
 
   return (
     <motion.div
@@ -60,48 +51,19 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-2">Datos SFactory</h3>
         <p className="text-sm text-gray-600">
-          {bloqueado
-            ? 'Los datos de SFactory no se pueden editar después de la creación'
-            : 'Completa los datos que se enviarán a SFactory. Los campos marcados con * son obligatorios.'}
+          Completa o modifica los datos que se envían a SFactory (descripción, rubro, etc.). Los precios se gestionan en Gestionar variantes.
         </p>
-        {bloqueado && (
-          <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-sm text-yellow-800">
-              ⚠️ Este producto ya fue creado en SFactory. Para modificarlo, edítalo directamente desde SFactory.
-            </p>
-          </div>
-        )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <SelectField
-          id="tipo"
-          name="tipo"
-          label="Tipo"
-          value={datosSFactory.tipo || 'P'}
-          onChange={(e) => onFieldChange('tipo', e.target.value)}
-          options={[
-            { value: 'P', label: 'Producto (P)' },
-            { value: 'S', label: 'Servicio (S)' },
-          ]}
-          disabled={bloqueado}
-          required
-          error={errors.tipo}
-        />
-
-        <SelectField
-          id="stockeable"
-          name="stockeable"
-          label="Stockeable"
-          value={getNumericValue(datosSFactory.stockeable, '1')}
-          onChange={(e) => onFieldChange('stockeable', parseInt(e.target.value))}
-          options={[
-            { value: '1', label: 'Sí' },
-            { value: '0', label: 'No' },
-          ]}
-          disabled={bloqueado}
-        />
-      </div>
+      <TextField
+        id="descripcion"
+        name="descripcion"
+        label="Descripción (SFactory)"
+        value={datosSFactory.descripcion ?? ''}
+        onChange={(e) => onFieldChange('descripcion', e.target.value)}
+        placeholder="Si está vacío se usa el nombre del producto"
+        error={errors.descripcion}
+      />
 
       <TextField
         id="descrip_corta"
@@ -110,7 +72,6 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
         value={datosSFactory.descrip_corta || ''}
         onChange={(e) => onFieldChange('descrip_corta', e.target.value)}
         placeholder="Descripción breve"
-        disabled={bloqueado}
       />
 
       <TextAreaField
@@ -121,108 +82,17 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
         onChange={(e) => onFieldChange('detalle', e.target.value)}
         placeholder="Detalles adicionales"
         rows={3}
-        disabled={bloqueado}
       />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <TextField
-          id="precio_costo"
-          name="precio_costo"
-          label="Precio Costo"
-          type="number"
-          step="0.01"
-          value={datosSFactory.precio_costo != null ? datosSFactory.precio_costo.toString() : ''}
-          onChange={(e) => onFieldChange('precio_costo', e.target.value ? parseFloat(e.target.value) : null)}
-          placeholder="0.00"
-          disabled={bloqueado}
-        />
-
-        <TextField
-          id="precio_venta"
-          name="precio_venta"
-          label="Precio Venta"
-          type="number"
-          step="0.01"
-          value={datosSFactory.precio_venta != null ? datosSFactory.precio_venta.toString() : ''}
-          onChange={(e) => onFieldChange('precio_venta', e.target.value ? parseFloat(e.target.value) : null)}
-          placeholder="0.00"
-          disabled={bloqueado}
-          required
-          error={errors.precio_venta}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <TextField
-          id="utilidad_planificada"
-          name="utilidad_planificada"
-          label="Utilidad Planificada (%)"
-          type="number"
-          step="0.01"
-          value={datosSFactory.utilidad_planificada != null ? datosSFactory.utilidad_planificada.toString() : ''}
-          onChange={(e) => onFieldChange('utilidad_planificada', e.target.value ? parseFloat(e.target.value) : null)}
-          placeholder="0.00"
-          disabled={bloqueado}
-        />
-
-        <TextField
-          id="iva"
-          name="iva"
-          label="IVA (%)"
-          type="number"
-          step="0.01"
-          value={datosSFactory.iva != null ? datosSFactory.iva.toString() : ''}
-          onChange={(e) => onFieldChange('iva', e.target.value ? parseFloat(e.target.value) : null)}
-          placeholder="21.00"
-          disabled={bloqueado}
-        />
-
-        <TextField
-          id="moneda_id"
-          name="moneda_id"
-          label="Moneda ID"
-          type="number"
-          value={datosSFactory.moneda_id != null ? datosSFactory.moneda_id.toString() : ''}
-          onChange={(e) => onFieldChange('moneda_id', e.target.value ? parseInt(e.target.value) : null)}
-          placeholder="1"
-          disabled={bloqueado}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <TextField
-          id="stock_minimo"
-          name="stock_minimo"
-          label="Stock Mínimo"
-          type="number"
-          value={datosSFactory.stock_minimo != null ? datosSFactory.stock_minimo.toString() : ''}
-          onChange={(e) => onFieldChange('stock_minimo', e.target.value ? parseInt(e.target.value) : null)}
-          placeholder="0"
-          disabled={bloqueado}
-        />
-
-        <TextField
-          id="stock_maximo"
-          name="stock_maximo"
-          label="Stock Máximo"
-          type="number"
-          value={datosSFactory.stock_maximo != null ? datosSFactory.stock_maximo.toString() : ''}
-          onChange={(e) => onFieldChange('stock_maximo', e.target.value ? parseInt(e.target.value) : null)}
-          placeholder="0"
-          disabled={bloqueado}
-        />
-      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <SelectField
           id="rubro_id"
           name="rubro_id"
-          label="Rubro ID (SFactory)"
+          label="Rubro (SFactory) *"
           value={datosSFactory.rubro_id != null ? datosSFactory.rubro_id.toString() : ''}
           onChange={(e) => onFieldChange('rubro_id', e.target.value ? parseInt(e.target.value) : null)}
           options={rubroOptions}
           placeholder="Seleccionar rubro"
-          disabled={bloqueado}
           required
           error={errors.rubro_id}
         />
@@ -230,81 +100,42 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
         <SelectField
           id="subrubro_id"
           name="subrubro_id"
-          label="Subrubro ID (SFactory)"
+          label="Subrubro (SFactory) *"
           value={datosSFactory.subrubro_id != null ? datosSFactory.subrubro_id.toString() : ''}
           onChange={(e) => onFieldChange('subrubro_id', e.target.value ? parseInt(e.target.value) : null)}
           options={subrubroOptions}
           placeholder="Seleccionar subrubro"
-          disabled={bloqueado}
           required
           error={errors.subrubro_id}
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <SelectField
-          id="item_venta"
-          name="item_venta"
-          label="Item de Venta"
-          value={getNumericValue(datosSFactory.item_venta, '1')}
-          onChange={(e) => onFieldChange('item_venta', parseInt(e.target.value))}
-          options={[
-            { value: '1', label: 'Sí' },
-            { value: '0', label: 'No' },
-          ]}
-          disabled={bloqueado}
-        />
-
-        <SelectField
-          id="item_compra"
-          name="item_compra"
-          label="Item de Compra"
-          value={datosSFactory.item_compra != null ? datosSFactory.item_compra.toString() : ''}
-          onChange={(e) => onFieldChange('item_compra', e.target.value ? parseInt(e.target.value) : null)}
-          options={[
-            { value: '1', label: 'Sí' },
-            { value: '0', label: 'No' },
-          ]}
-          disabled={bloqueado}
-        />
+      {/* Solo lectura: valores que vienen de SFactory y no se editan aquí */}
+      <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Solo lectura (desde SFactory)</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <TextField
+            id="stock_minimo"
+            name="stock_minimo"
+            label="Stock Mínimo"
+            type="number"
+            value={datosSFactory.stock_minimo != null ? datosSFactory.stock_minimo.toString() : ''}
+            onChange={() => {}}
+            placeholder="—"
+            disabled
+          />
+          <TextField
+            id="stock_maximo"
+            name="stock_maximo"
+            label="Stock Máximo"
+            type="number"
+            value={datosSFactory.stock_maximo != null ? datosSFactory.stock_maximo.toString() : ''}
+            onChange={() => {}}
+            placeholder="—"
+            disabled
+          />
+        </div>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <SelectField
-          id="usa_lote"
-          name="usa_lote"
-          label="Usa Lote"
-          value={datosSFactory.usa_lote === true ? 'true' : 'false'}
-          onChange={(e) => onFieldChange('usa_lote', e.target.value === 'true')}
-          options={[
-            { value: 'true', label: 'Sí' },
-            { value: 'false', label: 'No' },
-          ]}
-          disabled={bloqueado}
-        />
-
-        <TextField
-          id="usa_serie"
-          name="usa_serie"
-          label="Usa Serie"
-          type="number"
-          value={getNumericValue(datosSFactory.usa_serie, '0')}
-          onChange={(e) => onFieldChange('usa_serie', parseInt(e.target.value))}
-          placeholder="0"
-          disabled={bloqueado}
-        />
-      </div>
-
-      <TextField
-        id="barcode"
-        name="barcode"
-        label="Código de Barras"
-        value={datosSFactory.barcode || ''}
-        onChange={(e) => onFieldChange('barcode', e.target.value || null)}
-        placeholder="Código de barras"
-        disabled={bloqueado}
-      />
     </motion.div>
   );
 };
-

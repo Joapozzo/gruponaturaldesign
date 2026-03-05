@@ -34,49 +34,36 @@ export default function ProductImageGallery({
     const [imagesKey, setImagesKey] = useState<string>('');
     const imageRef = useRef<HTMLDivElement>(null);
 
-    // Filtrar imágenes válidas (que existen)
-    // Solo intentar cargar imágenes secuencialmente hasta encontrar un 404
+    // Al cambiar de variante (ej. sin imágenes → con imágenes) resetear estado.
+    // Marcamos TODAS como 'loading' para que las secundarias se muestren de inmediato (evita bug
+    // donde al venir de variante sin img solo se veía la principal hasta cambiar otra vez de color).
     useEffect(() => {
-        // Crear una clave única para comparar el array de imágenes
         const newImagesKey = images.join('|');
-        
-        // Solo actualizar si las imágenes realmente cambiaron
-        if (newImagesKey === imagesKey) {
-            return;
-        }
-        
+        if (newImagesKey === imagesKey) return;
+
         setImagesKey(newImagesKey);
-        
-        // Inicializar todas las imágenes como "no intentadas aún"
+        setValidImages(images);
+
         const status: { [key: string]: 'loading' | 'loaded' | 'error' | 'pending' } = {};
-        images.forEach((img, index) => {
-            // Solo marcar la primera imagen como "loading", las demás como "pending"
-            if (index === 0) {
-                status[img] = 'loading';
-            } else {
-                status[img] = 'pending';
-            }
+        images.forEach((img) => {
+            status[img] = 'loading';
         });
         setImageLoadStatus(status);
-        setValidImages(images);
-    }, [images, imagesKey]); // Depender de images y imagesKey para comparar
+    }, [images, imagesKey]);
+
+    // Ref para tener siempre la lista actual en callbacks (evita closure obsoleta al cambiar de variante sin img → con img)
+    const validImagesRef = useRef<string[]>([]);
+    validImagesRef.current = validImages;
 
     const handleImageLoad = (imgSrc: string) => {
         setImageLoadStatus(prev => {
-            // Solo actualizar si el estado cambió
-            if (prev[imgSrc] === 'loaded') {
-                return prev; // Ya está cargada, no hacer nada
-            }
-            
+            if (prev[imgSrc] === 'loaded') return prev;
+            const currentList = validImagesRef.current;
             const newStatus: { [key: string]: 'loading' | 'loaded' | 'error' | 'pending' } = { ...prev, [imgSrc]: 'loaded' };
-            // Si esta imagen cargó exitosamente, intentar cargar la siguiente SOLO si no hay errores previos
-            const currentIndex = validImages.indexOf(imgSrc);
-            if (currentIndex >= 0 && currentIndex < validImages.length - 1) {
-                const nextImage = validImages[currentIndex + 1];
-                // Solo intentar cargar la siguiente si está pendiente
-                if (newStatus[nextImage] === 'pending') {
-                    newStatus[nextImage] = 'loading';
-                }
+            const currentIndex = currentList.indexOf(imgSrc);
+            if (currentIndex >= 0 && currentIndex < currentList.length - 1) {
+                const nextImage = currentList[currentIndex + 1];
+                if (newStatus[nextImage] === 'pending') newStatus[nextImage] = 'loading';
             }
             return newStatus;
         });
@@ -84,23 +71,15 @@ export default function ProductImageGallery({
 
     const handleImageError = (imgSrc: string) => {
         setImageLoadStatus(prev => {
-            // Si esta imagen falló, marcar como error y NO intentar cargar las siguientes
+            const currentList = validImagesRef.current;
             const newStatus: { [key: string]: 'loading' | 'loaded' | 'error' | 'pending' } = { ...prev, [imgSrc]: 'error' };
-            
-            // Encontrar el índice de la imagen que falló
-            const errorIndex = validImages.indexOf(imgSrc);
-            
-            // Marcar todas las imágenes siguientes como 'error' también para evitar intentos
+            const errorIndex = currentList.indexOf(imgSrc);
             if (errorIndex >= 0) {
-                for (let i = errorIndex + 1; i < validImages.length; i++) {
-                    const nextImg = validImages[i];
-                    // Solo marcar como error si aún no se ha intentado cargar
-                    if (newStatus[nextImg] === 'pending' || newStatus[nextImg] === 'loading') {
-                        newStatus[nextImg] = 'error';
-                    }
+                for (let i = errorIndex + 1; i < currentList.length; i++) {
+                    const nextImg = currentList[i];
+                    if (newStatus[nextImg] === 'pending' || newStatus[nextImg] === 'loading') newStatus[nextImg] = 'error';
                 }
             }
-            
             return newStatus;
         });
     };
@@ -149,7 +128,7 @@ export default function ProductImageGallery({
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="space-y-2 sm:space-y-3"
+            className="space-y-2 sm:space-y-3 w-full lg:w-full lg:max-h-[calc(100vh-12rem)] lg:flex lg:flex-col lg:min-h-0"
             style={{ overflow: 'visible' }}
         >
             {/* Mostrar imágenes desde Drive si hay URL */}
@@ -159,9 +138,8 @@ export default function ProductImageGallery({
                     productName={productName}
                 />
             ) : (
-                // Fallback: mostrar galería local con imagen grande y miniaturas
-                // En mobile: miniaturas abajo, en desktop: miniaturas a la izquierda
-                <div className="flex flex-col sm:flex-row gap-0 w-full max-w-lg mx-auto overflow-visible">
+                // Galería local: desktop 50% ancho, caber en 100vh
+                <div className="flex flex-col sm:flex-row gap-0 w-full max-w-lg mx-auto lg:max-w-none lg:flex-1 lg:min-h-0 overflow-visible">
                     {/* Miniaturas - En mobile: abajo (horizontal), en desktop: izquierda (vertical) */}
                     {displayImages.length > 1 && (
                         <>
@@ -193,7 +171,7 @@ export default function ProductImageGallery({
                                             whileTap={{ scale: 0.95 }}
                                             aria-label={`Ver imagen ${index + 1}`}
                                         >
-                                            <div className="w-full h-full rounded-lg overflow-hidden">
+                                            <div className="relative w-full h-full rounded-lg overflow-hidden">
                                                 {imageLoadStatus[img] === 'error' ? (
                                                     <div className="w-full h-full flex items-center justify-center bg-gray-200">
                                                         <Package className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
@@ -222,11 +200,11 @@ export default function ProductImageGallery({
                         </>
                     )}
                     
-                    {/* Imagen principal grande */}
-                    <div className="relative group flex-1 flex justify-center w-full">
+                    {/* Imagen principal grande - en lg cabe en 100vh */}
+                    <div className="relative group flex-1 flex justify-center w-full lg:min-h-0">
                         <div
                             ref={imageRef}
-                            className="relative aspect-[3/4] bg-white rounded-lg overflow-hidden cursor-zoom-in max-h-[75vh] w-full"
+                            className="relative aspect-[3/4] bg-white rounded-lg overflow-hidden cursor-zoom-in max-h-[75vh] lg:max-h-[calc(100vh-14rem)] w-full"
                             onClick={() => onOpenModal(displayImages, adjustedIndex)}
                             onMouseMove={handleMouseMove}
                             onMouseEnter={handleMouseEnter}
@@ -339,7 +317,7 @@ export default function ProductImageGallery({
                                             whileTap={{ scale: 0.95 }}
                                             aria-label={`Ver imagen ${index + 1}`}
                                         >
-                                            <div className="w-full h-full rounded-lg overflow-hidden">
+                                            <div className="relative w-full h-full rounded-lg overflow-hidden">
                                                 {imageLoadStatus[img] === 'error' ? (
                                                     <div className="w-full h-full flex items-center justify-center bg-gray-200">
                                                         <Package className="w-4 h-4 text-gray-400" />

@@ -113,7 +113,17 @@ export function ProductosTableClient({ empresaId }: ProductosTableClientProps) {
 
   // Estado para modal de gestión de variantes
   const [selectedProductoForVariantes, setSelectedProductoForVariantes] = React.useState<ProductoPadreConVariantes | null>(null);
-  
+
+  // Sincronizar producto del modal con la lista cuando refetch (ej. tras subir tabla de talles / ficha).
+  // Solo actualizar estado si el item de la lista es distinto (evita setState innecesarios en cada render).
+  React.useEffect(() => {
+    if (!selectedProductoForVariantes?.id || !productosConVariantes?.length) return;
+    const updated = productosConVariantes.find((p) => p.id === selectedProductoForVariantes.id);
+    if (updated && updated !== selectedProductoForVariantes) {
+      setSelectedProductoForVariantes(updated);
+    }
+  }, [productosConVariantes, selectedProductoForVariantes]);
+
   // Estado para modal de selección y modo del wizard
   const [isSeleccionModalOpen, setIsSeleccionModalOpen] = React.useState(false);
   const [wizardMode, setWizardMode] = React.useState<'crear-producto' | 'crear-variante' | 'editar'>('crear-producto');

@@ -2,20 +2,21 @@
 
 import { useRouter, usePathname } from 'next/navigation';
 import { useCart } from './useCart';
-import { useConfirmModal } from './useModal';
+import type { UseConfirmModalOptions } from './useModal';
 import { useSales } from '../../contexts/SalesContext';
 
 interface UseCartActionsOptions {
   onClose?: () => void;
+  /** Pasado desde el componente que renderiza el ConfirmModal (ej. CartDrawer) para que el modal se muestre. */
+  showConfirmModal?: (options: UseConfirmModalOptions) => void;
 }
 
 export const useCartActions = (options: UseCartActionsOptions = {}) => {
-  const { onClose } = options;
+  const { onClose, showConfirmModal } = options;
   const router = useRouter();
   const pathname = usePathname();
   const isInCheckout = pathname?.startsWith('/checkout');
   const { clearCart } = useCart();
-  const { showModal } = useConfirmModal();
   const { config, isWholesaleLimitReached } = useSales();
 
   const handleGoToCart = () => {
@@ -30,7 +31,8 @@ export const useCartActions = (options: UseCartActionsOptions = {}) => {
   };
 
   const handleClearCart = () => {
-    showModal({
+    if (!showConfirmModal) return;
+    showConfirmModal({
       title: 'Vaciar Carrito',
       message: '¿Estás seguro de eliminar todos los productos del carrito?',
       type: 'warning',
@@ -38,6 +40,7 @@ export const useCartActions = (options: UseCartActionsOptions = {}) => {
       cancelText: 'No, mantener',
       onConfirm: async () => {
         clearCart();
+        onClose?.();
       }
     });
   };

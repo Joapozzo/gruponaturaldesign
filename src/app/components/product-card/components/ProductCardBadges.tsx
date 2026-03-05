@@ -27,10 +27,10 @@ export const ProductCardBadges: React.FC<ProductCardBadgesProps> = ({
 
       {/* Badges alineados con el nombre, sobre la imagen (al final de la imagen donde empieza el contenido) */}
       <div className="absolute bottom-2 left-2 z-10 flex flex-col gap-1">
-        {/* Badge OFF - A la misma altura del nombre, sobre la foto */}
+        {/* Badge descuento transfer - para que se entienda que es precio transfer */}
         {descuento && descuento > 0 && (
           <div className="px-2 py-1 rounded-md text-xs font-bold shadow-lg" style={{ backgroundColor: 'var(--red)', color: 'var(--white)' }}>
-            -{descuento}% OFF
+            -{descuento}% transfer
           </div>
         )}
 

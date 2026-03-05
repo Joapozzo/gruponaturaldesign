@@ -81,6 +81,13 @@ export class ProductImageService {
   }
 
   /**
+   * Reordena imágenes enviando el nuevo orden al backend
+   */
+  async reorderImages(images: { id: number; orden: number }[]): Promise<void> {
+    await apiClient.patch('/product-images/reorder', { images });
+  }
+
+  /**
    * Elimina una imagen
    */
   async deleteImage(imageId: number): Promise<void> {

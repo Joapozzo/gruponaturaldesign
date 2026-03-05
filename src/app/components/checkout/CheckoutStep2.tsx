@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../hooks/useCart';
@@ -64,6 +64,24 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  // Prellenar desde el store cuando lleguen datos del usuario (p. ej. tras sync auth→cart); no pisar lo que ya escribió el usuario
+  useEffect(() => {
+    if (!customerData) return;
+    setFormData((prev) => ({
+      ...prev,
+      nombre: prev.nombre || customerData.nombre || '',
+      apellido: prev.apellido || customerData.apellido || '',
+      email: prev.email || customerData.email || '',
+      telefono: prev.telefono || customerData.telefono || '',
+      empresa: prev.empresa ?? customerData.empresa ?? '',
+      cuit: prev.cuit ?? customerData.cuit ?? '',
+      fecha_nacimiento: prev.fecha_nacimiento ?? customerData.fecha_nacimiento ?? '',
+      documento: prev.documento ?? customerData.documento ?? '',
+      tipo_documento: prev.tipo_documento ?? customerData.tipo_documento ?? 'DNI',
+    }));
+    setConfirmEmail((c) => c || customerData.email || '');
+  }, [customerData?.nombre, customerData?.apellido, customerData?.email, customerData?.telefono, customerData?.empresa, customerData?.cuit, customerData?.fecha_nacimiento, customerData?.documento, customerData?.tipo_documento]);
 
   // Validation Functions
   const validateEmail = (email: string): boolean => {

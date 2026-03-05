@@ -13,7 +13,7 @@ const PromoBanner = () => {
   const repeatedText = Array(4).fill(promoItems.join("        •        ")).join("        •        ");
 
   return (
-    <div className="w-full bg-black text-white py-1.5 overflow-hidden fixed top-0 left-0 right-0 z-[60] h-[24px] md:h-[20px] flex items-center">
+    <div className="w-full bg-black text-white py-2 overflow-hidden fixed top-0 left-0 right-0 z-[60] h-[32px] flex items-center shrink-0">
       <motion.div
         className="flex whitespace-nowrap"
         animate={{
@@ -28,10 +28,10 @@ const PromoBanner = () => {
           },
         }}
       >
-        <span className="text-[10px] md:text-[9px] font-semibold tracking-tight px-2">
+        <span className="text-[11px] md:text-[12px] font-semibold tracking-tight px-2">
           {repeatedText}
         </span>
-        <span className="text-[10px] md:text-[9px] font-semibold tracking-tight px-2">
+        <span className="text-[11px] md:text-[12px] font-semibold tracking-tight px-2">
           {repeatedText}
         </span>
       </motion.div>

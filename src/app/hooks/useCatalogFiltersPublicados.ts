@@ -61,6 +61,16 @@ const normalizeString = (str: string): string => {
     .replace(/[\u0300-\u036f]/g, '');
 };
 
+/** Mapea sexo del producto (API) al valor de filtro genero (hombre/dama/unisex) */
+function sexoToGenero(sexo: string | null | undefined): string | null {
+  if (!sexo) return null;
+  const s = sexo.toLowerCase().trim();
+  if (s.includes('masculino') || s === 'hombre') return 'hombre';
+  if (s.includes('femenino') || s === 'dama' || s === 'mujer') return 'dama';
+  if (s.includes('unisex') || s === 'uni') return 'unisex';
+  return null;
+}
+
 export function useCatalogFiltersPublicados(
   products: ProductoPublicado[],
   options: UseCatalogFiltersPublicadosOptions = {}
@@ -119,11 +129,13 @@ export function useCatalogFiltersPublicados(
       );
     }
 
-    // Filtro por género
+    // Filtro por género (mapear sexo API Masculino/Femenino a hombre/dama)
     if (filters.genero !== 'TODOS') {
-      filtered = filtered.filter(
-        (product) => product.sexo?.toLowerCase() === filters.genero.toLowerCase()
-      );
+      const generoFilter = filters.genero.toLowerCase();
+      filtered = filtered.filter((product) => {
+        const productGenero = sexoToGenero(product.sexo);
+        return productGenero === generoFilter;
+      });
     }
 
     // Filtro por colores

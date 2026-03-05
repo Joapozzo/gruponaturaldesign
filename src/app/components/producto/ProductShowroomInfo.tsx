@@ -9,14 +9,14 @@ export default function ProductShowroomInfo() {
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
 
     return (
-        <div className="bg-gray-50 p-1.5 sm:p-2 rounded-lg border border-gray-200">
-            <div className="flex items-center space-x-1 sm:space-x-1.5 mb-0.5 sm:mb-1">
-                <Eye size={10} className="sm:w-3 sm:h-3 text-[#Ed3237] flex-shrink-0" />
-                <span className="font-semibold text-gray-900 text-[9px] sm:text-[10px]">
+        <div className="bg-gray-50 p-2.5 sm:p-3 rounded-lg border border-gray-200 lg:p-2.5">
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-1">
+                <Eye size={14} className="sm:w-[14px] sm:h-[14px] lg:w-3 lg:h-3 text-[#Ed3237] flex-shrink-0" />
+                <span className="font-semibold text-gray-900 text-xs sm:text-sm lg:text-xs">
                     ¿Necesitás ver el producto en persona?
                 </span>
             </div>
-            <p className="text-gray-700 text-[9px] sm:text-[10px] leading-tight">
+            <p className="text-gray-700 text-xs sm:text-sm lg:text-xs leading-snug">
                 Visitá nuestro showroom en Rivera Indarte 2143, Córdoba.{' '}
                 <a 
                     href={whatsappUrl}

@@ -61,6 +61,16 @@ export default function ProductDetailPageContent({
     [groupedProduct]
   );
 
+  // Producto agotado: ninguna variante tiene stock
+  const productOutOfStock = useMemo(
+    () =>
+      Boolean(
+        groupedProduct?.variants?.length &&
+          groupedProduct.variants.every((v) => (v.stock ?? 0) === 0)
+      ),
+    [groupedProduct]
+  );
+
   // Hook para manejar variantes (debe llamarse siempre, incluso si no hay producto)
   const {
     selectedColor,
@@ -71,7 +81,22 @@ export default function ProductDetailPageContent({
     handleSizeSelect,
   } = useProductVariants(groupedProduct);
 
-  // Hook para manejar imágenes (debe llamarse siempre)
+  // Este color agotado: el color seleccionado no tiene stock en ningún talle
+  const selectedColorOutOfStock = useMemo(
+    () =>
+      Boolean(
+        selectedColor &&
+          groupedProduct?.variants?.length &&
+          groupedProduct.variants
+            .filter((v) => v.color === selectedColor)
+            .every((v) => (v.stock ?? 0) === 0)
+      ),
+    [groupedProduct, selectedColor]
+  );
+  const showOutOfStock = productOutOfStock || selectedColorOutOfStock;
+
+  // Hook para manejar imágenes: usar SIEMPRE la variante seleccionada (no displayProduct)
+  // Así al cambiar variante se ven solo sus imágenes; si no tiene img, no se muestra ninguna
   const {
     images,
     currentImageIndex,
@@ -84,8 +109,8 @@ export default function ProductDetailPageContent({
     openModal,
     closeModal,
   } = useProductImages(
-    groupedProduct?.displayProduct.imagenes,
-    groupedProduct?.displayProduct.imagen,
+    selectedVariant?.producto?.imagenes,
+    selectedVariant?.producto?.imagen ?? null,
     5,
     productName,
     selectedColor,
@@ -141,17 +166,22 @@ export default function ProductDetailPageContent({
     return <ProductDetailSkeleton />;
   }
 
-  // Solo mostrar ProductNotFound si no está cargando y no hay producto
-  if (!groupedProduct || !groupedProduct.variants.length || !selectedVariant) {
+  // ProductNotFound solo cuando realmente no hay producto o variantes
+  if (!groupedProduct || !groupedProduct.variants?.length) {
     return <ProductNotFound />;
+  }
+
+  // selectedVariant se setea en useEffect de useProductVariants; hasta entonces mostrar skeleton
+  if (!selectedVariant) {
+    return <ProductDetailSkeleton />;
   }
 
   // Obtener datos del producto
   const displayProduct = groupedProduct.displayProduct;
 
   return (
-    <div className="min-h-screen bg-white px-3 sm:px-6 md:px-8 lg:px-12">
-      {/* Header con Suspense */}
+    <div className="min-h-screen bg-white">
+      {/* Header con Suspense - mismo ancho que Section/Navbar */}
       <Suspense fallback={<ProductHeaderSkeleton />}>
         <ProductHeader
           groupedProduct={groupedProduct}
@@ -159,16 +189,17 @@ export default function ProductDetailPageContent({
         />
       </Suspense>
 
-      {/* Contenido principal */}
+      {/* Contenido principal - mismo ancho que page.tsx y Navbar (px-4 lg:px-15) */}
       <Section
         id="product-content"
-        className="pt-2 sm:pt-4 pb-4 sm:pb-6"
-        contentClassName="max-w-[1600px] mx-auto"
+        className="pt-2 sm:pt-4 pb-6 sm:pb-8"
+        contentClassName="w-full px-4 lg:px-15"
         noPadding
       >
-        <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8" style={{ overflow: 'visible' }}>
-          {/* Galería de imágenes con Suspense */}
-          <div className="flex flex-col">
+        {/* Grid 50% galería | 50% info, pegados con separación */}
+        <div className="grid lg:grid-cols-2 lg:gap-6 xl:gap-8 gap-4 sm:gap-6 mb-6 sm:mb-8 items-start" style={{ overflow: 'visible' }}>
+          {/* Columna izquierda: Galería 50% ancho, entra en 100vh */}
+          <div className="lg:min-h-[calc(100vh-12rem)] lg:flex lg:flex-col relative">
             <Suspense fallback={<ProductImageGallerySkeleton />}>
               <ProductImageGallery
                 product={selectedVariant.producto}
@@ -181,12 +212,22 @@ export default function ProductDetailPageContent({
                 onOpenModal={openModal}
               />
             </Suspense>
-            
+            {/* Overlay Agotado: producto sin stock o color seleccionado sin stock en ningún talle */}
+            {showOutOfStock && (
+              <div
+                className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg pointer-events-none z-10"
+                aria-hidden
+              >
+                <span className="text-white font-bold text-2xl uppercase tracking-wider drop-shadow-md">
+                  Agotado
+                </span>
+              </div>
+            )}
             {/* Código y Categoría debajo de las imágenes */}
-            <div className="mt-3 w-full max-w-lg mx-auto">
+            <div className="mt-3 w-full">
               <div className="flex flex-col sm:flex-row gap-0">
-                {groupedProduct.displayProduct.imagenes && groupedProduct.displayProduct.imagenes.length > 1 && (
-                  <div className="hidden sm:block w-20 mr-4 flex-shrink-0"></div>
+                {images.length > 1 && (
+                  <div className="hidden sm:block w-20 mr-4 flex-shrink-0" />
                 )}
                 <div className="flex-1 w-full">
                   <ProductSpecs
@@ -198,11 +239,11 @@ export default function ProductDetailPageContent({
             </div>
           </div>
 
-          {/* Información del producto */}
-          <div className="space-y-4 sm:space-y-6" style={{ overflow: 'visible' }}>
+          {/* Columna derecha: Información del producto 50%, pegada a la img con separación */}
+          <div className="space-y-5 sm:space-y-6 lg:pt-0" style={{ overflow: 'visible' }}>
             {/* Nombre del producto */}
-            <div className="mb-3 sm:mb-4">
-              <h1 className="text-sm sm:text-base lg:text-xl font-bold text-gray-900 font-display leading-tight">
+            <div className="mb-2 sm:mb-3">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 font-display tracking-tight leading-tight">
                 {productName}
               </h1>
             </div>
@@ -219,21 +260,21 @@ export default function ProductDetailPageContent({
             </Suspense>
 
             {/* Sección de personalización: Bordado, Color y Talle */}
-            <div className="mt-4 space-y-3" style={{ overflow: 'visible', padding: '4px' }}>
-              {/* Switch de Bordado */}
-              <div className="flex flex-col gap-1.5">
+            <div className="mt-4 space-y-4" style={{ overflow: 'visible' }}>
+              {/* Switch de Bordado - más grande */}
+              <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-start">
                   <BordadoSwitch
                     value={bordado}
                     onChange={handleBordadoToggle}
                     isMobile={false}
-                    size="small"
-                    disabled={!canActivateBordado}
+                    size="large"
+                    disabled={!canActivateBordado || showOutOfStock}
                   />
                 </div>
                 {!canActivateBordado && (
-                  <div className="bg-red-50 border border-red-200 rounded-md p-1.5">
-                    <p className="text-[10px] text-red-700 font-semibold">
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-2.5">
+                    <p className="text-xs text-red-700 font-semibold">
                       {itemsNeeded > 0 
                         ? `Agrega ${itemsNeeded} ${itemsNeeded === 1 ? 'prenda más' : 'prendas más'} al carrito para activar el bordado (${itemCount}/5)`
                         : `Mínimo 5 prendas para activar bordado (${itemCount}/5)`
@@ -242,8 +283,8 @@ export default function ProductDetailPageContent({
                   </div>
                 )}
                 {canActivateBordado && (
-                  <div className="bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-400 rounded-md p-1.5">
-                    <p className="text-[10px] text-red-700 font-bold flex items-center gap-1">
+                  <div className="bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-400 rounded-lg p-2.5">
+                    <p className="text-xs text-red-700 font-bold flex items-center gap-1.5">
                       <span>✨</span>
                       <span>Puedes bordar tu logo en todas las prendas</span>
                     </p>
@@ -265,7 +306,7 @@ export default function ProductDetailPageContent({
             </div>
 
             {/* Controles de cantidad */}
-            <div className="mt-4 px-1 sm:px-0">
+            <div className="mt-5 sm:px-0">
               <QuantityControlsProductPage
                 currentQuantity={currentQuantity}
                 isAdding={isAdding}
@@ -275,17 +316,18 @@ export default function ProductDetailPageContent({
                 maxReachedStock={!canAddMore && !maxReached}
                 onIncrement={handleIncrement}
                 onDecrement={handleDecrement}
-                disabled={selectedVariant?.producto?._isVirtual === true}
+                disabled={selectedVariant?.producto?._isVirtual === true || showOutOfStock}
+                outOfStock={(selectedVariant?.stock ?? 0) === 0 || showOutOfStock}
               />
             </div>
 
             {/* Enlaces a recursos externos */}
-            <div className="mt-4">
+            <div className="mt-5">
               <ProductResources product={selectedVariant.producto} />
             </div>
 
-            {/* Información adicional */}
-            <div className="mt-4">
+            {/* Información adicional - showroom */}
+            <div className="mt-5">
               <ProductShowroomInfo />
             </div>
           </div>

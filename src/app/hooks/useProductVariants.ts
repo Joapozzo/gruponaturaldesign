@@ -81,74 +81,92 @@ function sortSizes(sizes: string[]): string[] {
 /**
  * Hook para manejar la selección de variantes (color y talle)
  */
+/**
+ * Resuelve la variante inicial desde groupedProduct y searchParams (para inicialización síncrona)
+ */
+function getInitialVariantFromProduct(
+    groupedProduct: GroupedProduct | null,
+    searchParams: URLSearchParams | null
+): { variant: ProductVariant | null; color: string | null; size: string | null } {
+    if (!groupedProduct || groupedProduct.variants.length === 0) {
+        return { variant: null, color: null, size: null };
+    }
+    const urlColor = searchParams?.get('color') ?? null;
+    const urlTalle = searchParams?.get('talle') ?? null;
+
+    if (urlColor && groupedProduct.availableColors) {
+        const matchingColor = groupedProduct.availableColors.find(
+            (c) => c.toLowerCase() === urlColor.toLowerCase()
+        );
+        if (matchingColor) {
+            if (urlTalle) {
+                const exactVariant = groupedProduct.variants.find(
+                    (v) =>
+                        v.color?.toLowerCase() === matchingColor.toLowerCase() &&
+                        v.talle?.toLowerCase() === urlTalle.toLowerCase()
+                );
+                if (exactVariant) {
+                    return {
+                        variant: exactVariant,
+                        color: matchingColor,
+                        size: exactVariant.talle || null,
+                    };
+                }
+            }
+            const variantWithColor = groupedProduct.variants.find(
+                (v) => v.color?.toLowerCase() === matchingColor.toLowerCase()
+            );
+            if (variantWithColor) {
+                return {
+                    variant: variantWithColor,
+                    color: matchingColor,
+                    size: variantWithColor.talle || null,
+                };
+            }
+        }
+    }
+
+    if (groupedProduct.availableColors && groupedProduct.availableColors.length > 0) {
+        const firstColor = groupedProduct.availableColors[0];
+        const firstVariantWithColor = groupedProduct.variants.find((v) => v.color === firstColor);
+        if (firstVariantWithColor) {
+            return {
+                variant: firstVariantWithColor,
+                color: firstColor,
+                size: firstVariantWithColor.talle || null,
+            };
+        }
+    }
+
+    const firstVariant = groupedProduct.variants[0];
+    return {
+        variant: firstVariant,
+        color: firstVariant.color || null,
+        size: firstVariant.talle || null,
+    };
+}
+
 export function useProductVariants(groupedProduct: GroupedProduct | null) {
     const searchParams = useSearchParams();
     const router = useRouter();
-    const [selectedColor, setSelectedColor] = useState<string | null>(null);
-    const [selectedSize, setSelectedSize] = useState<string | null>(null);
-    const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
 
-    // Inicializar con la primera variante cuando se carga el producto
-    // Leer query params de la URL si existen
+    const initial = getInitialVariantFromProduct(groupedProduct, searchParams);
+    const [selectedColor, setSelectedColor] = useState<string | null>(initial.color);
+    const [selectedSize, setSelectedSize] = useState<string | null>(initial.size);
+    const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(initial.variant);
+
+    // Sincronizar con URL cuando cambia groupedProduct o searchParams (ej. navegación)
     useEffect(() => {
-        if (groupedProduct && groupedProduct.variants.length > 0) {
-            // Leer color y talle de los query params
-            const urlColor = searchParams.get('color');
-            const urlTalle = searchParams.get('talle');
-            
-            // Si hay color en la URL, buscar variante con ese color
-            if (urlColor && groupedProduct.availableColors) {
-                // Buscar color que coincida (case insensitive)
-                const matchingColor = groupedProduct.availableColors.find(
-                    c => c.toLowerCase() === urlColor.toLowerCase()
-                );
-                
-                if (matchingColor) {
-                    // Si también hay talle en la URL, buscar variante exacta
-                    if (urlTalle) {
-                        const exactVariant = groupedProduct.variants.find(
-                            v => v.color?.toLowerCase() === matchingColor.toLowerCase() && 
-                                 v.talle?.toLowerCase() === urlTalle.toLowerCase()
-                        );
-                        if (exactVariant) {
-                            setSelectedVariant(exactVariant);
-                            setSelectedColor(matchingColor);
-                            setSelectedSize(exactVariant.talle || null);
-                            return;
-                        }
-                    }
-                    
-                    // Si solo hay color, seleccionar primera variante con ese color
-                    const variantWithColor = groupedProduct.variants.find(
-                        v => v.color?.toLowerCase() === matchingColor.toLowerCase()
-                    );
-                    if (variantWithColor) {
-                        setSelectedVariant(variantWithColor);
-                        setSelectedColor(matchingColor);
-                        setSelectedSize(variantWithColor.talle || null);
-                        return;
-                    }
-                }
-            }
-            
-            // Si hay colores disponibles pero no hay query params, seleccionar el primer color
-            if (groupedProduct.availableColors && groupedProduct.availableColors.length > 0) {
-                const firstColor = groupedProduct.availableColors[0];
-                const firstVariantWithColor = groupedProduct.variants.find(v => v.color === firstColor);
-                if (firstVariantWithColor) {
-                    setSelectedVariant(firstVariantWithColor);
-                    setSelectedColor(firstColor);
-                    setSelectedSize(firstVariantWithColor.talle || null);
-                    return;
-                }
-            }
-            
-            // Fallback: primera variante
-            const firstVariant = groupedProduct.variants[0];
-            setSelectedVariant(firstVariant);
-            setSelectedColor(firstVariant.color || null);
-            setSelectedSize(firstVariant.talle || null);
+        if (!groupedProduct || groupedProduct.variants.length === 0) {
+            setSelectedVariant(null);
+            setSelectedColor(null);
+            setSelectedSize(null);
+            return;
         }
+        const next = getInitialVariantFromProduct(groupedProduct, searchParams);
+        setSelectedVariant(next.variant);
+        setSelectedColor(next.color);
+        setSelectedSize(next.size);
     }, [groupedProduct, searchParams]);
 
     // Obtener talles disponibles para el color seleccionado

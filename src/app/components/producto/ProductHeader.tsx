@@ -13,46 +13,43 @@ interface ProductHeaderProps {
 }
 
 export default function ProductHeader({ groupedProduct, displayProduct }: ProductHeaderProps) {
-    const router = useRouter();
+    // const router = useRouter();
 
     return (
-        <div className="w-full pt-4 relative">
-            <div className="w-full max-w-[1600px] mx-auto">
+        <div className="w-full pt-10 sm:pt-12 md:pt-14 relative">
+            <div className="w-full px-4 lg:px-15">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
-                    className="flex flex-col lg:flex-row lg:items-center lg:justify-between py-1.5 sm:py-1.5"
+                    className="flex flex-col gap-3 py-1.5 sm:py-2"
                 >
-                    <div className="mb-2 lg:mb-0">
-                        {/* Breadcrumb */}
-                        <nav className="flex items-center space-x-1 text-[10px] sm:text-xs text-gray-600 mb-1">
-                            <Link href="/" className="hover:text-gray-900 transition-colors">
-                                Inicio
-                            </Link>
-                            <span>/</span>
-                            <Link href="/shoponline" className="hover:text-gray-900 transition-colors">
-                                Shop Online
-                            </Link>
-                            <span>/</span>
-                            <span className="text-gray-900 font-medium truncate max-w-xs">
-                                {groupedProduct.skuBase || displayProduct.NOMBRE}
-                            </span>
-                        </nav>
-                    </div>
-
-                    {/* Acciones */}
-                    <div className="flex items-center space-x-2">
+                    {/* Flecha Volver arriba del breadcrumb */}
+                    {/* <div className="flex justify-start">
                         <Button
                             variant="grayOutline"
                             size="sm"
                             onClick={() => router.back()}
-                            className="inline-flex items-center space-x-1.5 px-2.5 py-1.5 text-xs"
+                            className="inline-flex items-center gap-1.5"
                         >
                             <ArrowLeft size={14} />
                             <span>Volver</span>
                         </Button>
-                    </div>
+                    </div> */}
+                    {/* Breadcrumb */}
+                    <nav className="flex items-center flex-wrap gap-x-1 text-xs sm:text-sm text-gray-600">
+                        <Link href="/" className="hover:text-gray-900 transition-colors">
+                            Inicio
+                        </Link>
+                        <span>/</span>
+                        <Link href="/shoponline" className="hover:text-gray-900 transition-colors">
+                            Shop Online
+                        </Link>
+                        <span>/</span>
+                        <span className="text-gray-900 font-medium truncate max-w-[12rem] sm:max-w-xs">
+                            {groupedProduct.skuBase || displayProduct.NOMBRE}
+                        </span>
+                    </nav>
                 </motion.div>
             </div>
         </div>

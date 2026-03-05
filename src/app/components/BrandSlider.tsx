@@ -164,7 +164,7 @@ const BrandsSlider = () => {
     );
 
     return (
-        <div className="w-full mt-20 sm:mt-30 px-4 sm:px-0">
+        <div className="w-full px-0">
             {/* Slider Container */}
             <div className="relative w-full">
                 <motion.div

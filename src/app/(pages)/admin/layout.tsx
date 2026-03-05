@@ -7,11 +7,12 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // const roles = await getRoles();
-  
-  // if (!roles || !Array.isArray(roles) || !roles.includes("admin")) {
-  //   redirect("/unauthorized");
-  // }
+  const roles = await getRoles();
+  const isAdmin = roles?.includes("ADMIN") ?? false;
+
+  if (!isAdmin) {
+    redirect("/auth/error?error=AccessDenied");
+  }
 
   return (
     <AdminClientLayout>

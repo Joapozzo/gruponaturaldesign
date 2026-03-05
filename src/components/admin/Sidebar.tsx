@@ -14,6 +14,8 @@ import {
   Menu,
   X,
   Settings,
+  FileText,
+  Percent,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -51,9 +53,29 @@ const menuItems: MenuItem[] = [
     disabled: true, // En desarrollo
   },
   {
+    name: 'Cupones',
+    icon: Percent,
+    href: '/admin/cupones',
+    badge: null,
+    disabled: true, // En desarrollo
+  },
+  {
     name: 'Clientes',
     icon: Users,
     href: '/admin/clientes',
+    badge: null,
+  },
+  {
+    name: 'Usuarios',
+    icon: Users,
+    href: '/admin/usuarios',
+    badge: null,
+    disabled: true, // En desarrollo
+  },
+  {
+    name: 'Auditoría',
+    icon: FileText,
+    href: '/admin/auditoria',
     badge: null,
   },
   {
@@ -275,7 +297,7 @@ export default function Sidebar() {
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-gray-200 p-4 opacity-60">
+        {/* <div className="border-t border-gray-200 p-4 opacity-60">
           <AnimatePresence mode="wait">
             {!isCollapsed ? (
               <motion.div
@@ -329,7 +351,7 @@ export default function Sidebar() {
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
+        </div> */}
       </motion.aside>
     </>
   );

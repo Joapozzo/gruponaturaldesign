@@ -5,7 +5,10 @@ import { createSSRQueryClient } from '@/app/utils/createSSRQueryClient';
 import { prefetchProductosPublicados } from '@/app/utils/prefetchProductosPublicados';
 import CatalogContent from '@/app/components/catalog/CatalogContent';
 // import LoadingState from '@/app/components/catalog/LoadingState';
-import type { ProductoPublicadoQueryParams } from '@/app/types/producto-publicado.types';
+import {
+  type ProductoPublicadoQueryParams,
+  DEFAULT_PRODUCTOS_PUBLICADOS_PARAMS,
+} from '@/app/types/producto-publicado.types';
 import ProductsGridSkeleton from '@/app/components/skeleton/ProductsGridSkeleton';
 
 interface ShopOnlinePageProps {
@@ -28,25 +31,37 @@ export default async function ShopOnlinePage({
 }: ShopOnlinePageProps) {
   const params = await searchParams;
 
-  // Parsear parámetros de URL para prefetch (sin page/limit, se obtienen todos)
+  // Mismos defaults que CatalogContent (useProductosPublicadosAll) para que la query key coincida
   const queryParams: Omit<ProductoPublicadoQueryParams, 'page' | 'limit'> = {
-    search: params.search || undefined,
+    ...DEFAULT_PRODUCTOS_PUBLICADOS_PARAMS,
+    searchTerm: params.search ?? DEFAULT_PRODUCTOS_PUBLICADOS_PARAMS.searchTerm,
+    search: params.search ?? DEFAULT_PRODUCTOS_PUBLICADOS_PARAMS.search,
     rubroId: params.rubroId ? parseInt(params.rubroId, 10) : undefined,
     subrubroId: params.subrubroId
       ? parseInt(params.subrubroId, 10)
       : undefined,
-    genero: params.genero || undefined,
-    destacado: params.destacado === 'true' ? true : undefined,
-    tieneStock: params.tieneStock === 'true' ? true : undefined,
+    genero: params.genero || DEFAULT_PRODUCTOS_PUBLICADOS_PARAMS.genero,
+    destacado:
+      params.destacado === 'true'
+        ? true
+        : params.destacado === 'false'
+          ? false
+          : DEFAULT_PRODUCTOS_PUBLICADOS_PARAMS.destacado,
+    tieneStock:
+      params.tieneStock === 'true'
+        ? true
+        : params.tieneStock === 'false'
+          ? false
+          : DEFAULT_PRODUCTOS_PUBLICADOS_PARAMS.tieneStock,
     sortBy:
       params.sortBy &&
       ['destacado', 'nombre', 'precio', 'orden'].includes(params.sortBy)
         ? (params.sortBy as 'destacado' | 'nombre' | 'precio' | 'orden')
-        : undefined,
+        : DEFAULT_PRODUCTOS_PUBLICADOS_PARAMS.sortBy,
     sortOrder:
       params.sortOrder && ['asc', 'desc'].includes(params.sortOrder)
         ? (params.sortOrder as 'asc' | 'desc')
-        : undefined,
+        : DEFAULT_PRODUCTOS_PUBLICADOS_PARAMS.sortOrder,
   };
 
   // Crear QueryClient para SSR

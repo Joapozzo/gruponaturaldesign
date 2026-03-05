@@ -29,8 +29,8 @@ const FeaturesBanner = () => {
 
   return (
     <div className="w-full bg-gray-100 py-6 lg:py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+      <div className="w-full px-4 lg:px-15">
+        <div className="flex flex-col sm:flex-row flex-wrap justify-between items-stretch gap-4 lg:gap-6 w-full">
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
             return (

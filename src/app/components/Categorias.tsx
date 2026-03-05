@@ -5,8 +5,6 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Plus } from 'lucide-react';
 import Section from './Section';
 import { useRouter } from 'next/navigation';
-import FeaturesBanner from './FeaturesBanner';
-import CallToAction from './CallToAction';
 
 const Categorias = () => {
     const router = useRouter();
@@ -35,12 +33,11 @@ const Categorias = () => {
 
     return (
         <>
-            <Section id="categorias" className="w-full bg-white" title='Categorías' subtitle='Uniformes profesionales diseñados específicamente para cada sector, combinando funcionalidad, comodidad y diseño.'>
+            <Section id="categorias" padding="none" className="w-full bg-white h-screen overflow-hidden">
 
-                {/* Categorías Grid - Rectangulares y más altas */}
-                <div className="w-full px-4 lg:px-15 pb-10">
-                    {/* Dos columnas grandes y rectangulares */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                {/* Categorías Grid - 100vh, mismo gap que DesignHero */}
+                <div className="w-full px-4 lg:px-15 h-screen">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full min-h-0">
                         {categorias.map((categoria, index) => (
                             <motion.div
                                 key={categoria.id}
@@ -54,7 +51,7 @@ const Categorias = () => {
                                 onClick={() => handleCategoryClick(categoria.route)}
                             >
                                 {/* Imagen de fondo - Más alta/rectangular */}
-                                <div className="relative h-[95vh] w-full overflow-hidden">
+                                <div className="relative h-full min-h-[300px] w-full overflow-hidden">
                                     <motion.img
                                         src={categoria.imagen}
                                         alt={categoria.nombre}
@@ -124,7 +121,6 @@ const Categorias = () => {
                         ))}
                     </div>
                 </div>
-                <FeaturesBanner />
             </Section>
         </>
     );

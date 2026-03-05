@@ -40,7 +40,7 @@ const ProductosDestacados = () => {
         className="bg-gray-50 pb-10"
         title="Productos destacados"
         subtitle="Lo mejor de nuestro shop online en diseño, calidad y funcionalidad."
-        contentClassName="max-w-7xl mx-auto px-10"
+        contentClassName="w-full px-4 lg:px-15"
       >
         <div className="text-center py-20 text-red-600">
           {error instanceof Error ? error.message : 'Error al cargar productos'}
@@ -57,7 +57,7 @@ const ProductosDestacados = () => {
         className="bg-gray-50 pb-10"
         title="Productos destacados"
         subtitle="Lo mejor de nuestro shop online en diseño, calidad y funcionalidad."
-        contentClassName="max-w-7xl mx-auto px-10"
+        contentClassName="w-full px-4 lg:px-15"
       >
         <div className="text-center py-20 text-gray-500">
           No hay productos disponibles
@@ -73,13 +73,13 @@ const ProductosDestacados = () => {
       className="bg-gray-50 pb-10"
       title="Productos destacados"
       subtitle="Lo mejor de nuestro shop online en diseño, calidad y funcionalidad."
-      contentClassName="max-w-8xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20"
+      contentClassName="w-full px-4 lg:px-15"
     >
-      <div className="w-full max-w-8xl mx-auto overflow-hidden">
+      <div className="w-full overflow-hidden">
         <Swiper
           modules={[Navigation, Pagination, Autoplay]}
           spaceBetween={16}
-          slidesPerView={4}
+          slidesPerView={5}
           centeredSlides={false}
           initialSlide={0}
           onSwiper={handleSwiperInit}
@@ -89,10 +89,10 @@ const ProductosDestacados = () => {
             nextEl: '#swiper-button-next-destacados',
             prevEl: '#swiper-button-prev-destacados',
           }}
-          pagination={{
-            clickable: true,
-            dynamicBullets: true,
-          }}
+          // pagination={{
+          //   clickable: true,
+          //   dynamicBullets: true,
+          // }}
           autoplay={
             expandedSku
               ? false
@@ -102,8 +102,8 @@ const ProductosDestacados = () => {
                   pauseOnMouseEnter: true,
                 }
           }
-          loop={productos.length > 4}
-          loopAdditionalSlides={productos.length > 4 ? 2 : 0}
+          loop={productos.length > 5}
+          loopAdditionalSlides={productos.length > 5 ? 2 : 0}
           breakpoints={{
             320: {
               slidesPerView: 1.5,
@@ -121,7 +121,7 @@ const ProductosDestacados = () => {
               centeredSlides: false,
             },
             1024: {
-              slidesPerView: 4,
+              slidesPerView: 5,
               spaceBetween: 16,
               centeredSlides: false,
             },
@@ -129,8 +129,8 @@ const ProductosDestacados = () => {
           className="pb-12"
         >
           {productos.map((producto, index) => (
-            <SwiperSlide key={producto.codigoAgrupacion} className="mb-5 !flex">
-              <div className="w-full h-full flex-shrink-0">
+            <SwiperSlide key={producto.codigoAgrupacion} className="mb-5 !flex !items-start">
+              <div className="w-full flex-shrink-0">
                 <ProductCardPublicado
                   producto={producto}
                   index={index}

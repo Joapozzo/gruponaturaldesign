@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -18,6 +19,10 @@ interface ProductImageProps {
 
 import { normalizeImageUrl } from '@/app/utils/normalizeImageUrl';
 
+// Data URL placeholder para no hacer request a /imgs/producto-placeholder.png (evitar 404)
+const PLACEHOLDER_DATA_URL =
+  'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNDAwIDQwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOWNhM2FmIiBmb250LXNpemU9IjI0IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+U2luIGltYWdlbjwvdGV4dD48L3N2Zz4=';
+
 export const ProductImage: React.FC<ProductImageProps> = ({
   src,
   alt,
@@ -29,8 +34,14 @@ export const ProductImage: React.FC<ProductImageProps> = ({
   sizes,
   objectFit = 'cover',
 }) => {
-  // Normalizar la URL antes de usarla
-  const normalizedSrc = useMemo(() => normalizeImageUrl(src), [src]);
+  // Normalizar la URL antes de usarla; si es placeholder, usar data URL para evitar 404
+  const normalizedSrc = useMemo(() => {
+    const url = normalizeImageUrl(src);
+    if (url && (url.includes('producto-placeholder') || url === '/imgs/producto-placeholder.png')) {
+      return PLACEHOLDER_DATA_URL;
+    }
+    return url;
+  }, [src]);
   
   const [imgSrc, setImgSrc] = useState(normalizedSrc);
   const [hasError, setHasError] = useState(false);
@@ -69,6 +80,8 @@ export const ProductImage: React.FC<ProductImageProps> = ({
     );
   }
 
+  const isDataUrl = typeof imgSrc === 'string' && imgSrc.startsWith('data:');
+
   return (
     <div className={`relative overflow-hidden ${className}`}>
       <Image
@@ -76,6 +89,7 @@ export const ProductImage: React.FC<ProductImageProps> = ({
         alt={alt}
         {...imageProps}
         priority={priority}
+        unoptimized={isDataUrl}
         onError={handleError}
         className="transition-opacity duration-300"
       />

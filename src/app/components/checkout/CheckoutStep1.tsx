@@ -2,13 +2,13 @@
 
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { useCart } from '../hooks/useCart';
 import Button from '../ui/Button';
-import { Trash2, ArrowRight, Package } from 'lucide-react';
+import { Trash2, ArrowRight } from 'lucide-react';
 import QuantityControlsUI from '@/app/components/ui/QuantityControls';
 import BordadoSwitch from '../product-card/components/BordadoSwitch';
+import { ProductImage } from '../product-card/components/ProductImage';
 import { formatPrice, formatPriceWithoutIVA } from '@/app/utils/productHelpers';
 import { getStockMessage } from '@/app/services/stockService';
 import { useConfirmModal } from '../hooks/useModal';
@@ -78,24 +78,14 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
               <div className="flex items-center gap-2">
                 {/* Product Image - Más alta en mobile, más grande en desktop */}
                 <div className="relative w-10 h-14 sm:w-12 sm:h-16 lg:w-14 lg:h-18 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
-                  {item.product.imagen ? (
-                    <Image
-                      src={item.product.imagen}
-                      alt={item.product.nombre || 'Producto'}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 48px, 64px"
-                      loading="lazy"
-                      quality={85}
-                      onError={() => {
-                        // El error se maneja mostrando el Package icon
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                      <Package className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-gray-400" />
-                    </div>
-                  )}
+                  <ProductImage
+                    src={item.product.imagen}
+                    alt={item.product.nombre || 'Producto'}
+                    className="w-full h-full"
+                    fill
+                    sizes="(max-width: 768px) 48px, 64px"
+                    objectFit="cover"
+                  />
                 </div>
 
                 {/* Product Info - Compacto en mobile, más grande en desktop */}

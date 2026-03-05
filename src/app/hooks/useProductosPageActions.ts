@@ -18,7 +18,7 @@ export function useProductosPageActions({ empresaId }: UseProductosPageActionsPa
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
-  const { sync, isSyncing } = useProductosSync({
+  const { sync, isSyncing, cooldownRemainingSeconds } = useProductosSync({
     onSuccess: () => {
       router.refresh();
     },
@@ -27,6 +27,8 @@ export function useProductosPageActions({ empresaId }: UseProductosPageActionsPa
   const handleSync = useCallback(async () => {
     await sync();
   }, [sync]);
+
+  const isSyncDisabled = isSyncing || cooldownRemainingSeconds > 0;
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -67,6 +69,8 @@ export function useProductosPageActions({ empresaId }: UseProductosPageActionsPa
     handleExport,
     handleCreate,
     isSyncing,
+    isSyncDisabled,
+    cooldownRemainingSeconds,
     isRefreshing,
     isExporting,
   };

@@ -53,7 +53,6 @@ export const useCatalogFilters = ({ productos, itemsPerPage = 12 }: UseCatalogFi
         }
 
         // Filtro por categoría tipo (BASIC/WORKWEAR) - mantener compatibilidad
-        // Este hook se mantiene para ProductType, pero los nuevos filtros están en useGroupedCatalogFilters
 
         // Filtro por destacados
         if (filters.onlyFeatured) {

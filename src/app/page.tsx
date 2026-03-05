@@ -8,6 +8,7 @@ import ProductosDestacados from './components/ProductosDestacados';
 import Nosotros from './components/Nosotros';
 import Testimonios from './components/Testimonios';
 import Faq from './components/Faq';
+import ComoTrabajamos from './components/ComoTrabajamos';
 import Contacto from './components/Contacto';
 import InstagramCTA from './components/InstagramCTA';
 import DesignHero from './components/DesignHero';
@@ -36,14 +37,25 @@ export default async function HomePage() {
           <ProductosDestacados />
         </Suspense>
         
-        <Categorias />
-        <DesignHero />
-        <CallToAction />
-        <InstagramCTA />
-        <Nosotros />
-        <Testimonios />
-        <Faq />
-        <Contacto />
+        {/* Categorías + DesignHero (100vh c/u), mismo gap */}
+        <div className="w-full flex flex-col gap-2">
+          <Categorias />
+          <div className="w-full px-4 lg:px-15 shrink-0">
+            <DesignHero />
+          </div>
+          <InstagramCTA />
+        </div>
+        {/* Secciones separadas con gap; ComoTrabajamos + Contacto juntos con pt-20 opcional */}
+        <div className="flex flex-col gap-16 lg:gap-20">
+          <CallToAction />
+          <Nosotros />
+          <Testimonios />
+          <Faq />
+          <div className="flex flex-col pt-0">
+            <ComoTrabajamos />
+              <Contacto />
+          </div>
+        </div>
       </div>
     </HydrationBoundary>
   );

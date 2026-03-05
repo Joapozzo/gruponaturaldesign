@@ -367,6 +367,46 @@ class ProductoService {
     }
     return response.data;
   }
+
+  // ---------------------------------------------------------------------------
+  // Documentos: Tabla de Talles y Ficha Técnica
+  // ---------------------------------------------------------------------------
+
+  async uploadTablaTalles(
+    productoPadreId: number,
+    file: File
+  ): Promise<{ id: number; tablaTallesUrl: string }> {
+    const formData = new FormData();
+    formData.append('documento', file);
+    const response = await apiClient.patch<{ id: number; tablaTallesUrl: string }>(
+      `/productos/${productoPadreId}/tabla-talles`,
+      formData
+    );
+    if (!response.data) throw new Error('Error al subir tabla de talles');
+    return response.data;
+  }
+
+  async deleteTablaTalles(productoPadreId: number): Promise<void> {
+    await apiClient.delete(`/productos/${productoPadreId}/tabla-talles`);
+  }
+
+  async uploadFichaTecnica(
+    productoPadreId: number,
+    file: File
+  ): Promise<{ id: number; fichaTecnicaUrl: string }> {
+    const formData = new FormData();
+    formData.append('documento', file);
+    const response = await apiClient.patch<{ id: number; fichaTecnicaUrl: string }>(
+      `/productos/${productoPadreId}/ficha-tecnica`,
+      formData
+    );
+    if (!response.data) throw new Error('Error al subir ficha técnica');
+    return response.data;
+  }
+
+  async deleteFichaTecnica(productoPadreId: number): Promise<void> {
+    await apiClient.delete(`/productos/${productoPadreId}/ficha-tecnica`);
+  }
 }
 
 export const productoService = new ProductoService();

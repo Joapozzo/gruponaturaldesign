@@ -92,14 +92,14 @@ const Button: React.FC<ButtonProps> = ({
         minimal: 'text-gray-600 hover:text-black underline-offset-4 hover:underline',
     };
 
-    // Tamaños con responsive automático (mobile pequeño, desktop grande)
+    // Tamaños - estilo prolijo: rounded-sm, padding consistente, gap para iconos
     const sizeVariants: Record<SizeVariant, string> = {
-        xs: 'px-1.5 py-1 text-[9px] tracking-tight lg:px-2 lg:py-1 lg:text-[10px] lg:tracking-normal',
-        sm: 'px-2 py-1.5 text-[10px] tracking-tight lg:px-4 lg:py-2 lg:text-xs lg:tracking-normal',
-        md: 'px-3 py-1.5 text-[11px] tracking-tight lg:px-5 lg:py-2.5 lg:text-sm lg:tracking-normal',
-        lg: 'px-4 py-2 text-xs tracking-tight lg:px-7 lg:py-3.5 lg:text-base lg:tracking-normal',
-        xl: 'px-5 py-2.5 text-sm tracking-tight lg:px-9 lg:py-5 lg:text-lg lg:tracking-normal',
-        xxl: 'px-7 py-3.5 text-base tracking-tight lg:px-12 lg:py-6 lg:text-xl lg:tracking-normal',
+        xs: 'px-3 py-1.5 text-[10px]',
+        sm: 'px-4 py-2 text-xs',
+        md: 'px-6 py-2.5 text-xs',
+        lg: 'px-7 py-3 text-sm',
+        xl: 'px-8 py-3.5 text-base',
+        xxl: 'px-10 py-4 text-lg',
     };
 
     // Si es outline, usar la variante outline correspondiente
@@ -110,8 +110,8 @@ const Button: React.FC<ButtonProps> = ({
         return variant;
     };
 
-    // Clases base
-    const baseClasses = 'font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 active:scale-95 cursor-pointer select-none flex items-center justify-center';
+    // Clases base - rounded-sm, gap-2 para iconos+texto
+    const baseClasses = 'font-semibold rounded-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 cursor-pointer select-none inline-flex items-center justify-center gap-2';
 
     // Clases para disabled
     const disabledClasses = 'opacity-50 cursor-not-allowed hover:scale-100 active:scale-100';

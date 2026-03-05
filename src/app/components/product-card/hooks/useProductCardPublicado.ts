@@ -110,6 +110,13 @@ export function useProductCardPublicado({
     }
   }, [showSelectors, producto, isExpanded, onExpandChange]);
 
+  // Colapsar este card cuando se expande otro (solo uno expandido a la vez)
+  useEffect(() => {
+    if (expandedSku != null && expandedSku !== producto?.codigoAgrupacion) {
+      setShowSelectors(false);
+    }
+  }, [expandedSku, producto?.codigoAgrupacion]);
+
   // Handler para mostrar selectores
   const handleShowSelectors = () => {
     if (producto.variantes && producto.variantes.length > 1) {

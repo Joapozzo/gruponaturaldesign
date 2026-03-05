@@ -83,10 +83,10 @@ export const Navbar: React.FC = () => {
                 initial={{ y: -100 }}
                 animate={{ y: 0 }}
                 transition={{ duration: 0.2, ease: 'easeInOut' }}
-                className="bg-white fixed top-[24px] md:top-[18px] left-0 right-0 w-full z-50 border-b border-gray-200 shadow-sm"
+                className="bg-white fixed top-[32px] left-0 right-0 w-full z-50 border-b border-gray-200 shadow-sm"
                 style={{ backgroundColor: '#FFFFFF' }}
             >
-                <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
+                <div className="w-full px-4 lg:px-15">
                     {/* Primera fila: Buscador - Logo - User/Carrito */}
                     <NavbarTopRow
                         itemCount={itemCount}

@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Filter, X, ArrowUpDown } from 'lucide-react';
 import Button from './ui/Button';
+import Select from './ui/Select';
+import SearchInput from './ui/SearchInput';
 import { FilterState } from './hooks/useCatalogFilters';
 import FilterModal from './FilterModal';
 
@@ -20,7 +22,8 @@ interface FilterControlsProps {
     onClearFilters: () => void;
     hasActiveFilters: boolean;
     rubros?: string[];
-    subrubros?: string[];
+    /** Opciones de subrubro con value=id para filtrar por subrubroId (sincronizado con API) */
+    subrubroOptions?: Array<{ value: string; label: string }>;
 }
 
 const FilterControls: React.FC<FilterControlsProps> = ({
@@ -35,11 +38,16 @@ const FilterControls: React.FC<FilterControlsProps> = ({
     onClearFilters,
     hasActiveFilters,
     rubros = [],
-    subrubros = [],
+    subrubroOptions = [],
 }) => {
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
 
-    const activeFiltersCount = 
+    const subrubroLabel = filters.subrubro !== 'TODOS'
+        ? (subrubroOptions.find((o) => o.value === filters.subrubro)?.label ?? filters.subrubro)
+        : '';
+    const activeFiltersCount =
         (filters.categoriaTipo !== 'TODOS' ? 1 : 0) +
         (filters.subrubro !== 'TODOS' ? 1 : 0) +
         (filters.genero !== 'TODOS' ? 1 : 0) +
@@ -73,11 +81,13 @@ const FilterControls: React.FC<FilterControlsProps> = ({
                 className="bg-white p-2 sm:p-3 lg:p-4 rounded-lg shadow-sm border border-gray-100 mb-3 sm:mb-4 lg:mb-6"
             >
                 {/* Header con estadísticas */}
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-2 sm:mb-3 lg:mb-4">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                     <div className="mb-1.5 sm:mb-2 lg:mb-0">
                         <h3 className="text-xs sm:text-sm lg:text-base font-bold text-gray-900 mb-0.5">Filtrar Productos</h3>
-                        <p className="text-[10px] sm:text-xs text-gray-600">
-                            Mostrando {showingFrom}-{showingTo} de {totalProducts} productos
+                        <p className="text-[10px] sm:text-xs text-gray-600" suppressHydrationWarning>
+                            {mounted
+                                ? `Mostrando ${showingFrom}-${showingTo} de ${totalProducts} productos`
+                                : 'Mostrando — de — productos'}
                         </p>
                     </div>
 
@@ -89,11 +99,11 @@ const FilterControls: React.FC<FilterControlsProps> = ({
                         >
                             <Button
                                 variant="grayOutline"
-                                size="sm"
+                                size="xs"
                                 onClick={onClearFilters}
-                                className="inline-flex items-center space-x-2"
+                                className="inline-flex items-center space-x-2 mb-3"
                             >
-                                <X size={16} />
+                                <X size={14} />
                                 <span>Limpiar filtros</span>
                             </Button>
                         </motion.div>
@@ -102,69 +112,57 @@ const FilterControls: React.FC<FilterControlsProps> = ({
 
                 {/* Controles de búsqueda y filtros */}
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-end">
-                    {/* Búsqueda */}
-                    <div className="relative flex-1 w-full sm:w-auto">
-                        <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1 h-[14px] sm:h-[16px] flex items-end">
-                            Buscar
-                        </label>
-                        <div className="relative">
-                            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={12} />
-                            <input
-                                type="text"
-                                placeholder="Buscar productos..."
-                                value={filters.searchTerm}
-                                onChange={(e) => onUpdateFilter('searchTerm', e.target.value)}
-                                className="w-full h-[32px] sm:h-[36px] pl-7 pr-2 sm:pr-3 text-[11px] sm:text-xs border-2 border-gray-200 focus:border-gray-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Ordenar por */}
-                    <div className="relative w-full sm:w-auto">
-                        <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1 h-[14px] sm:h-[16px] flex items-end">
-                            Ordenar por
-                        </label>
-                        <div className="relative">
-                            <ArrowUpDown className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={12} />
-                            <select
-                                value={filters.sortBy}
-                                onChange={(e) => onUpdateFilter('sortBy', e.target.value as FilterState['sortBy'])}
-                                className="w-full h-[32px] sm:h-[36px] pl-7 pr-7 text-[11px] sm:text-xs border-2 border-gray-200 focus:border-gray-500 outline-none transition-colors bg-white rounded-lg text-gray-900 appearance-none cursor-pointer"
-                            >
-                                <option value="alfabetico-asc">A - Z</option>
-                                <option value="alfabetico-desc">Z - A</option>
-                                <option value="precio-asc">Precio: Menor a mayor</option>
-                                <option value="precio-desc">Precio: Mayor a Menor</option>
-                                <option value="destacados">Destacados</option>
-                            </select>
-                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-
                     {/* Botón de filtros */}
                     <div className="relative w-full sm:w-auto">
-                        <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1 h-[14px] sm:h-[16px] flex items-end">
+                        <label className="text-[10px] sm:text-xs font-medium text-gray-700 mb-0.5 sm:mb-1 h-[14px] sm:h-[16px] flex items-end">
                             <span className="invisible">Filtros</span>
                         </label>
                         <Button
-                            variant="grayOutline"
+                            variant={activeFiltersCount > 0 ? 'ash' : 'ghost'}
                             size="md"
                             onClick={() => setIsFilterModalOpen(true)}
-                            className="inline-flex items-center justify-center space-x-1 w-full sm:w-auto h-[32px] sm:h-[36px] text-[11px] sm:text-xs px-3 sm:px-4"
+                            className="inline-flex items-center justify-center space-x-1 w-full sm:w-auto h-[32px] sm:h-[36px] text-[11px] sm:text-xs px-3 sm:px-4 rounded-sm"
                         >
                             <Filter size={12} />
-                            <span>Filtros</span>
                             {activeFiltersCount > 0 && (
-                                <span className="ml-1 px-1.5 py-0.5 bg-gray-900 text-white text-[9px] sm:text-[10px] font-bold rounded-full">
+                                <span className="ml-1 px-1.5 py-0.5 bg-gray-600 text-white text-[9px] sm:text-[10px] font-bold rounded-full">
                                     {activeFiltersCount}
                                 </span>
                             )}
                         </Button>
                     </div>
+                    {/* Búsqueda */}
+                    <SearchInput
+                        // label="Buscar"
+                        placeholder="Buscar productos..."
+                        value={filters.searchTerm}
+                        onChange={(e) => onUpdateFilter('searchTerm', e.target.value)}
+                        variant="lightGrayOutline"
+                        size="sm"
+                        fullWidth
+                        leftIcon={<Search size={12} />}
+                        showClearButton={false}
+                        className="w-full sm:min-w-0"
+                    />
+
+                    {/* Ordenar por */}
+                    <Select
+                        label="Ordenar por"
+                        options={[
+                            { value: 'alfabetico-asc', label: 'A - Z' },
+                            { value: 'alfabetico-desc', label: 'Z - A' },
+                            { value: 'precio-asc', label: 'Precio: Menor a mayor' },
+                            { value: 'precio-desc', label: 'Precio: Mayor a Menor' },
+                            { value: 'destacados', label: 'Destacados' },
+                        ]}
+                        value={filters.sortBy}
+                        onChange={(e) => onUpdateFilter('sortBy', e.target.value as FilterState['sortBy'])}
+                        variant="lightGrayOutline"
+                        size="sm"
+                        fullWidth
+                        leftIcon={<ArrowUpDown size={12} />}
+                        className="w-full sm:w-auto"
+                    />
                 </div>
 
                 {/* Filtros activos */}
@@ -204,7 +202,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
 
                             {filters.subrubro !== 'TODOS' && (
                                 <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-medium bg-gray-100 text-gray-800 capitalize">
-                                    {filters.subrubro}
+                                    {subrubroLabel}
                                     <button
                                         onClick={() => onUpdateFilter('subrubro', 'TODOS')}
                                         className="ml-1 hover:text-gray-600"
@@ -284,7 +282,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
                 onClearFilters={onClearFilters}
                 hasActiveFilters={hasActiveFilters}
                 rubros={rubros}
-                subrubros={subrubros}
+                subrubroOptions={subrubroOptions}
             />
         </>
     );

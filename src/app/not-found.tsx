@@ -80,7 +80,7 @@ export default function NotFound() {
                 </motion.div>
 
                 {/* Enlaces rápidos */}
-                <motion.div
+                {/* <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.6, delay: 0.6 }}
@@ -116,7 +116,7 @@ export default function NotFound() {
                             Contacto
                         </Link>
                     </div>
-                </motion.div>
+                </motion.div> */}
             </div>
         </div>
     );

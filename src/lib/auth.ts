@@ -1,61 +1,57 @@
-import { auth0 } from "@/lib/auth0";
+import { cookies } from 'next/headers';
+import { jwtVerify } from 'jose';
+import { AUTH_COOKIE_NAME } from '@/lib/auth-config';
 
-export async function getCurrentSession() {
-    const session = await auth0.getSession();
+/**
+ * Solo para Server Components y Route Handlers.
+ * No importar desde código que se ejecute en el cliente (ej. apiClient).
+ */
 
-    if (!session) {
-        return;
-    }
-
-    return {
-        auth0Id: session.user?.sub,
-        user: session.user,
-        email: session.user?.email,
-        name: session.user?.name,
-    }
+interface CookiePayload {
+  uid?: string;
+  role?: string;
+  email?: string;
+  usuarioId?: number;
+  needsOnboarding?: boolean;
+  needsEmailVerification?: boolean;
 }
 
-export async function getAccessToken() {
-    const token = await auth0.getAccessToken();
-    return token.token ?? null;
+async function getPayloadFromCookie(): Promise<CookiePayload | null> {
+  const secret = process.env.AUTH_COOKIE_SECRET || process.env.JWT_SECRET;
+  if (!secret) return null;
+  const cookieStore = await cookies();
+  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+  if (!token) return null;
+  try {
+    const { payload } = await jwtVerify(token, new TextEncoder().encode(secret));
+    return payload as CookiePayload;
+  } catch {
+    return null;
+  }
 }
 
+/**
+ * Roles del usuario actual (desde cookie JWT).
+ */
 export async function getRoles(): Promise<string[]> {
-    const session = await auth0.getSession();
-    
-    if (!session || !session.user) {
-        return [];
-    }
+  const payload = await getPayloadFromCookie();
+  const role = payload?.role;
+  if (typeof role === 'string') return [role];
+  return [];
+}
 
-    // Leer los roles directamente del ID Token decodificado
-    // porque Auth0Client no mapea los custom claims a session.user
-    if (session.tokenSet && typeof session.tokenSet === 'object') {
-        const tokenSet = session.tokenSet as unknown as Record<string, unknown>;
-        
-        if (tokenSet.idToken && typeof tokenSet.idToken === 'string') {
-            try {
-                // Decodificar el ID Token (JWT)
-                const parts = tokenSet.idToken.split('.');
-                if (parts.length === 3) {
-                    const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
-                    const roles = payload['https://naturaldesign.com.ar/roles'];
-                    
-                    if (Array.isArray(roles)) {
-                        return roles;
-                    }
-                }
-            } catch (error) {
-                console.error('❌ Error decodificando ID Token:', error);
-            }
-        }
-    }
-
-    // Fallback: intentar desde session.user (aunque normalmente no funciona)
-    const roles = session.user["https://naturaldesign.com.ar/roles"];
-    
-    if (Array.isArray(roles)) {
-        return roles;
-    }
-    
-    return [];
+/**
+ * Sesión actual en servidor (desde cookie JWT).
+ */
+export async function getCurrentSession() {
+  const payload = await getPayloadFromCookie();
+  if (!payload?.uid) return null;
+  return {
+    userId: payload.usuarioId ?? null,
+    uid: payload.uid,
+    email: payload.email ?? null,
+    name: payload.email ?? null,
+    role: payload.role ?? null,
+    empresaId: null,
+  };
 }

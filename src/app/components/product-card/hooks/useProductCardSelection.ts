@@ -35,19 +35,11 @@ export function useProductCardSelection({
   // Colores disponibles
   const availableColors = producto.colores || [];
 
-  // Talles disponibles para el color seleccionado
+  // Talles disponibles: usar producto.talles (único) para evitar keys duplicadas por variantes repetidas
   const availableTalles = useMemo(() => {
-    if (!producto.variantes || producto.variantes.length === 0) {
-      return producto.talles || [];
-    }
-    if (selectedColor) {
-      return producto.variantes
-        .filter((v) => v.color === selectedColor)
-        .map((v) => v.talle)
-        .filter((t): t is string => !!t);
-    }
-    return producto.talles || [];
-  }, [producto.variantes, producto.talles, selectedColor]);
+    const raw = producto.talles || [];
+    return [...new Set(raw)];
+  }, [producto.talles]);
 
   // Variante seleccionada
   const selectedVariant = useMemo(() => {
@@ -59,26 +51,9 @@ export function useProductCardSelection({
     ) || producto.variantes[0] || null;
   }, [producto.variantes, selectedColor, selectedTalle]);
 
-  // Handler para cambiar color
+  // Handler para cambiar color (el talle se mantiene; la variante se resuelve por color+talle)
   const setSelectedColor = (color: string) => {
     setSelectedColorState(color);
-    
-    // Mantener talle si está disponible para el nuevo color
-    if (!producto.variantes || producto.variantes.length === 0) {
-      return;
-    }
-    
-    const tallesDisponibles = producto.variantes
-      .filter((v) => v.color === color)
-      .map((v) => v.talle)
-      .filter((t): t is string => !!t);
-    
-    if (selectedTalle && tallesDisponibles.includes(selectedTalle)) {
-      // Talle sigue disponible, mantenerlo
-    } else if (tallesDisponibles.length > 0) {
-      // Seleccionar primer talle disponible
-      setSelectedTalleState(tallesDisponibles[0]);
-    }
   };
 
   // Handler para cambiar talle

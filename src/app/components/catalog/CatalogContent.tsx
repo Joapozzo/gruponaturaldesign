@@ -1,7 +1,8 @@
 
 'use client';
 
-import React, { useState, Suspense, useMemo } from 'react';
+import React, { useState, Suspense, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useProductosPublicadosAll } from '@/app/hooks/useProductosPublicadosAll';
 import { useCatalogFiltersPublicados } from '@/app/hooks/useCatalogFiltersPublicados';
 import { useCatalogSearchParams } from '@/app/hooks/useCatalogSearchParams';
@@ -9,28 +10,40 @@ import { useDebounce } from '@/app/components/hooks/useDebounce';
 import FilterControls from '@/app/components/FilterControls';
 import ProductsGridPublicados from './ProductsGridPublicados';
 import EmptyState from './EmptyState';
-// import LoadingState from './LoadingState';
 import Pagination from '@/app/components/Pagination';
 import Section from '@/app/components/Section';
 import CatalogCategoriesHero from '@/app/components/CatalogCategoriesHero';
 import ProductsGridSkeleton from '../skeleton/ProductsGridSkeleton';
+import { DEFAULT_PRODUCTOS_PUBLICADOS_PARAMS } from '@/app/types/producto-publicado.types';
+import { getRubroDisplayName, getWorkwearRubroId, getBasicRubroId } from '@/app/utils/rubroDisplay';
+import { useSubrubros } from '@/app/hooks/useSubrubros';
+import { getEmpresaId } from '@/app/utils/getEmpresaId';
 
 const CatalogContentInner = () => {
-  // Estado para productos expandidos
+  const [mounted, setMounted] = useState(false);
   const [expandedSku, setExpandedSku] = useState<string | null>(null);
-  
-// Fetch de productos publicados (solo una vez)
-const { productos, isLoading, isError, error } =
-  useProductosPublicadosAll({
-    searchTerm: '',
-    rubroId: undefined,
-    subrubroId: undefined,
-    genero: 'TODOS',
-    destacado: false,
-    tieneStock: false,
-    sortBy: 'orden',
-    sortOrder: 'asc',
-  });
+  const searchParams = useSearchParams();
+
+  useEffect(() => setMounted(true), []);
+
+  // Filtros iniciales desde URL (mismo criterio que page.tsx) para que el filtrado coincida
+  const initialRubroId = useMemo(() => {
+    const id = searchParams.get('rubroId');
+    return id ? parseInt(id, 10) : null;
+  }, [searchParams]);
+  const initialSubrubroId = useMemo(() => {
+    const id = searchParams.get('subrubroId');
+    return id ? parseInt(id, 10) : null;
+  }, [searchParams]);
+  const initialGenero = useMemo(() => {
+    const g = searchParams.get('genero')?.toLowerCase();
+    return g && ['dama', 'hombre', 'unisex'].includes(g) ? g : 'TODOS';
+  }, [searchParams]);
+
+  const empresaId = getEmpresaId();
+  const { data: subrubrosData } = useSubrubros({ empresaId, visibleWeb: true });
+  const { productos, isLoading, isError, error } =
+    useProductosPublicadosAll(DEFAULT_PRODUCTOS_PUBLICADOS_PARAMS);
 
   const {
     filters,
@@ -50,10 +63,10 @@ const { productos, isLoading, isError, error } =
   } = useCatalogFiltersPublicados(productos, {
     itemsPerPage: 12,
     initialFilters: {
-      searchTerm: '',
-      rubroId: null,
-      subrubroId: null,
-      genero: 'TODOS',
+      searchTerm: searchParams.get('search') ?? '',
+      rubroId: Number.isNaN(initialRubroId) ? null : initialRubroId,
+      subrubroId: Number.isNaN(initialSubrubroId) ? null : initialSubrubroId,
+      genero: initialGenero,
       destacado: false,
       tieneStock: false,
       sortBy: 'orden',
@@ -72,50 +85,44 @@ const { productos, isLoading, isError, error } =
     debouncedSearchTerm,
   });
 
-  // Mapeo de rubroId a nombre normalizado para UI
-  // rubroId 17 = BASIC (aunque en BD pueda tener otro nombre como "PRODUCTO OFFICE")
+  // Mapeo rubroId -> nombre para UI (OFFICE se muestra como "BASIC")
   const rubroIdToDisplayName = useMemo(() => {
     const map = new Map<number, string>();
     availableOptions.rubros.forEach((r) => {
-      // Si es el rubroId 17, mostrar "BASIC" en la UI
-      if (r.id === 17) {
-        map.set(r.id, 'BASIC');
-      } else {
-        // Para otros rubros, verificar si es WORKWEAR
-        const nombreUpper = r.nombre.toUpperCase();
-        if (nombreUpper.includes('WORKWEAR') || nombreUpper.includes('WORK') || nombreUpper.includes('WEAR')) {
-          map.set(r.id, 'WORKWEAR');
-        } else {
-          // Para otros rubros, usar el nombre original
-          map.set(r.id, r.nombre);
-        }
-      }
+      map.set(r.id, getRubroDisplayName(r.nombre));
     });
     return map;
   }, [availableOptions.rubros]);
 
-  // Rubros derivados con nombres normalizados para UI
-  const rubros = useMemo(
-    () => {
-      const rubrosList = availableOptions.rubros.map((r) => {
-        const displayName = rubroIdToDisplayName.get(r.id) || r.nombre;
-        return displayName;
-      });
-      // Remover duplicados y ordenar
-      return Array.from(new Set(rubrosList)).sort();
-    },
-    [availableOptions.rubros, rubroIdToDisplayName]
-  );
+  // Rubros para el filtro: TODOS + nombres de UI (OFFICE -> Basic, WORKWEAR)
+  const rubros = useMemo(() => {
+    const list = availableOptions.rubros.map((r) => rubroIdToDisplayName.get(r.id) || r.nombre);
+    return ['TODOS', ...Array.from(new Set(list)).sort()];
+  }, [availableOptions.rubros, rubroIdToDisplayName]);
 
-  // Subrubros derivados desde productos
-  const subrubros = useMemo(
-    () => Array.from(
-      new Set(
-        productos.map((p) => p.subrubro?.nombre).filter((nombre): nombre is string => Boolean(nombre))
-      )
-    ),
-    [productos]
-  );
+  // Subrubros desde API con value=id para filtrar correctamente (evita duplicados por nombre)
+  const subrubroOptions = useMemo(() => {
+    const list = subrubrosData?.data ?? [];
+    const nameCount = new Map<string, number>();
+    list.forEach((s) => {
+      const n = (s.nombre || '').toUpperCase();
+      nameCount.set(n, (nameCount.get(n) || 0) + 1);
+    });
+    return [
+      { value: 'TODOS', label: 'Todas' },
+      ...list
+        .map((s) => {
+          const nombre = s.nombre || '';
+          const rubroNombre = s.rubro ? getRubroDisplayName(s.rubro.nombre) : '';
+          const label =
+            (nameCount.get(nombre.toUpperCase()) ?? 0) > 1 && rubroNombre
+              ? `${nombre} (${rubroNombre})`
+              : nombre;
+          return { value: String(s.id), label };
+        })
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    ];
+  }, [subrubrosData?.data]);
 
   // Obtener el nombre normalizado del rubro seleccionado
   const selectedRubroNombre = useMemo(() => {
@@ -124,41 +131,32 @@ const { productos, isLoading, isError, error } =
     return displayName || 'TODOS';
   }, [filters.rubroId, rubroIdToDisplayName]);
 
-  // Crear mapeo de rubroId a nombre para detectar WORKWEAR automáticamente
-  const rubroIdToNombre = useMemo(() => {
-    const map = new Map<number, string>();
-    availableOptions.rubros.forEach((r) => {
-      map.set(r.id, r.nombre);
-    });
-    return map;
-  }, [availableOptions.rubros]);
+  // IDs de categorías hero (WORKWEAR y BASIC/OFFICE) desde la misma lista de rubros
+  const workwearRubroId = getWorkwearRubroId(availableOptions.rubros);
+  const basicRubroId = getBasicRubroId(availableOptions.rubros);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Categorías Hero */}
+    <div className="bg-gray-50 pb-12">
       <CatalogCategoriesHero
-        onCategorySelect={(rubroId) => {
-          updateFilter('rubroId', rubroId);
-        }}
+        onCategorySelect={(rubroId) => updateFilter('rubroId', rubroId)}
         selectedRubroId={filters.rubroId}
-        rubroIdToNombre={rubroIdToNombre}
+        rubros={availableOptions.rubros}
+        workwearRubroId={workwearRubroId}
+        basicRubroId={basicRubroId}
       />
 
       {/* Contenido principal */}
       <Section
         id="catalog-content"
-        className=""
-        contentClassName="max-w-8xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20 mb-20"
+        className="overflow-visible"
+        contentClassName="w-full px-4 lg:px-15 pb-8"
       >
         {/* Controles de filtro */}
         <FilterControls
           filters={{
             searchTerm: filters.searchTerm,
             categoriaTipo: selectedRubroNombre,
-            subrubro: filters.subrubroId
-              ? availableOptions.subrubros.find((s) => s.id === filters.subrubroId)
-                ?.nombre || 'TODOS'
-              : 'TODOS',
+            subrubro: filters.subrubroId ? String(filters.subrubroId) : 'TODOS',
             genero: filters.genero === 'dama' || filters.genero === 'hombre' || filters.genero === 'unisex' || filters.genero === 'TODOS'
               ? filters.genero
               : 'TODOS',
@@ -211,8 +209,8 @@ const { productos, isLoading, isError, error } =
               if (valueStr === 'TODOS') {
                 updateFilter('subrubroId', null);
               } else {
-                const subrubro = availableOptions.subrubros.find((s) => s.nombre === valueStr);
-                updateFilter('subrubroId', subrubro?.id ?? null);
+                const id = parseInt(valueStr, 10);
+                updateFilter('subrubroId', Number.isNaN(id) ? null : id);
               }
             } else if (key === 'genero') {
               const valueStr = typeof value === 'string' ? value : 'TODOS';
@@ -241,11 +239,13 @@ const { productos, isLoading, isError, error } =
           onClearFilters={clearFiltersAndURL}
           hasActiveFilters={hasActiveFilters}
           rubros={rubros}
-          subrubros={subrubros}
+          subrubroOptions={subrubroOptions}
         />
 
-        {/* Grid de productos */}
-        {isError ? (
+        {/* Grid de productos: mismo output en server y primer paint del cliente para evitar hydration mismatch */}
+        {!mounted ? (
+          <ProductsGridSkeleton />
+        ) : isError ? (
           <div className="text-center py-12">
             <p className="text-red-600 mb-4">Error al cargar productos</p>
             <p className="text-gray-600 text-sm">

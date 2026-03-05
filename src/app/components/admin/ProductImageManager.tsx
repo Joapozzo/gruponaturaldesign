@@ -2,76 +2,206 @@
 
 import React, { useState, useCallback, useRef } from 'react';
 import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  arrayMove,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
   useProductImagesByColor,
   useUploadProductImages,
   useDeleteProductImage,
+  useReorderProductImages,
 } from '../../hooks/useProductImages';
 import Button from '../ui/Button';
-import { X, Upload, Trash2, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import ConfirmModal from '../modal/ConfirmModal';
+import {
+  X,
+  Upload,
+  Trash2,
+  Image as ImageIcon,
+  ChevronLeft,
+  ChevronRight,
+  GripVertical,
+  Star,
+  Loader2,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
+import type { ProductImage } from '../../services/productImage.service';
+
+// ---------------------------------------------------------------------------
+// Tipos
+// ---------------------------------------------------------------------------
 
 interface ProductImageManagerProps {
   productoWebId: number;
   productoNombre?: string;
 }
 
-export function ProductImageManager({
-  productoWebId,
-  productoNombre,
-}: ProductImageManagerProps) {
+// ---------------------------------------------------------------------------
+// SortableImageItem
+// ---------------------------------------------------------------------------
+
+interface SortableImageItemProps {
+  image: ProductImage;
+  isPrincipal: boolean;
+  isDeleting: boolean;
+  onDelete: (id: number) => void;
+  onClick: (id: number) => void;
+}
+
+function SortableImageItem({
+  image,
+  isPrincipal,
+  isDeleting,
+  onDelete,
+  onClick,
+}: SortableImageItemProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: image.id,
+  });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 10 : undefined,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="relative group cursor-pointer"
+      onClick={() => onClick(image.id)}
+    >
+      <img
+        src={image.imagenUrl}
+        alt={`imagen orden ${image.orden}`}
+        className="w-full h-32 object-cover rounded-lg transition-transform duration-200 group-hover:scale-105"
+      />
+      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-opacity duration-200" />
+
+      {/* Handle de drag */}
+      <button
+        {...attributes}
+        {...listeners}
+        onClick={(e) => e.stopPropagation()}
+        className="absolute top-2 left-2 bg-black/50 text-white rounded p-1 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing z-10"
+        aria-label="Arrastrar para reordenar"
+      >
+        <GripVertical className="h-3 w-3" />
+      </button>
+
+      {/* Badge principal */}
+      {isPrincipal && (
+        <div className="absolute top-2 right-8 bg-amber-400 text-white rounded px-1.5 py-0.5 flex items-center gap-1 z-10">
+          <Star className="h-2.5 w-2.5 fill-white" />
+          <span className="text-[10px] font-semibold leading-none">Principal</span>
+        </div>
+      )}
+
+      {/* Botón eliminar */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete(image.id);
+        }}
+        disabled={isDeleting}
+        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 z-10"
+        aria-label="Eliminar imagen"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+
+      <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded z-10">
+        #{image.orden}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Componente principal
+// ---------------------------------------------------------------------------
+
+export function ProductImageManager({ productoWebId, productoNombre }: ProductImageManagerProps) {
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [imageIdToDelete, setImageIdToDelete] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Queries
   const { data: imagesByColor, isLoading: isLoadingImages } =
     useProductImagesByColor(productoWebId);
-
-  // Mutations
   const uploadMutation = useUploadProductImages();
   const deleteMutation = useDeleteProductImage();
+  const reorderMutation = useReorderProductImages();
 
-  // Manejar selección de archivos
-  const handleFileSelect = useCallback(
-    (files: FileList | null) => {
-      if (!files || files.length === 0) return;
-
-      const validFiles: File[] = [];
-      const validPreviews: string[] = [];
-
-      Array.from(files).forEach((file) => {
-        // Validar tipo
-        if (!file.type.startsWith('image/')) {
-          toast.error(`${file.name} no es una imagen válida`);
-          return;
-        }
-
-        // Validar tamaño (5MB)
-        if (file.size > 5 * 1024 * 1024) {
-          toast.error(`${file.name} es demasiado grande (máx. 5MB)`);
-          return;
-        }
-
-        validFiles.push(file);
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          if (e.target?.result) {
-            validPreviews.push(e.target.result as string);
-            setPreviews([...validPreviews]);
-          }
-        };
-        reader.readAsDataURL(file);
-      });
-
-      setSelectedFiles(validFiles);
-    },
-    []
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
-  // Manejar drag & drop
+  // Array plano de todas las imágenes para el lightbox
+  const allImages = React.useMemo(() => {
+    return imagesByColor
+      ? Object.entries(imagesByColor).flatMap(([color, images]) =>
+          images.map((img) => ({ ...img, color }))
+        )
+      : [];
+  }, [imagesByColor]);
+
+  // -------------------------------------------------------------------------
+  // Selección de archivos
+  // -------------------------------------------------------------------------
+
+  const handleFileSelect = useCallback((files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    const validFiles: File[] = [];
+    const previewPromises: Promise<string>[] = [];
+
+    Array.from(files).forEach((file) => {
+      if (!file.type.startsWith('image/')) {
+        toast.error(`${file.name} no es una imagen válida`);
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`${file.name} es demasiado grande (máx. 5MB)`);
+        return;
+      }
+      validFiles.push(file);
+      previewPromises.push(
+        new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) =>
+            e.target?.result ? resolve(e.target.result as string) : reject();
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        })
+      );
+    });
+
+    Promise.all(previewPromises).then((newPreviews) => {
+      setSelectedFiles((prev) => [...prev, ...validFiles]);
+      setPreviews((prev) => [...prev, ...newPreviews]);
+    }).catch(() => {
+      toast.error('Error al cargar las previsualizaciones');
+    });
+  }, []);
+
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
@@ -86,118 +216,131 @@ export function ProductImageManager({
     e.stopPropagation();
   }, []);
 
+  const removePreview = useCallback((index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+    setPreviews((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  // -------------------------------------------------------------------------
   // Subir imágenes
+  // -------------------------------------------------------------------------
+
   const handleUpload = useCallback(async () => {
     if (!selectedColor.trim()) {
       toast.error('Debe seleccionar un color');
       return;
     }
-
     if (selectedFiles.length === 0) {
       toast.error('Debe seleccionar al menos una imagen');
       return;
     }
-
     try {
       await uploadMutation.mutateAsync({
         productoWebId,
         color: selectedColor,
         files: selectedFiles,
       });
-
       toast.success(`${selectedFiles.length} imagen(es) subida(s) exitosamente`);
       setSelectedFiles([]);
       setPreviews([]);
       setSelectedColor('');
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'Error al subir imágenes'
-      );
+      toast.error(error instanceof Error ? error.message : 'Error al subir imágenes');
     }
   }, [selectedColor, selectedFiles, productoWebId, uploadMutation]);
 
-  // Obtener todas las imágenes en un array plano para navegación
-  const allImages = React.useMemo(() => {
-    return imagesByColor
-      ? Object.entries(imagesByColor).flatMap(([color, images]) =>
-          images.map((img) => ({ ...img, color }))
-        )
-      : [];
-  }, [imagesByColor]);
+  // -------------------------------------------------------------------------
+  // Drag & drop en galería ya subida
+  // -------------------------------------------------------------------------
 
-  // Eliminar imagen
-  const handleDelete = useCallback(
-    async (imageId: number) => {
-      if (!confirm('¿Está seguro de que desea eliminar esta imagen?')) {
-        return;
-      }
+  const handleGalleryDragEnd = useCallback(
+    async (event: DragEndEvent, color: string) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+
+      const images = imagesByColor?.[color] ?? [];
+      const oldIndex = images.findIndex((img) => img.id === active.id);
+      const newIndex = images.findIndex((img) => img.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const reordered = arrayMove(images, oldIndex, newIndex);
+      const payload = reordered.map((img, i) => ({ id: img.id, orden: i + 1 }));
 
       try {
-        await deleteMutation.mutateAsync(imageId);
-        toast.success('Imagen eliminada exitosamente');
-        
-        // Si la imagen eliminada está abierta en el lightbox, cerrarlo
-        if (lightboxOpen && allImages[lightboxIndex]?.id === imageId) {
-          setLightboxOpen(false);
-        }
-      } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : 'Error al eliminar imagen'
-        );
+        await reorderMutation.mutateAsync(payload);
+        toast.success('Orden actualizado');
+      } catch {
+        toast.error('Error al guardar el orden');
       }
     },
-    [deleteMutation, lightboxOpen, lightboxIndex, allImages]
+    [imagesByColor, reorderMutation]
   );
 
-  // Remover preview
-  const removePreview = useCallback((index: number) => {
-    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
-    setPreviews((prev) => prev.filter((_, i) => i !== index));
+  // -------------------------------------------------------------------------
+  // Eliminar imagen
+  // -------------------------------------------------------------------------
+
+  const openConfirmDelete = useCallback((imageId: number) => {
+    setImageIdToDelete(imageId);
+    setConfirmDeleteOpen(true);
   }, []);
 
-  // Abrir lightbox
-  const openLightbox = useCallback((imageId: number) => {
-    const index = allImages.findIndex((img) => img.id === imageId);
-    if (index !== -1) {
-      setLightboxIndex(index);
-      setLightboxOpen(true);
+  const closeConfirmDelete = useCallback(() => {
+    setConfirmDeleteOpen(false);
+    setImageIdToDelete(null);
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (imageIdToDelete == null) return;
+    const imageId = imageIdToDelete;
+    try {
+      await deleteMutation.mutateAsync(imageId);
+      toast.success('Imagen eliminada exitosamente');
+      closeConfirmDelete();
+      if (lightboxOpen && allImages[lightboxIndex]?.id === imageId) {
+        setLightboxOpen(false);
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al eliminar imagen');
     }
-  }, [allImages]);
+  }, [imageIdToDelete, deleteMutation, closeConfirmDelete, lightboxOpen, lightboxIndex, allImages]);
 
-  // Cerrar lightbox
-  const closeLightbox = useCallback(() => {
-    setLightboxOpen(false);
-  }, []);
+  // -------------------------------------------------------------------------
+  // Lightbox
+  // -------------------------------------------------------------------------
 
-  // Navegar a la imagen anterior
+  const openLightbox = useCallback(
+    (imageId: number) => {
+      const index = allImages.findIndex((img) => img.id === imageId);
+      if (index !== -1) {
+        setLightboxIndex(index);
+        setLightboxOpen(true);
+      }
+    },
+    [allImages]
+  );
+
+  const closeLightbox = useCallback(() => setLightboxOpen(false), []);
+
   const goToPrevious = useCallback(() => {
     setLightboxIndex((prev) => (prev > 0 ? prev - 1 : allImages.length - 1));
   }, [allImages.length]);
 
-  // Navegar a la imagen siguiente
   const goToNext = useCallback(() => {
     setLightboxIndex((prev) => (prev < allImages.length - 1 ? prev + 1 : 0));
   }, [allImages.length]);
 
-  // Manejar teclado para navegación
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (!lightboxOpen) return;
-      if (e.key === 'ArrowLeft') {
-        goToPrevious();
-      } else if (e.key === 'ArrowRight') {
-        goToNext();
-      } else if (e.key === 'Escape') {
-        closeLightbox();
-      }
+      if (e.key === 'ArrowLeft') goToPrevious();
+      else if (e.key === 'ArrowRight') goToNext();
+      else if (e.key === 'Escape') closeLightbox();
     },
     [lightboxOpen, goToPrevious, goToNext, closeLightbox]
   );
 
-  // Agregar listener de teclado
   React.useEffect(() => {
     if (lightboxOpen) {
       window.addEventListener('keydown', handleKeyDown);
@@ -208,10 +351,14 @@ export function ProductImageManager({
   const isLoading = isLoadingImages;
   const isUploading = uploadMutation.isPending;
   const isDeleting = deleteMutation.isPending;
+  const isReordering = reorderMutation.isPending;
+
+  // -------------------------------------------------------------------------
+  // Render
+  // -------------------------------------------------------------------------
 
   return (
     <div className="space-y-6">
-      {/* Información del producto */}
       {productoNombre && (
         <div className="p-4 bg-gray-50 rounded-lg">
           <h3 className="font-semibold text-lg">{productoNombre}</h3>
@@ -223,7 +370,6 @@ export function ProductImageManager({
       <div className="border rounded-lg p-6 space-y-4">
         <h3 className="text-lg font-semibold">Subir Imágenes</h3>
 
-        {/* Selector de color */}
         <div>
           <label className="block text-sm font-medium mb-2">
             Color <span className="text-red-500">*</span>
@@ -237,7 +383,6 @@ export function ProductImageManager({
           />
         </div>
 
-        {/* Área de drag & drop */}
         <div
           onDrop={handleDrop}
           onDragOver={handleDragOver}
@@ -253,15 +398,10 @@ export function ProductImageManager({
             className="hidden"
           />
           <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <p className="text-gray-600 mb-2">
-            Arrastra imágenes aquí o haz clic para seleccionar
-          </p>
-          <p className="text-sm text-gray-500">
-            Formatos: JPG, PNG, WEBP (máx. 5MB por imagen)
-          </p>
+          <p className="text-gray-600 mb-2">Arrastra imágenes aquí o haz clic para seleccionar</p>
+          <p className="text-sm text-gray-500">Formatos: JPG, PNG, WEBP (máx. 5MB por imagen)</p>
         </div>
 
-        {/* Previews de imágenes seleccionadas */}
         {previews.length > 0 && (
           <div className="grid grid-cols-4 gap-4">
             {previews.map((preview, index) => (
@@ -285,7 +425,6 @@ export function ProductImageManager({
           </div>
         )}
 
-        {/* Botón de subir */}
         <Button
           onClick={handleUpload}
           disabled={!selectedColor || selectedFiles.length === 0 || isUploading}
@@ -304,7 +443,14 @@ export function ProductImageManager({
 
       {/* Galería de imágenes */}
       <div className="border rounded-lg p-6 space-y-4">
-        <h3 className="text-lg font-semibold">Imágenes Subidas</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Imágenes Subidas</h3>
+          {isReordering && (
+            <span className="text-xs text-blue-600 flex items-center gap-1">
+              <Loader2 className="h-3 w-3 animate-spin" /> Guardando orden...
+            </span>
+          )}
+        </div>
 
         {isLoading ? (
           <div className="text-center py-8 text-gray-500">Cargando...</div>
@@ -318,52 +464,49 @@ export function ProductImageManager({
             {Object.entries(imagesByColor).map(([color, images]) => (
               <div key={color} className="space-y-2">
                 <h4 className="font-medium text-gray-700">
-                  {color || 'Sin color'} ({images.length} imagen{images.length !== 1 ? 'es' : ''})
+                  {color || 'Sin color'} ({images.length} imagen
+                  {images.length !== 1 ? 'es' : ''})
+                  {images.length > 1 && (
+                    <span className="ml-2 text-xs text-gray-400 font-normal">
+                      · arrastrá para reordenar
+                    </span>
+                  )}
                 </h4>
-                <div className="grid grid-cols-4 gap-4">
-                  {images.map((image) => (
-                    <div 
-                      key={image.id} 
-                      className="relative group cursor-pointer"
-                      onClick={() => openLightbox(image.id)}
-                    >
-                      <img
-                        src={image.imagenUrl}
-                        alt={`${color} - ${image.orden}`}
-                        className="w-full h-32 object-cover rounded-lg transition-transform duration-200 group-hover:scale-105"
-                      />
-                      {/* Overlay oscuro al hover para indicar que es clickeable */}
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-opacity duration-200" />
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(image.id);
-                        }}
-                        disabled={isDeleting}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 z-10"
-                        aria-label="Eliminar imagen"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                      <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded z-10">
-                        #{image.orden}
-                      </div>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={(event) => handleGalleryDragEnd(event, color)}
+                >
+                  <SortableContext
+                    items={images.map((img) => img.id)}
+                    strategy={rectSortingStrategy}
+                  >
+                    <div className="grid grid-cols-4 gap-4">
+                      {images.map((image) => (
+                        <SortableImageItem
+                          key={image.id}
+                          image={image}
+                          isPrincipal={image.orden === 1}
+                          isDeleting={isDeleting}
+                          onDelete={openConfirmDelete}
+                          onClick={openLightbox}
+                        />
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </SortableContext>
+                </DndContext>
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Lightbox Modal */}
+      {/* Lightbox */}
       {lightboxOpen && allImages.length > 0 && (
         <div
           className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center"
           onClick={closeLightbox}
         >
-          {/* Botón cerrar */}
           <button
             onClick={closeLightbox}
             className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10"
@@ -372,7 +515,6 @@ export function ProductImageManager({
             <X className="h-8 w-8" />
           </button>
 
-          {/* Botón anterior */}
           {allImages.length > 1 && (
             <button
               onClick={(e) => {
@@ -386,7 +528,6 @@ export function ProductImageManager({
             </button>
           )}
 
-          {/* Imagen */}
           <div
             className="relative max-w-7xl max-h-[90vh] mx-4"
             onClick={(e) => e.stopPropagation()}
@@ -397,10 +538,13 @@ export function ProductImageManager({
               className="max-w-full max-h-[90vh] object-contain rounded-lg select-none"
               draggable={false}
             />
-            {/* Información de la imagen */}
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-lg text-sm">
               <p>
-                {allImages[lightboxIndex].color || 'Sin color'} - Orden: #{allImages[lightboxIndex].orden}
+                {allImages[lightboxIndex].color || 'Sin color'} — Orden: #
+                {allImages[lightboxIndex].orden}
+                {allImages[lightboxIndex].orden === 1 && (
+                  <span className="ml-2 text-amber-300">★ Principal</span>
+                )}
               </p>
               <p className="text-xs text-gray-300 mt-1">
                 {lightboxIndex + 1} de {allImages.length}
@@ -408,7 +552,6 @@ export function ProductImageManager({
             </div>
           </div>
 
-          {/* Áreas táctiles para navegación en móvil - izquierda y derecha */}
           {allImages.length > 1 && (
             <>
               <div
@@ -430,7 +573,6 @@ export function ProductImageManager({
             </>
           )}
 
-          {/* Botón siguiente */}
           {allImages.length > 1 && (
             <button
               onClick={(e) => {
@@ -445,7 +587,17 @@ export function ProductImageManager({
           )}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={confirmDeleteOpen}
+        onClose={closeConfirmDelete}
+        onConfirm={handleConfirmDelete}
+        title="Eliminar imagen"
+        message="¿Está seguro de que desea eliminar esta imagen?"
+        type="confirm"
+        confirmText="Eliminar"
+        loading={deleteMutation.isPending}
+      />
     </div>
   );
 }
-

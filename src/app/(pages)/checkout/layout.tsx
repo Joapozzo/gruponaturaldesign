@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useCart } from '@/app/components/hooks/useCart';
+import { useSyncAuthToCart } from '@/app/hooks/useSyncAuthToCart';
 
 export default function CheckoutLayout({
   children,
@@ -12,6 +13,7 @@ export default function CheckoutLayout({
   const router = useRouter();
   const pathname = usePathname();
   const { itemCount } = useCart();
+  useSyncAuthToCart();
 
   // Prevenir navegación fuera del checkout
   useEffect(() => {

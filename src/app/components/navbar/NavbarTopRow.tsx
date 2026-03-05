@@ -46,8 +46,10 @@ export const NavbarTopRow: React.FC<NavbarTopRowProps> = ({
                 </motion.button>
             </div>
 
-            {/* Logo centrado - Solo Desktop */}
-            <NavbarLogo width={60} height={26} />
+            {/* Logo centrado - Solo Desktop (flex-1 para reservar espacio y centrar) */}
+            <div className="hidden lg:flex flex-1 justify-center items-center relative min-h-[30px]">
+                <NavbarLogo width={70} height={52} />
+            </div>
 
             {/* Actions a la derecha (Desktop) */}
             <NavbarActions

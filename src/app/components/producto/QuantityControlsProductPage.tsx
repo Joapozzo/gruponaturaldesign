@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import { ShoppingCart, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import QuantityControlsUI from '@/app/components/ui/QuantityControls';
+import Button from '@/app/components/ui/Button';
 
 interface QuantityControlsProductPageProps {
     currentQuantity: number;
@@ -16,6 +16,7 @@ interface QuantityControlsProductPageProps {
     onIncrement: () => void;
     onDecrement: () => void;
     disabled?: boolean;
+    outOfStock?: boolean; // Sin stock: deshabilitar agregar y mostrar mensaje
 }
 
 export default function QuantityControlsProductPage({
@@ -28,53 +29,55 @@ export default function QuantityControlsProductPage({
     onIncrement,
     onDecrement,
     disabled = false,
+    outOfStock = false,
 }: QuantityControlsProductPageProps) {
     const router = useRouter();
 
-    // Si no está en el carrito, mostrar botón para agregar primera unidad
+    // Si no está en el carrito, mostrar botón para agregar primera unidad (mismo Button que ui/Button, más grandes)
     if (currentQuantity === 0) {
+        const cannotAdd = disabled || isAdding || !canAddMore || maxReached || outOfStock;
         return (
-            <div className="mt-1 px-1 sm:px-0">
-                <div className="flex flex-row gap-2 sm:gap-1.5">
-                    <motion.button
+            <div className="mt-1 sm:px-0">
+                {outOfStock && (
+                    <div className="w-full px-2 py-1.5 bg-gray-100 border border-gray-300 rounded text-center mb-2">
+                        <p className="text-gray-700 font-semibold text-[10px] sm:text-xs">
+                            Sin stock disponible
+                        </p>
+                    </div>
+                )}
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <Button
                         onClick={onIncrement}
-                        disabled={disabled || isAdding || !canAddMore || maxReached}
-                        className={`
-                            flex-1 flex items-center justify-center space-x-1.5 px-4 sm:px-3 py-3 sm:py-2 rounded-lg
-                            font-medium text-xs sm:text-xs transition-all duration-300
-                            ${isAdding
-                                ? 'bg-green-600 text-white'
-                                : !canAddMore || maxReached
-                                    ? 'bg-gray-400 text-white cursor-not-allowed'
-                                    : 'bg-black text-white hover:bg-gray-800'
-                            }
-                        `}
-                        whileHover={!disabled && !isAdding && canAddMore && !maxReached ? { scale: 1.02 } : {}}
-                        whileTap={!disabled && !isAdding && canAddMore && !maxReached ? { scale: 0.98 } : {}}
-                        animate={isAdding ? { scale: [1, 1.05, 1] } : {}}
+                        disabled={cannotAdd}
+                        variant={isAdding ? 'brandRed' : cannotAdd ? 'gray' : 'black'}
+                        size="xl"
+                        fullWidth
+                        className="flex-1"
                     >
-                        <ShoppingCart className="w-4 h-4 sm:w-3 sm:h-3" />
+                        <ShoppingCart className="w-5 h-5" />
                         <span>
                             {isAdding
                                 ? 'AGREGADO!'
-                                : maxReached
-                                    ? 'LÍMITE ALCANZADO'
-                                    : 'AGREGAR AL CARRITO'
+                                : outOfStock
+                                    ? 'SIN STOCK'
+                                    : maxReached
+                                        ? 'LÍMITE ALCANZADO'
+                                        : 'AGREGAR AL CARRITO'
                             }
                         </span>
-                    </motion.button>
+                    </Button>
 
-                    {/* Botón Quiero comprar por mayor */}
-                    <motion.button
+                    <Button
                         onClick={() => router.push('/mayorista')}
-                        className="flex-1 flex items-center justify-center space-x-1.5 px-4 sm:px-3 py-3 sm:py-2 rounded-lg font-medium text-xs sm:text-xs transition-all duration-300 bg-white border border-[#Ed3237] text-[#Ed3237] hover:bg-[#Ed3237] hover:text-white"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        variant="brandRedOutline"
+                        size="xl"
+                        fullWidth
+                        className="flex-1"
                     >
-                        <Users className="w-4 h-4 sm:w-3 sm:h-3" />
+                        <Users className="w-5 h-5" />
                         <span className="hidden sm:inline">QUIERO COMPRAR POR MAYOR</span>
                         <span className="sm:hidden">POR MAYOR</span>
-                    </motion.button>
+                    </Button>
                 </div>
             </div>
         );
@@ -102,9 +105,8 @@ export default function QuantityControlsProductPage({
             )}
             
             {/* Controles de cantidad y botón mayorista en fila */}
-            <div className="flex flex-row gap-2 sm:gap-1.5">
-                {/* Controles de cantidad - Achicado */}
-                <div className="flex-1 flex justify-center bg-gray-50 border border-gray-200 rounded p-1.5 shadow-sm">
+            <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1 flex justify-center bg-gray-50 border border-gray-200 rounded-lg p-2 shadow-sm">
                     <QuantityControlsUI
                         quantity={currentQuantity}
                         onIncrement={onIncrement}
@@ -115,17 +117,16 @@ export default function QuantityControlsProductPage({
                     />
                 </div>
 
-                {/* Botón Quiero comprar por mayor */}
-                <motion.button
+                <Button
                     onClick={() => router.push('/mayorista')}
-                    className="flex-1 sm:flex-initial sm:min-w-[120px] flex items-center justify-center space-x-1.5 px-4 sm:px-3 py-3 sm:py-2 rounded-lg font-medium text-xs sm:text-xs transition-all duration-300 bg-white border border-[#Ed3237] text-[#Ed3237] hover:bg-[#Ed3237] hover:text-white"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    variant="brandRedOutline"
+                    size="xl"
+                    className="sm:min-w-[180px]"
                 >
-                    <Users className="w-4 h-4 sm:w-3 sm:h-3" />
+                    <Users className="w-5 h-5" />
                     <span className="hidden sm:inline">QUIERO COMPRAR POR MAYOR</span>
                     <span className="sm:hidden">POR MAYOR</span>
-                </motion.button>
+                </Button>
             </div>
         </div>
     );

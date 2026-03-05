@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { z } from 'zod';
 import FormModal from '../modal/FormModal';
 import Button from '../ui/Button';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
@@ -19,6 +20,24 @@ import { useUploadProductImages } from '@/app/hooks/useProductImages';
 import toast from 'react-hot-toast';
 import type { ProductoPadreConVariantes } from '@/app/types/producto.types';
 import type { ProductoPadreBusqueda } from '@/app/services/producto.service';
+
+/** IDs de rubros SFactory permitidos para ecommerce (igual que en API) */
+const ECOMMERCE_RUBROS_SFACTORY_IDS = [3285, 3314] as const;
+const RUBROS_PERMITIDOS_MSG =
+  'Solo se permiten rubros PRODUCTO WORKWEAR (3285) y PRODUCTO OFFICE (3314).';
+
+const paso2SFactorySchema = z.object({
+  rubro_id: z
+    .number({
+      error: (issue) => (issue.input === undefined ? 'El rubro es requerido' : 'Valor inválido'),
+    })
+    .refine((id) => ECOMMERCE_RUBROS_SFACTORY_IDS.includes(id as 3285 | 3314), {
+      message: RUBROS_PERMITIDOS_MSG,
+    }),
+  subrubro_id: z.number({
+    error: (issue) => (issue.input === undefined ? 'El subrubro es requerido' : 'Valor inválido'),
+  }),
+});
 
 interface ProductoFormModalProps {
   isOpen: boolean;
@@ -68,11 +87,19 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
   const [codigoValido, setCodigoValido] = useState<boolean | undefined>(undefined);
   const [codigoMensaje, setCodigoMensaje] = useState<string>('');
 
-  // Cargar rubros y subrubros
+  // Cargar rubros (solo permitidos ecommerce: WORKWEAR 3285, OFFICE 3314)
   const { data: rubrosData } = useRubros({ empresaId, visibleWeb: true, includeSubrubros: false });
+
+  // Rubro local para filtrar subrubros (por sfactoryId del estado)
+  const rubroLocalId = useMemo(() => {
+    const rubroId = wizardState.datosSFactory.rubro_id;
+    if (rubroId == null) return undefined;
+    return rubrosData?.data?.find((r) => r.sfactoryId === rubroId)?.id;
+  }, [wizardState.datosSFactory.rubro_id, rubrosData?.data]);
+
   const { data: subrubrosData } = useSubrubros({
     empresaId,
-    rubroId: undefined,
+    rubroId: rubroLocalId,
     visibleWeb: true,
   });
 
@@ -97,17 +124,41 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
     enabled: modo === 'crear-variante' && !!wizardState.datosComunes.codigoBase && wizardState.datosComunes.codigoBase.length > 0 && isOpen,
   });
 
+  // Normalizar rubro_id y subrubro_id a IDs de SFactory (los selects usan sfactoryId como value)
+  const datosSFactoryParaEdicion = useMemo(() => {
+    if (!isOpen || !isEditMode || !productoCompleto) return null;
+    const datos = productoCompleto.datosSFactory;
+    const rubroIdRaw = datos.rubro_id;
+    const subrubroIdRaw = datos.subrubro_id;
+    let rubroIdSfactory: number | null = null;
+    let subrubroIdSfactory: number | null = null;
+    if (rubrosData?.data?.length) {
+      const bySfactory = rubrosData.data.find((r) => r.sfactoryId === rubroIdRaw);
+      const byLocal = rubrosData.data.find((r) => r.id === rubroIdRaw);
+      rubroIdSfactory = bySfactory ? rubroIdRaw! : (byLocal?.sfactoryId ?? rubroIdRaw ?? null);
+    } else {
+      rubroIdSfactory = rubroIdRaw ?? null;
+    }
+    if (subrubrosData?.data?.length) {
+      const bySfactory = subrubrosData.data.find((s) => s.sfactoryId === subrubroIdRaw);
+      const byLocal = subrubrosData.data.find((s) => s.id === subrubroIdRaw);
+      subrubroIdSfactory = bySfactory ? subrubroIdRaw! : (byLocal?.sfactoryId ?? subrubroIdRaw ?? null);
+    } else {
+      subrubroIdSfactory = subrubroIdRaw ?? null;
+    }
+    return { ...datos, rubro_id: rubroIdSfactory, subrubro_id: subrubroIdSfactory };
+  }, [isOpen, isEditMode, productoCompleto, rubrosData?.data, subrubrosData?.data]);
+
   // Inicializar wizard cuando se abre el modal
   useEffect(() => {
     if (isOpen) {
       if (isEditMode && productoCompleto) {
-        // Cargar datos del producto completo
-        // En SFactory, descripcion es el nombre, así que usamos descripcion de SFactory como nombre
+        const datos = datosSFactoryParaEdicion ?? productoCompleto.datosSFactory;
         updateDatosComunes({
           nombre: productoCompleto.datosSFactory.descripcion || productoCompleto.datosLocales.nombre,
           codigoBase: productoCompleto.productoPadre.codigoAgrupacion,
         });
-        updateDatosSFactory(productoCompleto.datosSFactory);
+        updateDatosSFactory(datos);
         updateDatosLocales({
           descripcionMarketing: productoCompleto.datosLocales.descripcionMarketing ?? '',
           descripcionCorta: productoCompleto.datosLocales.descripcionCorta ?? '',
@@ -149,7 +200,7 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
       setCodigoValido(undefined);
       setCodigoMensaje('');
     }
-  }, [isOpen, isEditMode, productoCompleto, productoPadreProp, datosPlantilla, modo]);
+  }, [isOpen, isEditMode, productoCompleto, productoPadreProp, datosPlantilla, modo, datosSFactoryParaEdicion]);
 
   // Calcular colores disponibles (incluyendo el color del estado local si existe)
   const coloresDisponibles = useMemo(() => {
@@ -224,6 +275,12 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
       } else if (codigoValido === false) {
         newErrors.codigoCompleto = codigoMensaje || 'Este código ya existe';
       }
+      if (!wizardState.variante.talle) {
+        newErrors.talle = 'El talle es requerido para variantes';
+      }
+      if (!wizardState.variante.color) {
+        newErrors.color = 'El color es requerido para variantes';
+      }
     } else if (modo !== 'editar') {
       // Solo validar código base si no es modo editar
       if (!wizardState.datosComunes.codigoBase.trim()) {
@@ -277,50 +334,42 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
     return errores;
   }, []);
 
-  // Validar paso 2 (solo para crear-producto y editar, no para crear-variante)
+  // Validar paso 2 con Zod (rubro permitido 3285 o 3314, subrubro requerido)
   const validarPaso2 = useCallback((): boolean => {
-    // En modo crear-variante, no validar paso 2 (se salta)
     if (modo === 'crear-variante') {
       return true;
     }
 
+    const result = paso2SFactorySchema.safeParse({
+      rubro_id: wizardState.datosSFactory.rubro_id ?? undefined,
+      subrubro_id: wizardState.datosSFactory.subrubro_id ?? undefined,
+    });
+
+    if (result.success) {
+      setErrors({});
+      return true;
+    }
+
     const newErrors: Record<string, string> = {};
-
-    if (!wizardState.datosSFactory.tipo) {
-      newErrors.tipo = 'El tipo es requerido';
-    }
-
-    // Validar campos requeridos por SFactory
-    if (!wizardState.datosSFactory.rubro_id) {
-      newErrors.rubro_id = 'El rubro es requerido';
-    }
-
-    if (!wizardState.datosSFactory.subrubro_id) {
-      newErrors.subrubro_id = 'El subrubro es requerido';
-    }
-
-    // Validar precio_venta requerido
-    if (!wizardState.datosSFactory.precio_venta || wizardState.datosSFactory.precio_venta <= 0) {
-      newErrors.precio_venta = 'El precio de venta es requerido y debe ser mayor a 0';
-    }
-
+    const zodErrors = result.error.flatten().fieldErrors;
+    if (zodErrors.rubro_id?.[0]) newErrors.rubro_id = zodErrors.rubro_id[0];
+    if (zodErrors.subrubro_id?.[0]) newErrors.subrubro_id = zodErrors.subrubro_id[0];
     setErrors(newErrors);
-    
-    // Scroll al primer error si hay errores
+
     if (Object.keys(newErrors).length > 0) {
       setTimeout(() => {
         const firstErrorField = Object.keys(newErrors)[0];
-        const errorElement = document.getElementById(firstErrorField) || 
-                           document.querySelector(`[name="${firstErrorField}"]`);
+        const errorElement = document.getElementById(firstErrorField) ||
+          document.querySelector(`[name="${firstErrorField}"]`);
         if (errorElement) {
           errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          errorElement.focus();
+          (errorElement as HTMLElement).focus();
         }
       }, 100);
     }
-    
-    return Object.keys(newErrors).length === 0;
-  }, [wizardState, modo]);
+
+    return false;
+  }, [wizardState.datosSFactory.rubro_id, wizardState.datosSFactory.subrubro_id, modo]);
 
   // Validar paso 3
   const validarPaso3 = useCallback((): boolean => {
@@ -347,17 +396,6 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
         }
       }
     }
-    
-    // En modo crear-producto:
-    // - Si hay colores disponibles, el color es requerido para poder seleccionar imágenes
-    // - Si no hay colores disponibles, talle y color son opcionales
-    if (modo === 'crear-producto' && coloresDisponibles.length > 0) {
-      // Si hay colores disponibles, requerir color para poder finalizar
-      // (esto permite seleccionar imágenes)
-      if (!wizardState.variante.color) {
-        newErrors.color = 'Debe ingresar un color para poder finalizar';
-      }
-    }
 
     setErrors(newErrors);
     
@@ -375,7 +413,7 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
     }
     
     return Object.keys(newErrors).length === 0;
-  }, [wizardState, modo, coloresDisponibles, variantesData]);
+  }, [wizardState, modo, variantesData]);
 
   // Handler para avanzar al siguiente paso
   const handleSiguiente = useCallback(async () => {
@@ -430,10 +468,10 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
         const datosSFactoryCompletos = {
           ...wizardState.datosSFactory,
           codigo: codigo || undefined,
-          tipo: wizardState.datosSFactory.tipo || 'P',
-          descripcion: wizardState.datosComunes.nombre, // El nombre se usa como descripcion en SFactory
-          item_venta: wizardState.datosSFactory.item_venta || 1,
-          um_id: wizardState.datosSFactory.um_id || 1, // Unidad de medida por defecto
+          tipo: 'P',
+          descripcion: (wizardState.datosSFactory.descripcion?.trim() || wizardState.datosComunes.nombre) as string,
+          item_venta: 1,
+          um_id: wizardState.datosSFactory.um_id || 1,
         } as any;
 
         // console.log('📦 Datos que se envían a SFactory:', JSON.stringify(datosSFactoryCompletos, null, 2));
@@ -505,9 +543,9 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
         const datosVarianteSFactory = {
           ...wizardState.datosSFactory,
           codigo: codigoVariante,
-          tipo: wizardState.datosSFactory.tipo || 'P',
-          descripcion: wizardState.datosComunes.nombre, // El nombre se usa como descripcion en SFactory
-          item_venta: wizardState.datosSFactory.item_venta || 1,
+          tipo: 'P',
+          descripcion: (wizardState.datosSFactory.descripcion?.trim() || wizardState.datosComunes.nombre) as string,
+          item_venta: 1,
           um_id: wizardState.datosSFactory.um_id || 1,
         };
 
@@ -536,26 +574,6 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
           setItemId(itemId);
           
           toast.success('Variante creada correctamente');
-        }
-      }
-
-      // Subir imágenes si hay archivos seleccionados y hay color
-      if (wizardState.imagenesSeleccionadas.length > 0 && wizardState.variante.color) {
-        const productoWebIdParaImagenes = productoWebIdFinal || wizardState.productoWebId;
-        if (productoWebIdParaImagenes) {
-          try {
-            // console.log('📤 Subiendo imágenes después de crear variante...'); 
-            await uploadImagesMutation.mutateAsync({
-              productoWebId: productoWebIdParaImagenes,
-              productoPadreId: wizardState.productoPadreId || undefined,
-              color: wizardState.variante.color,
-              files: wizardState.imagenesSeleccionadas,
-            }); 
-            toast.success(`${wizardState.imagenesSeleccionadas.length} imagen(es) subida(s) exitosamente`);
-          } catch (error: any) {
-            console.error('Error al subir imágenes:', error);
-            toast.error(error.message || 'Error al subir imágenes, pero el producto fue creado');
-          }
         }
       }
 
@@ -595,10 +613,9 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
           codigo: wizardState.datosComunes.codigoCompleto!,
           // TERCERO: Resto de datos del padre (esto incluye tipo, descripcion, item_venta, etc.)
           ...productoPadre.datosSFactory,
-          // CUARTO: Sobrescribir campos específicos después del spread
-          tipo: productoPadre.datosSFactory.tipo || 'P',
-          descripcion: productoPadre.datosLocales.nombre, // Usar nombre del producto padre
-          item_venta: productoPadre.datosSFactory.item_venta || 1,
+          tipo: 'P',
+          descripcion: (productoPadre.datosSFactory.descripcion?.trim() || productoPadre.datosLocales.nombre) as string,
+          item_venta: 1,
         };
 
         // console.log('📦 Creando variante en SFactory:', JSON.stringify(datosVarianteSFactory, null, 2));  
@@ -760,6 +777,9 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
           codigoCompleto={wizardState.datosComunes.codigoCompleto}
           productoPadreNombre={productoPadreProp?.nombre}
           siguienteNumeroSugerido={variantesData?.siguienteSugerido}
+          variante={modo === 'crear-variante' ? wizardState.variante : undefined}
+          onTalleChange={modo === 'crear-variante' ? (value) => updateVariante({ talle: value }) : undefined}
+          onColorChange={modo === 'crear-variante' ? (value) => updateVariante({ color: value }) : undefined}
           onNombreChange={handleNombreChange}
           onCodigoBaseChange={handleCodigoBaseChange}
           onCodigoCompletoChange={handleCodigoCompletoChange}
@@ -775,29 +795,21 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
           datosSFactory={wizardState.datosSFactory}
           errors={errors}
           onFieldChange={handleSFactoryFieldChange}
-          bloqueado={isEditMode}
-          rubros={rubrosData?.data}
-          subrubros={subrubrosData?.data}
+          bloqueado={false}
+          rubros={rubrosData?.data ?? []}
+          subrubros={subrubrosData?.data ?? []}
         />
       )}
 
       {wizardState.pasoActual === 3 && (
         <ProductoDatosLocalesStep
           datosLocales={wizardState.datosLocales}
-          variante={wizardState.variante}
-          productoPadreId={wizardState.productoPadreId}
-          productoNombre={wizardState.datosComunes.nombre}
-          coloresDisponibles={coloresDisponibles}
           modo={modo}
           errors={errors}
           onDescripcionMarketingChange={(value) => updateDatosLocales({ descripcionMarketing: value })}
           onDescripcionCortaChange={(value) => updateDatosLocales({ descripcionCorta: value })}
           onDescripcionChange={(value) => updateDatosLocales({ descripcion: value })}
           onDestacadoChange={(value) => updateDatosLocales({ destacado: value })}
-          onTalleChange={(value) => updateVariante({ talle: value })}
-          onColorChange={(value) => updateVariante({ color: value })}
-          imagenesSeleccionadas={wizardState.imagenesSeleccionadas}
-          onImagenesChange={updateImagenesSeleccionadas}
         />
       )}
     </FormModal>

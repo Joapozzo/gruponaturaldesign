@@ -1,73 +1,59 @@
 /**
- * Hook auxiliar para obtener IDs de rubros y subrubros desde productos publicados
- * Usado por el Navbar para navegar con search params correctos
+ * Hook auxiliar para obtener IDs de rubros y subrubros desde la API
+ * Usado por el Navbar para navegar con search params correctos (rubroId, subrubroId)
  */
 
 'use client';
 
 import { useMemo } from 'react';
-import { usePathname } from 'next/navigation';
-import { useProductosPublicadosAll } from './useProductosPublicadosAll';
+import { useRubros } from './useRubros';
+import { useSubrubros } from './useSubrubros';
+import { getEmpresaId } from '@/app/utils/getEmpresaId';
+import { getRubroDisplayName } from '@/app/utils/rubroDisplay';
 
 export interface CategoryIdsMap {
-  rubros: Map<string, number>; // nombre -> id
+  rubros: Map<string, number>; // nombre display o nombre API -> id
   subrubros: Map<string, number>; // nombre -> id
 }
 
 /**
- * Hook para obtener mapeos de nombres a IDs de categorías
- * Útil para convertir nombres de categorías a IDs para search params
- * Solo carga los productos cuando es necesario (lazy loading)
+ * Hook para obtener mapeos de nombres a IDs de categorías desde la API de rubros/subrubros.
+ * Así los links del menú Shop filtran correctamente aunque se abra desde cualquier página.
  */
-export function useNavbarCategoryIds() {
-  const pathname = usePathname();
-  // Solo cargar productos cuando estamos en la página de shoponline o cerca
-  const shouldLoad = pathname === '/shoponline' || pathname?.startsWith('/producto') || false;
-  
-  const { productos } = useProductosPublicadosAll({
-    searchTerm: '',
-    rubroId: undefined,
-    subrubroId: undefined,
-    genero: 'TODOS',
-    destacado: false,
-    tieneStock: false,
-    sortBy: 'orden',
-    sortOrder: 'asc',
-    enabled: shouldLoad, // Solo cargar cuando sea necesario
+export function useNavbarCategoryIds(): CategoryIdsMap {
+  const empresaId = getEmpresaId();
+  const { data: rubrosData } = useRubros({
+    empresaId,
+    visibleWeb: true,
+    includeSubrubros: false,
+  });
+  const { data: subrubrosData } = useSubrubros({
+    empresaId,
+    visibleWeb: true,
   });
 
-  const categoryIds = useMemo<CategoryIdsMap>(() => {
+  return useMemo<CategoryIdsMap>(() => {
     const rubrosMap = new Map<string, number>();
     const subrubrosMap = new Map<string, number>();
 
-    if (Array.isArray(productos)) {
-      productos.forEach((product) => {
-        // Rubros
-        if (product.rubro?.id && product.rubro?.nombre) {
-          const nombreUpper = product.rubro.nombre.toUpperCase();
-          // Normalizar nombres: WORKWEAR, BASIC, etc.
-          if (nombreUpper.includes('WORKWEAR') || nombreUpper.includes('WORK') || nombreUpper.includes('WEAR')) {
-            rubrosMap.set('WORKWEAR', product.rubro.id);
-          } else if (nombreUpper.includes('OFFICE') || nombreUpper.includes('BASIC')) {
-            rubrosMap.set('BASIC', product.rubro.id);
-          }
-          // También guardar el nombre original
-          rubrosMap.set(product.rubro.nombre.toUpperCase(), product.rubro.id);
-        }
+    rubrosData?.data?.forEach((r) => {
+      if (r.id && r.nombre) {
+        const displayName = getRubroDisplayName(r.nombre);
+        rubrosMap.set(displayName.toUpperCase(), r.id);
+        rubrosMap.set(r.nombre.toUpperCase(), r.id);
+      }
+    });
 
-        // Subrubros
-        if (product.subrubro?.id && product.subrubro?.nombre) {
-          subrubrosMap.set(product.subrubro.nombre.toUpperCase(), product.subrubro.id);
-        }
-      });
-    }
+    subrubrosData?.data?.forEach((s) => {
+      if (s.id && s.nombre) {
+        subrubrosMap.set(s.nombre.toUpperCase(), s.id);
+      }
+    });
 
     return {
       rubros: rubrosMap,
       subrubros: subrubrosMap,
     };
-  }, [productos]);
-
-  return categoryIds;
+  }, [rubrosData?.data, subrubrosData?.data]);
 }
 

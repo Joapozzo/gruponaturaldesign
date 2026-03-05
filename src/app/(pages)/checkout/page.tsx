@@ -46,7 +46,7 @@ export default function CheckoutPage() {
 
       {/* Breadcrumb Navigation - Fixed */}
       <div className="sticky top-0 bg-white border-b border-gray-200 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5 sm:py-2">
+        <div className="w-full max-w-5xl xl:max-w-6xl mx-auto px-4 lg:px-15 py-1.5 sm:py-2">
           <nav className="flex items-center gap-1.5 text-xs">
             <motion.button
               onClick={() => router.push('/#inicio')}
@@ -65,8 +65,8 @@ export default function CheckoutPage() {
 
       {/* Header - Compact */}
       <div className="flex-shrink-0 border-b border-gray-200 py-1.5 sm:py-2 sticky top-[32px] sm:top-[38px] bg-white z-10">
-        <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-sm sm:text-base font-bold text-black">CHECKOUT</h1>
+        <div className="flex items-center justify-between w-full max-w-5xl xl:max-w-6xl mx-auto px-4 lg:px-15">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-black font-display tracking-tight">CHECKOUT</h1>
 
           {/* Step Indicator - Horizontal Compact */}
           <div className="flex items-center gap-1">
@@ -111,9 +111,9 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      {/* Step Content */}
+      {/* Step Content - ancho limitado solo aquí */}
       <div className="flex-1 w-full">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="w-full max-w-5xl xl:max-w-6xl mx-auto px-4 lg:px-15 py-6">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}

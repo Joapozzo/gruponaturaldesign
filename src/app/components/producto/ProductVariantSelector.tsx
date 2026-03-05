@@ -28,11 +28,11 @@ export default function ProductVariantSelector({
         <div className="space-y-1.5" style={{ overflow: 'visible' }}>
             {/* Selector de Colores */}
             {groupedProduct.availableColors && groupedProduct.availableColors.length > 0 && (
-                <div className="space-y-0.5" style={{ overflow: 'visible' }}>
-                    <label className="text-[9px] sm:text-[10px] font-bold text-gray-900 uppercase tracking-wide">
+                <div className="space-y-1" style={{ overflow: 'visible' }}>
+                    <label className="text-[10px] sm:text-xs font-bold text-gray-900 uppercase tracking-wide">
                         Color {selectedColor && `- ${selectedColor}`}
                     </label>
-                    <div className="flex flex-wrap gap-2" style={{ overflow: 'visible', padding: '2px' }}>
+                    <div className="flex flex-wrap gap-2 sm:gap-2.5" style={{ overflow: 'visible', padding: '2px' }}>
                         {groupedProduct.availableColors.map((color) => {
                             const variantWithColor = groupedProduct.variants.find(v => v.color === color);
                             const colorHex = variantWithColor?.colorHex || getColorHex(color);
@@ -43,7 +43,7 @@ export default function ProductVariantSelector({
                                     key={color}
                                     onClick={() => onColorSelect(color)}
                                     className={`
-                                        relative w-5 h-5 sm:w-5 sm:h-5 rounded-full border transition-all duration-200
+                                        relative w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 transition-all duration-200
                                         ${isSelected
                                             ? 'ring-1 ring-black ring-offset-1 border-black'
                                             : 'border-gray-300 hover:border-gray-400'
@@ -64,7 +64,7 @@ export default function ProductVariantSelector({
                                             animate={{ scale: 1 }}
                                             transition={{ duration: 0.2 }}
                                         >
-                                            <Check className="w-1.5 h-1.5 text-white" />
+                                            <Check className="w-2 h-2 text-white" />
                                         </motion.div>
                                     )}
                                 </motion.button>
@@ -76,11 +76,11 @@ export default function ProductVariantSelector({
 
             {/* Selector de Talles */}
             {selectedColor && availableSizes.length > 0 && (
-                <div className="space-y-0.5 mb-1.5" style={{ overflow: 'visible' }}>
-                    <label className="text-[9px] sm:text-[10px] font-bold text-gray-900 uppercase tracking-wide">
+                <div className="space-y-1 mb-1.5" style={{ overflow: 'visible' }}>
+                    <label className="text-[10px] sm:text-xs font-bold text-gray-900 uppercase tracking-wide">
                         Talle {selectedSize && `- ${selectedSize}`}
                     </label>
-                    <div className="flex flex-wrap gap-2" style={{ overflow: 'visible', padding: '2px' }}>
+                    <div className="flex flex-wrap gap-2 sm:gap-2.5" style={{ overflow: 'visible', padding: '2px' }}>
                         {availableSizes.map((size) => {
                             const isSelected = selectedSize === size;
                             
@@ -97,8 +97,8 @@ export default function ProductVariantSelector({
                                     onClick={() => onSizeSelect(size)}
                                     disabled={!variant || isOutOfStock}
                                     className={`
-                                        relative min-w-[30px] sm:min-w-[34px] px-2 sm:px-2.5 py-1 sm:py-1.5 rounded
-                                        text-[10px] sm:text-xs font-bold transition-all duration-200
+                                        relative min-w-[36px] sm:min-w-[40px] px-2.5 sm:px-3 py-1.5 sm:py-2 rounded
+                                        text-xs sm:text-sm font-bold transition-all duration-200
                                         ${isSelected
                                             ? 'bg-black text-white ring-1 ring-black ring-offset-1'
                                             : isOutOfStock
@@ -119,7 +119,7 @@ export default function ProductVariantSelector({
                                             animate={{ scale: 1 }}
                                             transition={{ duration: 0.2 }}
                                         >
-                                            <Check className="w-1.5 h-1.5 text-white" />
+                                            <Check className="w-2 h-2 text-white" />
                                         </motion.div>
                                     )}
                                 </motion.button>

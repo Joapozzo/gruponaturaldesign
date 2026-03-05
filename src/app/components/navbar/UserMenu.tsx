@@ -3,12 +3,16 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useUserSession } from '../../hooks/useUserSession';
+import { useAuth } from '@/contexts/AuthContext';
 
 
 export const UserMenu: React.FC = () => {
     const [showUserMenu, setShowUserMenu] = useState(false);
+    const router = useRouter();
     const { user, isLoading, isAuthenticated } = useUserSession();
+    const { logout, refreshSessionState } = useAuth();
 
     if (isLoading) {
         return (
@@ -23,8 +27,7 @@ export const UserMenu: React.FC = () => {
             <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 onMouseEnter={() => setShowUserMenu(true)}
-                disabled={!isAuthenticated}
-                className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-neutral-100 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-neutral-100 transition-colors group"
                 aria-label={isAuthenticated ? "Menú de usuario" : "Iniciar sesión"}
             >
                 <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center group-hover:bg-neutral-300 transition-colors">
@@ -69,13 +72,28 @@ export const UserMenu: React.FC = () => {
                                                 {user?.email}
                                             </p>
                                         </div>
-                                        <Link
-                                            href="/auth/logout"
+                                        <button
+                                            type="button"
                                             className="w-full text-left px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors block"
-                                            onClick={() => setShowUserMenu(false)}
+                                            onClick={async () => {
+                                                setShowUserMenu(false);
+                                                await refreshSessionState();
+                                                router.push('/perfil');
+                                            }}
+                                        >
+                                            Mi perfil
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="w-full text-left px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors block"
+                                            onClick={async () => {
+                                                setShowUserMenu(false);
+                                                await logout();
+                                                router.replace('/auth/login');
+                                            }}
                                         >
                                             Cerrar Sesión
-                                        </Link>
+                                        </button>
                                     </>
                                 ) : (
                                     <Link

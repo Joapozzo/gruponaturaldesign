@@ -45,6 +45,7 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, o
                 <ProductImage
                     src={product.imagen}
                     alt={product.nombre}
+                    className="w-full h-full"
                     fill
                     sizes="56px"
                     objectFit="cover"
@@ -131,18 +132,6 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, o
                         </p>
                     </div>
                 </div>
-
-                {/* Indicador de stock bajo */}
-                {product.stock && product.stock <= 10 && (
-                    <motion.p
-                        className="text-[10px] text-orange-600 mt-1 font-medium"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.2 }}
-                    >
-                        ⚠️ Solo quedan {product.stock} {product.stock === 1 ? 'unidad' : 'unidades'}
-                    </motion.p>
-                )}
             </div>
             <ConfirmModal
                 isOpen={isConfirmModalOpen}

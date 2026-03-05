@@ -22,7 +22,7 @@ const Contacto = () => {
 
     return (
         <section id="contacto" className="py-12 bg-gray-200 overflow-hidden">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-full px-4 lg:px-15">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -39,13 +39,13 @@ const Contacto = () => {
                 </motion.div>
 
                 <div className="grid lg:grid-cols-2 gap-10">
-                    {/* Formulario */}
+                    {/* Formulario - primera fila, 2 cols */}
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8 }}
                         viewport={{ once: true }}
-                        className="bg-gray-50 p-4 sm:p-6 rounded-lg"
+                        className="bg-gray-50 p-4 sm:p-6 rounded-lg lg:col-span-2"
                     >
                         <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-3 sm:mb-4">
                             SOLICITAR COTIZACIÓN
@@ -196,7 +196,7 @@ const Contacto = () => {
                         </form>
                     </motion.div>
 
-                    {/* Info de contacto */}
+                    {/* Info de contacto - segunda fila, col 1 */}
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -237,31 +237,31 @@ const Contacto = () => {
                             </p>
                             <p className="text-[9px] sm:text-[10px] text-gray-500 mt-1">Showroom con cita previa</p>
                         </div>
+                    </motion.div>
 
-                        {/* Mapa */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, delay: 0.3 }}
-                            viewport={{ once: true }}
-                            className="relative h-74 overflow-hidden shadow-lg rounded-lg group"
-                        >
-                            <iframe
-                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3404.5123456789!2d-64.1835!3d-31.4135!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9432a2f3456789ab%3A0x123456789abcdef!2sRivera%20Indarte%202143%2C%20C%C3%B3rdoba%2C%20Argentina!5e0!3m2!1ses!2sar!4v1234567890123!5m2!1ses!2sar"
-                                width="100%"
-                                height="100%"
-                                style={{ border: 0 }}
-                                allowFullScreen
-                                loading="lazy"
-                                referrerPolicy="no-referrer-when-downgrade"
-                                className="grayscale group-hover:grayscale-0 transition-all duration-500"
-                                title="Ubicación NTDS - Rivera Indarte 2143, Córdoba"
-                            ></iframe>
-                            <div className="absolute inset-0 bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                            <div className="absolute bottom-4 left-4 bg-white px-2 py-1.5 rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                <p className="text-xs font-semibold text-gray-800">📍 Nuestro Showroom</p>
-                            </div>
-                        </motion.div>
+                    {/* Mapa - segunda fila, col 2 */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 0.3 }}
+                        viewport={{ once: true }}
+                        className="relative h-full min-h-[240px] overflow-hidden shadow-lg rounded-lg group"
+                    >
+                        <iframe
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3404.5123456789!2d-64.1835!3d-31.4135!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9432a2f3456789ab%3A0x123456789abcdef!2sRivera%20Indarte%202143%2C%20C%C3%B3rdoba%2C%20Argentina!5e0!3m2!1ses!2sar!4v1234567890123!5m2!1ses!2sar"
+                            width="100%"
+                            height="100%"
+                            style={{ border: 0 }}
+                            allowFullScreen
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            className="absolute inset-0 w-full h-full grayscale group-hover:grayscale-0 transition-all duration-500"
+                            title="Ubicación NTDS - Rivera Indarte 2143, Córdoba"
+                        ></iframe>
+                        <div className="absolute inset-0 bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                        <div className="absolute bottom-4 left-4 bg-white px-2 py-1.5 rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <p className="text-xs font-semibold text-gray-800">📍 Nuestro Showroom</p>
+                        </div>
                     </motion.div>
                 </div>
             </div>

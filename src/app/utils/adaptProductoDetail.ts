@@ -107,8 +107,9 @@ export function adaptProductoPadreToGroupedProduct(
     // Campos extendidos (normalizar URLs)
     imagen: normalizeImageUrl(todasLasImagenes[0] || null),
     imagenes: todasLasImagenes.map(normalizeImageUrl).filter((img): img is string => !!img),
-    tablaTallesImage: productoPadre.tablaTallesUrl || null,
-    indicacionesBordadosUrl: null,
+    tablaTallesImage: normalizeImageUrl(productoPadre.tablaTallesUrl ?? null) ?? null,
+    tablaTallesUrl: normalizeImageUrl(productoPadre.tablaTallesUrl ?? null) ?? null,
+    indicacionesBordadosUrl: normalizeImageUrl(productoPadre.fichaTecnicaUrl ?? null) ?? null,
     NOMBRE: productoPadre.nombre,
     rubroNormalizado: productoPadre.rubro?.nombre?.includes('WORKWEAR') ? 'WORKWEAR' : 'BASIC',
     // Precios

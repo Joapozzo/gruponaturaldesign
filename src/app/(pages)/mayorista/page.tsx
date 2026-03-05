@@ -1,27 +1,24 @@
 "use client";
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-    CheckCircle2, 
-    ArrowLeft, 
-    MapPin, 
-    Users, 
-    Shirt, 
-    CreditCard, 
-    User, 
-    Mail, 
+import {
+    CheckCircle2,
+    MapPin,
+    Users,
+    Shirt,
+    CreditCard,
+    User,
+    Mail,
     Phone,
     Briefcase
 } from 'lucide-react';
 import Section from '@/app/components/Section';
 import ErrorBoundary from '@/app/components/ErrorBoundary';
-import { useRouter } from 'next/navigation';
-import WholesaleBanner from '@/app/components/WholesaleBanner';
+import HeroMayorista from '@/app/components/HeroMayorista';
 import { useWhatsApp } from '@/app/components/hooks/useWhatsApp';
 import Button from '@/app/components/ui/Button';
 
 export default function MayoristaPage() {
-    const router = useRouter();
     const { openWhatsApp } = useWhatsApp({
         defaultMessage: ""
     });
@@ -125,69 +122,58 @@ export default function MayoristaPage() {
     return (
         <ErrorBoundary>
             <div className="min-h-screen bg-white">
-            {/* Hero Banner Full Screen */}
-            <div className="relative">
-                <WholesaleBanner fullScreen={true} />
-                {/* Botón volver flotante */}
-                <motion.button
-                    onClick={() => router.back()}
-                    className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 flex items-center gap-1.5 bg-white/90 hover:bg-white text-[#Ed3237] px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors shadow-lg backdrop-blur-sm"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.6, delay: 0.3 }}
+                <HeroMayorista />
+
+                {/* Contenido principal: row — beneficios izquierda, form derecha */}
+                <Section
+                    id="wholesale-content"
+                    className="py-6 sm:py-8 lg:py-10"
+                    contentClassName="w-full px-4 lg:px-15"
                 >
-                    <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    <span>Volver</span>
-                </motion.button>
-            </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
+                        {/* Beneficios — izquierda */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6 }}
+                            className="lg:col-span-5 flex flex-col"
+                        >
+                            <div className="bg-gray-100 p-5 sm:p-6 rounded-xl border border-gray-200 shadow-inner">
+                                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 font-display tracking-tight mb-3 sm:mb-4">
+                                    ✔ Beneficios para compras mayoristas
+                                </h2>
+                                <div className="flex flex-col gap-2 sm:gap-3">
+                                    {beneficios.map((beneficio, index) => (
+                                        <motion.div
+                                            key={index}
+                                            initial={{ opacity: 0, x: -20 }}
+                                            whileInView={{ opacity: 1, x: 0 }}
+                                            viewport={{ once: true }}
+                                            transition={{ duration: 0.5, delay: index * 0.1 }}
+                                            className="flex items-start gap-2"
+                                        >
+                                            <CheckCircle2 className="w-4 h-4 text-[#Ed3237] flex-shrink-0 mt-0.5" />
+                                            <span className="text-gray-700 text-xs sm:text-sm">{beneficio}</span>
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            </div>
+                        </motion.div>
 
-            {/* Contenido principal */}
-            <Section
-                id="wholesale-content"
-                className="py-4 sm:py-6 lg:py-8"
-                contentClassName="max-w-4xl mx-auto"
-            >
-                <div className="space-y-4 sm:space-y-6">
-                    {/* Beneficios */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
-                        className="bg-white p-4 sm:p-6 rounded-lg border border-gray-200"
-                    >
-                        <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">
-                            ✔ Beneficios para compras mayoristas:
-                        </h2>
-                        <div className="grid sm:grid-cols-2 gap-2 sm:gap-3">
-                            {beneficios.map((beneficio, index) => (
-                                <motion.div
-                                    key={index}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    whileInView={{ opacity: 1, x: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                                    className="flex items-start gap-2"
-                                >
-                                    <CheckCircle2 className="w-4 h-4 sm:w-4 sm:h-4 text-[#Ed3237] flex-shrink-0 mt-0.5" />
-                                    <span className="text-gray-700 text-xs sm:text-sm">{beneficio}</span>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </motion.div>
-
-                    {/* Formulario de contacto mayorista */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                        className="bg-gray-50 p-4 sm:p-6 rounded-lg border border-gray-200"
-                    >
-                        <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-2 sm:mb-4 flex items-center gap-1.5 sm:gap-2">
-                            <Briefcase className="w-4 h-4 sm:w-5 sm:h-5 text-[#Ed3237]" />
-                            <span>¡Hola! Quiero uniformar a mi equipo</span>
-                        </h2>
+                        {/* Formulario — derecha */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6, delay: 0.2 }}
+                            className="lg:col-span-7 flex flex-col"
+                        >
+                            <div className="bg-white p-5 sm:p-6 rounded-xl border border-gray-200 shadow-md h-full">
+                                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 font-display tracking-tight mb-2 sm:mb-4 flex items-center gap-1.5 sm:gap-2">
+                                    <Briefcase className="w-4 h-4 sm:w-5 sm:h-5 text-[#Ed3237]" />
+                                    <span>¡Hola! Quiero uniformar a mi equipo</span>
+                                </h2>
                         <p className="text-gray-700 text-sm sm:text-sm mb-4 sm:mb-4">
                             Completá los siguientes datos:
                         </p>
@@ -400,9 +386,10 @@ export default function MayoristaPage() {
                                 </Button>
                             </div>
                         </form>
-                    </motion.div>
-                </div>
-            </Section>
+                            </div>
+                        </motion.div>
+                    </div>
+                </Section>
             </div>
         </ErrorBoundary>
     );

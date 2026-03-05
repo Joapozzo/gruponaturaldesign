@@ -263,6 +263,7 @@ export default function RootLayout({
         style={{
           fontFamily: "var(--font-poppins), 'Franklin Gothic Heavy', 'Arial Black', sans-serif"
         }}
+        suppressHydrationWarning
       >
         <Providers>
           <ConditionalLayout>

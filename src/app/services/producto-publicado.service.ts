@@ -29,8 +29,9 @@ function buildQueryString(params: ProductoPublicadoQueryParams): string {
   if (params.subrubroId) {
     searchParams.append('subrubroId', String(params.subrubroId));
   }
-  if (params.search) {
-    searchParams.append('search', params.search);
+  const search = params.search ?? params.searchTerm ?? '';
+  if (search) {
+    searchParams.append('search', search);
   }
   if (params.tieneStock !== undefined) {
     searchParams.append('tieneStock', String(params.tieneStock));

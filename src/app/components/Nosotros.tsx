@@ -6,9 +6,7 @@ import { Users, Award, Clock, ArrowRight } from 'lucide-react';
 import Section from './Section';
 import Button from './ui/Button';
 import Image from 'next/image';
-import BrandsSlider from './BrandSlider';
 
-// Hook para animar números
 const useCountAnimation = (end: number, duration = 2000, start = 0) => {
     const [count, setCount] = useState(start);
     const [hasAnimated, setHasAnimated] = useState(false);
@@ -16,24 +14,19 @@ const useCountAnimation = (end: number, duration = 2000, start = 0) => {
     const animate = () => {
         if (hasAnimated) return;
         setHasAnimated(true);
-
         const startTime = Date.now();
         const timer = setInterval(() => {
             const elapsed = Date.now() - startTime;
             const progress = Math.min(elapsed / duration, 1);
-
             const easeOutQuart = 1 - Math.pow(1 - progress, 4);
             const current = Math.floor(start + (end - start) * easeOutQuart);
-
             setCount(current);
-
             if (progress >= 1) {
                 clearInterval(timer);
                 setCount(end);
             }
         }, 16);
     };
-
     return { count, animate, hasAnimated };
 };
 
@@ -43,14 +36,17 @@ interface StatCardProps {
     suffix?: string;
     label: string;
     delay?: number;
+    /** Destacada: rojo o negro para que distinga */
+    variant?: 'default' | 'highlight';
 }
 
 const StatCard: React.FC<StatCardProps> = ({
     icon: Icon,
     number,
-    suffix = "",
+    suffix = '',
     label,
-    delay = 0
+    delay = 0,
+    variant = 'default',
 }) => {
     const ref = React.useRef(null);
     const isInView = useInView(ref, { once: true });
@@ -63,38 +59,35 @@ const StatCard: React.FC<StatCardProps> = ({
         }
     }, [isInView, animate, delay]);
 
+    const isHighlight = variant === 'highlight';
+
     return (
         <motion.div
             ref={ref}
-            initial={{ opacity: 0, y: 30 }}
-            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-            transition={{ duration: 0.8, delay: delay / 1000 }}
-            className="text-center group"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.96 }}
+            transition={{ duration: 0.4, delay: delay / 1000 }}
+            className={`aspect-square rounded-2xl flex flex-col items-center justify-center p-4 transition-all duration-300 ${
+                isHighlight
+                    ? 'bg-[var(--red)] border border-[var(--red)] hover:bg-[var(--red-dark)] text-white'
+                    : 'bg-gray-50 border border-gray-100 hover:border-gray-200 hover:bg-white'
+            }`}
         >
-            <motion.div
-                className="relative mb-6"
-                whileHover={{ y: -5 }}
-                transition={{ duration: 0.3 }}
-            >
-                <div className="flex items-center justify-center w-14 h-14 bg-gray-100 hover:bg-gray-200 rounded-lg mx-auto mb-4 transition-all duration-300 group-hover:shadow-md">
-                    <Icon className="text-gray-700 group-hover:text-gray-900 transition-colors" size={24} />
-                </div>
-            </motion.div>
-
-            <motion.div
-                className="text-base md:text-lg font-bold text-gray-900 mb-2 font-display"
-                animate={isInView ? {
-                    scale: [1, 1.05, 1],
-                    opacity: [0.7, 1, 1]
-                } : {}}
-                transition={{ duration: 0.6, delay: (delay / 1000) + 0.4 }}
-            >
-                {count}{suffix}
-            </motion.div>
-
-            <div className="text-[10px] md:text-xs text-gray-500 font-medium tracking-wide uppercase">
-                {label}
+            <div className={`flex items-center justify-center w-10 h-10 rounded-xl mb-3 ${
+                isHighlight ? 'bg-white/20' : 'bg-white border border-gray-100'
+            }`}>
+                <Icon className={isHighlight ? 'text-white' : 'text-gray-600'} size={20} />
             </div>
+            <span className={`text-2xl font-semibold font-display tabular-nums ${
+                isHighlight ? 'text-white' : 'text-gray-900'
+            }`}>
+                {count}{suffix}
+            </span>
+            <span className={`text-xs uppercase tracking-wider mt-1 ${
+                isHighlight ? 'text-white/90' : 'text-gray-500'
+            }`}>
+                {label}
+            </span>
         </motion.div>
     );
 };
@@ -107,194 +100,90 @@ const Nosotros = () => {
     return (
         <Section
             id="nosotros"
-            className="bg-gradient-to-br from-gray-50 via-white to-gray-50 relative md:px-18 px-9"
-            contentClassName="max-w-7xl mx-auto relative z-10 pb-20"
+            background="white"
+            padding="none"
+            contentClassName="w-full px-4 lg:px-15 py-8 lg:py-12"
         >
-            <div className="grid lg:grid-cols-2 gap-16 lg:gap-20 items-center">
-                {/* Contenido de texto */}
+            {/* Desktop: 2 bloques 50/50, altura según contenido — Mobile: columna */}
+            <div className="flex flex-col lg:grid lg:grid-cols-2 lg:items-stretch gap-6 lg:gap-10">
+                {/* Bloque 1: Foto con leyenda SOBRE NOSOTROS (misma altura que el texto en desktop) */}
                 <motion.div
-                    initial={{ opacity: 0, x: -50 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.8 }}
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    transition={{ duration: 0.6 }}
                     viewport={{ once: true }}
-                    className="space-y-8"
+                    className="relative w-full min-h-[260px] lg:min-h-0 lg:h-full order-1 overflow-hidden rounded-2xl"
                 >
-                    {/* Título principal */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.2 }}
-                        viewport={{ once: true }}
-                    >
-                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4 font-display leading-tight">
-                            NATURAL DESIGN
-                        </h2>
-                        <div className="w-20 h-1 bg-gray-300 rounded-lg"></div>
-                    </motion.div>
+                    <Image
+                        src="/imgs/nosotros.png"
+                        alt="Equipo Natural Design"
+                        className="absolute inset-0 w-full h-full object-cover object-top"
+                        width={900}
+                        height={900}
+                        sizes="100vw"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent" />
+                    <div className="absolute top-0 left-0 right-0 p-6 lg:p-8">
+                        <span className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-white font-display tracking-tight">
+                            SOBRE NOSOTROS
+                        </span>
+                    </div>
+                </motion.div>
 
-                    {/* Descripción principal */}
-                    <motion.p
-                        className="text-xs md:text-sm text-gray-700 leading-relaxed"
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.4 }}
-                        viewport={{ once: true }}
-                    >
-                        Somos una empresa especializada en uniformes empresariales, ropa de trabajo y prendas promocionales con sede en Córdoba. Nuestra principal característica es el asesoramiento integral y el desarrollo de productos.
-                    </motion.p>
-
-                    {/* Descripción secundaria */}
-                    <motion.div
-                        className="space-y-4"
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.6 }}
-                        viewport={{ once: true }}
-                    >
-                        <p className="text-xs md:text-sm text-gray-600 leading-relaxed">
-                            Un buen diseño puede mejorar la experiencia de tu equipo creando un entorno seguro y motivador. Más de 25 años de experiencia nos respaldan.
+                {/* Bloque 2: Texto + estadísticas en cards */}
+                <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                    viewport={{ once: true }}
+                    className="flex flex-col justify-center py-4 lg:py-0 lg:px-6 xl:px-8 order-2"
+                >
+                    <div className="space-y-6">
+                        <p className="text-base text-gray-800 leading-relaxed">
+                            Especialistas en uniformes empresariales, ropa de trabajo y prendas promocionales en Córdoba. Asesoramiento integral y desarrollo de productos.
                         </p>
-                        <p className="text-xs md:text-sm text-gray-800 font-medium">
-                            ¿Querés ser parte de nuestros clientes satisfechos? Contactanos y descubrí por qué más de 500 empresas ya nos eligieron.
+                        <p className="text-base text-gray-600 leading-relaxed">
+                            Un buen diseño mejora la experiencia de tu equipo y crea un entorno seguro y motivador. Más de 25 años de experiencia nos respaldan. Más de 500 empresas ya nos eligieron.
                         </p>
-                    </motion.div>
+                    </div>
 
-                    {/* Estadísticas */}
-                    <motion.div
-                        className="grid grid-cols-3 gap-8 py-4"
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.8 }}
-                        viewport={{ once: true }}
-                    >
+                    {/* Grilla 3 cuadrados: una stat destacada en rojo */}
+                    <div className="grid grid-cols-3 gap-3 sm:gap-4 mt-8">
                         <StatCard
                             icon={Clock}
                             number={25}
                             suffix="+"
-                            label="Años de experiencia"
-                            delay={200}
+                            label="Años"
+                            delay={100}
                         />
                         <StatCard
                             icon={Users}
                             number={500}
                             suffix="+"
-                            label="Clientes satisfechos"
-                            delay={400}
+                            label="Clientes"
+                            delay={150}
+                            variant="highlight"
                         />
                         <StatCard
                             icon={Award}
                             number={100}
                             suffix="%"
-                            label="Calidad garantizada"
-                            delay={600}
-                        />
-                    </motion.div>
-
-                    {/* Botones de acción */}
-                    <motion.div
-                        className="flex flex-col sm:flex-row gap-4"
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 1.0 }}
-                        viewport={{ once: true }}
-                    >
-                        <Button
-                            variant="black"
-                            size="md"
-                            onClick={() => scrollToSection('contacto')}
-                            className="tracking-wide inline-flex items-center space-x-3"
-                        >
-                            <span>CONOCER MÁS</span>
-                            <ArrowRight className="w-5 h-5" />
-                        </Button>
-
-                        <Button
-                            variant="grayOutline"
-                            size="md"
-                            onClick={() => scrollToSection('categorias')}
-                            className="tracking-wide inline-flex items-center space-x-3"
-                        >
-                            <span>VER PRODUCTOS</span>
-                            <ArrowRight className="w-5 h-5" />
-                        </Button>
-                    </motion.div>
-                </motion.div>
-
-                {/* Imagen */}
-                <motion.div
-                    initial={{ opacity: 0, x: 50 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.8, delay: 0.3 }}
-                    viewport={{ once: true }}
-                    className="relative"
-                >
-                    <div className="relative group">
-                        {/* Imagen principal */}
-                        <motion.div
-                            className="relative overflow-hidden rounded-lg shadow-xl group-hover:shadow-2xl transition-all duration-500"
-                            whileHover={{ y: -5 }}
-                            transition={{ duration: 0.3 }}
-                        >
-                            <div className="aspect-[4/5] bg-gray-200">
-                                <Image
-                                    src="/imgs/nosotros2.jpg"
-                                    alt="Equipo Natural Design"
-                                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
-                                    width={20000}
-                                    height={2000}
-                                />
-                                {/* Overlay sutil */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
-                            </div>
-                        </motion.div>
-
-                        {/* Badge flotante */}
-                        <motion.div
-                            className="absolute -bottom-6 -left-6 bg-gray-900 text-white p-6 rounded-lg shadow-xl"
-                            initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                            whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                            transition={{ duration: 0.6, delay: 0.8 }}
-                            viewport={{ once: true }}
-                            whileHover={{ scale: 1.05 }}
-                        >
-                            <div className="text-base font-bold mb-1 font-display">NATURAL DESIGN</div>
-                            <div className="text-xs text-gray-300 tracking-wide">CALIDAD Y DISEÑO</div>
-
-                            {/* Indicador de estado */}
-                            <motion.div
-                                className="absolute top-3 right-3 w-3 h-3 bg-green-400 rounded-full"
-                                animate={{
-                                    scale: [1, 1.2, 1],
-                                    opacity: [0.7, 1, 0.7]
-                                }}
-                                transition={{
-                                    duration: 2,
-                                    repeat: Infinity,
-                                    ease: "easeInOut"
-                                }}
-                            />
-                        </motion.div>
-
-                        {/* Elementos decorativos */}
-                        <motion.div
-                            className="absolute -top-4 -right-4 w-24 h-24 bg-gray-100 rounded-lg -z-10"
-                            initial={{ opacity: 0, scale: 0 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.6, delay: 0.5 }}
-                            viewport={{ once: true }}
-                        />
-
-                        <motion.div
-                            className="absolute -bottom-4 -right-8 w-16 h-16 bg-gray-200 rounded-lg -z-10"
-                            initial={{ opacity: 0, scale: 0 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.6, delay: 0.7 }}
-                            viewport={{ once: true }}
+                            label="Calidad"
+                            delay={200}
                         />
                     </div>
+
+                    <Button
+                        variant="black"
+                        size="md"
+                        onClick={() => scrollToSection('contacto')}
+                        className="tracking-wide inline-flex items-center gap-2 w-fit mt-8"
+                    >
+                        <span>Contactar</span>
+                        <ArrowRight className="w-4 h-4" />
+                    </Button>
                 </motion.div>
             </div>
-            <BrandsSlider />
         </Section>
     );
 };

@@ -13,6 +13,7 @@ interface TextFieldProps {
   disabled?: boolean;
   readOnly?: boolean;
   step?: string;
+  autoComplete?: string;
 }
 
 export const TextField: React.FC<TextFieldProps> = ({
@@ -28,6 +29,7 @@ export const TextField: React.FC<TextFieldProps> = ({
   disabled = false,
   readOnly = false,
   step,
+  autoComplete,
 }) => {
   return (
     <div>
@@ -43,6 +45,7 @@ export const TextField: React.FC<TextFieldProps> = ({
         disabled={disabled}
         readOnly={readOnly}
         step={step}
+        autoComplete={autoComplete}
         className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black ${
           error ? 'border-red-500' : 'border-gray-300'
         } ${disabled || readOnly ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`}

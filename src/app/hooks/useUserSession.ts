@@ -1,18 +1,22 @@
-"use client";
-import { useUser } from '@auth0/nextjs-auth0/client';
+'use client';
+
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useUserSession = () => {
-    const { user, error, isLoading } = useUser();
-    
-    return {
-        user: user ? {
-            email: user.email || null,
-            name: user.name || null,
-            auth0Id: user.sub || null,
-        } : null,
-        isLoading,
-        isAuthenticated: !!user?.email,
-        error,
-    };
-};
+  const { firebaseUser, sessionState, isLoading } = useAuth();
+  const user = firebaseUser && sessionState
+    ? {
+        email: sessionState.email ?? null,
+        name: [sessionState.nombre, sessionState.apellido].filter(Boolean).join(' ') || sessionState.email || null,
+        userId: sessionState.usuarioId,
+        uid: sessionState.uid,
+      }
+    : null;
 
+  return {
+    user,
+    isLoading,
+    isAuthenticated: !!firebaseUser?.email,
+    sessionState,
+  };
+};

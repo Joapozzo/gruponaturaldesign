@@ -1,10 +1,17 @@
-import { useState, useEffect } from 'react';
+'use client';
+
 import { useParams } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { GroupedProduct } from '@/app/types/producto';
 import { productoDetailService, type ProductoDetailResponse } from '../services/producto-detail.service';
 import { adaptProductoPadreToGroupedProduct } from '../utils/adaptProductoDetail';
 import { getEmpresaId } from '../utils/getEmpresaId';
+import { productDetailKeys } from '../utils/productDetailKeys';
 import { findRelatedProductsForOutfit } from './useProductDetail.helpers';
+
+const STALE_TIME_MS = 1000 * 60 * 5;   // 5 minutos
+const GC_TIME_MS = 1000 * 60 * 30;     // 30 minutos
 
 interface UseProductDetailOptions {
   initialData?: ProductoDetailResponse;
@@ -13,74 +20,44 @@ interface UseProductDetailOptions {
 export function useProductDetail(options: UseProductDetailOptions = {}) {
   const params = useParams();
   const slug = decodeURIComponent((params.slug as string) || '');
-  
-  const [groupedProduct, setGroupedProduct] = useState<GroupedProduct | null>(() => {
-    // Inicializar con initialData si está disponible
-    if (options.initialData?.producto) {
-      return adaptProductoPadreToGroupedProduct(options.initialData.producto);
-    }
-    return null;
+
+  const query = useQuery({
+    queryKey: productDetailKeys.detailBySlug(slug),
+    queryFn: () =>
+      productoDetailService.getBySlug({
+        slug,
+        empresaId: getEmpresaId(),
+        includeVariantes: true,
+      }),
+    initialData: options.initialData,
+    initialDataUpdatedAt: options.initialData ? Date.now() : undefined,
+    enabled: !!slug,
+    staleTime: STALE_TIME_MS,
+    gcTime: GC_TIME_MS,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 1,
   });
-  
-  const [relatedProducts, setRelatedProducts] = useState<GroupedProduct[]>(() => {
-    // Inicializar productos relacionados desde initialData
-    if (options.initialData?.relatedProducts) {
-      return options.initialData.relatedProducts.map(adaptProductoPadreToGroupedProduct);
-    }
-    return [];
-  });
-  
-  const [isLoading, setIsLoading] = useState(!options.initialData);
-  const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
-    // Si ya tenemos initialData, no hacer fetch
-    if (options.initialData) {
-      return;
-    }
+  const groupedProduct = useMemo<GroupedProduct | null>(() => {
+    if (!query.data?.producto) return null;
+    return adaptProductoPadreToGroupedProduct(query.data.producto);
+  }, [query.data?.producto]);
 
-    // Si no hay slug, no hacer nada
-    if (!slug) {
-      setIsLoading(false);
-      return;
-    }
-
-    // Fetch en cliente si no hay initialData
-    const fetchProduct = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        const empresaId = getEmpresaId();
-        const data = await productoDetailService.getBySlug({
-          slug,
-          empresaId,
-          includeVariantes: true,
-        });
-        
-        setGroupedProduct(adaptProductoPadreToGroupedProduct(data.producto));
-        setRelatedProducts(
-          data.relatedProducts.map(adaptProductoPadreToGroupedProduct)
-        );
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Error al cargar producto'));
-        setGroupedProduct(null);
-        setRelatedProducts([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProduct();
-  }, [slug, options.initialData]);
+  const relatedProducts = useMemo<GroupedProduct[]>(() => {
+    if (!query.data?.relatedProducts?.length) return [];
+    return query.data.relatedProducts.map(adaptProductoPadreToGroupedProduct);
+  }, [query.data?.relatedProducts]);
 
   return {
     groupedProduct,
     relatedProducts,
-    isLoading,
-    error,
+    isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    error: query.error instanceof Error ? query.error : query.error ? new Error(String(query.error)) : null,
+    refetch: query.refetch,
   };
 }
 
-// Re-exportar helpers para compatibilidad
 export { findRelatedProductsForOutfit, OUTFIT_RELATIONS } from './useProductDetail.helpers';

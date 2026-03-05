@@ -2,7 +2,7 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { Mail, ArrowLeft, CheckCircle, CheckCircle2 } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useSession } from 'next-auth/react';
 import Button from '@/app/components/ui/Button';
 import { motion } from 'framer-motion';
 
@@ -10,7 +10,9 @@ import { motion } from 'framer-motion';
 function EmailVerificationContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
-    const { user, isLoading: userLoading } = useUser();
+    const { data: session, status } = useSession();
+    const user = session?.user;
+    const userLoading = status === 'loading';
     const message = searchParams.get('message') || 'Verificá tu email para continuar.';
     
     const [isVerified, setIsVerified] = useState(false);
@@ -21,7 +23,7 @@ function EmailVerificationContent() {
         if (!userLoading) {
             if (user) {
                 // Auth0 incluye email_verified en el objeto user
-                const emailVerified = (user as any).email_verified === true;
+                const emailVerified = (user as any)?.emailVerified === true;
                 setIsVerified(emailVerified);
                 setIsChecking(false);
                 

@@ -5,19 +5,16 @@ import Image from 'next/image';
 
 const DesignHero = () => {
   return (
-    <div className="w-full bg-white overflow-x-hidden">
-      {/* Barra vertical oscura a la izquierda - solo en desktop */}
-      <div className="hidden lg:block absolute left-0 top-0 bottom-0 w-[10%] xl:w-[8%] z-10"></div>
-      
-      <div className="max-w-full mx-auto relative w-full overflow-x-hidden">
-        <div className="grid grid-cols-1 lg:grid-cols-10 gap-0 w-full">
-          {/* Texto - 60% (6 de 10 columnas) */}
+    <div className="w-full bg-white overflow-x-hidden h-screen">
+      <div className="w-full h-full mx-auto relative overflow-x-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-10 gap-2 w-full h-full">
+          {/* Texto - 70% (7 de 10 columnas), mismo gap que Categorias */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="lg:col-span-6 flex flex-col justify-center px-6 lg:pl-12 lg:pr-8 xl:pl-16 xl:pr-10 py-12 lg:py-16 relative z-20"
+            className="lg:col-span-7 flex flex-col justify-center px-6 lg:pl-12 lg:pr-8 xl:pl-16 xl:pr-10 py-12 lg:py-16 relative z-20 bg-[#D4D4D4]"
           >
             {/* Título principal */}
             <motion.h2
@@ -44,16 +41,16 @@ const DesignHero = () => {
             </motion.p>
           </motion.div>
 
-          {/* Imagen - 40% (4 de 10 columnas) */}
+          {/* Imagen - 30% (3 de 10 columnas) */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="lg:col-span-4 relative h-[50vh] sm:h-[60vh] lg:h-[70vh] xl:h-[75vh] w-full"
+            className="lg:col-span-3 relative h-[50vh] sm:h-[60vh] lg:h-full w-full min-h-[280px]"
           >
             <Image
-              src="/imgs/nosotros.png"
+              src="/imgs/nosotros3.JPEG"
               alt="Modelos vistiendo uniformes profesionales"
               fill
               className="object-cover"

@@ -90,6 +90,27 @@ export interface ProductoPublicadoQueryParams {
   sortOrder?: 'asc' | 'desc';
 }
 
+/**
+ * Parámetros por defecto para la query de productos publicados.
+ * Debe coincidir exactamente con los que usa CatalogContent (useProductosPublicadosAll)
+ * para que la query key del prefetch (SSR) y del hook (cliente) sea la misma.
+ */
+/** Por defecto se traen TODOS los productos; destacado/tieneStock solo se envían cuando el usuario aplica filtros */
+export const DEFAULT_PRODUCTOS_PUBLICADOS_PARAMS: Omit<
+  ProductoPublicadoQueryParams,
+  'page' | 'limit'
+> = {
+  searchTerm: '',
+  search: '',
+  rubroId: undefined,
+  subrubroId: undefined,
+  genero: 'TODOS',
+  destacado: undefined,
+  tieneStock: undefined,
+  sortBy: 'orden',
+  sortOrder: 'asc',
+};
+
 // ============================================
 // Pagination
 // ============================================

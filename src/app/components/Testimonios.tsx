@@ -1,12 +1,14 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { CheckCircle } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { testimonios } from '../data/testimonios';
 import { logosClientes } from '../data/marcas';
 import Section from './Section';
+import BrandsSlider from './BrandSlider';
 import Button from './ui/Button';
+import CtaBanner from './CtaBanner';
 import { useWhatsApp } from './hooks/useWhatsApp';
 
 const Testimonios = () => {
@@ -41,13 +43,13 @@ const Testimonios = () => {
     return (
         <Section
             id="testimonios"
-            // background="gray"
             title="Nuestros clientes"
             subtitle="Más de 500 empresas confían en nosotros para vestir a sus equipos con calidad y profesionalismo."
-            className='mb-20'
+            className="mb-20"
+            contentClassName="w-full px-4 lg:px-15"
         >
             {/* Slider de Logos - Minimalista */}
-            <div className="mb-10 px-4 sm:px-8 lg:px-20 xl:px-32">
+            <div className="mb-10">
                 <motion.div
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
@@ -82,31 +84,28 @@ const Testimonios = () => {
                 </motion.div>
             </div>
 
-            {/* Call to Action */}
-            <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.3 }}
-                viewport={{ once: true }}
-                className="w-full text-center mt-12 p-6 lg:p-8 shadow-sm bg-gray-800 flex flex-col items-center justify-center gap-3"
-            >
-                <h3 className="text-xl lg:text-2xl font-bold text-gray-200 mb-3 font-display">
-                    ¿Querés ser parte de nuestros clientes satisfechos?
-                </h3>
-                <p className="text-sm text-gray-200 mb-4 max-w-2xl mx-auto leading-relaxed">
-                    Contactanos y descubrí por qué más de 500 empresas eligen NTDS para
-                    sus uniformes.
-                </p>
-                <Button
-                    variant="lightWhite"
-                    size="md"
-                    className="tracking-wide inline-flex items-center space-x-3"
-                    onClick={() => openWhatsApp()}
+            {/* Slider de marcas / proyectos realizados */}
+            <div className="mb-10">
+                <BrandsSlider />
+            </div>
+
+            {/* Call to Action - full width (rompe el padding de Section) */}
+            <div className="mt-12 -mx-4 lg:-mx-15">
+                <CtaBanner
+                    title="¿Querés ser parte de nuestros clientes satisfechos?"
+                    subtitle="Contactanos y descubrí por qué más de 500 empresas eligen NTDS para sus uniformes."
                 >
-                    <span>SOLICITAR COTIZACIÓN</span>
-                    <CheckCircle className="w-5 h-5" />
-                </Button>
-            </motion.div>
+                    <Button
+                        variant="darkGray"
+                        size="lg"
+                        className="tracking-wide inline-flex items-center space-x-3"
+                        onClick={() => openWhatsApp()}
+                    >
+                        <span>Solicitar cotización</span>
+                        <ArrowRight className="w-6 h-6" />
+                    </Button>
+                </CtaBanner>
+            </div>
         </Section>
     );
 };

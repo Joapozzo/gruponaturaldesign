@@ -36,7 +36,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
         canAddToCart,
     } = useCart();
     
-    const { isOpen: isConfirmModalOpen, loading, modalOptions, closeModal, handleConfirm } = useConfirmModal();
+    const { isOpen: isConfirmModalOpen, loading, modalOptions, closeModal, handleConfirm, showModal } = useConfirmModal();
     const { config, isWholesaleLimitReached } = useSales();
     const { updateQuantity } = useCartQuantityUpdate({
         validateWholesaleLimit: true,
@@ -45,7 +45,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
         handleGoToCart, 
         handleClearCart,
         isInCheckout,
-    } = useCartActions({ onClose });
+    } = useCartActions({ onClose, showConfirmModal: showModal });
 
     // Hooks para lógica de negocio
     useCartDrawerAutoClose({ isInCheckout, isOpen, onClose });
@@ -104,9 +104,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                     <ConfirmModal
                         isOpen={isConfirmModalOpen}
                         onClose={closeModal}
-                        onConfirm={handleConfirm}
                         loading={loading}
                         {...modalOptions}
+                        onConfirm={handleConfirm}
                     />
                 </>
             )}

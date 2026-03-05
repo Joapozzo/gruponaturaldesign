@@ -8,8 +8,8 @@ import { WHATSAPP_PHONE_NUMBER } from '@/app/utils/constants';
 const Footer = () => {
     const { openWhatsApp } = useWhatsApp({ defaultMessage: "¡Hola! Me interesa conocer más sobre los uniformes de NTDS. ¿Te gustaría hablar conmigo?" });
     return (
-        <footer className="bg-[var(--black)] text-white pt-12 pb-6 shadow-sm">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <footer className="bg-[var(--black)] text-white pt-12 pb-6">
+            <div className="w-full px-4 lg:px-15">
                 <div className="grid md:grid-cols-4 gap-8">
                     <div className="md:col-span-2">
                         <div className="flex items-center space-x-3 mb-6">
@@ -20,6 +20,7 @@ const Footer = () => {
                                     className="object-contain"
                                     width={90}
                                     height={30}
+                                    style={{ width: 'auto', height: 'auto' }}
                                 />
                             </div>
                         </div>
@@ -92,7 +93,7 @@ const Footer = () => {
             <div className="w-full border-t border-gray-800 mt-8"></div>
 
             {/* Copyright con contenedor centrado */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+            <div className="w-full px-4 lg:px-15 pt-6">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-3 text-gray-400">
                     <p className="text-[10px] md:text-xs">&copy; 2025 Natural Design. Todos los derechos reservados.</p>
                     <div className="flex flex-wrap justify-center gap-3 text-[10px] md:text-xs">

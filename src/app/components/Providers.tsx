@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { SalesProvider } from '../contexts/SalesContext';
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -23,9 +24,10 @@ export function Providers({ children }: { children: ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <SalesProvider>
-        {children}
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <SalesProvider>
+          {children}
         <Toaster 
           position="top-right"
           containerStyle={{
@@ -55,7 +57,8 @@ export function Providers({ children }: { children: ReactNode }) {
             },
           }}
         />
-      </SalesProvider>
-    </QueryClientProvider>
+        </SalesProvider>
+      </QueryClientProvider>
+    </AuthProvider>
   );
 }

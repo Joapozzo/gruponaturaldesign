@@ -10,6 +10,9 @@
   --gray-light: #BDBFC1;
   --gray-medium: #666666;
   --gray-bg: #F5F5F5;
+
+  /* Debe coincidir con el pt del wrapper (ConditionalLayout): 62px mobile, 112px desktop (PromoBanner 32px + Navbar) */
+  --navbar-total: 62px;
   
   /* Primary colors */
   --primary-50: #f0f9ff;
@@ -37,6 +40,9 @@
 }
 
 @theme inline {
+  /* Ancho máximo de contenido: 8xl = 96rem (1536px), más ancho que 7xl (80rem). Lo usa ProductosDestacados y toda la página. */
+  --container-8xl: 96rem;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -65,6 +71,12 @@
   --color-neutral-700: var(--neutral-700);
   --color-neutral-800: var(--neutral-800);
   --color-neutral-900: var(--neutral-900);
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --navbar-total: 112px;
+  }
 }
 
 @media (prefers-color-scheme: dark) {

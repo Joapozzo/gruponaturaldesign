@@ -25,7 +25,8 @@ interface FilterModalProps {
     onClearFilters: () => void;
     hasActiveFilters: boolean;
     rubros?: string[];
-    subrubros?: string[];
+    /** Opciones de categoría (subrubro): value=id, label=nombre (o "Nombre (Rubro)" si hay duplicados) */
+    subrubroOptions?: Array<{ value: string; label: string }>;
 }
 
 const FilterModal: React.FC<FilterModalProps> = ({
@@ -39,12 +40,12 @@ const FilterModal: React.FC<FilterModalProps> = ({
     onClearFilters,
     hasActiveFilters,
     rubros = [],
-    subrubros = [],
+    subrubroOptions = [],
 }) => {
-    // Categorías dinámicas (tipo de prenda = subrubros) - siempre incluir TODOS
-    const categoriaOptions = ['TODOS', ...subrubros].filter((value, index, self) => 
-        index === self.indexOf(value) // Remover duplicados
-    );
+    // Opciones de categoría desde API (ya incluye TODOS y labels únicos para duplicados)
+    const categoriaOptions = subrubroOptions.length > 0
+        ? subrubroOptions
+        : [{ value: 'TODOS', label: 'Todas' }];
     
     // Ordenar colores alfabéticamente
     const sortedColores = useMemo(() => {
@@ -108,7 +109,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
 
                             <CategoriaFilter
                                 categoriaOptions={categoriaOptions}
-                                subrubro={filters.subrubro}
+                                selectedValue={filters.subrubro}
                                 onUpdateFilter={onUpdateFilter}
                             />
 

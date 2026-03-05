@@ -5,6 +5,7 @@
 'use client';
 
 import React from 'react';
+import Button from '@/app/components/ui/Button';
 import BordadoSwitch from './BordadoSwitch';
 import type { VariantePublicada } from '@/app/types/producto-publicado.types';
 
@@ -25,6 +26,8 @@ interface ProductCardActionsProps {
   availableColors: string[];
   availableTalles: string[];
   hasExplicitSelection?: boolean;
+  /** Producto sin stock en ninguna variante: mostrar "Agotado" y deshabilitar acciones */
+  productOutOfStock?: boolean;
 }
 
 export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
@@ -43,6 +46,7 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
   availableColors,
   availableTalles,
   hasExplicitSelection = false,
+  productOutOfStock = false,
 }) => {
   if (!selectedVariant) {
     return null;
@@ -50,6 +54,9 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
 
   // Determinar el texto del botón según el estado
   const getButtonText = () => {
+    if (productOutOfStock) {
+      return 'Agotado';
+    }
     if (isAddingToCart) {
       return 'Agregando...';
     }
@@ -79,7 +86,7 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
 
   // Determinar si el botón está deshabilitado
   const isButtonDisabled = () => {
-    if (selectedVariant.stock === 0 || isAddingToCart) {
+    if (productOutOfStock || selectedVariant.stock === 0 || isAddingToCart) {
       return true;
     }
 
@@ -99,8 +106,8 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
 
   return (
     <>
-      {/* Bordado switch (solo si hay 5+ items en carrito) */}
-      {canActivateBordado && (
+      {/* Bordado switch (solo si hay 5+ items en carrito); ocultar cuando producto agotado */}
+      {canActivateBordado && !productOutOfStock && (
         <div className="mb-3">
           <BordadoSwitch
             value={bordado}
@@ -111,7 +118,7 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
 
       {/* Controles de cantidad y agregar al carrito */}
       <div className="mt-2">
-        {cartQuantity > 0 ? (
+        {cartQuantity > 0 && !productOutOfStock ? (
           <div className="flex items-center justify-center gap-2">
             <button
               onClick={() => onQuantityChange(Math.max(0, cartQuantity - 1))}
@@ -139,13 +146,15 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
                 Cancelar
               </button>
             )}
-            <button
+            <Button
+              variant="black"
+              size="sm"
+              fullWidth
               onClick={onAddToCart}
               disabled={isButtonDisabled()}
-              className="w-full bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm"
             >
               {getButtonText()}
-            </button>
+            </Button>
           </div>
         )}
       </div>

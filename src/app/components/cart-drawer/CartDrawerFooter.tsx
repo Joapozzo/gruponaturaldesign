@@ -67,7 +67,7 @@ export const CartDrawerFooter: React.FC<CartDrawerFooterProps> = ({
                     <span>${totalTransfer.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
                 </div>
                 <div className="flex justify-between text-base font-bold text-black pt-2 border-t border-gray-300">
-                    <span className="tracking-wide">TOTAL (Lista)</span>
+                    <span className="tracking-wide">TOTAL</span>
                     <span>${totalLista.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
                 </div>
             </div>

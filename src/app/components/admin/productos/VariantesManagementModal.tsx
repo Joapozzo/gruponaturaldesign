@@ -6,6 +6,7 @@ import BaseModal from '@/app/components/modal/BaseModal';
 import type { ProductoPadreConVariantes } from '@/app/types/producto.types';
 import { VariantesStockTable } from './VariantesStockTable';
 import { VariantesImagesManager } from './VariantesImagesManager';
+import { DocumentosManager } from './DocumentosManager';
 
 export default VariantesManagementModal;
 
@@ -16,7 +17,7 @@ interface VariantesManagementModalProps {
   onSuccess?: () => void;
 }
 
-type TabType = 'stock' | 'images';
+type TabType = 'stock' | 'images' | 'documentos';
 
 function VariantesManagementModal({
   isOpen,
@@ -36,6 +37,7 @@ function VariantesManagementModal({
   const tabs: { id: TabType; label: string }[] = [
     { id: 'stock', label: 'Stock y Precios' },
     { id: 'images', label: 'Imágenes' },
+    { id: 'documentos', label: 'Documentos' },
   ];
 
   return (
@@ -61,9 +63,9 @@ function VariantesManagementModal({
       size="xl"
       className="max-w-6xl"
     >
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full min-h-0">
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 mb-4 -mx-6 px-6">
+        <div className="flex border-b border-gray-200 mb-4 -mx-6 px-6 flex-shrink-0">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -89,7 +91,7 @@ function VariantesManagementModal({
         </div>
 
         {/* Tab Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
           <AnimatePresence mode="wait">
             {activeTab === 'stock' && (
               <motion.div
@@ -121,7 +123,22 @@ function VariantesManagementModal({
                   coloresDisponibles={Array.from(
                     new Set(variantes.map((v) => v.color).filter(Boolean))
                   ) as string[]}
-                  onSuccess={onSuccess}
+                />
+              </motion.div>
+            )}
+            {activeTab === 'documentos' && (
+              <motion.div
+                key="documentos"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="p-2"
+              >
+                <DocumentosManager
+                  productoPadreId={producto.id}
+                  tablaTallesUrl={producto.tablaTallesUrl ?? null}
+                  fichaTecnicaUrl={producto.fichaTecnicaUrl ?? null}
                 />
               </motion.div>
             )}

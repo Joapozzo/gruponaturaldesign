@@ -19,9 +19,18 @@ export function ProductosPageActions({ empresaId }: ProductosPageActionsProps) {
     handleExport,
     handleCreate,
     isSyncing,
+    isSyncDisabled,
+    cooldownRemainingSeconds,
     isRefreshing,
     isExporting,
   } = useProductosPageActions({ empresaId });
+
+  const syncButtonLabel =
+    isSyncing
+      ? 'Sincronizando…'
+      : cooldownRemainingSeconds > 0
+        ? `Disponible en ${cooldownRemainingSeconds}s`
+        : 'Sincronizar';
 
   return (
     <div className="flex items-center gap-2">
@@ -29,10 +38,10 @@ export function ProductosPageActions({ empresaId }: ProductosPageActionsProps) {
         variant="ghost"
         size="sm"
         onClick={handleSync}
-        disabled={isSyncing}
+        disabled={isSyncDisabled}
       >
         <RotateCw className={`w-4 h-4 mr-2 inline ${isSyncing ? 'animate-spin' : ''}`} />
-        Sincronizar
+        {syncButtonLabel}
       </Button>
       <Button
         variant="ghost"

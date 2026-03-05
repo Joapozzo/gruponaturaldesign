@@ -20,15 +20,17 @@ export function useProductImages(
     const [modalImageIndex, setModalImageIndex] = useState(0);
 
     // Recalcular imágenes cuando cambia el color o el productName
-    // Usar useMemo para evitar recálculos innecesarios
+    // Si la variante no tiene imágenes, no usar placeholder (galería muestra ninguna)
     const images = useMemo(() => {
+        const hasInput = (imagenes && imagenes.length > 0) || (imagen && imagen.trim() !== '');
+        if (!hasInput) return [];
         return getProductImages(imagenes, imagen, maxImages, productName, color, availableColors);
     }, [imagenes, imagen, maxImages, productName, color, availableColors]);
 
-    // Resetear índice cuando cambia el color
+    // Resetear índice cuando cambian las imágenes (ej. al cambiar variante)
     useEffect(() => {
         setCurrentImageIndex(0);
-    }, [color]);
+    }, [color, images.length, images[0] ?? '']);
 
     const nextImage = () => {
         if (isImageModalOpen && modalImages.length > 0) {
@@ -157,7 +159,21 @@ export function useDeleteProductImage() {
     return useMutation({
         mutationFn: (imageId: number) => productImageService.deleteImage(imageId),
         onSuccess: () => {
-            // Invalidar todas las queries de imágenes
+            queryClient.invalidateQueries({ queryKey: ['product-images'] });
+        },
+    });
+}
+
+/**
+ * Hook para reordenar imágenes de producto
+ */
+export function useReorderProductImages() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (images: { id: number; orden: number }[]) =>
+            productImageService.reorderImages(images),
+        onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['product-images'] });
         },
     });

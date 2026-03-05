@@ -103,7 +103,7 @@ export default function ErrorPageTemplate({
                 </motion.div>
 
                 {/* Enlaces rápidos */}
-                <motion.div
+                {/* <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.6, delay: 0.6 }}
@@ -139,7 +139,7 @@ export default function ErrorPageTemplate({
                             Contacto
                         </Link>
                     </div>
-                </motion.div>
+                </motion.div> */}
 
                 {/* Contenido personalizado adicional */}
                 {children && (
@@ -154,7 +154,7 @@ export default function ErrorPageTemplate({
                 )}
 
                 {/* Ilustración decorativa */}
-                <motion.div
+                {/* <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.6, delay: 0.8 }}
@@ -167,7 +167,7 @@ export default function ErrorPageTemplate({
                             <Icon className="w-16 h-16 sm:w-20 sm:h-20 text-gray-400" />
                         </div>
                     </div>
-                </motion.div>
+                </motion.div> */}
             </div>
         </div>
     );
