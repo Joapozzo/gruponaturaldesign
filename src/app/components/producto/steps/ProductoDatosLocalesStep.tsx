@@ -16,18 +16,13 @@ interface ProductoDatosLocalesStepProps {
     descripcionCorta?: string;
   };
   onDescripcionMarketingChange: (value: string) => void;
-  onDescripcionCortaChange: (value: string) => void;
-  onDescripcionChange?: (value: string) => void;
   onDestacadoChange: (value: boolean) => void;
 }
 
 export const ProductoDatosLocalesStep = memo<ProductoDatosLocalesStepProps>(function ProductoDatosLocalesStep({
   datosLocales,
-  modo,
   errors,
   onDescripcionMarketingChange,
-  onDescripcionCortaChange,
-  onDescripcionChange,
   onDestacadoChange,
 }) {
   return (
@@ -42,7 +37,7 @@ export const ProductoDatosLocalesStep = memo<ProductoDatosLocalesStepProps>(func
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-2">Datos locales</h3>
         <p className="text-sm text-gray-600">
-          Descripción y opciones de visibilidad del producto. Las imágenes se gestionan en el administrador de imágenes del producto.
+          Descripción marketing y visibilidad. La descripción corta y el detalle se editan en el paso <strong>Datos SFactory</strong>. Las imágenes se gestionan en el administrador de imágenes del producto.
         </p>
       </div>
 
@@ -57,29 +52,6 @@ export const ProductoDatosLocalesStep = memo<ProductoDatosLocalesStepProps>(func
           rows={3}
           error={errors.descripcionMarketing}
         />
-
-        <TextAreaField
-          id="descripcionCorta"
-          name="descripcionCorta"
-          label="Descripción Corta"
-          value={datosLocales.descripcionCorta}
-          onChange={(e) => onDescripcionCortaChange(e.target.value)}
-          placeholder="Descripción breve del producto"
-          rows={2}
-          error={errors.descripcionCorta}
-        />
-
-        {onDescripcionChange && (
-          <TextAreaField
-            id="descripcion"
-            name="descripcion"
-            label="Descripción Completa"
-            value={datosLocales.descripcion || ''}
-            onChange={(e) => onDescripcionChange(e.target.value)}
-            placeholder="Descripción detallada del producto"
-            rows={4}
-          />
-        )}
 
         <CheckboxField
           name="destacado"

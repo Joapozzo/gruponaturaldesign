@@ -12,13 +12,20 @@ import Button from '@/components/ui/Button';
 interface ProductosFiltersProps {
   filters: ReturnType<typeof useProductosFilters>;
   disabled?: boolean;
+  /** Se llama al hacer clic en "Limpiar filtros" (además de filters.clearFilters). Útil para limpiar también el input de búsqueda. */
+  onClearFilters?: () => void;
 }
 
 /**
  * Componente contenedor de todos los filtros de productos
  * Orquesta los filtros individuales sin conocer su lógica interna
  */
-export function ProductosFilters({ filters, disabled = false }: ProductosFiltersProps) {
+export function ProductosFilters({ filters, disabled = false, onClearFilters }: ProductosFiltersProps) {
+  const handleClearFilters = () => {
+    filters.clearFilters();
+    onClearFilters?.();
+  };
+
   return (
     <Card variant="elevated" padding="md" className="min-w-0 max-w-full overflow-hidden">
       <div className="space-y-4 min-w-0">
@@ -29,7 +36,7 @@ export function ProductosFilters({ filters, disabled = false }: ProductosFilters
             <Button
               variant="ghost"
               size="sm"
-              onClick={filters.clearFilters}
+              onClick={handleClearFilters}
               disabled={disabled}
               className="text-xs shrink-0"
             >

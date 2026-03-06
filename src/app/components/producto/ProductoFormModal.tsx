@@ -159,11 +159,14 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
           codigoBase: productoCompleto.productoPadre.codigoAgrupacion,
         });
         updateDatosSFactory(datos);
+        // Compartir descripción corta y detalle con SFactory (priorizar SFactory si existe)
+        const descripcionCorta = (datos.descrip_corta ?? productoCompleto.datosLocales.descripcionCorta) ?? '';
+        const descripcionDetalle = (datos.detalle ?? productoCompleto.datosLocales.descripcion) ?? '';
         updateDatosLocales({
           descripcionMarketing: productoCompleto.datosLocales.descripcionMarketing ?? '',
-          descripcionCorta: productoCompleto.datosLocales.descripcionCorta ?? '',
+          descripcionCorta,
           destacado: productoCompleto.datosLocales.destacado,
-          descripcion: productoCompleto.datosLocales.descripcion ?? '',
+          descripcion: descripcionDetalle,
         });
         if (productoCompleto.variante) {
           updateVariante({
@@ -185,11 +188,13 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
         setProductoPadreId(productoPadreProp.id);
         if (datosPlantilla) {
           updateDatosSFactory(datosPlantilla.datosSFactory);
+          const descripcionCorta = datosPlantilla.datosSFactory.descrip_corta ?? datosPlantilla.datosLocales.descripcionCorta ?? '';
+          const descripcionDetalle = datosPlantilla.datosSFactory.detalle ?? datosPlantilla.datosLocales.descripcion ?? '';
           updateDatosLocales({
             descripcionMarketing: datosPlantilla.datosLocales.descripcionMarketing ?? '',
-            descripcionCorta: datosPlantilla.datosLocales.descripcionCorta ?? '',
+            descripcionCorta,
             destacado: datosPlantilla.datosLocales.destacado,
-            descripcion: datosPlantilla.datosLocales.descripcion ?? '',
+            descripcion: descripcionDetalle,
           });
         }
       }
@@ -459,32 +464,49 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
     } else if (wizardState.pasoActual === 2) {
       if (!validarPaso2()) return;
 
-      // Crear en SFactory
+      // En edición: si no hubo cambios en los datos SFactory, avanzar sin petición
+      if (isEditMode && wizardState.itemId && datosSFactoryParaEdicion) {
+        const orig = datosSFactoryParaEdicion;
+        const actual = wizardState.datosSFactory;
+        const mismosDatos =
+          (orig.rubro_id === actual.rubro_id || (orig.rubro_id == null && actual.rubro_id == null)) &&
+          (orig.subrubro_id === actual.subrubro_id || (orig.subrubro_id == null && actual.subrubro_id == null)) &&
+          (orig.descrip_corta ?? '') === (actual.descrip_corta ?? '') &&
+          (orig.detalle ?? '') === (actual.detalle ?? '') &&
+          (orig.um_id ?? 1) === (actual.um_id ?? 1);
+        if (mismosDatos) {
+          siguientePaso();
+          return;
+        }
+      }
+
+      // Crear/actualizar en SFactory
       try {
         const codigo = modo === 'crear-variante' 
           ? wizardState.datosComunes.codigoCompleto!
           : wizardState.datosComunes.codigoBase;
 
+        const descripcionParaSFactory = isEditMode && wizardState.itemId && datosSFactoryParaEdicion
+          ? (datosSFactoryParaEdicion.descripcion ?? '') // En edición no modificar: mantener valor original (nombre en SFactory)
+          : (wizardState.datosSFactory.descripcion?.trim() || wizardState.datosComunes.nombre) as string;
+
         const datosSFactoryCompletos = {
           ...wizardState.datosSFactory,
           codigo: codigo || undefined,
           tipo: 'P',
-          descripcion: (wizardState.datosSFactory.descripcion?.trim() || wizardState.datosComunes.nombre) as string,
+          descripcion: descripcionParaSFactory,
           item_venta: 1,
           um_id: wizardState.datosSFactory.um_id || 1,
         } as any;
 
-        // console.log('📦 Datos que se envían a SFactory:', JSON.stringify(datosSFactoryCompletos, null, 2));
-
         let productoCreado: ProductoPadreConVariantes;
         
         if (isEditMode && wizardState.itemId) {
-          // Actualizar en SFactory
+          // Actualizar en SFactory (sin descripcion para no cambiar el nombre)
           productoCreado = await mutations.actualizarProductoEnSFactory({
             itemId: wizardState.itemId,
             data: { ...datosSFactoryCompletos, item_id: wizardState.itemId },
           });
-          // console.log('✅ Producto actualizado en SFactory - Respuesta:', JSON.stringify(productoCreado, null, 2)); 
         } else {
           // Crear en SFactory
           productoCreado = await mutations.crearProducto(datosSFactoryCompletos);
@@ -525,7 +547,7 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
         toast.error(errorMessage);
       }
     }
-  }, [wizardState, modo, isEditMode, validarPaso1, validarPaso2, validarCodigo, codigoValido, mutations, siguientePaso, setProductoPadreId, setProductoWebId, setItemId, setCreadoEnSFactory, parsearErrorBackend]);
+  }, [wizardState, modo, isEditMode, validarPaso1, validarPaso2, validarCodigo, codigoValido, mutations, siguientePaso, setProductoPadreId, setProductoWebId, setItemId, setCreadoEnSFactory, parsearErrorBackend, datosSFactoryParaEdicion]);
 
   // Handler para finalizar
   const handleFinalizar = useCallback(async () => {
@@ -693,6 +715,9 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
 
   const handleSFactoryFieldChange = (field: string, value: any) => {
     updateDatosSFactory({ [field]: value });
+    // Compartir descripción corta y detalle con datos locales (una sola fuente de verdad)
+    if (field === 'descrip_corta') updateDatosLocales({ descripcionCorta: value ?? '' });
+    if (field === 'detalle') updateDatosLocales({ descripcion: value ?? '' });
     setErrors((prev) => {
       const newErrors = { ...prev };
       delete newErrors[field];
@@ -796,6 +821,7 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
           errors={errors}
           onFieldChange={handleSFactoryFieldChange}
           bloqueado={false}
+          descripcionSoloLectura={isEditMode}
           rubros={rubrosData?.data ?? []}
           subrubros={subrubrosData?.data ?? []}
         />
@@ -807,8 +833,6 @@ export const ProductoFormModal: React.FC<ProductoFormModalProps> = ({
           modo={modo}
           errors={errors}
           onDescripcionMarketingChange={(value) => updateDatosLocales({ descripcionMarketing: value })}
-          onDescripcionCortaChange={(value) => updateDatosLocales({ descripcionCorta: value })}
-          onDescripcionChange={(value) => updateDatosLocales({ descripcion: value })}
           onDestacadoChange={(value) => updateDatosLocales({ destacado: value })}
         />
       )}

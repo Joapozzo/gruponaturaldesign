@@ -94,6 +94,16 @@ export function useTableSearchParams(options: UseTableSearchParamsOptions = {}) 
     router.replace(`?${params.toString()}`, { scroll: false });
   }, [router, searchParams, DEFAULT_PAGE]);
 
+  // Limpiar búsqueda (input + URL) de una vez
+  const clearSearch = useCallback(() => {
+    setSearchInput('');
+    lastSyncedSearch.current = '';
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('search');
+    params.set('page', String(DEFAULT_PAGE));
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [router, searchParams, DEFAULT_PAGE]);
+
   return {
     page,
     limit,
@@ -102,6 +112,7 @@ export function useTableSearchParams(options: UseTableSearchParamsOptions = {}) 
     setSearchInput,
     setPage,
     setLimit,
+    clearSearch,
   };
 }
 

@@ -36,7 +36,7 @@ interface ProductosTableClientProps {
  */
 export function ProductosTableClient({ empresaId }: ProductosTableClientProps) {
   // Search params (page, limit, search con debounce)
-  const { page, limit, searchInput, debouncedSearch, setSearchInput, setPage, setLimit } = useTableSearchParams();
+  const { page, limit, searchInput, debouncedSearch, setSearchInput, setPage, setLimit, clearSearch } = useTableSearchParams();
 
   // Filtros (sincronizados con URL)
   const filters = useProductosFiltersWithParams();
@@ -162,7 +162,7 @@ export function ProductosTableClient({ empresaId }: ProductosTableClientProps) {
     <>
       <div className="mt-8 space-y-4">
         {/* Filtros Avanzados */}
-        <ProductosFilters filters={filters} disabled={disabled} />
+        <ProductosFilters filters={filters} disabled={disabled} onClearFilters={clearSearch} />
 
         {/* Búsqueda y Acciones Bulk */}
         <Card variant="elevated" padding="md">

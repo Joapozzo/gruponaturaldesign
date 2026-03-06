@@ -27,6 +27,7 @@ export async function prefetchProductosTable(
     search: params.search || undefined,
     rubroId: params.filters?.rubroId,
     subrubroId: params.filters?.subrubroId,
+    publicado: params.filters?.publicado,
     sortBy: params.filters?.orderBy,
     sortOrder: params.filters?.orderDirection,
   };

@@ -10,6 +10,8 @@ interface ProductoDatosSFactoryStepProps {
   errors: Record<string, string>;
   onFieldChange: (field: keyof SFactoryItemCreateData, value: string | number | boolean | null) => void;
   bloqueado?: boolean;
+  /** En edición la Descripción (SFactory) es el nombre del producto y no debe modificarse */
+  descripcionSoloLectura?: boolean;
   rubros?: Array<{ id: number; nombre: string; sfactoryId: number | null }>;
   subrubros?: Array<{ id: number; nombre: string; sfactoryId: number | null }>;
 }
@@ -18,6 +20,8 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
   datosSFactory,
   errors,
   onFieldChange,
+  bloqueado = false,
+  descripcionSoloLectura = false,
   rubros = [],
   subrubros = [],
 }) => {
@@ -58,11 +62,12 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
       <TextField
         id="descripcion"
         name="descripcion"
-        label="Descripción (SFactory)"
+        label="Descripción (SFactory) — nombre del producto"
         value={datosSFactory.descripcion ?? ''}
         onChange={(e) => onFieldChange('descripcion', e.target.value)}
         placeholder="Si está vacío se usa el nombre del producto"
         error={errors.descripcion}
+        disabled={descripcionSoloLectura}
       />
 
       <TextField
