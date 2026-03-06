@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { productoService } from '@/app/services/producto.service';
 import { productosKeys } from '@/app/utils/productosKeys';
+import { productosPublicadosKeys, productosDestacadosKeys } from '@/app/hooks/productosPublicadosKeys';
 import type { ProductoPadreConVariantes, PaginatedResponse } from '@/app/types/producto.types';
 
 interface UseProductosMutationsParams {
@@ -19,6 +20,12 @@ export function useProductosMutations({ empresaId, onSuccess, onError }: UseProd
 
   const invalidateQueries = () => {
     queryClient.invalidateQueries({ queryKey: productosKeys.lists() });
+  };
+
+  /** Invalida cache del catálogo público (productos publicados y destacados) */
+  const invalidatePublicadosCache = () => {
+    queryClient.invalidateQueries({ queryKey: productosPublicadosKeys.all });
+    queryClient.invalidateQueries({ queryKey: productosDestacadosKeys.all });
   };
 
   // Función helper para actualizar el cache optimistamente
@@ -62,6 +69,7 @@ export function useProductosMutations({ empresaId, onSuccess, onError }: UseProd
     },
     onSettled: () => {
       setUpdatingProductoId(null);
+      invalidatePublicadosCache(); // Lista destacados en web
     },
   });
 
@@ -87,6 +95,7 @@ export function useProductosMutations({ empresaId, onSuccess, onError }: UseProd
     },
     onSettled: () => {
       setUpdatingProductoId(null);
+      invalidatePublicadosCache(); // Catálogo público puede haber cambiado
     },
   });
 
@@ -95,6 +104,7 @@ export function useProductosMutations({ empresaId, onSuccess, onError }: UseProd
     mutationFn: (id: number) => productoService.delete(id),
     onSuccess: () => {
       invalidateQueries();
+      invalidatePublicadosCache();
       onSuccess?.('Producto eliminado correctamente');
     },
     onError: (error: Error) => {
@@ -107,6 +117,7 @@ export function useProductosMutations({ empresaId, onSuccess, onError }: UseProd
     mutationFn: (ids: number[]) => productoService.bulkUpdatePublicado(ids, true),
     onSuccess: () => {
       invalidateQueries();
+      invalidatePublicadosCache();
       onSuccess?.('Productos publicados correctamente');
     },
     onError: (error: Error) => {
@@ -119,6 +130,7 @@ export function useProductosMutations({ empresaId, onSuccess, onError }: UseProd
     mutationFn: (ids: number[]) => productoService.bulkUpdatePublicado(ids, false),
     onSuccess: () => {
       invalidateQueries();
+      invalidatePublicadosCache();
       onSuccess?.('Productos despublicados correctamente');
     },
     onError: (error: Error) => {
@@ -131,6 +143,7 @@ export function useProductosMutations({ empresaId, onSuccess, onError }: UseProd
     mutationFn: (ids: number[]) => productoService.bulkUpdateDestacado(ids, true),
     onSuccess: () => {
       invalidateQueries();
+      invalidatePublicadosCache();
       onSuccess?.('Productos destacados correctamente');
     },
     onError: (error: Error) => {
@@ -143,6 +156,7 @@ export function useProductosMutations({ empresaId, onSuccess, onError }: UseProd
     mutationFn: (ids: number[]) => productoService.bulkUpdateDestacado(ids, false),
     onSuccess: () => {
       invalidateQueries();
+      invalidatePublicadosCache();
       onSuccess?.('Productos desmarcados como destacados');
     },
     onError: (error: Error) => {
