@@ -3,6 +3,13 @@ import { TableColumn } from '@/components/ui/Table';
 import type { ProductoPadreConVariantes } from '@/app/types/producto.types';
 import { CheckSquare, Square, Edit, Star, StarOff, Loader2 } from 'lucide-react';
 
+/** Nombre para mostrar: "Camisa Drill Hombre" / "Camisa Drill Mujer" / "Camisa Drill Unisex". Exportado para uso en modales/tablas. */
+export function formatNombreConGenero(nombre: string, genero?: string | null): string {
+  if (!genero) return nombre;
+  const label = genero === 'Masculino' ? 'Hombre' : genero === 'Femenino' ? 'Mujer' : genero;
+  return `${nombre} ${label}`;
+}
+
 interface GetProductosColumnsParams {
   selectedIds: Set<number>;
   onToggleSelect: (id: number) => void;
@@ -95,7 +102,9 @@ export function getProductosColumns({
       header: 'Nombre',
       cell: ({ row }) => (
         <div>
-          <div className="font-medium">{row.original.nombre}</div>
+          <div className="font-medium">
+            {formatNombreConGenero(row.original.nombre, row.original.genero)}
+          </div>
           {row.original.descripcionCorta && (
             <div className="text-xs text-neutral-500 mt-1">
               {row.original.descripcionCorta}

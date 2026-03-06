@@ -76,6 +76,7 @@ export interface ProductoPadreBusqueda {
   id: number;
   nombre: string;
   sexo: string | null;
+  genero?: string | null;
   codigoAgrupacion: string;
   rubro: { id: number; nombre: string } | null;
   variantesCount: number;

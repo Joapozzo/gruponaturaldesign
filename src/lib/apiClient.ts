@@ -1,7 +1,7 @@
 import { getAccessToken } from './auth-client';
 import type { ApiResponse, ApiError, PaginatedApiResponse } from './types/api.types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
 
 export class ApiClient {
   private baseURL: string;

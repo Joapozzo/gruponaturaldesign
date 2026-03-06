@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import BaseModal from '@/app/components/modal/BaseModal';
 import type { ProductoPadreConVariantes } from '@/app/types/producto.types';
+import { formatNombreConGenero } from './columns';
 import { VariantesStockTable } from './VariantesStockTable';
 import { VariantesImagesManager } from './VariantesImagesManager';
 import { DocumentosManager } from './DocumentosManager';
@@ -46,7 +47,7 @@ function VariantesManagementModal({
       onClose={onClose}
       title={
         <div className="flex items-center justify-between w-full pr-10">
-          <span>Gestionar Variantes: {producto.nombre}</span>
+          <span>Gestionar Variantes: {formatNombreConGenero(producto.nombre, producto.genero)}</span>
           {hasUnsavedChanges && (
             <motion.span
               initial={{ opacity: 0, scale: 0.9 }}
@@ -119,7 +120,7 @@ function VariantesManagementModal({
               >
                 <VariantesImagesManager
                   productoPadreId={producto.id}
-                  productoNombre={producto.nombre}
+                  productoNombre={formatNombreConGenero(producto.nombre, producto.genero)}
                   coloresDisponibles={Array.from(
                     new Set(variantes.map((v) => v.color).filter(Boolean))
                   ) as string[]}

@@ -54,6 +54,7 @@ export interface ProductoPadreResponse {
   descripcionMarketing: string | null;
   descripcionCorta: string | null;
   slug: string | null;
+  genero: string | null;
   metaTitle: string | null;
   metaDescription: string | null;
   imagenes: any | null;

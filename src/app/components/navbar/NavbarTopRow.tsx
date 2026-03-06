@@ -59,18 +59,9 @@ export const NavbarTopRow: React.FC<NavbarTopRowProps> = ({
                 onCartClick={onCartClick}
             />
 
-            {/* Mobile: Logo centrado con acciones a la derecha */}
-            <div className='flex items-center justify-between w-full lg:hidden'>
-                <div className="flex-1"></div>
-                <NavbarLogo width={70} height={30} isMobile />
-                <div className='flex items-center space-x-3 sm:space-x-4 flex-1 justify-end'>
-                    <NavbarActions
-                        itemCount={itemCount}
-                        isInCheckout={isInCheckout}
-                        textClasses={textClasses}
-                        onCartClick={onCartClick}
-                        isMobile
-                    />
+            {/* Mobile: Menú izq, logo centro, cart+login derecha */}
+            <div className="flex items-center w-full lg:hidden">
+                <div className="flex-1 flex justify-start">
                     {onMenuToggle && (
                         <motion.button
                             whileHover={{ scale: 1.1 }}
@@ -88,6 +79,18 @@ export const NavbarTopRow: React.FC<NavbarTopRowProps> = ({
                             </motion.div>
                         </motion.button>
                     )}
+                </div>
+                <div className="flex-shrink-0 flex justify-center">
+                    <NavbarLogo width={70} height={30} isMobile />
+                </div>
+                <div className="flex-1 flex justify-end items-center">
+                    <NavbarActions
+                        itemCount={itemCount}
+                        isInCheckout={isInCheckout}
+                        textClasses={textClasses}
+                        onCartClick={onCartClick}
+                        isMobile
+                    />
                 </div>
             </div>
         </div>

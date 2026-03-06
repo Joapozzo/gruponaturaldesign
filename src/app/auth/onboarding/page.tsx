@@ -80,7 +80,7 @@ export default function OnboardingPage() {
     try {
       const token = await getToken();
       if (!token) throw new Error('No hay sesión.');
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
       const res = await fetch(`${API_URL}/auth/onboarding`, {
         method: 'POST',
         headers: {

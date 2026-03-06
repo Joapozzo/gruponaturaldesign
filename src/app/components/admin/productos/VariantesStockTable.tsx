@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Button from '@/app/components/ui/Button';
 import { useVariantesStock } from '@/app/hooks/useVariantesStock';
 import type { ProductoPadreConVariantes, ProductoWebResponse } from '@/app/types/producto.types';
+import { formatNombreConGenero } from './columns';
 import { Search, Save, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -322,7 +323,7 @@ export function VariantesStockTable({
                       <span className="font-mono text-xs">{variante.sfactoryCodigo}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="font-medium text-sm">{producto.nombre}</span>
+                      <span className="font-medium text-sm">{formatNombreConGenero(producto.nombre, producto.genero)}</span>
                     </td>
                     <td className="px-4 py-3">
                       <span className="font-medium">{variante.color || '-'}</span>

@@ -136,7 +136,7 @@ const CatalogContentInner = () => {
   const basicRubroId = getBasicRubroId(availableOptions.rubros);
 
   return (
-    <div className="bg-gray-50 pb-12">
+    <div className="bg-white min-h-screen pb-12">
       <CatalogCategoriesHero
         onCategorySelect={(rubroId) => updateFilter('rubroId', rubroId)}
         selectedRubroId={filters.rubroId}

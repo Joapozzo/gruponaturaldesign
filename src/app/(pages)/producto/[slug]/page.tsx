@@ -10,7 +10,7 @@ import type { ProductoDetailResponse } from '@/app/services/producto-detail.serv
 async function getProductData(slug: string): Promise<ProductoDetailResponse | null> {
   try {
     const empresaId = getEmpresaId();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
     
     // El slug ya viene decodificado de Next.js, pero puede tener caracteres especiales
     // Solo codificamos si es necesario (si tiene caracteres que necesitan encoding)

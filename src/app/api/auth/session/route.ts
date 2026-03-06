@@ -3,8 +3,8 @@ import { SignJWT } from 'jose';
 import { AUTH_COOKIE_NAME } from '@/lib/auth-config';
 import type { SessionUserState } from '@/types/auth.types';
 
-// Backend API (Express) suele correr en 3003; Next (front) en 3002
-const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api';
+// Backend API (Express) por defecto en 3002; Next (front) en otro puerto, ej. 3000
+const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
 const JWT_SECRET = process.env.AUTH_COOKIE_SECRET || process.env.JWT_SECRET;
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 

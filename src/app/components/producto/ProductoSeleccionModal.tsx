@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { productoService } from '@/app/services/producto.service';
 import { productosKeys } from '@/app/utils/productosKeys';
 import type { ProductoPadreBusqueda } from '@/app/services/producto.service';
+import { formatNombreConGenero } from '@/app/components/admin/productos/columns';
 
 interface ProductoSeleccionModalProps {
   isOpen: boolean;
@@ -157,7 +158,7 @@ export const ProductoSeleccionModal: React.FC<ProductoSeleccionModalProps> = ({
                       >
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium">{producto.nombre}</p>
+                            <p className="font-medium">{formatNombreConGenero(producto.nombre, producto.genero ?? producto.sexo)}</p>
                             <p className="text-sm text-gray-500">
                               {producto.sexo || 'Sin sexo'} • {producto.variantesCount} variante(s) • {producto.codigoAgrupacion}
                             </p>
@@ -187,7 +188,7 @@ export const ProductoSeleccionModal: React.FC<ProductoSeleccionModalProps> = ({
                 onClick={handleContinuarVariante}
                 className="tracking-wide h-12"
               >
-                Continuar con &quot;{productoSeleccionado.nombre}&quot;
+                Continuar con &quot;{formatNombreConGenero(productoSeleccionado.nombre, productoSeleccionado.genero ?? productoSeleccionado.sexo)}&quot;
               </Button>
             )}
           </div>

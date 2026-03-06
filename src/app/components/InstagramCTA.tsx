@@ -2,23 +2,37 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Heart, MessageCircle, Send, Bookmark } from 'lucide-react';
 import Section from './Section';
 import Button from './ui/Button';
 import Image from 'next/image';
 
 const InstagramCTA = () => {
     const [isHovered, setIsHovered] = useState(false);
+    const [liked, setLiked] = useState<Record<number, boolean>>({});
+    const [saved, setSaved] = useState<Record<number, boolean>>({});
 
     const handleInstagramClick = () => {
         window.open('https://www.instagram.com/naturaldesign.ntds/', '_blank');
     };
 
+    const toggleLike = (e: React.MouseEvent, id: number) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setLiked((prev) => ({ ...prev, [id]: !prev[id] }));
+    };
+
+    const toggleSave = (e: React.MouseEvent, id: number) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setSaved((prev) => ({ ...prev, [id]: !prev[id] }));
+    };
+
     const posts = [
-        { id: 1, image: '/imgs/products/cardigan-tejido-de-dama-1.jpg' },
-        { id: 2, image: '/imgs/products/chomba-manga-corta-unisex-cuello-camisa-de-jersey-2.jpg' },
-        { id: 3, image: '/imgs/products/remera-base-unisex-2.jpg' },
-        { id: 4, image: '/imgs/products/remera-escote-en-v-dama-1.jpg' },
+        { id: 1, image: '/imgs/instagram/1.jpg', likes: 124, comments: 8 },
+        { id: 2, image: '/imgs/instagram/2.jpg', likes: 89, comments: 5 },
+        { id: 3, image: '/imgs/instagram/3.jpg', likes: 201, comments: 12 },
+        { id: 4, image: '/imgs/instagram/4.jpg', likes: 67, comments: 3 },
     ];
 
     return (
@@ -115,7 +129,56 @@ const InstagramCTA = () => {
                                     fill
                                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                                 />
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
+                                {/* Overlay tipo publicación - fijo, sin hover */}
+                                <div className="absolute bottom-0 left-0 right-0 px-2 py-2 sm:px-3 sm:py-2.5 bg-gradient-to-t from-black/60 to-transparent flex items-center justify-between">
+                                    <div className="flex items-center gap-2 sm:gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => toggleLike(e, post.id)}
+                                            className="p-1 rounded-full hover:bg-white/10 transition-colors"
+                                            aria-label="Me gusta"
+                                        >
+                                            <motion.div
+                                                animate={{ scale: liked[post.id] ? [1, 1.2, 1] : 1 }}
+                                                transition={{ duration: 0.3 }}
+                                            >
+                                                <Heart
+                                                    className={`w-4 h-4 sm:w-5 sm:h-5 ${liked[post.id] ? 'fill-red-500 text-red-500' : 'text-white'}`}
+                                                />
+                                            </motion.div>
+                                        </button>
+                                        <span className="text-white text-xs font-medium min-w-[1.5rem]">
+                                            {(post.likes || 0) + (liked[post.id] ? 1 : 0)}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={(e) => e.preventDefault()}
+                                            className="p-1 rounded-full hover:bg-white/10 transition-colors"
+                                            aria-label="Comentar"
+                                        >
+                                            <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                                        </button>
+                                        <span className="text-white text-xs font-medium">{post.comments}</span>
+                                        <button
+                                            type="button"
+                                            onClick={(e) => e.preventDefault()}
+                                            className="p-1 rounded-full hover:bg-white/10 transition-colors"
+                                            aria-label="Compartir"
+                                        >
+                                            <Send className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                                        </button>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => toggleSave(e, post.id)}
+                                        className="p-1 rounded-full hover:bg-white/10 transition-colors"
+                                        aria-label="Guardar"
+                                    >
+                                        <Bookmark
+                                            className={`w-4 h-4 sm:w-5 sm:h-5 ${saved[post.id] ? 'fill-white text-white' : 'text-white'}`}
+                                        />
+                                    </button>
+                                </div>
                             </motion.a>
                         ))}
                     </motion.div>
