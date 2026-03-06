@@ -3,11 +3,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Button from '@/app/components/ui/Button';
+import Select from '@/app/components/ui/Select';
 import { useVariantesStock } from '@/app/hooks/useVariantesStock';
 import type { ProductoPadreConVariantes, ProductoWebResponse } from '@/app/types/producto.types';
 import { formatNombreConGenero } from './columns';
 import { Search, Save, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { calcularPreciosDerivados } from '@/app/utils/calcularPreciosDerivados';
 
 interface VariantesStockTableProps {
   producto: ProductoPadreConVariantes;
@@ -195,8 +197,25 @@ export function VariantesStockTable({
     }
   };
 
+  const colorOptions = useMemo(
+    () => [{ value: '', label: 'Todos los colores' }, ...coloresUnicos.map((c) => ({ value: c, label: c }))],
+    [coloresUnicos]
+  );
+  const talleOptions = useMemo(
+    () => [{ value: '', label: 'Todos los talles' }, ...tallesUnicos.map((t) => ({ value: t, label: t }))],
+    [tallesUnicos]
+  );
+
+  const preciosDerivados = useMemo(
+    () => calcularPreciosDerivados(precioGeneral),
+    [precioGeneral]
+  );
+
+  const formatPrecio = (n: number) =>
+    n.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 overflow-visible p-2">
       {/* Precio General */}
       <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -222,41 +241,64 @@ export function VariantesStockTable({
             )}
           </span>
         </div>
+        {precioGeneral != null && precioGeneral > 0 && (
+          <div className="mt-3 pt-3 border-t border-gray-200 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+            <div>
+              <span className="text-gray-500 block">Transferencia (15% desc.)</span>
+              <span className="font-medium text-gray-800">
+                ${preciosDerivados.precioTransfer != null ? formatPrecio(preciosDerivados.precioTransfer) : '–'}
+              </span>
+            </div>
+            <div>
+              <span className="text-gray-500 block">Financiado ({preciosDerivados.cuotas} cuotas)</span>
+              <span className="font-medium text-gray-800">
+                ${preciosDerivados.precioFinanciado != null ? formatPrecio(preciosDerivados.precioFinanciado) : '–'}
+                <span className="text-gray-500 font-normal">/cuota</span>
+              </span>
+            </div>
+            <div>
+              <span className="text-gray-500 block">Precio sin imp.</span>
+              <span className="font-medium text-gray-800">
+                ${preciosDerivados.precioSinImp != null ? formatPrecio(preciosDerivados.precioSinImp) : '–'}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Filtros rápidos */}
-      <div className="flex flex-wrap gap-3 overflow-visible">
-        <div className="relative flex-shrink-0">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+      {/* Filtros rápidos: padding para que los focus rings no se corten */}
+      <div className="flex flex-wrap gap-3 overflow-visible py-1 px-1 -mx-1">
+        <div className="relative flex-shrink-0 min-w-0">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
           <input
             type="text"
             placeholder="Buscar..."
             value={filters.search}
             onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-            className="w-64 pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black"
+            className="w-64 min-w-0 pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
           />
         </div>
-        <select
-          value={filters.color}
-          onChange={(e) => setFilters(prev => ({ ...prev, color: e.target.value }))}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black flex-shrink-0"
-        >
-          <option value="">Todos los colores</option>
-          {coloresUnicos.map(color => (
-            <option key={color} value={color}>{color}</option>
-          ))}
-        </select>
-        <select
-          value={filters.talle}
-          onChange={(e) => setFilters(prev => ({ ...prev, talle: e.target.value }))}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black flex-shrink-0"
-        >
-          <option value="">Todos los talles</option>
-          {tallesUnicos.map(talle => (
-            <option key={talle} value={talle}>{talle}</option>
-          ))}
-        </select>
-        <div className="flex items-center justify-end flex-shrink-0 ml-auto mr-2">
+        <div className="flex-shrink-0 overflow-visible">
+          <Select
+            options={colorOptions}
+            value={filters.color}
+            onChange={(e) => setFilters(prev => ({ ...prev, color: e.target.value }))}
+            variant="ghost"
+            size="sm"
+            className="min-w-[140px]"
+          />
+        </div>
+        <div className="flex-shrink-0 overflow-visible">
+          <Select
+            options={talleOptions}
+            value={filters.talle}
+            onChange={(e) => setFilters(prev => ({ ...prev, talle: e.target.value }))}
+            variant="ghost"
+            size="sm"
+            className="min-w-[140px]"
+          />
+        </div>
+        <div className="flex items-center justify-end flex-shrink-0 ml-auto">
           <Button
             onClick={handleSaveAll}
             disabled={!hasChanges || isUpdating}
@@ -271,15 +313,15 @@ export function VariantesStockTable({
             ) : (
               <>
                 <Save className="w-4 h-4 mr-2" />
-                Guardar Cambios
+                Guardar cambios
               </>
             )}
           </Button>
         </div>
       </div>
 
-      {/* Tabla compacta */}
-      <div className="overflow-x-auto border border-gray-200 rounded-lg">
+      {/* Tabla compacta: padding para que focus/active no se corten */}
+      <div className="overflow-x-auto overflow-y-visible border border-gray-200 rounded-lg p-px">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
@@ -340,7 +382,7 @@ export function VariantesStockTable({
                         onChange={(e) => handleStockChange(variante.id, e.target.value)}
                         className={`
                           w-24 px-2 py-1 border rounded text-right text-sm
-                          focus:outline-none focus:ring-2 focus:ring-black
+                          focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1
                           ${stockChanged ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}
                           ${isStockBajo ? 'border-orange-300 bg-orange-50' : ''}
                           ${isStockAgotado ? 'border-red-300 bg-red-50' : ''}
@@ -369,7 +411,7 @@ export function VariantesStockTable({
                         onChange={(e) => handlePrecioChange(variante.id, e.target.value)}
                         className={`
                           w-32 px-2 py-1 border rounded text-right text-sm
-                          focus:outline-none focus:ring-2 focus:ring-black
+                          focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1
                           ${precioChanged ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}
                           ${!variante.precioPersonalizado ? 'bg-gray-50' : ''}
                         `}

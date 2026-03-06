@@ -18,12 +18,9 @@ interface AdminProductosPageProps {
     rubroId?: string;
     subrubroId?: string;
     sexo?: string;
-    color?: string;
-    talle?: string;
-    stockMin?: string;
-    stockMax?: string;
     orderBy?: string;
     orderDirection?: string;
+    publicado?: string;
   }>;
 }
 
@@ -36,19 +33,15 @@ export default async function AdminProductosPage({ searchParams }: AdminProducto
   const params = await searchParams;
   const { page, limit, search } = parseTableSearchParams(params);
 
-  // Parsear filtros de URL para prefetch
+  // Parsear filtros de URL para prefetch (rubro, subrubro, sexo/género, estado, orden)
   const filters: Partial<ProductosFilters> = {};
   const rubroId = params.rubroId;
   if (rubroId) filters.rubroId = parseInt(rubroId, 10);
   const subrubroId = params.subrubroId;
   if (subrubroId) filters.subrubroId = parseInt(subrubroId, 10);
   if (params.sexo) filters.sexo = params.sexo;
-  if (params.color) filters.color = params.color;
-  if (params.talle) filters.talle = params.talle;
-  const stockMin = params.stockMin;
-  if (stockMin) filters.stockMin = parseInt(stockMin, 10);
-  const stockMax = params.stockMax;
-  if (stockMax) filters.stockMax = parseInt(stockMax, 10);
+  if (params.publicado === 'true') filters.publicado = true;
+  if (params.publicado === 'false') filters.publicado = false;
   if (params.orderBy && (params.orderBy === 'name' || params.orderBy === 'price')) {
     filters.orderBy = params.orderBy;
   }

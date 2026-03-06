@@ -3,10 +3,7 @@ import { Card } from '@/components/ui/Card';
 import { RubroFilter } from './RubroFilter';
 import { SubrubroFilter } from './SubrubroFilter';
 import { SexoFilter } from './SexoFilter';
-import { ColorFilter } from './ColorFilter';
-import { TalleFilter } from './TalleFilter';
 import { EstadoFilter } from './EstadoFilter';
-import { StockRangeFilter } from './StockRangeFilter';
 import { OrderByFilter } from './OrderByFilter';
 import { useProductosFilters } from '../hooks/useProductosFilters';
 import { X } from 'lucide-react';
@@ -23,18 +20,18 @@ interface ProductosFiltersProps {
  */
 export function ProductosFilters({ filters, disabled = false }: ProductosFiltersProps) {
   return (
-    <Card variant="elevated" padding="md">
-      <div className="space-y-4">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-gray-700">Filtros</h3>
+    <Card variant="elevated" padding="md" className="min-w-0 max-w-full overflow-hidden">
+      <div className="space-y-4 min-w-0">
+        {/* Header: responsive, no overflow */}
+        <div className="flex flex-wrap items-center justify-between gap-2 min-w-0">
+          <h3 className="text-sm font-semibold text-gray-700 shrink-0">Filtros</h3>
           {filters.hasActiveFilters && (
             <Button
               variant="ghost"
               size="sm"
               onClick={filters.clearFilters}
               disabled={disabled}
-              className="text-xs"
+              className="text-xs shrink-0"
             >
               <X className="w-3 h-3 mr-1 inline" />
               Limpiar filtros
@@ -42,10 +39,10 @@ export function ProductosFilters({ filters, disabled = false }: ProductosFilters
           )}
         </div>
 
-        {/* Grid de filtros */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Grid responsive: 1 col móvil, 2 sm, 3 md, 5 xl; celdas con min-w-0 para no salirse */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 min-w-0">
           {/* Rubro */}
-          <div>
+          <div className="min-w-0">
             <label className="block text-xs font-medium text-gray-600 mb-1">
               Rubro
             </label>
@@ -57,7 +54,7 @@ export function ProductosFilters({ filters, disabled = false }: ProductosFilters
           </div>
 
           {/* Subrubro */}
-          <div>
+          <div className="min-w-0">
             <label className="block text-xs font-medium text-gray-600 mb-1">
               Subrubro
             </label>
@@ -69,10 +66,10 @@ export function ProductosFilters({ filters, disabled = false }: ProductosFilters
             />
           </div>
 
-          {/* Sexo */}
-          <div>
+          {/* Género */}
+          <div className="min-w-0">
             <label className="block text-xs font-medium text-gray-600 mb-1">
-              Sexo
+              Género
             </label>
             <SexoFilter
               value={filters.filters.sexo}
@@ -81,32 +78,8 @@ export function ProductosFilters({ filters, disabled = false }: ProductosFilters
             />
           </div>
 
-          {/* Color */}
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              Color
-            </label>
-            <ColorFilter
-              value={filters.filters.color}
-              onChange={filters.setColor}
-              disabled={disabled}
-            />
-          </div>
-
-          {/* Talle */}
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              Talle
-            </label>
-            <TalleFilter
-              value={filters.filters.talle}
-              onChange={filters.setTalle}
-              disabled={disabled}
-            />
-          </div>
-
           {/* Estado */}
-          <div>
+          <div className="min-w-0">
             <label className="block text-xs font-medium text-gray-600 mb-1">
               Estado
             </label>
@@ -117,21 +90,8 @@ export function ProductosFilters({ filters, disabled = false }: ProductosFilters
             />
           </div>
 
-          {/* Stock Range */}
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              Stock
-            </label>
-            <StockRangeFilter
-              stockMin={filters.filters.stockMin}
-              stockMax={filters.filters.stockMax}
-              onChange={filters.setStockRange}
-              disabled={disabled}
-            />
-          </div>
-
-          {/* Ordenamiento */}
-          <div className="sm:col-span-2">
+          {/* Ordenamiento: puede ocupar más de una col en móvil si hace falta */}
+          <div className="min-w-0 sm:col-span-2 md:col-span-1">
             <label className="block text-xs font-medium text-gray-600 mb-1">
               Ordenar por
             </label>

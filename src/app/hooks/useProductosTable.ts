@@ -105,10 +105,13 @@ export function useProductosTable({ empresaId, page, limit, search, filters }: U
     let filtered = productos;
     
     if (filters?.sexo) {
+      const sexoLower = filters.sexo.toLowerCase();
       filtered = filtered.filter((producto) => {
-        return producto.productosWeb?.some(v => 
-          v.sexo === filters.sexo || v.sexo === 'unisex'
-        );
+        // Comparar case-insensitive: API devuelve "Masculino"/"Femenino"/"Unisex"
+        return producto.productosWeb?.some(v => {
+          const vSexo = v.sexo?.toLowerCase() ?? '';
+          return vSexo === sexoLower || vSexo === 'unisex';
+        });
       });
     }
     

@@ -128,6 +128,16 @@ export function getProductosColumns({
       ),
     },
     {
+      accessorKey: 'genero',
+      header: 'Género',
+      cell: ({ row }) => {
+        const g = row.original.genero;
+        if (!g) return <span className="text-sm text-neutral-400">-</span>;
+        const label = g === 'Masculino' ? 'Hombre' : g === 'Femenino' ? 'Mujer' : g;
+        return <span className="text-sm">{label}</span>;
+      },
+    },
+    {
       accessorKey: 'descripcion',
       header: 'Descripción',
       cell: ({ row }) => (

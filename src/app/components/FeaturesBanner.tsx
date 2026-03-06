@@ -30,7 +30,7 @@ const FeaturesBanner = () => {
   return (
     <div className="w-full bg-gray-100 py-6 lg:py-8">
       <div className="w-full px-4 lg:px-15">
-        <div className="flex flex-col sm:flex-row flex-wrap justify-between items-stretch gap-4 lg:gap-6 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 w-full items-center md:items-start justify-items-center md:justify-items-start">
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
             return (
@@ -40,7 +40,7 @@ const FeaturesBanner = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="flex flex-col items-center text-center"
+                className="flex flex-col items-center text-center md:items-start md:text-left w-full max-w-xs md:max-w-none"
               >
                 <div className="mb-3">
                   <IconComponent 

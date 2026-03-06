@@ -1,15 +1,14 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/contexts/AuthContext';
 
 /**
- * Roles del usuario desde la sesión Auth.js (session.user.role: 'ADMIN' | 'USER').
+ * Roles del usuario desde la sesión (Firebase + API). sessionState.role: 'ADMIN' | 'USER' etc.
  */
 export const useUserRoles = (): string[] => {
-  const { data: session } = useSession();
-  const user = session?.user as { role?: string | string[] } | undefined;
-  if (!user) return [];
-  const role = user.role;
+  const { sessionState } = useAuth();
+  if (!sessionState?.role) return [];
+  const role = sessionState.role;
   if (typeof role === 'string') return [role];
   if (Array.isArray(role)) return role;
   return [];

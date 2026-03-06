@@ -2,7 +2,7 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { Mail, ArrowLeft, CheckCircle, CheckCircle2 } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/contexts/AuthContext';
 import Button from '@/app/components/ui/Button';
 import { motion } from 'framer-motion';
 
@@ -10,24 +10,20 @@ import { motion } from 'framer-motion';
 function EmailVerificationContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
-    const { data: session, status } = useSession();
-    const user = session?.user;
-    const userLoading = status === 'loading';
+    const { sessionState, isLoading } = useAuth();
     const message = searchParams.get('message') || 'Verificá tu email para continuar.';
     
     const [isVerified, setIsVerified] = useState(false);
     const [isChecking, setIsChecking] = useState(true);
 
-    // Verificar si el email ya está verificado
+    // Verificar si el email ya está verificado (Firebase + sesión API)
     useEffect(() => {
-        if (!userLoading) {
-            if (user) {
-                // Auth0 incluye email_verified en el objeto user
-                const emailVerified = (user as any)?.emailVerified === true;
+        if (!isLoading) {
+            if (sessionState) {
+                const emailVerified = sessionState.emailVerified === true;
                 setIsVerified(emailVerified);
                 setIsChecking(false);
                 
-                // Si está verificado, redirigir automáticamente después de 2 segundos
                 if (emailVerified) {
                     const timer = setTimeout(() => {
                         router.push('/auth/login');
@@ -38,7 +34,7 @@ function EmailVerificationContent() {
                 setIsChecking(false);
             }
         }
-    }, [user, userLoading, router]);
+    }, [sessionState, isLoading, router]);
 
     // Si está verificado, mostrar mensaje de éxito
     if (isVerified) {

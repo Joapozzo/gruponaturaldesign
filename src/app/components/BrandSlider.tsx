@@ -17,32 +17,32 @@ const BrandsSlider = () => {
         {
             id: 1,
             name: "Coca Cola",
-            image: "/imgs/products/coca.jpg",
+            image: "/imgs/marcas/coca.jpg",
         },
         {
             id: 2,
             name: "Stellantis",
-            image: "/imgs/products/stellantis.jpg",
+            image: "/imgs/marcas/stellantis.jpg",
         },
         {
             id: 3,
             name: "Tarjeta Naranja",
-            image: "/imgs/products/naranja.jpg",
+            image: "/imgs/marcas/naranja.jpg",
         },
         {
             id: 4,
             name: "Reina Fabiola",
-            image: "/imgs/products/fabiola.jpg",
+            image: "/imgs/marcas/fabiola.jpg",
         },
         {
             id: 5,
             name: "Horse",
-            image: "/imgs/products/horse.jpg",
+            image: "/imgs/marcas/horse.jpg",
         },
         {
             id: 6,
             name: "CNH",
-            image: "/imgs/products/cnh.jpg",
+            image: "/imgs/marcas/cnh.jpg",
         }
     ];
 

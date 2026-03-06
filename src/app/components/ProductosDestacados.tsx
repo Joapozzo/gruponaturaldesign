@@ -178,7 +178,7 @@ const CTAButton = ({ onClick }: { onClick: () => void }) => (
     whileInView={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.8, delay: 0.3 }}
     viewport={{ once: true }}
-    className="text-center mt-10"
+    className="text-center my-10"
   >
     <Button
       variant="black"
