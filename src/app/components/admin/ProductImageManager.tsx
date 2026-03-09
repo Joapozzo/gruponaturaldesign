@@ -39,6 +39,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { compressImage } from '@/app/utils/compressImage';
 import type { ProductImage } from '../../services/productImage.service';
 
 // ---------------------------------------------------------------------------
@@ -202,12 +203,10 @@ export function ProductImageManager({ productoWebId, productoNombre }: ProductIm
   // Selección de archivos
   // -------------------------------------------------------------------------
 
-  const handleFileSelect = useCallback((files: FileList | null) => {
+  const handleFileSelect = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
-    const validFiles: File[] = [];
-    const previewPromises: Promise<string>[] = [];
-
+    const toProcess: File[] = [];
     Array.from(files).forEach((file) => {
       if (!file.type.startsWith('image/')) {
         toast.error(`${file.name} no es una imagen válida`);
@@ -217,24 +216,30 @@ export function ProductImageManager({ productoWebId, productoNombre }: ProductIm
         toast.error(`${file.name} es demasiado grande (máx. 5MB)`);
         return;
       }
-      validFiles.push(file);
-      previewPromises.push(
-        new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = (e) =>
-            e.target?.result ? resolve(e.target.result as string) : reject();
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        })
-      );
+      toProcess.push(file);
     });
+    if (toProcess.length === 0) return;
 
-    Promise.all(previewPromises).then((newPreviews) => {
-      setSelectedFiles((prev) => [...prev, ...validFiles]);
+    try {
+      const compressedFiles = await Promise.all(
+        toProcess.map((file) => compressImage(file))
+      );
+      const previewPromises = compressedFiles.map(
+        (file) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) =>
+              e.target?.result ? resolve(e.target.result as string) : reject();
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          })
+      );
+      const newPreviews = await Promise.all(previewPromises);
+      setSelectedFiles((prev) => [...prev, ...compressedFiles]);
       setPreviews((prev) => [...prev, ...newPreviews]);
-    }).catch(() => {
-      toast.error('Error al cargar las previsualizaciones');
-    });
+    } catch {
+      toast.error('Error al procesar las imágenes');
+    }
   }, []);
 
   const handleDrop = useCallback(

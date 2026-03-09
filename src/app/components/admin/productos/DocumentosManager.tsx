@@ -12,6 +12,7 @@ import {
   useDeleteFichaTecnica,
 } from '@/app/hooks/useProductoDocumentos';
 import { normalizeImageUrl } from '@/app/utils/normalizeImageUrl';
+import { compressImage } from '@/app/utils/compressImage';
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -62,15 +63,29 @@ function DocumentoCard({
   onDelete,
 }: DocumentoCardProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [compressing, setCompressing] = useState(false);
   const publicUrl = url ? getPublicUrl(url) : null;
   const esPdf = isPdf(url);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    onUpload(file);
-    // Resetear input para permitir subir el mismo archivo de nuevo
     e.target.value = '';
+
+    const isImage = file.type.startsWith('image/');
+    if (isImage) {
+      setCompressing(true);
+      try {
+        const compressed = await compressImage(file);
+        onUpload(compressed);
+      } catch {
+        toast.error('Error al comprimir la imagen');
+      } finally {
+        setCompressing(false);
+      }
+    } else {
+      onUpload(file);
+    }
   };
 
   return (
@@ -124,10 +139,15 @@ function DocumentoCard({
               variant="grayOutline"
               size="sm"
               onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading || isDeleting}
+              disabled={isUploading || isDeleting || compressing}
               className="flex-1"
             >
-              {isUploading ? (
+              {compressing ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Comprimiendo...
+                </>
+              ) : isUploading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Subiendo...
@@ -157,10 +177,15 @@ function DocumentoCard({
       ) : (
         /* Sin documento — área de upload */
         <div
-          onClick={() => fileInputRef.current?.click()}
+          onClick={() => !compressing && !isUploading && fileInputRef.current?.click()}
           className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer"
         >
-          {isUploading ? (
+          {compressing ? (
+            <div className="flex flex-col items-center gap-2">
+              <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
+              <p className="text-sm text-gray-600">Comprimiendo imagen...</p>
+            </div>
+          ) : isUploading ? (
             <div className="flex flex-col items-center gap-2">
               <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
               <p className="text-sm text-gray-600">Subiendo documento...</p>

@@ -27,6 +27,7 @@ import {
 } from '@/app/hooks/useProductImages';
 import { Upload, X, Trash2, Image as ImageIcon, Loader2, GripVertical, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { compressImage } from '@/app/utils/compressImage';
 import type { ProductImage } from '@/app/services/productImage.service';
 import { ProductImage as ProductImageComponent } from '@/app/components/product-card/components/ProductImage';
 
@@ -247,9 +248,7 @@ export function VariantesImagesManager({
     async (files: FileList | null) => {
       if (!files || files.length === 0) return;
 
-      const validFiles: File[] = [];
-      const previewPromises: Promise<string>[] = [];
-
+      const toProcess: File[] = [];
       Array.from(files).forEach((file) => {
         if (!file.type.startsWith('image/')) {
           toast.error(`${file.name} no es una imagen válida`);
@@ -259,28 +258,33 @@ export function VariantesImagesManager({
           toast.error(`${file.name} es demasiado grande (máx. 5MB)`);
           return;
         }
-        validFiles.push(file);
-        previewPromises.push(
-          new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (e) =>
-              e.target?.result ? resolve(e.target.result as string) : reject();
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-          })
-        );
+        toProcess.push(file);
       });
+      if (toProcess.length === 0) return;
 
       try {
+        const compressedFiles = await Promise.all(
+          toProcess.map((file) => compressImage(file))
+        );
+        const previewPromises = compressedFiles.map(
+          (file) =>
+            new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = (e) =>
+                e.target?.result ? resolve(e.target.result as string) : reject();
+              reader.onerror = reject;
+              reader.readAsDataURL(file);
+            })
+        );
         const newPreviews = await Promise.all(previewPromises);
         setPreviewItems((prev) => {
           const slotsLeft = MAX_IMAGENES_POR_COLOR - imagenesExistentes - prev.length;
-          const toAddCount = Math.min(validFiles.length, Math.max(0, slotsLeft));
+          const toAddCount = Math.min(compressedFiles.length, Math.max(0, slotsLeft));
           if (toAddCount <= 0) {
             toast.error(`Límite de ${MAX_IMAGENES_POR_COLOR} imágenes para este color alcanzado`);
             return prev;
           }
-          const toAddFiles = validFiles.slice(0, toAddCount);
+          const toAddFiles = compressedFiles.slice(0, toAddCount);
           const toAddPreviews = newPreviews.slice(0, toAddCount);
           const base = Date.now();
           const newItems: PreviewItem[] = toAddFiles.map((file, i) => ({
@@ -291,7 +295,7 @@ export function VariantesImagesManager({
           return [...prev, ...newItems];
         });
       } catch {
-        toast.error('Error al cargar las previsualizaciones');
+        toast.error('Error al procesar las imágenes');
       }
     },
     [imagenesExistentes]
