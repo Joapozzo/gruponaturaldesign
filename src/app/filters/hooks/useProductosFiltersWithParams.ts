@@ -98,11 +98,12 @@ export function useProductosFiltersWithParams() {
       params.delete('orderDirection');
     }
 
-    // Resetear página cuando cambian los filtros
+    // Resetear página cuando cambian los filtros (limit se preserva del URL actual)
     params.set('page', '1');
 
     router.replace(`?${params.toString()}`, { scroll: false });
-  }, [filters.filters, router, searchParams]);
+    // No incluir searchParams: si no, al cambiar page o limit se dispara este efecto y se resetea page a 1
+  }, [filters.filters, router]);
 
   return filters;
 }
