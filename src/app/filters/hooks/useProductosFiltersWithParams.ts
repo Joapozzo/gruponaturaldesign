@@ -98,8 +98,12 @@ export function useProductosFiltersWithParams() {
       params.delete('orderDirection');
     }
 
-    // Resetear página cuando cambian los filtros (limit se preserva del URL actual)
+    // Resetear página cuando cambian los filtros
     params.set('page', '1');
+    // No pisar limit: preservar el de la URL o dejar default para no borrarlo (evita race con useTableSearchParams)
+    if (!params.has('limit')) {
+      params.set('limit', searchParams.get('limit') || '20');
+    }
 
     router.replace(`?${params.toString()}`, { scroll: false });
     // No incluir searchParams: si no, al cambiar page o limit se dispara este efecto y se resetea page a 1
