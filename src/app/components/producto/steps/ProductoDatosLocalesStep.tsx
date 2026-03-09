@@ -46,7 +46,7 @@ export const ProductoDatosLocalesStep = memo<ProductoDatosLocalesStepProps>(func
           id="descripcionMarketing"
           name="descripcionMarketing"
           label="Descripción Marketing"
-          value={datosLocales.descripcionMarketing}
+          value={datosLocales.descripcionMarketing ?? ''}
           onChange={(e) => onDescripcionMarketingChange(e.target.value)}
           placeholder="Descripción para marketing y SEO"
           rows={3}

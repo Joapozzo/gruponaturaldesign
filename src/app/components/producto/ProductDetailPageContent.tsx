@@ -210,19 +210,9 @@ export default function ProductDetailPageContent({
                 onNext={nextImage}
                 onPrev={prevImage}
                 onOpenModal={openModal}
+                isOutOfStock={showOutOfStock}
               />
             </Suspense>
-            {/* Overlay Agotado: producto sin stock o color seleccionado sin stock en ningún talle */}
-            {showOutOfStock && (
-              <div
-                className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg pointer-events-none z-10"
-                aria-hidden
-              >
-                <span className="text-white font-bold text-2xl uppercase tracking-wider drop-shadow-md">
-                  Agotado
-                </span>
-              </div>
-            )}
             {/* Código y Categoría debajo de las imágenes */}
             <div className="mt-3 w-full">
               <div className="flex flex-col sm:flex-row gap-0">

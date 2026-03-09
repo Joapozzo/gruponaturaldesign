@@ -4,6 +4,7 @@ import Sidebar from '@/components/admin/Sidebar';
 import Header from '@/components/admin/Header';
 import { SidebarProvider, useSidebar } from '@/components/admin/SidebarContext';
 import { SyncProvider, useSync } from '@/components/admin/SyncContext';
+import { AdminGuard } from '@/app/components/admin/AdminGuard';
 import { cn } from '@/lib/utils';
 
 function AdminLayoutContent({ children }: { children: React.ReactNode }) {
@@ -48,10 +49,12 @@ export default function AdminClientLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SyncProvider>
-      <SidebarProvider>
-        <AdminLayoutContent>{children}</AdminLayoutContent>
-      </SidebarProvider>
-    </SyncProvider>
+    <AdminGuard>
+      <SyncProvider>
+        <SidebarProvider>
+          <AdminLayoutContent>{children}</AdminLayoutContent>
+        </SidebarProvider>
+      </SyncProvider>
+    </AdminGuard>
   );
 }

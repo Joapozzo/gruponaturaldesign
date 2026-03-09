@@ -42,6 +42,7 @@ const ProductCardPublicado: React.FC<ProductCardPublicadoProps> = ({
     producto,
     expandedSku,
     onExpandChange,
+    cardIndex: index,
   });
 
   // Hook para calcular descuentos
@@ -134,7 +135,10 @@ const ProductCardPublicado: React.FC<ProductCardPublicadoProps> = ({
             <div className="mb-2">
               <span
                 className="text-xs text-gray-500 underline cursor-pointer hover:text-gray-700 transition-colors"
-                onClick={handleShowSelectors}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleShowSelectors();
+                }}
               >
                 {selection.availableColors.length} {selection.availableColors.length === 1 ? 'color' : 'colores'}
               </span>
@@ -153,6 +157,7 @@ const ProductCardPublicado: React.FC<ProductCardPublicadoProps> = ({
                   ease: 'easeInOut',
                 }}
                 className="overflow-visible mb-3"
+                onClick={(e) => e.stopPropagation()}
               >
                 <ProductCardSelectors
                   availableColors={selection.availableColors}

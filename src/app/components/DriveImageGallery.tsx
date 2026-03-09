@@ -8,12 +8,14 @@ import Image from 'next/image';
 interface DriveImageGalleryProps {
     driveFolderUrl: string | null;
     productName?: string;
+    /** Si true, muestra overlay "Agotado" solo sobre la imagen principal */
+    isOutOfStock?: boolean;
 }
 
 /**
  * Componente que muestra imágenes desde una carpeta pública de Google Drive
  */
-const DriveImageGallery: React.FC<DriveImageGalleryProps> = ({ driveFolderUrl, productName = 'Producto' }) => {
+const DriveImageGallery: React.FC<DriveImageGalleryProps> = ({ driveFolderUrl, productName = 'Producto', isOutOfStock = false }) => {
     const [images, setImages] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -181,6 +183,17 @@ const DriveImageGallery: React.FC<DriveImageGalleryProps> = ({ driveFolderUrl, p
                     >
                         <ImageIcon size={20} />
                     </button>
+                    {/* Overlay Agotado solo sobre la imagen principal */}
+                    {isOutOfStock && (
+                        <div
+                            className="absolute inset-0 bg-black/50 flex items-center justify-center pointer-events-none z-10"
+                            aria-hidden
+                        >
+                            <span className="text-white font-bold text-2xl uppercase tracking-wider drop-shadow-md">
+                                Agotado
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Miniaturas */}

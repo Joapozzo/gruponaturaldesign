@@ -12,6 +12,8 @@ import Button from '@/components/ui/Button';
 interface ProductosFiltersProps {
   filters: ReturnType<typeof useProductosFilters>;
   disabled?: boolean;
+  /** Si hay texto en el input de búsqueda; cuando es true también se muestra "Limpiar filtros". */
+  hasSearchTerm?: boolean;
   /** Se llama al hacer clic en "Limpiar filtros" (además de filters.clearFilters). Útil para limpiar también el input de búsqueda. */
   onClearFilters?: () => void;
 }
@@ -20,11 +22,13 @@ interface ProductosFiltersProps {
  * Componente contenedor de todos los filtros de productos
  * Orquesta los filtros individuales sin conocer su lógica interna
  */
-export function ProductosFilters({ filters, disabled = false, onClearFilters }: ProductosFiltersProps) {
+export function ProductosFilters({ filters, disabled = false, hasSearchTerm = false, onClearFilters }: ProductosFiltersProps) {
   const handleClearFilters = () => {
     filters.clearFilters();
     onClearFilters?.();
   };
+
+  const showClearButton = filters.hasActiveFilters || hasSearchTerm;
 
   return (
     <Card variant="elevated" padding="md" className="min-w-0 max-w-full overflow-hidden">
@@ -32,7 +36,7 @@ export function ProductosFilters({ filters, disabled = false, onClearFilters }: 
         {/* Header: responsive, no overflow */}
         <div className="flex flex-wrap items-center justify-between gap-2 min-w-0">
           <h3 className="text-sm font-semibold text-gray-700 shrink-0">Filtros</h3>
-          {filters.hasActiveFilters && (
+          {showClearButton && (
             <Button
               variant="ghost"
               size="sm"

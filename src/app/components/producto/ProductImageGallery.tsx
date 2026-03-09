@@ -15,6 +15,8 @@ interface ProductImageGalleryProps {
     onNext: () => void;
     onPrev: () => void;
     onOpenModal: (validImages?: string[], validIndex?: number) => void;
+    /** Si true, muestra overlay "Agotado" solo sobre la imagen principal (la grande) */
+    isOutOfStock?: boolean;
 }
 
 export default function ProductImageGallery({
@@ -26,6 +28,7 @@ export default function ProductImageGallery({
     onNext,
     onPrev,
     onOpenModal,
+    isOutOfStock = false,
 }: ProductImageGalleryProps) {
     const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
     const [isHovering, setIsHovering] = useState(false);
@@ -136,6 +139,7 @@ export default function ProductImageGallery({
                 <DriveImageGallery
                     driveFolderUrl={product.fotosDriveUrl}
                     productName={productName}
+                    isOutOfStock={isOutOfStock}
                 />
             ) : (
                 // Galería local: desktop 50% ancho, caber en 100vh
@@ -251,6 +255,17 @@ export default function ProductImageGallery({
                                 {displayImages.length > 1 && (
                                     <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full p-1.5 sm:p-2 transition-all duration-300 z-20">
                                         <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                                    </div>
+                                )}
+                                {/* Overlay Agotado solo sobre la imagen principal */}
+                                {isOutOfStock && (
+                                    <div
+                                        className="absolute inset-0 bg-black/50 flex items-center justify-center pointer-events-none z-30"
+                                        aria-hidden
+                                    >
+                                        <span className="text-white font-bold text-2xl uppercase tracking-wider drop-shadow-md">
+                                            Agotado
+                                        </span>
                                     </div>
                                 )}
                                 {/* Navegación con flechas si hay más de una imagen */}

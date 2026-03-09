@@ -203,8 +203,9 @@ export function useProductosMutations({ empresaId, onSuccess, onError }: UseProd
     }}) => {
       return productoService.actualizarDatosLocales(id, data);
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       invalidateQueries();
+      queryClient.invalidateQueries({ queryKey: productosKeys.completo(variables.id) });
       onSuccess?.('Datos locales actualizados correctamente');
     },
     onError: (error: Error) => {

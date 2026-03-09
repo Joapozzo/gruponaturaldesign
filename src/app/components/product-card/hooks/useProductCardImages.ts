@@ -1,15 +1,22 @@
 /**
  * Hook para manejo de imágenes del producto
  * Responsabilidad única: gestión de la galería de imágenes
+ * Si el color seleccionado no tiene imagen, usa la de otra variante del mismo producto.
  */
 
 import { useMemo } from 'react';
 import { useImageNavigation } from './useImageNavigation';
 import type { VariantePublicada } from '@/app/types/producto-publicado.types';
 
+function isValidImageUrl(url: string | null | undefined): boolean {
+  return Boolean(url && typeof url === 'string' && url.trim() !== '');
+}
+
 interface UseProductCardImagesProps {
   selectedVariant: VariantePublicada | null;
   imagenPrincipal: string | null;
+  /** Todas las variantes del producto; se usa para fallback cuando el color seleccionado no tiene imagen */
+  variantes?: VariantePublicada[];
 }
 
 interface UseProductCardImagesReturn {
@@ -25,17 +32,22 @@ interface UseProductCardImagesReturn {
 export function useProductCardImages({
   selectedVariant,
   imagenPrincipal,
+  variantes = [],
 }: UseProductCardImagesProps): UseProductCardImagesReturn {
-  // Preparar imágenes para la galería
+  // Preparar imágenes: 1) imagen del color seleccionado 2) imagenPrincipal 3) primera variante con imagen 4) placeholder
   const images = useMemo(() => {
-    if (selectedVariant?.imagen && selectedVariant.imagen.trim() !== '') {
-      return [selectedVariant.imagen];
+    if (isValidImageUrl(selectedVariant?.imagen)) {
+      return [selectedVariant!.imagen!];
     }
-    if (imagenPrincipal && imagenPrincipal.trim() !== '') {
-      return [imagenPrincipal];
+    if (isValidImageUrl(imagenPrincipal)) {
+      return [imagenPrincipal!];
+    }
+    const otraVarianteConImagen = variantes.find((v) => isValidImageUrl(v.imagen));
+    if (otraVarianteConImagen?.imagen) {
+      return [otraVarianteConImagen.imagen];
     }
     return ['/imgs/producto-placeholder.png'];
-  }, [selectedVariant, imagenPrincipal]);
+  }, [selectedVariant, imagenPrincipal, variantes]);
 
   // Asegurar que images siempre sea un array válido
   const safeImages = Array.isArray(images) && images.length > 0 

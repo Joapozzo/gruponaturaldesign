@@ -57,9 +57,10 @@ export default function Header() {
           {/* Notifications */}
           <div className="relative">
             <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 rounded-lg hover:bg-neutral-100 transition-colors"
-              aria-label="Notificaciones"
+              type="button"
+              disabled
+              className="relative p-2 rounded-lg opacity-60 cursor-not-allowed transition-colors pointer-events-none"
+              aria-label="Notificaciones (deshabilitado)"
             >
               <Bell className="w-5 h-5 text-neutral-600" />
               {notifications.length > 0 && (

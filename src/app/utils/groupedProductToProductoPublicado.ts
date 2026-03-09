@@ -4,7 +4,25 @@
  */
 
 import { GroupedProduct } from '@/app/types/producto';
+import type { ProductWithImage } from '@/app/types/producto';
 import { ProductoPublicado, VariantePublicada } from '@/app/types/producto-publicado.types';
+
+/**
+ * Extrae la primera URL de imagen de un producto (imagen, imagenes[0] string, o imagenes[0].imagenUrl)
+ */
+function getFirstImageUrl(producto: ProductWithImage): string | null {
+  if (producto.imagen && typeof producto.imagen === 'string' && producto.imagen.trim() !== '') {
+    return producto.imagen;
+  }
+  const first = producto.imagenes?.[0];
+  if (!first) return null;
+  if (typeof first === 'string' && first.trim() !== '') return first;
+  if (typeof first === 'object' && first !== null && 'imagenUrl' in first) {
+    const url = (first as { imagenUrl?: string }).imagenUrl;
+    return url && typeof url === 'string' && url.trim() !== '' ? url : null;
+  }
+  return null;
+}
 
 /**
  * Convierte un GroupedProduct a ProductoPublicado
@@ -27,17 +45,20 @@ export function groupedProductToProductoPublicado(group: GroupedProduct): Produc
     )
   );
 
-  // Convertir variantes
-  const variantes: VariantePublicada[] = group.variants.map((variant, index) => ({
-    id: index + 1, // ID temporal basado en índice
-    codigo: variant.codigo,
-    color: variant.color || null,
-    talle: variant.talle || null,
-    stock: variant.stock || 0,
-    precio: variant.producto.PrecioVenta || 0,
-    imagen: variant.producto.imagen || variant.producto.imagenes?.[0] || null,
-    tieneImagen: Boolean(variant.producto.imagen || variant.producto.imagenes?.[0]),
-  }));
+  // Convertir variantes (extraer URL de imagen correctamente)
+  const variantes: VariantePublicada[] = group.variants.map((variant, index) => {
+    const imagen = getFirstImageUrl(variant.producto);
+    return {
+      id: index + 1, // ID temporal basado en índice
+      codigo: variant.codigo,
+      color: variant.color || null,
+      talle: variant.talle || null,
+      stock: variant.stock || 0,
+      precio: variant.producto.PrecioVenta || 0,
+      imagen,
+      tieneImagen: Boolean(imagen),
+    };
+  });
 
   // Calcular precios (usar el precio de la primera variante o displayProduct)
   const precioLista = group.displayProduct.PrecioVenta || null;
@@ -92,8 +113,8 @@ export function groupedProductToProductoPublicado(group: GroupedProduct): Produc
         }
       : null,
 
-    // Imagen principal
-    imagenPrincipal: group.displayProduct.imagen || group.displayProduct.imagenes?.[0] || null,
+    // Imagen principal (extraer URL correctamente)
+    imagenPrincipal: getFirstImageUrl(group.displayProduct),
 
     // Precios calculados
     precioLista,

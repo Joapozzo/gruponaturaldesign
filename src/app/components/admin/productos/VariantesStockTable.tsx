@@ -45,7 +45,7 @@ export function VariantesStockTable({
   const [variantes, setVariantes] = useState<EditableVariante[]>(
     initialVariantes.map(v => ({
       ...v,
-      editedStock: v.stockCache,
+      editedStock: v.stockCache ?? 0,
       editedPrecio: v.precioCache ?? precioGeneralInicial,
       precioPersonalizado: v.precioCache !== null && v.precioCache !== precioGeneralInicial,
     }))
@@ -103,10 +103,10 @@ export function VariantesStockTable({
   }, [hasChanges, onHasChangesChange]);
 
   const handleStockChange = (varianteId: number, value: string) => {
-    const numValue = value === '' ? null : parseFloat(value);
+    const numValue = value === '' ? 0 : parseFloat(value);
     setVariantes(prev => prev.map(v => 
       v.id === varianteId 
-        ? { ...v, editedStock: isNaN(numValue as number) ? null : numValue }
+        ? { ...v, editedStock: (value === '' || isNaN(numValue)) ? 0 : numValue }
         : v
     ));
   };
@@ -155,7 +155,7 @@ export function VariantesStockTable({
       })
       .map(v => ({
         id: v.id,
-        stockCache: v.editedStock,
+        stockCache: v.editedStock ?? 0,
         precioCache: v.precioPersonalizado ? v.editedPrecio : precioGeneral,
       }));
 
@@ -172,9 +172,9 @@ export function VariantesStockTable({
           const newPrecio = update.precioCache ?? null;
           return {
             ...v,
-            stockCache: update.stockCache ?? v.stockCache,
+            stockCache: update.stockCache ?? 0,
             precioCache: newPrecio,
-            editedStock: update.stockCache ?? null,
+            editedStock: update.stockCache ?? 0,
             editedPrecio: newPrecio,
             precioPersonalizado: v.precioPersonalizado && newPrecio !== precioGeneral,
           };
@@ -378,7 +378,7 @@ export function VariantesStockTable({
                         type="number"
                         min="0"
                         step="1"
-                        value={variante.editedStock ?? ''}
+                        value={variante.editedStock ?? 0}
                         onChange={(e) => handleStockChange(variante.id, e.target.value)}
                         className={`
                           w-24 px-2 py-1 border rounded text-right text-sm

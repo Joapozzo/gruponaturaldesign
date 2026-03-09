@@ -89,9 +89,14 @@ export class ApiClient {
     };
   }
 
+  /** Mensaje amigable cuando el servidor no está disponible (503/502/504) */
+  private static SERVICE_UNAVAILABLE_MESSAGE =
+    'Servicio temporalmente no disponible. Por favor intentá de nuevo en unos segundos.';
+
   /**
    * Método principal para realizar peticiones HTTP
-   * Normaliza automáticamente las respuestas del backend
+   * Normaliza automáticamente las respuestas del backend.
+   * Para 503 hace un reintento automático tras 2s antes de fallar.
    */
   async request<T>(
     endpoint: string,
@@ -99,6 +104,7 @@ export class ApiClient {
       customHeaders?: Record<string, string>;
       skipAuth?: boolean; // Para endpoints que no requieren autenticación
       skipContentType?: boolean; // Para FormData y otros casos especiales
+      _retry503?: boolean; // interno: ya hicimos retry
     }
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`;
@@ -107,6 +113,7 @@ export class ApiClient {
       customHeaders,
       skipAuth,
       skipContentType,
+      _retry503,
       ...fetchOptions
     } = options || {};
 
@@ -131,7 +138,24 @@ export class ApiClient {
 
       // Si la respuesta HTTP no es exitosa, normalizar error
       if (!response.ok) {
+        // 401 en peticiones que requieren auth: redirigir a login (token faltante/vencido)
+        if (response.status === 401 && !skipAuth && typeof window !== 'undefined') {
+          window.location.href = '/auth/login?reason=session_expired';
+        }
+        // 503: un reintento automático solo para GET (evitar reenviar POST/PUT)
+        const isGet = (fetchOptions.method ?? 'GET').toUpperCase() === 'GET';
+        if (response.status === 503 && !_retry503 && isGet) {
+          await new Promise((r) => setTimeout(r, 2000));
+          return this.request<T>(endpoint, { ...options, _retry503: true });
+        }
         const error = this.normalizeError(responseData, response.status);
+        // Usar mensaje amigable para 502/503/504 si el servidor no envió uno claro
+        if ([502, 503, 504].includes(response.status)) {
+          const msg = (responseData?.message ?? error.message) as string;
+          if (!msg || msg.includes('pool timeout') || msg.includes('ECONNREFUSED')) {
+            (error as ApiError).message = ApiClient.SERVICE_UNAVAILABLE_MESSAGE;
+          }
+        }
         throw error;
       }
 

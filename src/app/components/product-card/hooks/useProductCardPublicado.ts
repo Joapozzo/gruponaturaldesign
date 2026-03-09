@@ -16,6 +16,8 @@ interface UseProductCardPublicadoProps {
   producto: ProductoPublicado;
   expandedSku?: string | null;
   onExpandChange?: (sku: string | null) => void;
+  /** Índice del card en la lista; si se pasa, la expansión es por posición (evita que dos cards del mismo producto se expandan juntas) */
+  cardIndex?: number;
 }
 
 interface UseProductCardPublicadoReturn {
@@ -45,23 +47,31 @@ interface UseProductCardPublicadoReturn {
   isValid: boolean;
 }
 
+const getExpansionKey = (codigo: string | undefined, cardIndex: number | undefined) =>
+  cardIndex !== undefined && codigo != null ? `${codigo}-${cardIndex}` : codigo ?? null;
+
 export function useProductCardPublicado({
   producto,
   expandedSku,
   onExpandChange,
+  cardIndex,
 }: UseProductCardPublicadoProps): UseProductCardPublicadoReturn {
-  // Estado para mostrar selectores (solo cuando se hace click en agregar)
-  const [showSelectors, setShowSelectors] = useState(false);
+  // Estado local solo cuando no hay control del padre (uso aislado del card)
+  const [localShowSelectors, setLocalShowSelectors] = useState(false);
+  // Clave de expansión: por posición (codigo-index) si hay cardIndex, sino solo codigoAgrupacion
+  const expansionKey = getExpansionKey(producto?.codigoAgrupacion ?? undefined, cardIndex);
+  const showSelectors = onExpandChange
+    ? expandedSku === expansionKey
+    : localShowSelectors;
+  const isExpanded = showSelectors;
+
   // Estado para rastrear si se hizo una selección explícita
   const [hasExplicitSelection, setHasExplicitSelection] = useState(false);
-  
-  // Si este producto está expandido
-  const isExpanded = expandedSku === producto?.codigoAgrupacion;
 
   // Hooks especializados
   const selection = useProductCardSelection({ producto: producto || {} as ProductoPublicado });
   const config = useProductCardConfig();
-  
+
   const cart = useProductCardCart({
     selectedVariant: selection.selectedVariant,
     productoNombre: producto?.nombre || '',
@@ -76,6 +86,7 @@ export function useProductCardPublicado({
   const images = useProductCardImages({
     selectedVariant: selection.selectedVariant,
     imagenPrincipal: producto?.imagenPrincipal || null,
+    variantes: producto?.variantes ?? [],
   });
 
   const handlers = useProductCardHandlers({
@@ -84,62 +95,42 @@ export function useProductCardPublicado({
     setSelectedTalle: selection.setSelectedTalle,
   });
 
-  // Resetear selección cuando se despliega (si hay múltiples opciones)
-  useEffect(() => {
-    if (showSelectors) {
-      setHasExplicitSelection(false);
-    } else {
-      setHasExplicitSelection(false);
-    }
-  }, [showSelectors]);
-  
-  // Marcar como selección explícita cuando el usuario cambia color o talle
+  // Marcar como selección explícita cuando el usuario cambia color o talle (solo cuando está expandido)
   useEffect(() => {
     if (showSelectors && (selection.selectedColor || selection.selectedTalle)) {
       setHasExplicitSelection(true);
     }
   }, [selection.selectedColor, selection.selectedTalle, showSelectors]);
 
-  // Notificar al padre cuando showSelectors cambia (para detener slider)
+  // Al colapsar, resetear selección explícita
   useEffect(() => {
-    if (!producto) return;
-    if (showSelectors && onExpandChange) {
-      onExpandChange(producto.codigoAgrupacion);
-    } else if (!showSelectors && isExpanded && onExpandChange) {
-      onExpandChange(null);
-    }
-  }, [showSelectors, producto, isExpanded, onExpandChange]);
+    if (!showSelectors) setHasExplicitSelection(false);
+  }, [showSelectors]);
 
-  // Colapsar este card cuando se expande otro (solo uno expandido a la vez)
-  useEffect(() => {
-    if (expandedSku != null && expandedSku !== producto?.codigoAgrupacion) {
-      setShowSelectors(false);
-    }
-  }, [expandedSku, producto?.codigoAgrupacion]);
-
-  // Handler para mostrar selectores
+  // Handler para mostrar selectores: notificar al padre con clave única (solo uno expandido a la vez)
   const handleShowSelectors = () => {
     if (producto.variantes && producto.variantes.length > 1) {
-      setShowSelectors(true);
+      if (onExpandChange) onExpandChange(expansionKey ?? producto.codigoAgrupacion ?? null);
+      else setLocalShowSelectors(true);
     }
   };
 
   // Handler para agregar al carrito con despliegue de selectores
   const handleAddToCartClick = async () => {
-    // Si hay múltiples variantes, mostrar selectores primero
     if (producto.variantes && producto.variantes.length > 1 && !showSelectors) {
-      setShowSelectors(true);
+      if (onExpandChange) onExpandChange(expansionKey ?? producto.codigoAgrupacion ?? null);
+      else setLocalShowSelectors(true);
       return;
     }
-    // Si ya se seleccionó o hay una sola variante, agregar directamente
     await cart.handleAddToCart();
-    // Cerrar selectores después de agregar
-    setShowSelectors(false);
+    if (onExpandChange) onExpandChange(null);
+    else setLocalShowSelectors(false);
   };
-  
-  // Handler para cancelar que cierra con animación
+
+  // Handler para cancelar: colapsar este producto
   const handleCancel = () => {
-    setShowSelectors(false);
+    if (onExpandChange) onExpandChange(null);
+    else setLocalShowSelectors(false);
   };
 
   // Validaciones

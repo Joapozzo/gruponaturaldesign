@@ -162,7 +162,12 @@ export function ProductosTableClient({ empresaId }: ProductosTableClientProps) {
     <>
       <div className="mt-8 space-y-4">
         {/* Filtros Avanzados */}
-        <ProductosFilters filters={filters} disabled={disabled} onClearFilters={clearSearch} />
+        <ProductosFilters
+          filters={filters}
+          disabled={disabled}
+          hasSearchTerm={searchInput.trim().length > 0}
+          onClearFilters={clearSearch}
+        />
 
         {/* Búsqueda y Acciones Bulk */}
         <Card variant="elevated" padding="md">

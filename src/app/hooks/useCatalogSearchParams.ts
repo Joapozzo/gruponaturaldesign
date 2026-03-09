@@ -227,9 +227,10 @@ export function useCatalogSearchParams({
     }
   }, [searchParams.toString()]);
 
-  // Wrapper para clearFilters que también limpia la URL
+  // Wrapper para clearFilters que también limpia la URL y el input de búsqueda
   const clearFiltersAndURL = () => {
     clearFilters();
+    updateFilter('searchTerm', '');
     router.replace(pathname, { scroll: false });
   };
 
