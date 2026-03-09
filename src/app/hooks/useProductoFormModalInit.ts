@@ -56,9 +56,11 @@ export function useProductoFormModalInit({
   } = wizardSetters;
 
   const hasInitializedForSession = useRef(false);
+  const prevIsOpenRef = useRef(isOpen);
 
   useEffect(() => {
     if (isOpen) {
+      prevIsOpenRef.current = true;
       if (isEditMode && productoCompleto && !hasInitializedForSession.current) {
         const datos = datosSFactoryParaEdicion ?? productoCompleto.datosSFactory;
         updateDatosComunes({
@@ -110,9 +112,12 @@ export function useProductoFormModalInit({
         hasInitializedForSession.current = true;
       }
     } else {
+      if (prevIsOpenRef.current) {
+        prevIsOpenRef.current = false;
+        resetWizard();
+        onReset?.();
+      }
       hasInitializedForSession.current = false;
-      resetWizard();
-      onReset?.();
     }
   }, [
     isOpen,

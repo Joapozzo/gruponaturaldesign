@@ -27,6 +27,12 @@ export function useBulkSelection<T extends { id: number }>(items: T[]) {
     }
   }, [selectedIds.size, items]);
 
+  /** Selecciona todas las filas (sin alternar). */
+  const selectAll = useCallback(() => {
+    if (items.length === 0) return;
+    setSelectedIds(new Set(items.map((item) => item.id)));
+  }, [items]);
+
   const clearSelection = useCallback(() => {
     setSelectedIds(new Set());
   }, []);
@@ -38,6 +44,7 @@ export function useBulkSelection<T extends { id: number }>(items: T[]) {
     selectedCount,
     toggleSelect,
     toggleSelectAll,
+    selectAll,
     clearSelection,
   };
 }

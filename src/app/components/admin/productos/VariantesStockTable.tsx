@@ -1,15 +1,18 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import Button from '@/app/components/ui/Button';
 import Select from '@/app/components/ui/Select';
 import { useVariantesStock } from '@/app/hooks/useVariantesStock';
+import { useBulkSelection } from '@/app/hooks/useBulkSelection';
 import type { ProductoPadreConVariantes, ProductoWebResponse } from '@/app/types/producto.types';
 import { formatNombreConGenero } from './columns';
 import { Search, Save, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { calcularPreciosDerivados } from '@/app/utils/calcularPreciosDerivados';
+import { productosKeys } from '@/app/utils/productosKeys';
 
 interface VariantesStockTableProps {
   producto: ProductoPadreConVariantes;
@@ -57,7 +60,46 @@ export function VariantesStockTable({
     search: '',
   });
 
+  const queryClient = useQueryClient();
   const { updateBulk, isUpdating } = useVariantesStock();
+  const bulkSelection = useBulkSelection(variantes);
+  const lastProductIdRef = useRef<number | null>(null);
+  const selectionInitializedRef = useRef(false);
+  const [syncVersion, setSyncVersion] = useState(0);
+
+  // Sincronizar variantes solo cuando cambia el producto (abrir modal u otro producto)
+  useEffect(() => {
+    if (producto?.id == null || !initialVariantes.length) return;
+    if (lastProductIdRef.current === producto.id) return;
+    lastProductIdRef.current = producto.id;
+    selectionInitializedRef.current = false;
+    const precios = initialVariantes.map(v => v.precioCache).filter(p => p != null) as number[];
+    const precioBase = precios.length > 0 ? precios[0] : null;
+    setVariantes(
+      initialVariantes.map(v => ({
+        ...v,
+        editedStock: v.stockCache ?? 0,
+        editedPrecio: v.precioCache ?? precioBase,
+        precioPersonalizado: false,
+      }))
+    );
+    setPrecioGeneral(precioBase);
+    setPrecioGeneralChanged(false);
+    setSyncVersion((v) => v + 1);
+  }, [producto?.id]);
+
+  // Solo seleccionar todas al cargar/sincronizar producto (una vez por sync); evita "Maximum update depth"
+  useEffect(() => {
+    if (
+      producto?.id != null &&
+      variantes.length > 0 &&
+      !selectionInitializedRef.current &&
+      lastProductIdRef.current === producto.id
+    ) {
+      bulkSelection.selectAll();
+      selectionInitializedRef.current = true;
+    }
+  }, [producto?.id, syncVersion]);
 
   // Obtener valores únicos para filtros
   const coloresUnicos = useMemo(() => 
@@ -87,15 +129,16 @@ export function VariantesStockTable({
     });
   }, [variantes, filters, producto.nombre]);
 
-  // Detectar cambios
+  // Habilitar Guardar solo si hay selección y algo cambió respecto a valores iniciales (inputs)
   const hasChanges = useMemo(() => {
-    const variantesChanged = variantes.some(v => 
-      v.editedStock !== v.stockCache || 
-      (v.precioPersonalizado && v.editedPrecio !== v.precioCache) ||
-      (!v.precioPersonalizado && v.editedPrecio !== precioGeneral)
+    if (bulkSelection.selectedCount === 0) return false;
+    const selected = variantes.filter(v => bulkSelection.selectedIds.has(v.id));
+    return selected.some(
+      v =>
+        (v.editedStock ?? 0) !== (v.stockCache ?? 0) ||
+        (v.editedPrecio ?? v.precioCache) !== (v.precioCache ?? null)
     );
-    return variantesChanged || precioGeneralChanged;
-  }, [variantes, precioGeneral, precioGeneralChanged]);
+  }, [variantes, bulkSelection.selectedIds, bulkSelection.selectedCount]);
 
   // Notificar cambios al modal
   useEffect(() => {
@@ -116,14 +159,54 @@ export function VariantesStockTable({
     const newPrecio = isNaN(numValue as number) ? null : numValue;
     setPrecioGeneral(newPrecio);
     setPrecioGeneralChanged(newPrecio !== precioGeneralInicial);
-    
-    // Aplicar a todas las variantes que no tienen precio personalizado
-    setVariantes(prev => prev.map(v => {
-      if (!v.precioPersonalizado) {
-        return { ...v, editedPrecio: newPrecio };
-      }
-      return v;
-    }));
+    // Aplicar solo a las variantes seleccionadas
+    setVariantes(prev =>
+      prev.map(v =>
+        bulkSelection.selectedIds.has(v.id)
+          ? { ...v, editedPrecio: newPrecio, precioPersonalizado: false }
+          : v
+      )
+    );
+  };
+
+  // Stock único para seleccionadas: valor mostrado y aplicación en vivo
+  const selectedVariantes = useMemo(
+    () => variantes.filter(v => bulkSelection.selectedIds.has(v.id)),
+    [variantes, bulkSelection.selectedIds]
+  );
+  const selectedStockCommon =
+    selectedVariantes.length > 0
+      ? (() => {
+          const first = selectedVariantes[0].editedStock ?? 0;
+          const allSame = selectedVariantes.every(v => (v.editedStock ?? 0) === first);
+          return allSame ? first : null;
+        })()
+      : null;
+  const [stockInputValue, setStockInputValue] = useState<string>('');
+  const stockInputDisplay =
+    stockInputValue !== ''
+      ? stockInputValue
+      : selectedStockCommon !== null
+        ? String(selectedStockCommon)
+        : '';
+
+  const selectionKey = useMemo(
+    () => Array.from(bulkSelection.selectedIds).sort((a, b) => a - b).join(','),
+    [bulkSelection.selectedIds]
+  );
+  useEffect(() => {
+    setStockInputValue('');
+  }, [producto?.id, selectionKey]);
+
+  const handleStockInputChange = (value: string) => {
+    setStockInputValue(value);
+    const num = value.trim() === '' ? 0 : parseFloat(value);
+    const finalNum = isNaN(num) ? 0 : Math.max(0, num);
+    setVariantes(prev =>
+      prev.map(v =>
+        bulkSelection.selectedIds.has(v.id) ? { ...v, editedStock: finalNum } : v
+      )
+    );
   };
 
   const handlePrecioChange = (varianteId: number, value: string) => {
@@ -144,51 +227,37 @@ export function VariantesStockTable({
   };
 
   const handleSaveAll = async () => {
-    // Preparar actualizaciones: incluir todas las variantes con stock o precio modificado
-    const updates = variantes
-      .filter(v => {
-        const stockChanged = v.editedStock !== v.stockCache;
-        const precioChanged = v.precioPersonalizado 
-          ? v.editedPrecio !== v.precioCache
-          : precioGeneralChanged; // Si cambió el precio general, todas las no personalizadas deben actualizarse
-        return stockChanged || precioChanged;
-      })
-      .map(v => ({
-        id: v.id,
-        stockCache: v.editedStock ?? 0,
-        precioCache: v.precioPersonalizado ? v.editedPrecio : precioGeneral,
-      }));
+    // Solo las variantes seleccionadas: precio general y stock editado por fila
+    const selected = variantes.filter(v => bulkSelection.selectedIds.has(v.id));
+    const updates = selected.map(v => ({
+      id: v.id,
+      stockCache: Number(v.editedStock ?? 0),
+      precioCache: Number(precioGeneral ?? v.editedPrecio ?? v.precioCache ?? 0),
+    }));
 
     if (updates.length === 0) return;
 
     try {
       await updateBulk(updates);
-      // Actualizar estado local con valores guardados
-      // Actualizar todas las variantes sin precio personalizado con el nuevo precio general
       const newPrecioGeneral = precioGeneral;
       setVariantes(prev => prev.map(v => {
         const update = updates.find(u => u.id === v.id);
         if (update) {
-          const newPrecio = update.precioCache ?? null;
           return {
             ...v,
             stockCache: update.stockCache ?? 0,
-            precioCache: newPrecio,
+            precioCache: update.precioCache ?? null,
             editedStock: update.stockCache ?? 0,
-            editedPrecio: newPrecio,
-            precioPersonalizado: v.precioPersonalizado && newPrecio !== precioGeneral,
-          };
-        }
-        // Si no hay update pero cambió el precio general y no es personalizado, actualizar igual
-        if (!v.precioPersonalizado && precioGeneralChanged) {
-          return {
-            ...v,
-            editedPrecio: newPrecioGeneral,
+            editedPrecio: update.precioCache ?? null,
+            precioPersonalizado: false,
           };
         }
         return v;
       }));
       setPrecioGeneralChanged(false);
+      setStockInputValue('');
+      await queryClient.refetchQueries({ queryKey: productosKeys.completo(producto.id) });
+      onSuccess?.();
       toast.success(`Cambios guardados exitosamente. ${updates.length} variante(s) actualizada(s).`);
     } catch (error) {
       console.error('Error guardando cambios:', error);
@@ -216,33 +285,50 @@ export function VariantesStockTable({
 
   return (
     <div className="space-y-4 overflow-visible p-2">
-      {/* Precio General */}
-      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Precio general (se aplica a todas las variantes sin precio personalizado)
-        </label>
-        <div className="flex items-center gap-3">
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            value={precioGeneral ?? ''}
-            onChange={(e) => handlePrecioGeneralChange(e.target.value)}
-            className={`
-              w-32 px-3 py-2 border rounded text-right text-sm font-medium
-              focus:outline-none focus:ring-2 focus:ring-black
-              ${precioGeneralChanged ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white'}
-            `}
-            placeholder="0.00"
-          />
-          <span className="text-sm text-gray-600">
-            {precioGeneralChanged && (
-              <span className="text-blue-600 font-medium">• Modificado</span>
-            )}
-          </span>
+      {/* Precio y stock en la misma línea; aplican a seleccionadas al guardar */}
+      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-4">
+        <div className="flex flex-wrap items-end gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Precio
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={precioGeneral ?? ''}
+                onChange={(e) => handlePrecioGeneralChange(e.target.value)}
+                className={`
+                  w-32 px-3 py-2 border rounded text-right text-sm font-medium
+                  focus:outline-none focus:ring-2 focus:ring-black
+                  ${precioGeneralChanged ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white'}
+                `}
+                placeholder="0.00"
+              />
+              {precioGeneralChanged && (
+                <span className="text-sm text-blue-600 font-medium">• Modificado</span>
+              )}
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Stock
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={stockInputDisplay}
+              onChange={(e) => handleStockInputChange(e.target.value)}
+              disabled={bulkSelection.selectedCount === 0}
+              className="w-24 px-3 py-2 border border-gray-300 rounded text-right text-sm focus:outline-none focus:ring-2 focus:ring-black disabled:bg-gray-100 disabled:text-gray-500"
+              placeholder={bulkSelection.selectedCount === 0 ? '—' : '0'}
+            />
+          </div>
         </div>
         {precioGeneral != null && precioGeneral > 0 && (
-          <div className="mt-3 pt-3 border-t border-gray-200 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+          <div className="pt-3 border-t border-gray-200 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
             <div>
               <span className="text-gray-500 block">Transferencia (15% desc.)</span>
               <span className="font-medium text-gray-800">
@@ -264,6 +350,19 @@ export function VariantesStockTable({
             </div>
           </div>
         )}
+      </div>
+
+      {/* Selección bulk */}
+      <div className="flex flex-wrap items-center gap-2 py-2 border-b border-gray-100">
+        <span className="text-sm text-gray-600">
+          {bulkSelection.selectedCount} de {variantes.length} seleccionada{bulkSelection.selectedCount !== 1 ? 's' : ''}
+        </span>
+        <Button variant="ghost" size="sm" onClick={bulkSelection.toggleSelectAll}>
+          {bulkSelection.selectedCount === variantes.length ? 'Quitar todas' : 'Seleccionar todas'}
+        </Button>
+        <Button variant="ghost" size="sm" onClick={bulkSelection.clearSelection}>
+          Quitar selección
+        </Button>
       </div>
 
       {/* Filtros rápidos: padding para que los focus rings no se corten */}
@@ -301,7 +400,7 @@ export function VariantesStockTable({
         <div className="flex items-center justify-end flex-shrink-0 ml-auto">
           <Button
             onClick={handleSaveAll}
-            disabled={!hasChanges || isUpdating}
+            disabled={!hasChanges || isUpdating || bulkSelection.selectedCount === 0}
             variant="black"
             size="md"
           >
@@ -325,6 +424,15 @@ export function VariantesStockTable({
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
+              <th className="px-3 py-3 w-10">
+                <input
+                  type="checkbox"
+                  checked={variantes.length > 0 && bulkSelection.selectedCount === variantes.length}
+                  onChange={bulkSelection.toggleSelectAll}
+                  className="rounded border-gray-300 text-black focus:ring-black"
+                  aria-label="Seleccionar todas las variantes"
+                />
+              </th>
               <th className="px-4 py-3 text-left font-semibold text-gray-700">SKU</th>
               <th className="px-4 py-3 text-left font-semibold text-gray-700">Nombre</th>
               <th className="px-4 py-3 text-left font-semibold text-gray-700">Color</th>
@@ -336,7 +444,7 @@ export function VariantesStockTable({
           <tbody className="divide-y divide-gray-200">
             {filteredVariantes.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
                   No hay variantes que coincidan con los filtros
                 </td>
               </tr>
@@ -359,8 +467,19 @@ export function VariantesStockTable({
                     className={`
                       hover:bg-gray-50 transition-colors
                       ${stockChanged || precioChanged ? 'bg-blue-50' : ''}
+                    ${bulkSelection.selectedIds.has(variante.id) ? 'bg-blue-50/70' : ''}
                     `}
                   >
+                    <td className="px-3 py-3 w-10">
+                      <input
+                        type="checkbox"
+                        checked={bulkSelection.selectedIds.has(variante.id)}
+                        onChange={() => bulkSelection.toggleSelect(variante.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="rounded border-gray-300 text-black focus:ring-black"
+                        aria-label={`Seleccionar ${variante.sfactoryCodigo}`}
+                      />
+                    </td>
                     <td className="px-4 py-3">
                       <span className="font-mono text-xs">{variante.sfactoryCodigo}</span>
                     </td>

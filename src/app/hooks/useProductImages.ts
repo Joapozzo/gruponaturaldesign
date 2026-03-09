@@ -165,6 +165,20 @@ export function useDeleteProductImage() {
 }
 
 /**
+ * Hook para eliminar varias imágenes de producto en lote
+ */
+export function useDeleteProductImagesBulk() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (ids: number[]) => productImageService.deleteImages(ids),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['product-images'] });
+        },
+    });
+}
+
+/**
  * Hook para reordenar imágenes de producto
  */
 export function useReorderProductImages() {

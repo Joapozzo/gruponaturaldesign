@@ -95,6 +95,14 @@ export class ProductImageService {
   }
 
   /**
+   * Elimina varias imágenes en lote (llamadas en paralelo)
+   */
+  async deleteImages(ids: number[]): Promise<void> {
+    if (ids.length === 0) return;
+    await Promise.all(ids.map((id) => this.deleteImage(id)));
+  }
+
+  /**
    * Obtiene imágenes de un producto padre (todas las variantes) agrupadas por color
    */
   async getProductoPadreImages(

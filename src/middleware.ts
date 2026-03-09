@@ -25,6 +25,13 @@ const isPublicPath = (pathname: string) =>
   pathname.startsWith('/politicas-cambio') ||
   pathname.startsWith('/api/');
 
+const isAdminPath = (pathname: string) => pathname.startsWith('/admin');
+const isAuthPath = (pathname: string) => pathname.startsWith('/auth');
+
+function isAdminRole(role: unknown): boolean {
+  return role === 'ADMIN' || (Array.isArray(role) && role.includes('ADMIN'));
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   if (pathname.startsWith('/api/')) return NextResponse.next();
@@ -34,10 +41,26 @@ export async function middleware(req: NextRequest) {
     httpUrl.protocol = 'http:';
     return NextResponse.redirect(httpUrl);
   }
-  if (isPublicPath(pathname)) return NextResponse.next();
 
   const token = req.cookies.get(AUTH_COOKIE_NAME)?.value;
   const secret = process.env.AUTH_COOKIE_SECRET || process.env.JWT_SECRET;
+
+  // Rutas públicas: si hay sesión válida y es ADMIN, redirigir al dashboard
+  if (isPublicPath(pathname)) {
+    if (token && secret) {
+      try {
+        const { payload } = await jwtVerify(token, new TextEncoder().encode(secret));
+        const role = (payload as { role?: string | string[] }).role;
+        if (isAdminRole(role)) {
+          return NextResponse.redirect(new URL('/admin/dashboard', req.nextUrl));
+        }
+      } catch {
+        // Token inválido, dejar pasar como usuario anónimo
+      }
+    }
+    return NextResponse.next();
+  }
+
   if (!token || !secret) {
     const loginUrl = new URL('/auth/login', req.nextUrl);
     loginUrl.searchParams.set('callbackUrl', pathname);
@@ -45,7 +68,7 @@ export async function middleware(req: NextRequest) {
   }
   try {
     const { payload } = await jwtVerify(token, new TextEncoder().encode(secret));
-    const p = payload as { needsOnboarding?: boolean; needsEmailVerification?: boolean };
+    const p = payload as { needsOnboarding?: boolean; needsEmailVerification?: boolean; role?: string | string[] };
     if (pathname.startsWith('/auth/onboarding') || pathname.startsWith('/auth/verify-email')) {
       return NextResponse.next();
     }
@@ -54,6 +77,10 @@ export async function middleware(req: NextRequest) {
     }
     if (p.needsOnboarding) {
       return NextResponse.redirect(new URL('/auth/onboarding', req.nextUrl));
+    }
+    // Admin autenticado solo en /admin; si intenta ir a otra ruta protegida, al dashboard
+    if (isAdminRole(p.role) && !isAdminPath(pathname) && !isAuthPath(pathname)) {
+      return NextResponse.redirect(new URL('/admin/dashboard', req.nextUrl));
     }
   } catch {
     const loginUrl = new URL('/auth/login', req.nextUrl);

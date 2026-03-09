@@ -20,8 +20,11 @@ import {
   useProductImagesByColor,
   useUploadProductImages,
   useDeleteProductImage,
+  useDeleteProductImagesBulk,
   useReorderProductImages,
 } from '../../hooks/useProductImages';
+import { useBulkSelection } from '../../hooks/useBulkSelection';
+import { BulkImageActions } from './BulkImageActions';
 import Button from '../ui/Button';
 import ConfirmModal from '../modal/ConfirmModal';
 import {
@@ -57,6 +60,8 @@ interface SortableImageItemProps {
   isDeleting: boolean;
   onDelete: (id: number) => void;
   onClick: (id: number) => void;
+  selected?: boolean;
+  onToggleSelect?: (id: number) => void;
 }
 
 function SortableImageItem({
@@ -65,6 +70,8 @@ function SortableImageItem({
   isDeleting,
   onDelete,
   onClick,
+  selected,
+  onToggleSelect,
 }: SortableImageItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: image.id,
@@ -81,7 +88,7 @@ function SortableImageItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="relative group cursor-pointer"
+      className={`relative group cursor-pointer ${selected ? 'ring-2 ring-blue-500 ring-offset-2 rounded-lg' : ''}`}
       onClick={() => onClick(image.id)}
     >
       <img
@@ -90,6 +97,30 @@ function SortableImageItem({
         className="w-full h-32 object-cover rounded-lg transition-transform duration-200 group-hover:scale-105"
       />
       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-opacity duration-200" />
+
+      {/* Checkbox selección bulk */}
+      {onToggleSelect && (
+        <label
+          className="absolute bottom-2 right-2 z-10 flex items-center justify-center w-6 h-6 bg-white border-2 border-gray-300 rounded shadow cursor-pointer hover:bg-gray-50 has-[:checked]:bg-blue-500 has-[:checked]:border-blue-500"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <input
+            type="checkbox"
+            checked={selected ?? false}
+            onChange={(e) => {
+              e.stopPropagation();
+              onToggleSelect(image.id);
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className="sr-only"
+          />
+          {selected && (
+            <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+          )}
+        </label>
+      )}
 
       {/* Handle de drag */}
       <button
@@ -142,19 +173,21 @@ export function ProductImageManager({ productoWebId, productoNombre }: ProductIm
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [imageIdToDelete, setImageIdToDelete] = useState<number | null>(null);
+  const [confirmBulkDeleteOpen, setConfirmBulkDeleteOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: imagesByColor, isLoading: isLoadingImages } =
     useProductImagesByColor(productoWebId);
   const uploadMutation = useUploadProductImages();
   const deleteMutation = useDeleteProductImage();
+  const deleteBulkMutation = useDeleteProductImagesBulk();
   const reorderMutation = useReorderProductImages();
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
-  // Array plano de todas las imágenes para el lightbox
+  // Array plano de todas las imágenes (lightbox + bulk selection)
   const allImages = React.useMemo(() => {
     return imagesByColor
       ? Object.entries(imagesByColor).flatMap(([color, images]) =>
@@ -162,6 +195,8 @@ export function ProductImageManager({ productoWebId, productoNombre }: ProductIm
         )
       : [];
   }, [imagesByColor]);
+
+  const bulkSelection = useBulkSelection(allImages);
 
   // -------------------------------------------------------------------------
   // Selección de archivos
@@ -307,6 +342,38 @@ export function ProductImageManager({ productoWebId, productoNombre }: ProductIm
   }, [imageIdToDelete, deleteMutation, closeConfirmDelete, lightboxOpen, lightboxIndex, allImages]);
 
   // -------------------------------------------------------------------------
+  // Bulk delete
+  // -------------------------------------------------------------------------
+
+  const openConfirmBulkDelete = useCallback(() => {
+    setConfirmBulkDeleteOpen(true);
+  }, []);
+
+  const closeConfirmBulkDelete = useCallback(() => {
+    setConfirmBulkDeleteOpen(false);
+  }, []);
+
+  const handleConfirmBulkDelete = useCallback(async () => {
+    const ids = Array.from(bulkSelection.selectedIds);
+    if (ids.length === 0) {
+      closeConfirmBulkDelete();
+      return;
+    }
+    const idsSet = new Set(ids);
+    try {
+      await deleteBulkMutation.mutateAsync(ids);
+      toast.success(`${ids.length} imagen(es) eliminada(s) correctamente`);
+      bulkSelection.clearSelection();
+      closeConfirmBulkDelete();
+      if (lightboxOpen && allImages[lightboxIndex] && idsSet.has(allImages[lightboxIndex].id)) {
+        setLightboxOpen(false);
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al eliminar imágenes');
+    }
+  }, [bulkSelection, deleteBulkMutation, closeConfirmBulkDelete, lightboxOpen, lightboxIndex, allImages]);
+
+  // -------------------------------------------------------------------------
   // Lightbox
   // -------------------------------------------------------------------------
 
@@ -443,14 +510,38 @@ export function ProductImageManager({ productoWebId, productoNombre }: ProductIm
 
       {/* Galería de imágenes */}
       <div className="border rounded-lg p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Imágenes Subidas</h3>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">Imágenes Subidas</h3>
+            {allImages.length > 0 && (
+              <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={bulkSelection.selectedCount === allImages.length && allImages.length > 0}
+                  onChange={() => bulkSelection.toggleSelectAll()}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                Seleccionar todas
+              </label>
+            )}
+          </div>
           {isReordering && (
             <span className="text-xs text-blue-600 flex items-center gap-1">
               <Loader2 className="h-3 w-3 animate-spin" /> Guardando orden...
             </span>
           )}
         </div>
+
+        {bulkSelection.selectedCount > 0 && (
+          <BulkImageActions
+            selectedCount={bulkSelection.selectedCount}
+            onBulkDelete={openConfirmBulkDelete}
+            onClearSelection={bulkSelection.clearSelection}
+            onSelectAll={bulkSelection.toggleSelectAll}
+            isBulkDeleting={deleteBulkMutation.isPending}
+            totalCount={allImages.length}
+          />
+        )}
 
         {isLoading ? (
           <div className="text-center py-8 text-gray-500">Cargando...</div>
@@ -490,6 +581,8 @@ export function ProductImageManager({ productoWebId, productoNombre }: ProductIm
                           isDeleting={isDeleting}
                           onDelete={openConfirmDelete}
                           onClick={openLightbox}
+                          selected={bulkSelection.selectedIds.has(image.id)}
+                          onToggleSelect={bulkSelection.toggleSelect}
                         />
                       ))}
                     </div>
@@ -597,6 +690,17 @@ export function ProductImageManager({ productoWebId, productoNombre }: ProductIm
         type="confirm"
         confirmText="Eliminar"
         loading={deleteMutation.isPending}
+      />
+
+      <ConfirmModal
+        isOpen={confirmBulkDeleteOpen}
+        onClose={closeConfirmBulkDelete}
+        onConfirm={handleConfirmBulkDelete}
+        title="Eliminar imágenes seleccionadas"
+        message={`¿Está seguro de que desea eliminar las ${bulkSelection.selectedCount} imagen(es) seleccionada(s)?`}
+        type="confirm"
+        confirmText="Eliminar todas"
+        loading={deleteBulkMutation.isPending}
       />
     </div>
   );
