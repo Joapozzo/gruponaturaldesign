@@ -67,6 +67,35 @@ const ProductosDestacados = () => {
     );
   }
 
+  const count = productos.length;
+  const maxSlides = { 320: 1.5, 480: 2, 640: 3, 1024: 5 };
+  const slidesPerViewBase = Math.max(1, Math.min(5, count));
+  const allFitOnDesktop = count <= 5;
+  const showNav = count > 1;
+
+  const breakpoints = {
+    320: {
+      slidesPerView: Math.max(1, Math.min(maxSlides[320], count)),
+      spaceBetween: 12,
+      centeredSlides: count <= maxSlides[320],
+    },
+    480: {
+      slidesPerView: Math.max(1, Math.min(maxSlides[480], count)),
+      spaceBetween: 12,
+      centeredSlides: count <= maxSlides[480],
+    },
+    640: {
+      slidesPerView: Math.max(1, Math.min(maxSlides[640], count)),
+      spaceBetween: 16,
+      centeredSlides: count <= maxSlides[640],
+    },
+    1024: {
+      slidesPerView: Math.max(1, Math.min(maxSlides[1024], count)),
+      spaceBetween: 16,
+      centeredSlides: count <= maxSlides[1024],
+    },
+  };
+
   return (
     <Section
       id="productos"
@@ -79,20 +108,16 @@ const ProductosDestacados = () => {
         <Swiper
           modules={[Navigation, Pagination, Autoplay]}
           spaceBetween={16}
-          slidesPerView={5}
-          centeredSlides={false}
+          slidesPerView={slidesPerViewBase}
+          centeredSlides={allFitOnDesktop}
           initialSlide={0}
           onSwiper={handleSwiperInit}
           onSlideChange={handleSlideChange}
           allowTouchMove={!expandedSku}
-          navigation={{
+          navigation={showNav ? {
             nextEl: '#swiper-button-next-destacados',
             prevEl: '#swiper-button-prev-destacados',
-          }}
-          // pagination={{
-          //   clickable: true,
-          //   dynamicBullets: true,
-          // }}
+          } : false}
           autoplay={
             expandedSku
               ? false
@@ -102,30 +127,9 @@ const ProductosDestacados = () => {
                   pauseOnMouseEnter: true,
                 }
           }
-          loop={productos.length > 5}
-          loopAdditionalSlides={productos.length > 5 ? 2 : 0}
-          breakpoints={{
-            320: {
-              slidesPerView: 1.5,
-              spaceBetween: 12,
-              centeredSlides: false,
-            },
-            480: {
-              slidesPerView: 2,
-              spaceBetween: 12,
-              centeredSlides: false,
-            },
-            640: {
-              slidesPerView: 3,
-              spaceBetween: 16,
-              centeredSlides: false,
-            },
-            1024: {
-              slidesPerView: 5,
-              spaceBetween: 16,
-              centeredSlides: false,
-            },
-          }}
+          loop={count > 5}
+          loopAdditionalSlides={count > 5 ? 2 : 0}
+          breakpoints={breakpoints}
           className="pb-12"
         >
           {productos.map((producto, index) => (
@@ -142,27 +146,29 @@ const ProductosDestacados = () => {
           ))}
         </Swiper>
 
-        {/* Navegación personalizada */}
-        <div className="flex justify-center items-center space-x-3 mt-4">
-          <button
-            ref={prevButtonRef}
-            id="swiper-button-prev-destacados"
-            onClick={handlePrevSlide}
-            className="swiper-button-prev-custom w-8 h-8 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-all duration-300 group disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="Anterior"
-          >
-            <ArrowRight className="w-3.5 h-3.5 text-gray-700 rotate-180 group-hover:text-gray-900" />
-          </button>
-          <button
-            ref={nextButtonRef}
-            id="swiper-button-next-destacados"
-            onClick={handleNextSlide}
-            className="swiper-button-next-custom w-8 h-8 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-all duration-300 group disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="Siguiente"
-          >
-            <ArrowRight className="w-3.5 h-3.5 text-gray-700 group-hover:text-gray-900" />
-          </button>
-        </div>
+        {/* Navegación: solo si hay más de un producto */}
+        {showNav && (
+          <div className="flex justify-center items-center space-x-3 mt-4">
+            <button
+              ref={prevButtonRef}
+              id="swiper-button-prev-destacados"
+              onClick={handlePrevSlide}
+              className="swiper-button-prev-custom w-8 h-8 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-all duration-300 group disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Anterior"
+            >
+              <ArrowRight className="w-3.5 h-3.5 text-gray-700 rotate-180 group-hover:text-gray-900" />
+            </button>
+            <button
+              ref={nextButtonRef}
+              id="swiper-button-next-destacados"
+              onClick={handleNextSlide}
+              className="swiper-button-next-custom w-8 h-8 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-all duration-300 group disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Siguiente"
+            >
+              <ArrowRight className="w-3.5 h-3.5 text-gray-700 group-hover:text-gray-900" />
+            </button>
+          </div>
+        )}
 
         {/* Call to Action */}
         <CTAButton onClick={handleGoToPage} />

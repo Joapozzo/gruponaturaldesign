@@ -25,7 +25,7 @@ const Footer = () => {
                             </div>
                         </div>
                         <p className="text-gray-400 mb-4 leading-relaxed text-xs md:text-sm">
-                            Natural Design. Calidad y diseño en uniformes empresariales. Más
+                            Natural Design. Calidad y diseño en indumentaria para empresas. Más
                             de 25 años vistiendo empresas con profesionalismo y estilo.
                         </p>
                         <div className="flex space-x-4">

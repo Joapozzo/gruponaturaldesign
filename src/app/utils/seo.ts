@@ -1,7 +1,7 @@
 import { WHATSAPP_PHONE_NUMBER, WHATSAPP_PHONE_NUMBER_FORMATTED } from './constants';
 
 export const seoConfig = {
-    defaultTitle: 'NTDS - Uniformes Empresariales y Escolares de Diseño | Natural Design',
+    defaultTitle: 'NTDS - Indumentaria para empresas y Escolares de Diseño | Natural Design',
     titleTemplate: '%s | NTDS Natural Design',
     defaultDescription: 'NTDS Natural Design: Uniformes empresariales, ropa de trabajo y merchandising de diseño en Córdoba. +25 años de experiencia, +500 clientes satisfechos.',
     siteUrl: 'https://naturalonline.com.ar',
@@ -15,7 +15,7 @@ export const seoConfig = {
         alternateName: 'Natural Design',
         url: 'https://naturalonline.com.ar',
         logo: 'https://naturalonline.com.ar/logo.png',
-        description: 'Empresa especializada en uniformes empresariales, ropa de trabajo y merchandising de diseño con más de 25 años de experiencia en Córdoba, Argentina.',
+        description: 'Empresa especializada en indumentaria para empresas, ropa de trabajo y merchandising de diseño con más de 25 años de experiencia en Córdoba, Argentina.',
         address: {
             '@type': 'PostalAddress',
             streetAddress: 'Rivera Indarte 2143',

@@ -84,6 +84,9 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
     return 'Confirmar';
   };
 
+  const buttonText = getButtonText();
+  const isAddToCartLabel = buttonText === 'Agregar al carrito';
+
   // Determinar si el botón está deshabilitado
   const isButtonDisabled = () => {
     if (productOutOfStock || selectedVariant.stock === 0 || isAddingToCart) {
@@ -153,7 +156,14 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
               onClick={onAddToCart}
               disabled={isButtonDisabled()}
             >
-              {getButtonText()}
+              {isAddToCartLabel ? (
+                <>
+                  <span className="md:hidden">Agregar</span>
+                  <span className="hidden md:inline">Agregar al carrito</span>
+                </>
+              ) : (
+                buttonText
+              )}
             </Button>
           </div>
         )}

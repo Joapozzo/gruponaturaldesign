@@ -1,11 +1,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, RotateCcw, CreditCard, Store, Truck } from 'lucide-react';
 import Image from 'next/image';
-import Button from './ui/Button';
-import { useNavigation } from '../hooks/useNavigation';
 
 const features = [
   {
@@ -30,77 +28,58 @@ const features = [
   },
 ];
 
+const HERO_SLIDES = ['/imgs/hero-1.png', '/imgs/hero-2.png', '/imgs/hero-3.png'];
+const AUTO_PLAY_MS = 5000;
+
 const Hero = () => {
-  const [heroImage, setHeroImage] = useState('/imgs/hero.jpg');
-  const { scrollToSection } = useNavigation();
+  const [index, setIndex] = useState(0);
 
   useEffect(() => {
-    const updateImage = () => {
-      if (window.innerWidth < 640) {
-        setHeroImage('/imgs/hero.jpg');
-      } else {
-        setHeroImage('/imgs/hero.jpg');
-      }
-    };
-
-    updateImage();
-    window.addEventListener('resize', updateImage);
-    return () => window.removeEventListener('resize', updateImage);
+    const t = setInterval(() => {
+      setIndex((i) => (i + 1) % HERO_SLIDES.length);
+    }, AUTO_PLAY_MS);
+    return () => clearInterval(t);
   }, []);
 
   return (
     <section
       id="inicio"
-      className="relative w-full h-[calc(100vh-var(--navbar-total))] flex flex-col overflow-hidden"
+      className="relative w-full flex flex-col overflow-hidden"
     >
-      {/* Hero: imagen + título + CTA — ocupa el espacio restante */}
-      <div className="relative flex-1 min-h-0 flex items-center justify-center">
-        <div className="absolute inset-0 w-full h-full">
-          <Image
-            src={heroImage}
-            alt="Hero NTDS"
-            fill
-            priority
-            quality={90}
-            sizes="100vw"
-            className="object-cover object-top"
-          />
-          <div className="absolute inset-0 bg-black/30" />
-        </div>
-
-        <div className="relative z-10 text-center text-white px-4 max-w-5xl mx-auto pt-12">
-          <motion.h1
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1 }}
-            className="text-3xl md:text-4xl lg:text-5xl font-light mb-3 2xl:text-6xl"
-          >
-            <span className="font-bold">Vestí</span> a tu equipo con
-            <br />
-            Grupo Natural Design
-          </motion.h1>
+      {/* Carrusel 2:1 (5669×2835) — contenedor con misma proporción para ver imágenes completas */}
+      <div className="relative w-full aspect-[2/1]">
+        <AnimatePresence mode="wait" initial={false}>
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.3 }}
-            className="mb-4"
+            key={index}
+            className="absolute inset-0 w-full h-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
           >
-            <Button
-              variant="lightWhiteOutline"
-              onClick={() => scrollToSection('categorias')}
-              size="lg"
-              className="font-light tracking-wide mx-auto"
-            >
-              Comenzá ya
-            </Button>
+            <Image
+              src={HERO_SLIDES[index]}
+              alt={`Hero ${index + 1}`}
+              fill
+              priority={index === 0}
+              quality={90}
+              sizes="100vw"
+              className="object-cover object-center"
+            />
           </motion.div>
-        </div>
+        </AnimatePresence>
+
+        {/* Texto y CTA desactivados: las imágenes ya incluyen texto */}
+        {/* <div className="relative z-10 text-center text-white px-4 max-w-5xl mx-auto pt-12">
+          <motion.h1 ...>Vestí a tu equipo con Grupo Natural Design</motion.h1>
+          <Button onClick={() => scrollToSection('categorias')}>Comenzá ya</Button>
+        </div> */}
 
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1.5 }}
-          className="absolute bottom-6 left-1/2 transform -translate-x-1/2"
+          transition={{ delay: 1 }}
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10"
         >
           <ChevronDown className="text-white animate-bounce" size={24} />
         </motion.div>

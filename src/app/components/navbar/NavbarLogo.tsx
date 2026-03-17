@@ -40,7 +40,7 @@ export const NavbarLogo: React.FC<NavbarLogoProps> = ({
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className={`flex-1 flex justify-center items-center min-h-[30px] ${className}`}
+                className={`flex-1 flex justify-center items-center min-h-[22px] ${className}`}
             >
                 <Image {...imageProps} />
             </motion.div>

@@ -50,7 +50,7 @@ const DesignHero = () => {
             className="lg:col-span-3 relative h-[50vh] sm:h-[60vh] lg:h-full w-full min-h-[280px]"
           >
             <Image
-              src="/imgs/nosotros3.jpeg"
+              src="/imgs/design_hero.jpeg"
               alt="Modelos vistiendo uniformes profesionales"
               fill
               className="object-cover"

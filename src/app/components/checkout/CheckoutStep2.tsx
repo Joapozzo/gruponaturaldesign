@@ -313,7 +313,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                     color: '#000000',
                     backgroundColor: '#ffffff',
                   }}
-                  placeholder="Juan"
+                  placeholder="Nombre"
                 />
                 {errors.nombre && touched.nombre && (
                   <p className="text-red-600 text-[10px] sm:text-xs mt-0.5 sm:mt-1">{errors.nombre}</p>
@@ -336,7 +336,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                     color: '#000000',
                     backgroundColor: '#ffffff',
                   }}
-                  placeholder="Pérez"
+                  placeholder="Apellido"
                 />
                 {errors.apellido && touched.apellido && (
                   <p className="text-red-600 text-[10px] sm:text-xs mt-0.5 sm:mt-1">{errors.apellido}</p>
@@ -361,7 +361,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                   color: '#000000',
                   backgroundColor: '#ffffff',
                 }}
-                placeholder="juan@ejemplo.com"
+                placeholder="mail@ejemplo.com"
               />
               {errors.email && touched.email && (
                 <p className="text-red-600 text-[10px] sm:text-xs mt-0.5 sm:mt-1">{errors.email}</p>
@@ -385,7 +385,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
                   color: '#000000',
                   backgroundColor: '#ffffff',
                 }}
-                placeholder="juan@ejemplo.com"
+                placeholder="mail@ejemplo.com"
               />
               {errors.confirmEmail && touched.confirmEmail && (
                 <p className="text-red-600 text-[10px] sm:text-xs mt-0.5 sm:mt-1">{errors.confirmEmail}</p>

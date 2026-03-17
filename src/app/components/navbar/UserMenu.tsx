@@ -8,16 +8,23 @@ import { useUserSession } from '../../hooks/useUserSession';
 import { useAuth } from '@/contexts/AuthContext';
 
 
-export const UserMenu: React.FC = () => {
+interface UserMenuProps {
+    isMobile?: boolean;
+}
+
+export const UserMenu: React.FC<UserMenuProps> = ({ isMobile = false }) => {
     const [showUserMenu, setShowUserMenu] = useState(false);
     const router = useRouter();
     const { user, isLoading, isAuthenticated } = useUserSession();
     const { logout, refreshSessionState } = useAuth();
 
+    const iconWrap = isMobile ? 'w-6 h-6' : 'w-8 h-8';
+    const iconSize = isMobile ? 'w-3 h-3' : 'w-4 h-4';
+
     if (isLoading) {
         return (
-            <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center animate-pulse">
-                <User className="w-4 h-4 text-neutral-400" />
+            <div className={`${iconWrap} rounded-full bg-neutral-200 flex items-center justify-center animate-pulse`}>
+                <User className={`${iconSize} text-neutral-400`} />
             </div>
         );
     }
@@ -27,11 +34,11 @@ export const UserMenu: React.FC = () => {
             <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 onMouseEnter={() => setShowUserMenu(true)}
-                className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-neutral-100 transition-colors group"
+                className={`flex items-center gap-2 ${isMobile ? 'p-1' : 'p-1.5'} rounded-lg hover:bg-neutral-100 transition-colors group`}
                 aria-label={isAuthenticated ? "Menú de usuario" : "Iniciar sesión"}
             >
-                <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center group-hover:bg-neutral-300 transition-colors">
-                    <User className="w-4 h-4 text-neutral-700" />
+                <div className={`${iconWrap} rounded-full bg-neutral-200 flex items-center justify-center group-hover:bg-neutral-300 transition-colors`}>
+                    <User className={`${iconSize} text-neutral-700`} />
                 </div>
                 {isAuthenticated ? (
                     <span className="hidden md:block text-sm font-medium text-neutral-700 max-w-[120px] truncate">

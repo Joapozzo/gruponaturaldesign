@@ -22,6 +22,7 @@ const isPublicPath = (pathname: string) =>
   pathname.startsWith('/categoria') ||
   pathname.startsWith('/shoponline') ||
   pathname.startsWith('/mayorista') ||
+  pathname.startsWith('/personalizados') ||
   pathname.startsWith('/politicas-cambio') ||
   pathname.startsWith('/api/');
 

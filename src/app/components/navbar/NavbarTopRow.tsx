@@ -32,7 +32,7 @@ export const NavbarTopRow: React.FC<NavbarTopRowProps> = ({
     onMenuToggle
 }) => {
     return (
-        <div className="relative flex justify-between items-center h-12 sm:h-14 lg:h-16">
+        <div className="relative flex justify-between items-center h-11 sm:h-14 lg:h-16">
             {/* Buscador a la izquierda (Desktop) */}
             <div className="hidden lg:flex items-center flex-1">
                 <motion.button
@@ -75,13 +75,13 @@ export const NavbarTopRow: React.FC<NavbarTopRowProps> = ({
                                 animate={{ rotate: isMenuOpen ? 90 : 0 }}
                                 transition={{ duration: 0.3 }}
                             >
-                                {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
+                                {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
                             </motion.div>
                         </motion.button>
                     )}
                 </div>
                 <div className="flex-shrink-0 flex justify-center">
-                    <NavbarLogo width={70} height={30} isMobile />
+                    <NavbarLogo width={52} height={22} isMobile />
                 </div>
                 <div className="flex-1 flex justify-end items-center">
                     <NavbarActions

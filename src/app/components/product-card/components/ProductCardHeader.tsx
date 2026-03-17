@@ -28,7 +28,10 @@ export const ProductCardHeader: React.FC<ProductCardHeaderProps> = ({
       <div className="mb-1">
         {precioLista != null && (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">Precio lista:</span>
+            <span className="text-xs text-gray-500">
+              <span className="md:hidden">Precio</span>
+              <span className="hidden md:inline">Precio lista:</span>
+            </span>
             <span className="text-base font-semibold text-gray-900">
               ${precioLista.toLocaleString()}
             </span>
@@ -36,7 +39,10 @@ export const ProductCardHeader: React.FC<ProductCardHeaderProps> = ({
         )}
         {precioTransfer != null && (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">Precio transfer:</span>
+            <span className="text-xs text-gray-500">
+              <span className="md:hidden">Transfer</span>
+              <span className="hidden md:inline">Precio transfer:</span>
+            </span>
             <span className="text-sm text-gray-600">
               ${precioTransfer.toLocaleString()}
             </span>

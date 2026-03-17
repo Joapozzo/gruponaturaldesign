@@ -32,8 +32,12 @@ export class ProductImageService {
     }
     formData.append('color', params.color);
 
-    params.files.forEach((file) => {
-      formData.append('images', file);
+    params.files.forEach((file, i) => {
+      const name =
+        file.name && /\.(jpe?g|png|webp)$/i.test(file.name)
+          ? file.name
+          : `image-${i + 1}.jpg`;
+      formData.append('images', file, name);
     });
 
     const result = await apiClient.post<ProductImage[]>(

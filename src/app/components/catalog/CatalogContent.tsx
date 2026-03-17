@@ -13,6 +13,7 @@ import EmptyState from './EmptyState';
 import Pagination from '@/app/components/Pagination';
 import Section from '@/app/components/Section';
 import CatalogCategoriesHero from '@/app/components/CatalogCategoriesHero';
+import AnnouncementBanner from '@/app/components/AnnouncementBanner';
 import ProductsGridSkeleton from '../skeleton/ProductsGridSkeleton';
 import { DEFAULT_PRODUCTOS_PUBLICADOS_PARAMS } from '@/app/types/producto-publicado.types';
 import { getRubroDisplayName, getWorkwearRubroId, getBasicRubroId } from '@/app/utils/rubroDisplay';
@@ -137,6 +138,7 @@ const CatalogContentInner = () => {
 
   return (
     <div className="bg-white min-h-screen pb-12">
+      <AnnouncementBanner />
       <CatalogCategoriesHero
         onCategorySelect={(rubroId) => updateFilter('rubroId', rubroId)}
         selectedRubroId={filters.rubroId}

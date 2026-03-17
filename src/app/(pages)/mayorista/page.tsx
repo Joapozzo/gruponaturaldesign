@@ -195,7 +195,7 @@ export default function MayoristaPage() {
                                         className={`w-full px-3 py-1.5 sm:px-4 sm:py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
                                             errors.nombre ? 'border-red-500' : 'border-gray-300'
                                         }`}
-                                        placeholder="Ej: Juan"
+                                        placeholder="Nombre"
                                     />
                                     {errors.nombre && (
                                         <p className="text-red-500 text-xs mt-1">{errors.nombre}</p>
@@ -215,7 +215,7 @@ export default function MayoristaPage() {
                                         className={`w-full px-3 py-1.5 sm:px-4 sm:py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
                                             errors.apellido ? 'border-red-500' : 'border-gray-300'
                                         }`}
-                                        placeholder="Ej: Pérez"
+                                        placeholder="Apellido"
                                     />
                                     {errors.apellido && (
                                         <p className="text-red-500 text-xs mt-1">{errors.apellido}</p>
@@ -239,7 +239,7 @@ export default function MayoristaPage() {
                                         className={`w-full px-3 py-1.5 sm:px-4 sm:py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
                                             errors.mail ? 'border-red-500' : 'border-gray-300'
                                         }`}
-                                        placeholder="Ej: juan@empresa.com"
+                                        placeholder="Ej: email@empresa.com"
                                     />
                                     {errors.mail && (
                                         <p className="text-red-500 text-xs mt-1">{errors.mail}</p>

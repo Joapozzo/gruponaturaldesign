@@ -64,7 +64,7 @@ export default function ProductInfo({ productName, displayProduct, selectedVaria
                     </span>
                     {/* Transfer y cuotas - más pequeños, lado a lado */}
                     {(formattedTransfer || formatted3Cuotas) && (
-                        <div className="flex flex-row gap-2 mt-0.5">
+                        <div className="flex flex-col mt-0.5">
                             {formattedTransfer && (
                                 <span className="text-[10px] sm:text-xs text-gray-600">
                                     Transfer: {formattedTransfer}
@@ -79,7 +79,7 @@ export default function ProductInfo({ productName, displayProduct, selectedVaria
                     )}
                     {/* Precio sin impuestos - más pequeño, abajo */}
                     {formattedSImp && (
-                        <span className="text-[10px] sm:text-xs text-gray-500 mt-0.5">
+                        <span className="text-[10px] sm:text-xs text-gray-500 mb-0.5">
                             Sin impuestos: {formattedSImp}
                         </span>
                     )}

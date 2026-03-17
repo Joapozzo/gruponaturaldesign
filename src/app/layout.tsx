@@ -31,12 +31,12 @@ export const metadata: Metadata = {
   
   // Título optimizado para SEO
   title: {
-    default: "NTDS - Uniformes Empresariales de diseño | Natural Design",
+    default: "NTDS - Indumentaria para empresas de diseño | Natural Design",
     template: "%s | NTDS Natural Design"
   },
 
   // Descripción optimizada con keywords
-  description: "NTDS Natural Design: Uniformes empresariales, ropa de trabajo y merchandising de diseño en Córdoba. +25 años de experiencia, +500 clientes satisfechos. Calidad y diseño en uniformes profesionales.",
+  description: "NTDS Natural Design: Indumentaria para empresas, ropa de trabajo y merchandising de diseño en Córdoba. +25 años de experiencia, +500 clientes satisfechos. Calidad y diseño en uniformes profesionales.",
 
   // Keywords principales
   keywords: [
@@ -77,15 +77,15 @@ export const metadata: Metadata = {
     type: "website",
     locale: "es_AR",
     url: "https://naturalonline.com.ar",
-    title: "NTDS - Uniformes Empresariales de Diseño",
-    description: "Uniformes empresariales, ropa de trabajo y merchandising de diseño en Córdoba. +25 años de experiencia vistiendo empresas con calidad y estilo.",
+    title: "NTDS - Indumentaria para empresas de Diseño",
+    description: "Indumentaria para empresas, ropa de trabajo y merchandising de diseño en Córdoba. +25 años de experiencia vistiendo empresas con calidad y estilo.",
     siteName: "NTDS Natural Design",
     images: [
       {
         url: "/icon-512.png",
         width: 1200,
         height: 630,
-        alt: "NTDS Natural Design - Uniformes Empresariales",
+        alt: "NTDS Natural Design - Indumentaria para empresas",
       },
     ],
   },
@@ -93,8 +93,8 @@ export const metadata: Metadata = {
   // Twitter Card
   twitter: {
     card: "summary_large_image",
-    title: "NTDS - Uniformes Empresariales de Diseño",
-    description: "Uniformes empresariales y ropa de trabajo de calidad en Córdoba. +25 años de experiencia, +500 clientes satisfechos.",
+    title: "NTDS - Indumentaria para empresas de Diseño",
+    description: "Indumentaria para empresas y ropa de trabajo de calidad en Córdoba. +25 años de experiencia, +500 clientes satisfechos.",
     images: ["/twitter-image.jpg"],
     creator: "@naturaldesign_ntds",
   },
@@ -132,7 +132,7 @@ export const metadata: Metadata = {
 
   // Categorización
   category: "Business",
-  classification: "Uniformes Empresariales, Ropa de Trabajo, Textil",
+  classification: "Indumentaria para empresas, Ropa de Trabajo, Textil",
 
   // Información adicional
   generator: "Next.js",
@@ -219,7 +219,7 @@ export default function RootLayout({
                 "name": "Argentina"
               },
               "serviceType": [
-                "Uniformes empresariales",
+                "Indumentaria para empresas",
                 "Ropa de trabajo",
                 "Merchandising textil",
                 "Uniformes escolares",
@@ -246,6 +246,7 @@ export default function RootLayout({
         
         {/* Apple touch icon */}
         <link rel="apple-touch-icon" href="/apple-icon-180.png" sizes="180x180" />
+        <meta name="apple-mobile-web-app-title" content="NTDS" />
 
         {/* Optimización de recursos */}
         <link rel="dns-prefetch" href="//images.unsplash.com" />

@@ -8,14 +8,15 @@ const HeroPersonalizados = () => {
     return (
         <section
             id="catalog-header"
-            className="relative overflow-hidden flex items-center w-full"
+            className="relative overflow-hidden flex items-center w-full left-1/2 -translate-x-1/2"
             style={{ 
                 height: '70vh',
-                minHeight: '600px'
+                minHeight: '600px',
+                width: '100vw'
             }}
         >
-            {/* Imagen de fondo */}
-            <div className="absolute inset-0 w-full h-full">
+            {/* Imagen de fondo - full width */}
+            <div className="absolute inset-0 w-full h-full min-w-full">
                 <div
                     className="absolute inset-0 w-full h-full bg-top bg-center bg-no-repeat"
                     style={{ backgroundImage: "url('/imgs/personalizados-hero.png')" }}
