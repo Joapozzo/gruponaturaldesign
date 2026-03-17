@@ -15,6 +15,8 @@ import DesignHero from './components/DesignHero';
 import CallToAction from './components/CallToAction';
 import ProductosDestacadosSkeleton from './components/skeleton/ProductSectionSkeleton';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * Página principal (Server Component)
  * Pre-fetch de datos para mejor performance y SEO
