@@ -94,6 +94,12 @@
   body {
     @apply bg-neutral-50 text-neutral-900;
   }
+
+  /* Placeholder más opaco en todos los inputs para que no se confunda con el texto */
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-gray-600;
+  }
 }
 
 @layer utilities {

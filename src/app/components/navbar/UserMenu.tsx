@@ -96,7 +96,8 @@ export const UserMenu: React.FC<UserMenuProps> = ({ isMobile = false }) => {
                                             onClick={async () => {
                                                 setShowUserMenu(false);
                                                 await logout();
-                                                router.replace('/auth/login');
+                                                // Full page nav para que la cookie ya esté borrada y no haya bucle con el middleware
+                                                window.location.href = '/auth/login';
                                             }}
                                         >
                                             Cerrar Sesión

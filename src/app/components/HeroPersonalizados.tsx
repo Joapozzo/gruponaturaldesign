@@ -15,10 +15,10 @@ const HeroPersonalizados = () => {
                 width: '100vw'
             }}
         >
-            {/* Imagen de fondo - full width */}
+            {/* Imagen de fondo - ocupa todo el ancho del contenedor */}
             <div className="absolute inset-0 w-full h-full min-w-full">
                 <div
-                    className="absolute inset-0 w-full h-full bg-top bg-center bg-no-repeat"
+                    className="absolute inset-0 w-full h-full bg-cover bg-top bg-no-repeat"
                     style={{ backgroundImage: "url('/imgs/personalizados-hero.png')" }}
                 />
                 <div className="absolute inset-0 bg-black/50"></div>

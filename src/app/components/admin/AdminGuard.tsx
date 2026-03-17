@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRoles } from '@/app/hooks/useUserRoles';
 import { AuthLoadingScreen } from '@/app/components/AuthLoadingScreen';
@@ -12,7 +11,6 @@ import { AuthLoadingScreen } from '@/app/components/AuthLoadingScreen';
  * Si no hay auth o token/sesión inválida, redirige a error de acceso.
  */
 export function AdminGuard({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
   const { firebaseUser, isLoading } = useAuth();
   const roles = useUserRoles();
   const isAdmin = roles.includes('ADMIN');
@@ -20,9 +18,9 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isLoading) return;
     if (!firebaseUser || !isAdmin) {
-      router.replace('/auth/error?error=AccessDenied');
+      window.location.href = '/auth/login';
     }
-  }, [isLoading, firebaseUser, isAdmin, router]);
+  }, [isLoading, firebaseUser, isAdmin]);
 
   if (isLoading) {
     return <AuthLoadingScreen message="Verificando acceso..." />;

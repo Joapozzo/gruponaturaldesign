@@ -56,9 +56,9 @@ const ProyectosPersonalizados = () => {
                                 y: -2,
                                 transition: { duration: 0.2 }
                             }}
-                            className="bg-gray-200 rounded-md shadow-sm hover:shadow-md transition-all duration-300 p-2 md:p-3 flex items-center justify-center aspect-square group cursor-pointer"
+                            className="bg-gray-200 rounded-md shadow-sm hover:shadow-md transition-all duration-300 p-2 md:p-3 flex items-center justify-center aspect-square group cursor-pointer overflow-hidden"
                         >
-                            <div className="w-full h-full flex items-center justify-center opacity-60 group-hover:opacity-100 transition-opacity duration-300">
+                            <div className="w-[70%] h-[70%] max-w-full max-h-full flex items-center justify-center opacity-60 group-hover:opacity-100 transition-opacity duration-300 [&_img]:object-contain [&_img]:w-full [&_img]:h-full">
                                 {cliente.logo}
                             </div>
                         </motion.div>

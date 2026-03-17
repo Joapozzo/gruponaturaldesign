@@ -116,9 +116,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    await firebaseSignOut(auth);
-    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    const res = await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    await res.json().catch(() => ({}));
     setSessionState(null);
+    await firebaseSignOut(auth);
   }, []);
 
   const getToken = useCallback(async () => {

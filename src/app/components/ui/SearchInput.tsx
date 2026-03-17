@@ -77,16 +77,13 @@ const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
         const showClear = showClearButton && hasValue && onClear;
 
         const baseInputClasses =
-            'font-semibold rounded-sm transition-all duration-200 outline-none w-full placeholder-gray-400';
-
-        const focusClasses = 'focus:ring-2 focus:ring-offset-2 focus:ring-gray-500';
+            'font-semibold rounded-sm transition-all duration-200 outline-none w-full placeholder:text-gray-400/60';
 
         const inputClasses = [
             baseInputClasses,
             variantClasses[variant],
             sizeClasses[size],
             showClear ? sizeClassesWithClear[size] : '',
-            focusClasses,
             fullWidth ? 'w-full' : '',
             inputClassName,
         ]

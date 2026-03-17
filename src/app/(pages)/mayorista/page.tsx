@@ -17,6 +17,7 @@ import ErrorBoundary from '@/app/components/ErrorBoundary';
 import HeroMayorista from '@/app/components/HeroMayorista';
 import { useWhatsApp } from '@/app/components/hooks/useWhatsApp';
 import Button from '@/app/components/ui/Button';
+import Input, { TextArea } from '@/app/components/ui/Input';
 
 export default function MayoristaPage() {
     const { openWhatsApp } = useWhatsApp({
@@ -186,15 +187,13 @@ export default function MayoristaPage() {
                                         <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#Ed3237]" />
                                         <span>Nombre: *</span>
                                     </label>
-                                    <input
+                                    <Input
                                         type="text"
                                         id="nombre"
                                         name="nombre"
                                         value={formData.nombre}
                                         onChange={handleInputChange}
-                                        className={`w-full px-3 py-1.5 sm:px-4 sm:py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
-                                            errors.nombre ? 'border-red-500' : 'border-gray-300'
-                                        }`}
+                                        variant={errors.nombre ? 'error' : 'default'}
                                         placeholder="Nombre"
                                     />
                                     {errors.nombre && (
@@ -206,15 +205,13 @@ export default function MayoristaPage() {
                                         <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#Ed3237]" />
                                         <span>Apellido: *</span>
                                     </label>
-                                    <input
+                                    <Input
                                         type="text"
                                         id="apellido"
                                         name="apellido"
                                         value={formData.apellido}
                                         onChange={handleInputChange}
-                                        className={`w-full px-3 py-1.5 sm:px-4 sm:py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
-                                            errors.apellido ? 'border-red-500' : 'border-gray-300'
-                                        }`}
+                                        variant={errors.apellido ? 'error' : 'default'}
                                         placeholder="Apellido"
                                     />
                                     {errors.apellido && (
@@ -230,15 +227,13 @@ export default function MayoristaPage() {
                                         <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#Ed3237]" />
                                         <span>Email: *</span>
                                     </label>
-                                    <input
+                                    <Input
                                         type="email"
                                         id="mail"
                                         name="mail"
                                         value={formData.mail}
                                         onChange={handleInputChange}
-                                        className={`w-full px-3 py-1.5 sm:px-4 sm:py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
-                                            errors.mail ? 'border-red-500' : 'border-gray-300'
-                                        }`}
+                                        variant={errors.mail ? 'error' : 'default'}
                                         placeholder="Ej: email@empresa.com"
                                     />
                                     {errors.mail && (
@@ -250,15 +245,13 @@ export default function MayoristaPage() {
                                         <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#Ed3237]" />
                                         <span>Teléfono: *</span>
                                     </label>
-                                    <input
+                                    <Input
                                         type="tel"
                                         id="telefono"
                                         name="telefono"
                                         value={formData.telefono}
                                         onChange={handleInputChange}
-                                        className={`w-full px-3 py-1.5 sm:px-4 sm:py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
-                                            errors.telefono ? 'border-red-500' : 'border-gray-300'
-                                        }`}
+                                        variant={errors.telefono ? 'error' : 'default'}
                                         placeholder="Ej: +54 9 351 123-4567"
                                     />
                                     {errors.telefono && (
@@ -274,15 +267,13 @@ export default function MayoristaPage() {
                                         <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#Ed3237]" />
                                         <span>Provincia: *</span>
                                     </label>
-                                    <input
+                                    <Input
                                         type="text"
                                         id="provincia"
                                         name="provincia"
                                         value={formData.provincia}
                                         onChange={handleInputChange}
-                                        className={`w-full px-3 py-1.5 sm:px-4 sm:py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
-                                            errors.provincia ? 'border-red-500' : 'border-gray-300'
-                                        }`}
+                                        variant={errors.provincia ? 'error' : 'default'}
                                         placeholder="Ej: Córdoba"
                                     />
                                     {errors.provincia && (
@@ -294,15 +285,13 @@ export default function MayoristaPage() {
                                         <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#Ed3237]" />
                                         <span>Ciudad: *</span>
                                     </label>
-                                    <input
+                                    <Input
                                         type="text"
                                         id="ciudad"
                                         name="ciudad"
                                         value={formData.ciudad}
                                         onChange={handleInputChange}
-                                        className={`w-full px-3 py-1.5 sm:px-4 sm:py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
-                                            errors.ciudad ? 'border-red-500' : 'border-gray-300'
-                                        }`}
+                                        variant={errors.ciudad ? 'error' : 'default'}
                                         placeholder="Ej: Córdoba Capital"
                                     />
                                     {errors.ciudad && (
@@ -317,15 +306,13 @@ export default function MayoristaPage() {
                                     <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#Ed3237]" />
                                     <span>Cantidad de prendas aproximadas: *</span>
                                 </label>
-                                <input
+                                <Input
                                     type="text"
                                     id="cantidad"
                                     name="cantidad"
                                     value={formData.cantidad}
                                     onChange={handleInputChange}
-                                    className={`w-full px-3 py-1.5 sm:px-4 sm:py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
-                                        errors.cantidad ? 'border-red-500' : 'border-gray-300'
-                                    }`}
+                                    variant={errors.cantidad ? 'error' : 'default'}
                                     placeholder="Ej: 50 prendas"
                                 />
                                 {errors.cantidad && (
@@ -339,15 +326,13 @@ export default function MayoristaPage() {
                                     <Shirt className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#Ed3237]" />
                                     <span>Tipo de prendas que buscan: *</span>
                                 </label>
-                                <textarea
+                                <TextArea
                                     id="tipoPrendas"
                                     name="tipoPrendas"
                                     value={formData.tipoPrendas}
                                     onChange={handleInputChange}
                                     rows={3}
-                                    className={`w-full px-3 py-1.5 sm:px-4 sm:py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
-                                        errors.tipoPrendas ? 'border-red-500' : 'border-gray-300'
-                                    }`}
+                                    variant={errors.tipoPrendas ? 'error' : 'default'}
                                     placeholder="Ej: Uniformes, remeras, pantalones..."
                                 />
                                 {errors.tipoPrendas && (
@@ -361,13 +346,12 @@ export default function MayoristaPage() {
                                     <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#Ed3237]" />
                                     <span>CUIT (opcional):</span>
                                 </label>
-                                <input
+                                <Input
                                     type="text"
                                     id="cuit"
                                     name="cuit"
                                     value={formData.cuit}
                                     onChange={handleInputChange}
-                                    className="w-full px-3 py-1.5 sm:px-4 sm:py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600"
                                     placeholder="Ej: 20-12345678-9"
                                 />
                             </div>

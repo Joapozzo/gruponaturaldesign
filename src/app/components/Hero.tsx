@@ -28,7 +28,7 @@ const features = [
   },
 ];
 
-const HERO_SLIDES = ['/imgs/hero-1.png', '/imgs/hero-2.png', '/imgs/hero-3.png'];
+const HERO_SLIDES = ['/imgs/hero-1.jpg', '/imgs/hero-2.jpg', '/imgs/hero-3.jpg'];
 const AUTO_PLAY_MS = 5000;
 
 const Hero = () => {

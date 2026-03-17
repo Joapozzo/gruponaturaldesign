@@ -158,7 +158,7 @@ const Contacto = () => {
                                         {...register('email')}
                                         type="email"
                                         className={`w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border-2 ${errors.email ? 'border-red-500' : 'border-gray-200'
-                                            } focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-xs sm:text-sm`}
+                                            } focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-600 text-gray-900 text-xs sm:text-sm`}
                                         placeholder="ejemplo@empresa.com"
                                     />
                                     {errors.email && (
@@ -174,7 +174,7 @@ const Contacto = () => {
                                         {...register('empresa')}
                                         type="text"
                                         className={`w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border-2 ${errors.empresa ? 'border-red-500' : 'border-gray-200'
-                                            } focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-xs sm:text-sm`}
+                                            } focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-600 text-gray-900 text-xs sm:text-sm`}
                                         placeholder="Ej: Distribuidora San Martín S.A."
                                     />
                                     {errors.empresa && (
@@ -190,7 +190,7 @@ const Contacto = () => {
                                         {...register('telefono')}
                                         type="tel"
                                         className={`w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border-2 ${errors.telefono ? 'border-red-500' : 'border-gray-200'
-                                            } focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-400 text-gray-900 text-xs sm:text-sm`}
+                                            } focus:border-red-500 outline-none transition-colors bg-white rounded-lg placeholder-gray-600 text-gray-900 text-xs sm:text-sm`}
                                         placeholder="Ej: 351 123-4567"
                                     />
                                     {errors.telefono && (
@@ -206,7 +206,7 @@ const Contacto = () => {
                                         {...register('mensaje')}
                                         rows={4}
                                         className={`w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border-2 ${errors.mensaje ? 'border-red-500' : 'border-gray-200'
-                                            } focus:border-red-500 outline-none transition-colors resize-none bg-white rounded-lg placeholder-gray-400 text-gray-900 text-xs sm:text-sm`}
+                                            } focus:border-red-500 outline-none transition-colors resize-none bg-white rounded-lg placeholder-gray-600 text-gray-900 text-xs sm:text-sm`}
                                         placeholder="Necesito cotización para uniformes de trabajo. Me interesa conocer opciones de diseño y tiempos de entrega..."
                                     ></textarea>
                                     {errors.mensaje && (

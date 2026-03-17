@@ -46,7 +46,7 @@ export const TextField: React.FC<TextFieldProps> = ({
         readOnly={readOnly}
         step={step}
         autoComplete={autoComplete}
-        className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black ${
+        className={`w-full px-3 py-2 border rounded-lg text-sm placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-black ${
           error ? 'border-red-500' : 'border-gray-300'
         } ${disabled || readOnly ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`}
         placeholder={placeholder}

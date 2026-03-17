@@ -3,9 +3,9 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, ArrowRight, Package } from 'lucide-react';
-import Image from 'next/image';
+import { Search, X, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { ProductImage } from './product-card/components/ProductImage';
 import { useProductosPublicadosAll } from '@/app/hooks/useProductosPublicadosAll';
 import type { ProductoPublicado } from '@/app/types/producto-publicado.types';
 import { DEFAULT_PRODUCTOS_PUBLICADOS_PARAMS } from '@/app/types/producto-publicado.types';
@@ -25,6 +25,15 @@ const normalizeString = (str: string): string => {
     .replace(/[\u0300-\u036f]/g, '');
 };
 
+// Misma lógica que useProductCardImages: imagen principal o primera variante con imagen
+function getProductImageSrc(producto: ProductoPublicado): string | null {
+  const valid = (url: string | null | undefined) =>
+    Boolean(url && typeof url === 'string' && url.trim() !== '');
+  if (valid(producto.imagenPrincipal)) return producto.imagenPrincipal!;
+  const conImagen = producto.variantes?.find((v) => valid(v.imagen));
+  return conImagen?.imagen ?? null;
+}
+
 interface SearchProductItemProps {
   producto: ProductoPublicado;
   onClick: () => void;
@@ -42,21 +51,14 @@ const SearchProductItem: React.FC<SearchProductItemProps> = ({ producto, onClick
       onClick={onClick}
       className="flex gap-2 p-2 rounded-lg border border-gray-200 hover:border-[#Ed3237] hover:shadow-md cursor-pointer transition-all group"
     >
-      <div className="relative w-12 h-12 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
-        {producto.imagenPrincipal ? (
-          <Image
-            src={producto.imagenPrincipal}
-            alt={nombre}
-            fill
-            className="object-cover group-hover:scale-110 transition-transform"
-            sizes="48px"
-            unoptimized={true}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-200">
-            <Package className="w-5 h-5 text-gray-400" />
-          </div>
-        )}
+      <div className="relative w-12 h-12 flex-shrink-0 rounded overflow-hidden bg-gray-100">
+        <ProductImage
+          src={getProductImageSrc(producto)}
+          alt={nombre}
+          fill
+          sizes="48px"
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+        />
       </div>
       <div className="flex-1 min-w-0">
         <h3 className="font-medium text-xs text-black line-clamp-2 group-hover:text-[#Ed3237] transition-colors">

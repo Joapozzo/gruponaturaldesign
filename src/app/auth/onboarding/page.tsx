@@ -31,6 +31,9 @@ export default function OnboardingPage() {
         } catch {
           // ignore
         }
+        const target = irAHome ? '/' : '/auth/login';
+        window.location.href = target;
+        return;
       }
       router.replace(irAHome ? '/' : '/auth/login');
     } catch {

@@ -22,14 +22,14 @@ const CatalogCategoriesHero = ({
       id: 'basic',
       nombre: 'BASIC',
       descripcion: 'Prendas esenciales y versátiles para uso diario y profesional.',
-      imagen: '/imgs/basic-desktop.png',
+      imagen: '/imgs/basic-desktop.jpg',
       rubroId: basicRubroId,
     },
     {
       id: 'workwear',
       nombre: 'WORKWEAR',
       descripcion: 'Indumentaria especializada para trabajo y entornos industriales.',
-      imagen: '/imgs/workwear-desktop.png',
+      imagen: '/imgs/workwear-desktop.jpg',
       rubroId: workwearRubroId,
     },
   ] as Array<{ id: string; nombre: string; descripcion: string; imagen: string; rubroId: number | null }>;

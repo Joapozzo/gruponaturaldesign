@@ -33,7 +33,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
       <div className="flex min-h-screen flex-col">
         <PromoBanner />
         <Navbar />
-        <main className="flex-1 pt-[76px] sm:pt-[88px] lg:pt-[120px]" role="main">
+        <main className="flex-1 pt-[78px] sm:pt-[90px] lg:pt-[142px]" role="main">
           {children}
         </main>
         <Footer />
@@ -47,7 +47,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
     <div className="flex min-h-screen flex-col">
       <PromoBanner />
       <Navbar />
-      <main className="flex-1 pt-[76px] sm:pt-[88px] lg:pt-[120px]" role="main">
+      <main className="flex-1 pt-[78px] sm:pt-[90px] lg:pt-[142px]" role="main">
         {children}
       </main>
       <Footer />
