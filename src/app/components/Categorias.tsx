@@ -83,7 +83,7 @@ const Categorias = () => {
                                         }}
                                         transition={{ duration: 0.3 }}
                                     >
-                                        <h3 className="text-xl lg:text-2xl font-bold mb-3 font-display">
+                                        <h3 className="text-xl lg:text-2xl font-bold mb-3">
                                             {categoria.nombre}
                                         </h3>
                                         <p className="md:text-sm text-xs opacity-90 mb-4 max-w-md leading-relaxed">

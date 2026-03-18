@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Home, ShoppingBag, ArrowLeft, LucideIcon } from 'lucide-react';
-import Button from './ui/Button';
+import Button from '@/components/ui/Button';
 import Link from 'next/link';
 
 interface ErrorPageTemplateProps {

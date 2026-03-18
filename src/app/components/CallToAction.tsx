@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
-import Button from './ui/Button';
+import Button from '@/components/ui/Button';
 import { useWhatsApp } from './hooks/useWhatsApp';
 import CtaBanner from './CtaBanner';
 
@@ -16,7 +16,7 @@ const CallToAction = () => {
     <CtaBanner
       title="¿No encontrás lo que buscás?"
       subtitle="Diseñamos uniformes personalizados para tu empresa. Más de 25 años creando soluciones únicas."
-      className="mt-12"
+      className="mt-20 lg:mt-20"
     >
       <Button
         variant="darkGray"

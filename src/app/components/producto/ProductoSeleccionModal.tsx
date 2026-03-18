@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import FormModal from '../modal/FormModal';
-import Button from '../ui/Button';
+import Button from '@/components/ui/Button';
 import { Search, Package, Layers } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { productoService } from '@/app/services/producto.service';

@@ -32,7 +32,7 @@ const ProyectosPersonalizados = () => {
                     viewport={{ once: true }}
                     className="text-center mb-8"
                 >
-                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 font-display tracking-tight mb-2">
+                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight mb-2">
                         Empresas que confían en nosotros
                     </h2>
                     <p className="text-sm text-gray-600">

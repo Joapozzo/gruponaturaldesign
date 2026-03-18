@@ -32,7 +32,7 @@ const CtaBanner: React.FC<CtaBannerProps> = ({
         viewport={{ once: true }}
         className="w-full px-4 lg:px-15 mx-auto"
       >
-        <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-4 font-display">
+        <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-4">
           {title}
         </h3>
         <p className="text-sm sm:text-base lg:text-lg text-white/90 mb-6 max-w-2xl mx-auto leading-relaxed">

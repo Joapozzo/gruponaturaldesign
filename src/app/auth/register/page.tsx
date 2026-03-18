@@ -11,7 +11,7 @@ import { SocialButton } from '@/components/auth/SocialButton';
 import { AuthPasswordField } from '@/components/auth/AuthPasswordField';
 import { PasswordRules } from '@/components/auth/PasswordRules';
 import { useAuth } from '@/contexts/AuthContext';
-import Button from '@/app/components/ui/Button';
+import Button from '@/components/ui/Button';
 import { TextField } from '@/app/components/producto/fields/TextField';
 import { formatAuthError } from '@/lib/auth-errors';
 import { registerFormSchema } from '@/lib/schemas/register.schema';

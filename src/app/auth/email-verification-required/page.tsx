@@ -3,7 +3,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { Mail, ArrowLeft, CheckCircle, CheckCircle2 } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import Button from '@/app/components/ui/Button';
+import Button from '@/components/ui/Button';
 import { motion } from 'framer-motion';
 
 // Componente que usa useSearchParams - debe estar envuelto en Suspense

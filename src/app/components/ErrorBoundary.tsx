@@ -3,7 +3,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import Button from './ui/Button';
+import Button from '@/components/ui/Button';
 
 interface Props {
   children: ReactNode;

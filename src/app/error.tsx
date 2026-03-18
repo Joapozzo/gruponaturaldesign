@@ -2,7 +2,7 @@
 import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 import ErrorPageTemplate from './components/ErrorPageTemplate';
-import Button from './components/ui/Button';
+import Button from '@/components/ui/Button';
 
 interface ErrorProps {
     error: Error & { digest?: string };

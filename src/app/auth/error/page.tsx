@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { AuthShell } from '@/components/auth/AuthShell';
-import Button from '@/app/components/ui/Button';
+import Button from '@/components/ui/Button';
 import { AlertCircle } from 'lucide-react';
 
 const ERROR_MESSAGES: Record<string, string> = {

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AuthForm } from '@/components/auth/AuthForm';
 import { useAuth } from '@/contexts/AuthContext';
-import Button from '@/app/components/ui/Button';
+import Button from '@/components/ui/Button';
 import { TextField } from '@/app/components/producto/fields/TextField';
 import { formatAuthError } from '@/lib/auth-errors';
 import toast from 'react-hot-toast';

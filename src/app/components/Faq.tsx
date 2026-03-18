@@ -22,7 +22,7 @@ const AccordionItem: React.FC<AccordionItemProps> = ({ faq, index, isOpen, onTog
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: index * 0.1 }}
             viewport={{ once: true }}
-            className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-300"
+            className="bg-white shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-300"
         >
             <motion.button
                 onClick={onToggle}
@@ -32,7 +32,7 @@ const AccordionItem: React.FC<AccordionItemProps> = ({ faq, index, isOpen, onTog
             >
                 <div className="flex items-center space-x-4">
                     <motion.div
-                        className="p-3 bg-gray-100 rounded-lg group-hover:bg-gray-200 transition-colors duration-300"
+                        className="p-3 bg-gray-100 group-hover:bg-gray-200 transition-colors duration-300"
                         whileHover={{ scale: 1.05 }}
                         transition={{ duration: 0.2 }}
                     >
@@ -90,7 +90,7 @@ const AccordionItem: React.FC<AccordionItemProps> = ({ faq, index, isOpen, onTog
                             className="flex items-start space-x-4"
                         >
                             <motion.div
-                                className="w-2 h-2 bg-gray-600 rounded-full mt-3 flex-shrink-0"
+                                className="w-2 h-2 bg-gray-600 mt-3 flex-shrink-0"
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
                                 transition={{ duration: 0.3, delay: 0.2 }}

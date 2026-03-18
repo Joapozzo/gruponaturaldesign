@@ -9,7 +9,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import Section from './Section';
-import Button from './ui/Button';
+import Button from '@/components/ui/Button';
 import { useProductosDestacadosLogic } from '../hooks/useProductosDestacadosLogic';
 import ProductCardPublicado from './ProductCardPublicado';
 
@@ -104,7 +104,7 @@ const ProductosDestacados = () => {
       subtitle="Lo mejor de nuestro shop online en diseño, calidad y funcionalidad."
       contentClassName="w-full px-4 lg:px-15"
     >
-      <div className="w-full overflow-hidden">
+      <div className="w-full overflow-hidden border-0 [border:0]">
         <Swiper
           modules={[Navigation, Pagination, Autoplay]}
           spaceBetween={16}
@@ -133,8 +133,8 @@ const ProductosDestacados = () => {
           className="pb-12"
         >
           {productos.map((producto, index) => (
-            <SwiperSlide key={producto.codigoAgrupacion} className="mb-5 !flex !items-start">
-              <div className="w-full flex-shrink-0">
+            <SwiperSlide key={producto.codigoAgrupacion} className="mb-5 !flex !items-start !border-0 [border:0]">
+              <div className="w-full flex-shrink-0 border-0 [border:0]">
                 <ProductCardPublicado
                   producto={producto}
                   index={index}

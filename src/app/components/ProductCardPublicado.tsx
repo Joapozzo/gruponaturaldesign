@@ -84,7 +84,7 @@ const ProductCardPublicado: React.FC<ProductCardPublicadoProps> = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: index * 0.05 }}
-        className="relative h-full flex flex-col bg-white rounded-lg transition-all duration-300"
+        className="relative h-full flex flex-col bg-white transition-all duration-300 font-sans !border-0 !border-transparent outline-none ring-0 !shadow-none [border:0] [box-shadow:none]"
       >
         {/* Imagen del producto: overlay sobre toda el área (incl. badges); si agotado no mostramos badges */}
         <div onClick={handlers.handleProductClick} className="cursor-pointer relative flex-shrink-0">
@@ -93,7 +93,7 @@ const ProductCardPublicado: React.FC<ProductCardPublicadoProps> = ({
             alt={producto.nombre || 'Producto'}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="aspect-square"
+            className="aspect-[3/4]"
             priority={index < 4}
           />
 
@@ -109,7 +109,7 @@ const ProductCardPublicado: React.FC<ProductCardPublicadoProps> = ({
           {/* Overlay Agotado sobre toda la imagen (por encima de todo) */}
           {showOutOfStockOverlay && (
             <div
-              className="absolute inset-0 z-20 bg-black/50 flex items-center justify-center rounded-t-lg pointer-events-none"
+              className="absolute inset-0 z-20 bg-black/50 flex items-center justify-center pointer-events-none"
               aria-hidden
             >
               <span className="text-white font-bold text-lg uppercase tracking-wider drop-shadow-md">
@@ -174,8 +174,8 @@ const ProductCardPublicado: React.FC<ProductCardPublicadoProps> = ({
             )}
           </AnimatePresence>
 
-          {/* Acciones (carrito, cantidad, bordado) - pegadas al fondo para altura uniforme */}
-          <div className="mt-auto pt-2">
+          {/* Acciones (carrito, cantidad, bordado) - pegadas al fondo; botón a ancho completo de la card sin padding */}
+          <div className="mt-auto pt-2 -mx-4">
             <ProductCardActions
               selectedVariant={selection.selectedVariant}
               cartQuantity={cart.cartQuantity}

@@ -25,7 +25,7 @@ import {
 } from '../../hooks/useProductImages';
 import { useBulkSelection } from '../../hooks/useBulkSelection';
 import { BulkImageActions } from './BulkImageActions';
-import Button from '../ui/Button';
+import Button from '@/components/ui/Button';
 import ConfirmModal from '../modal/ConfirmModal';
 import {
   X,

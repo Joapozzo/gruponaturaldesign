@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { AlertCircle, CheckCircle, Info, AlertTriangle } from 'lucide-react';
 import BaseModal from './BaseModal';
-import Button from '../ui/Button';
+import Button from '@/components/ui/Button';
 
 // Tipos de modal
 type ModalType = 'success' | 'error' | 'warning' | 'info' | 'confirm';

@@ -2,7 +2,7 @@
 import React from 'react';
 import { ShoppingCart, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import Button from '../ui/Button';
+import Button from '@/components/ui/Button';
 
 interface ProductAddToCartProps {
     onAddToCart: () => void;
@@ -27,7 +27,7 @@ export default function ProductAddToCart({
                 variant={isAdding ? 'brandRed' : isInCart ? 'slate' : 'black'}
                 size="lg"
                 fullWidth
-                className="sm:!px-4 sm:!py-2 sm:!text-xs lg:!px-3.5 lg:!py-1.5 lg:!text-xs"
+                className="rounded-none !px-0 !py-2.5 sm:!text-xs lg:!text-xs"
             >
                 <ShoppingCart className="w-[14px] h-[14px] sm:w-3 sm:h-3 shrink-0" />
                 <span>
@@ -45,7 +45,7 @@ export default function ProductAddToCart({
                 variant="brandRedOutline"
                 size="lg"
                 fullWidth
-                className="sm:!px-4 sm:!py-2 sm:!text-xs lg:!px-3.5 lg:!py-1.5 lg:!text-xs"
+                className="rounded-none !px-0 !py-2.5 sm:!text-xs lg:!text-xs"
             >
                 <Users className="w-[14px] h-[14px] sm:w-3 sm:h-3 shrink-0" />
                 <span>QUIERO COMPRAR POR MAYOR</span>

@@ -5,7 +5,7 @@
 'use client';
 
 import React from 'react';
-import Button from '@/app/components/ui/Button';
+import Button from '@/components/ui/Button';
 import BordadoSwitch from './BordadoSwitch';
 import type { VariantePublicada } from '@/app/types/producto-publicado.types';
 
@@ -153,6 +153,7 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
               variant="black"
               size="sm"
               fullWidth
+              className="rounded-none !px-0 !py-2.5"
               onClick={onAddToCart}
               disabled={isButtonDisabled()}
             >

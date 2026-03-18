@@ -16,7 +16,7 @@ import Section from '@/app/components/Section';
 import ErrorBoundary from '@/app/components/ErrorBoundary';
 import HeroMayorista from '@/app/components/HeroMayorista';
 import { useWhatsApp } from '@/app/components/hooks/useWhatsApp';
-import Button from '@/app/components/ui/Button';
+import Button from '@/components/ui/Button';
 import Input, { TextArea } from '@/app/components/ui/Input';
 
 export default function MayoristaPage() {
@@ -141,7 +141,7 @@ export default function MayoristaPage() {
                             className="lg:col-span-5 flex flex-col"
                         >
                             <div className="bg-gray-100 p-5 sm:p-6 rounded-xl border border-gray-200 shadow-inner">
-                                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 font-display tracking-tight mb-3 sm:mb-4">
+                                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 tracking-tight mb-3 sm:mb-4">
                                     ✔ Beneficios para compras mayoristas
                                 </h2>
                                 <div className="flex flex-col gap-2 sm:gap-3">
@@ -171,7 +171,7 @@ export default function MayoristaPage() {
                             className="lg:col-span-7 flex flex-col"
                         >
                             <div className="bg-white p-5 sm:p-6 rounded-xl border border-gray-200 shadow-md h-full">
-                                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 font-display tracking-tight mb-2 sm:mb-4 flex items-center gap-1.5 sm:gap-2">
+                                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 tracking-tight mb-2 sm:mb-4 flex items-center gap-1.5 sm:gap-2">
                                     <Briefcase className="w-4 h-4 sm:w-5 sm:h-5 text-[#Ed3237]" />
                                     <span>¡Hola! Quiero uniformar a mi equipo</span>
                                 </h2>

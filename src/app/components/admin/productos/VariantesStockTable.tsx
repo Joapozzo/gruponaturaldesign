@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import Button from '@/app/components/ui/Button';
+import Button from '@/components/ui/Button';
 import Select from '@/app/components/ui/Select';
 import { useVariantesStock } from '@/app/hooks/useVariantesStock';
 import { useBulkSelection } from '@/app/hooks/useBulkSelection';

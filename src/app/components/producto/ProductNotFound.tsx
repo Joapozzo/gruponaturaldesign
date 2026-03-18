@@ -2,7 +2,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Package, ArrowLeft } from 'lucide-react';
-import Button from '@/app/components/ui/Button';
+import Button from '@/components/ui/Button';
 
 export default function ProductNotFound() {
     const router = useRouter();

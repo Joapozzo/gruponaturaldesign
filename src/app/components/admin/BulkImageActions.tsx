@@ -1,4 +1,4 @@
-import Button from '@/app/components/ui/Button';
+import Button from '@/components/ui/Button';
 import { Trash2, Loader2 } from 'lucide-react';
 
 interface BulkImageActionsProps {

@@ -66,7 +66,7 @@ export default function CheckoutPage() {
       {/* Header - Compact */}
       <div className="flex-shrink-0 border-b border-gray-200 py-1.5 sm:py-2 sticky top-[32px] sm:top-[38px] bg-white z-10">
         <div className="flex items-center justify-between w-full max-w-5xl xl:max-w-6xl mx-auto px-4 lg:px-15">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-black font-display tracking-tight">CHECKOUT</h1>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-black tracking-tight">CHECKOUT</h1>
 
           {/* Step Indicator - Horizontal Compact */}
           <div className="flex items-center gap-1">

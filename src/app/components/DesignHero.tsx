@@ -5,9 +5,9 @@ import Image from 'next/image';
 
 const DesignHero = () => {
   return (
-    <div className="w-full bg-white overflow-x-hidden h-screen">
-      <div className="w-full h-full mx-auto relative overflow-x-hidden">
-        <div className="grid grid-cols-1 lg:grid-cols-10 gap-2 w-full h-full">
+    <div className="w-full bg-white overflow-x-hidden min-h-0 lg:h-screen">
+      <div className="w-full mx-auto relative overflow-x-hidden lg:h-full lg:min-h-screen">
+        <div className="grid grid-cols-1 lg:grid-cols-10 gap-2 w-full min-h-0 lg:h-full">
           {/* Texto - 70% (7 de 10 columnas), mismo gap que Categorias */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
@@ -22,7 +22,7 @@ const DesignHero = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-2xl sm:text-3xl lg:text-4xl xl:text-4xl 2xl:text-5xl font-bold text-black mb-4 lg:mb-6 leading-[1.1] font-display tracking-tight"
+              className="text-2xl sm:text-3xl lg:text-4xl xl:text-4xl 2xl:text-5xl font-bold text-black mb-4 lg:mb-6 leading-[1.1] tracking-tight"
             >
               DISEÑADA PARA<br />
               TRABAJAR, CREADA<br />

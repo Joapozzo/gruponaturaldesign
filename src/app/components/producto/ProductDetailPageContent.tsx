@@ -233,7 +233,7 @@ export default function ProductDetailPageContent({
           <div className="space-y-5 sm:space-y-6 lg:pt-0" style={{ overflow: 'visible' }}>
             {/* Nombre del producto */}
             <div className="mb-2 sm:mb-3">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 font-display tracking-tight leading-tight">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight leading-tight">
                 {productName}
               </h1>
             </div>

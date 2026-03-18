@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../hooks/useCart';
-import Button from '../ui/Button';
+import Button from '@/components/ui/Button';
 import { PaymentData } from '@/app/types/cart';
 import { RiBankLine } from "react-icons/ri";
 import { BsCashStack } from "react-icons/bs";

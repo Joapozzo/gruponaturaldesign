@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Button from '@/app/components/ui/Button';
+import Button from '@/components/ui/Button';
 import { GroupedProduct, ProductWithImage } from '@/app/types/producto';
 
 interface ProductHeaderProps {

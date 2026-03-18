@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ShoppingCart, ArrowRight } from 'lucide-react';
-import Button from './ui/Button';
+import Button from '@/components/ui/Button';
 import { useRouter } from 'next/navigation';
 
 const EmptyCart: React.FC<{ onClose: () => void }> = ({ onClose }) => {

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Heart, MessageCircle, Send, Bookmark } from 'lucide-react';
 import Section from './Section';
-import Button from './ui/Button';
+import Button from '@/components/ui/Button';
 import Image from 'next/image';
 
 const InstagramCTA = () => {
@@ -56,7 +56,7 @@ const InstagramCTA = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.8, delay: 0.2 }}
-                            className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2 font-display"
+                            className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2"
                         >
                             Novedades
                         </motion.h2>

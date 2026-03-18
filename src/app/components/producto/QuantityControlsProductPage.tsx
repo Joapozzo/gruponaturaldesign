@@ -4,7 +4,7 @@ import React from 'react';
 import { ShoppingCart, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import QuantityControlsUI from '@/app/components/ui/QuantityControls';
-import Button from '@/app/components/ui/Button';
+import Button from '@/components/ui/Button';
 
 interface QuantityControlsProductPageProps {
     currentQuantity: number;

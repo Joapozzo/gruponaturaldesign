@@ -110,7 +110,7 @@ const BrandsSlider = () => {
             transition={{ duration: 0.3 }}
         >
             {/* Imagen del uniforme - Más grande en móvil */}
-            <div className="relative aspect-square bg-gray-200 rounded-2xl overflow-hidden shadow-lg group-hover:shadow-xl transition-all duration-500 
+            <div className="relative aspect-square bg-gray-200 overflow-hidden shadow-lg group-hover:shadow-xl transition-all duration-500 
                           mx-2 sm:mx-4">
                 <Image
                     src={brand.image}

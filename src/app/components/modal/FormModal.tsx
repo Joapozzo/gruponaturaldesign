@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import BaseModal from './BaseModal';
-import Button from '../ui/Button';
+import Button from '@/components/ui/Button';
 
 interface FormModalProps {
   isOpen: boolean;

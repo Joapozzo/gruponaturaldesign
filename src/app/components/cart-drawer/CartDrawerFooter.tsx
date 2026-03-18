@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import Button from '../ui/Button';
+import Button from '@/components/ui/Button';
 
 interface CartDrawerFooterProps {
     isEmpty: boolean;

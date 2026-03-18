@@ -23,7 +23,7 @@ const sizeClasses: Record<InputSize, string> = {
 };
 
 const baseClasses =
-    'w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-400/60 transition-colors';
+    'w-full border focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-400/60 transition-colors';
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
     (

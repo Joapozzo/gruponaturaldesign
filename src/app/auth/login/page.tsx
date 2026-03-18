@@ -9,7 +9,7 @@ import { AuthForm } from '@/components/auth/AuthForm';
 import { AuthDivider } from '@/components/auth/AuthDivider';
 import { SocialButton } from '@/components/auth/SocialButton';
 import { useAuthForm } from '@/hooks/auth/useAuthForm';
-import Button from '@/app/components/ui/Button';
+import Button from '@/components/ui/Button';
 import { TextField } from '@/app/components/producto/fields/TextField';
 import { AuthPasswordField } from '@/components/auth/AuthPasswordField';
 import { useAuth } from '@/contexts/AuthContext';

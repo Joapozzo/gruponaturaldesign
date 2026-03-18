@@ -63,7 +63,7 @@ export default function AddToCartButton({
             )}
 
             <motion.button
-                className={`flex items-center justify-center space-x-1.5 rounded-lg font-medium transition-all duration-300 ${
+                className={`flex items-center justify-center space-x-1.5 font-medium transition-all duration-300 ${
                     isMobile ? 'w-full px-1.5 py-1 text-[10px]' : 'w-full sm:w-auto px-3 py-1.5 text-xs'
                 } ${getButtonClass()}`}
                 onClick={onClick}

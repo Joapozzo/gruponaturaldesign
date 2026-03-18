@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useCart } from '../hooks/useCart';
-import Button from '../ui/Button';
+import Button from '@/components/ui/Button';
 import { Trash2, ArrowRight } from 'lucide-react';
 import QuantityControlsUI from '@/app/components/ui/QuantityControls';
 import BordadoSwitch from '../product-card/components/BordadoSwitch';

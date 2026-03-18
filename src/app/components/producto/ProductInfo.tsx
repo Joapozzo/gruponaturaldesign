@@ -53,7 +53,7 @@ export default function ProductInfo({ productName, displayProduct, selectedVaria
             {/* Título y precio */}
             <div className="w-full">
                 {!hideTitle && (
-                    <h1 className="text-sm sm:text-base lg:text-lg font-medium text-gray-900 mb-1 font-display leading-tight">
+                    <h1 className="text-sm sm:text-base lg:text-lg font-medium text-gray-900 mb-1 leading-tight">
                         {productName}
                     </h1>
                 )}

@@ -50,7 +50,7 @@ export default function RelatedProducts({ relatedProducts }: RelatedProductsProp
             </h2>
             
             {/* Slider de productos */}
-            <div className="swiper-related-products">
+            <div className="swiper-related-products border-0 [border:0]">
                 <Swiper
                     modules={[Navigation, Pagination, Autoplay]}
                     spaceBetween={12}
@@ -102,7 +102,7 @@ export default function RelatedProducts({ relatedProducts }: RelatedProductsProp
                     }}
                 >
                     {productosPublicados.map((producto, index) => (
-                        <SwiperSlide key={producto.codigoAgrupacion}>
+                        <SwiperSlide key={producto.codigoAgrupacion} className="!border-0 [border:0]">
                             <ProductCardPublicado 
                                 producto={producto} 
                                 index={index}

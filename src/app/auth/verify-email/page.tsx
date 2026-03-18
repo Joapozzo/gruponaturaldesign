@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { useAuth } from '@/contexts/AuthContext';
 import { auth } from '@/lib/firebase';
-import Button from '@/app/components/ui/Button';
+import Button from '@/components/ui/Button';
 import Link from 'next/link';
 
 export default function VerifyEmailPage() {

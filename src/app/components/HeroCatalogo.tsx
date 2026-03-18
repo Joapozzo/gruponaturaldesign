@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Grid3X3 } from 'lucide-react';
-import Button from './ui/Button';
+import Button from '@/components/ui/Button';
 import Link from 'next/link';
 
 interface HeroCatalogoProps {
@@ -60,7 +60,7 @@ const HeroCatalogo = ({ productCount = 0, isLoading = false }: HeroCatalogoProps
 
                         {/* Título y Descripción */}
                         <div className="flex flex-col gap-3">
-                            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white font-display leading-tight">
+                            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight">
                                 Shop Online
                             </h1>
                             <p className="text-lg sm:text-xl lg:text-2xl text-gray-200 max-w-3xl">

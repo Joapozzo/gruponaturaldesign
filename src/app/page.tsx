@@ -4,6 +4,7 @@ import { createSSRQueryClient } from './utils/createSSRQueryClient';
 import { prefetchProductosDestacados } from './utils/prefetchProductosDestacados';
 import Hero from './components/Hero';
 import Categorias from './components/Categorias';
+import FeaturesCards from './components/FeaturesCards';
 import ProductosDestacados from './components/ProductosDestacados';
 import Nosotros from './components/Nosotros';
 import Testimonios from './components/Testimonios';
@@ -42,6 +43,7 @@ export default async function HomePage() {
         {/* Categorías + DesignHero (100vh c/u), mismo gap */}
         <div className="w-full flex flex-col gap-2">
           <Categorias />
+          <FeaturesCards />
           <div className="w-full px-4 lg:px-15 shrink-0">
             <DesignHero />
           </div>

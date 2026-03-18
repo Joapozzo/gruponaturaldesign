@@ -24,7 +24,7 @@ export function ProfilePageLayout({
     <div className={`w-full bg-gray-50 min-h-[60vh] ${className}`}>
       <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
         <header className="mb-8">
-          <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 font-display tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">
             {title}
           </h1>
           {subtitle && (

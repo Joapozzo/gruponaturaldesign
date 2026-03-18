@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { AlertCircle, CheckCircle, Info, AlertTriangle, X } from 'lucide-react';
 import BaseModal from './BaseModal';
-import Button from '../ui/Button';
+import Button from '@/components/ui/Button';
 
 type AlertType = 'success' | 'error' | 'warning' | 'info';
 

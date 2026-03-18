@@ -21,11 +21,11 @@ const WorkProcessCard: React.FC<WorkProcessCardProps> = ({ item, index }) => {
             viewport={{ once: true }}
             className="group"
         >
-            <div className="h-full rounded-xl border border-gray-200/80 bg-white/80 p-6 lg:p-8 transition-all duration-300 hover:border-gray-300 hover:bg-white hover:shadow-sm">
-                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-red-50 text-red-600 mb-5 transition-colors duration-300 group-hover:bg-red-100">
+            <div className="h-full border border-gray-200/80 bg-white/80 p-6 lg:p-8 transition-all duration-300 hover:border-gray-300 hover:bg-white hover:shadow-sm">
+                <div className="flex items-center justify-center w-12 h-12 bg-red-50 text-red-600 mb-5 transition-colors duration-300 group-hover:bg-red-100">
                     <Icon className="w-6 h-6" strokeWidth={1.5} />
                 </div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-2 font-display">
+                <h3 className="text-sm font-semibold text-gray-900 mb-2">
                     {item.title}
                 </h3>
                 <p className="text-xs md:text-sm text-gray-600 leading-relaxed">

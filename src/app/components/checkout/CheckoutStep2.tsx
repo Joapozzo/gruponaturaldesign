@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../hooks/useCart';
-import Button from '../ui/Button';
+import Button from '@/components/ui/Button';
 import { CustomerData, ShippingData } from '@/app/types/cart';
 import { formatPrice } from '@/app/utils/productHelpers';
 import { WHATSAPP_PHONE_NUMBER, getWhatsAppNumberForUrl } from '@/app/utils/constants';

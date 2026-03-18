@@ -17,7 +17,7 @@ import {
   rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import Button from '@/app/components/ui/Button';
+import Button from '@/components/ui/Button';
 import ConfirmModal from '@/app/components/modal/ConfirmModal';
 import {
   useProductoPadreImages,

@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { Upload, Trash2, FileText, ExternalLink, Loader2, Image as ImageIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
-import Button from '@/app/components/ui/Button';
+import Button from '@/components/ui/Button';
 import ConfirmModal from '@/app/components/modal/ConfirmModal';
 import {
   useUploadTablaTalles,

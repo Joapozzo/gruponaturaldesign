@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { applyActionCode, confirmPasswordReset, checkActionCode } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { AuthShell } from '@/components/auth/AuthShell';
-import Button from '@/app/components/ui/Button';
+import Button from '@/components/ui/Button';
 import { AuthPasswordField } from '@/components/auth/AuthPasswordField';
 import Link from 'next/link';
 

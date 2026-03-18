@@ -1,7 +1,7 @@
     import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
-import Button from './ui/Button';
+import Button from '@/components/ui/Button';
 import Link from 'next/link';
 
 const HeroPersonalizados = () => {
@@ -54,7 +54,7 @@ const HeroPersonalizados = () => {
 
                         {/* Título y Descripción */}
                         <div className="flex flex-col gap-3">
-                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white font-display tracking-tight">
+                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight">
                                 Uniformes personalizados
                             </h1>
                             <p className="text-lg sm:text-xl lg:text-2xl text-gray-200 max-w-3xl">

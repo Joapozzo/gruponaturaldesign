@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AuthForm } from '@/components/auth/AuthForm';
 import { useApiMutation } from '@/hooks/auth/useApiMutation';
-import Button from '@/app/components/ui/Button';
+import Button from '@/components/ui/Button';
 import { AuthPasswordField } from '@/components/auth/AuthPasswordField';
 
 interface ResetBody {
