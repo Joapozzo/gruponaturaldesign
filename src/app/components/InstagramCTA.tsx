@@ -29,10 +29,10 @@ const InstagramCTA = () => {
     };
 
     const posts = [
-        { id: 1, image: '/imgs/instagram/1.jpg', likes: 124, comments: 8 },
-        { id: 2, image: '/imgs/instagram/2.jpg', likes: 89, comments: 5 },
-        { id: 3, image: '/imgs/instagram/3.jpg', likes: 201, comments: 12 },
-        { id: 4, image: '/imgs/instagram/4.jpg', likes: 67, comments: 3 },
+        { id: 1, image: '/imgs/instagram/ig_1.jpg', likes: 124, comments: 8 },
+        { id: 2, image: '/imgs/instagram/ig_2.jpg', likes: 89, comments: 5 },
+        { id: 3, image: '/imgs/instagram/ig_3.jpg', likes: 201, comments: 12 },
+        { id: 4, image: '/imgs/instagram/ig_4.jpg', likes: 67, comments: 3 },
     ];
 
     return (
