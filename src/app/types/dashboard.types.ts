@@ -1,7 +1,9 @@
+import type { EstadoPedido, PedidoSyncStatus } from '@/app/types/pedido.types';
+
 export type TipoCliente = 'minorista' | 'mayorista' | 'distribuidor' | string;
 
-export type EstadoPedido = string;
-export type PedidoSyncStatus = string;
+export type { EstadoPedido, PedidoSyncStatus };
+
 export type FormaEnvio = string;
 
 export interface PeriodoVentasTipoCliente {
