@@ -2,6 +2,11 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 import { AUTH_COOKIE_NAME } from '@/lib/auth-config';
+import { AUTH_CALLBACK_PARAM, getSafeCallbackPath } from '@/lib/auth-callback-url';
+import {
+  getMaintenanceBlockScope,
+  shouldBlockClientApiRoute,
+} from '@/lib/maintenance-routes';
 
 const publicPaths = [
   '/',
@@ -33,9 +38,43 @@ function isAdminRole(role: unknown): boolean {
   return role === 'ADMIN' || (Array.isArray(role) && role.includes('ADMIN'));
 }
 
+function maintenanceJsonResponse(scope: 'public' | 'admin'): NextResponse {
+  const isAdmin = scope === 'admin';
+  return NextResponse.json(
+    {
+      success: false,
+      error: 'Servicio en mantenimiento',
+      message: isAdmin
+        ? 'El panel de administración no está disponible temporalmente.'
+        : 'La tienda no está disponible temporalmente.',
+      code: 'MAINTENANCE',
+      scope,
+    },
+    { status: 503 }
+  );
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  if (pathname.startsWith('/api/')) return NextResponse.next();
+
+  if (pathname.startsWith('/api/')) {
+    const apiScope = shouldBlockClientApiRoute(pathname);
+    if (apiScope) {
+      return maintenanceJsonResponse(apiScope);
+    }
+    return NextResponse.next();
+  }
+
+  const maintenanceScope = getMaintenanceBlockScope(pathname);
+  if (maintenanceScope) {
+    const url = req.nextUrl.clone();
+    url.pathname = '/maintenance';
+    url.search = `?scope=${maintenanceScope}`;
+    const res = NextResponse.redirect(url, 307);
+    res.headers.set('Retry-After', '1800');
+    res.headers.set('Cache-Control', 'no-store');
+    return res;
+  }
   // En desarrollo, evitar HTTPS en localhost (evita ERR_SSL_PROTOCOL_ERROR)
   if (process.env.NODE_ENV === 'development' && req.nextUrl.protocol === 'https:' && req.nextUrl.hostname === 'localhost') {
     const httpUrl = new URL(req.nextUrl);
@@ -46,9 +85,9 @@ export async function middleware(req: NextRequest) {
   const token = req.cookies.get(AUTH_COOKIE_NAME)?.value;
   const secret = process.env.AUTH_COOKIE_SECRET || process.env.JWT_SECRET;
 
-  // Rutas públicas: si hay sesión válida y es ADMIN, redirigir al dashboard
+  // Rutas públicas: admin autenticado → dashboard (excepto /auth/* para re-sincronizar Firebase)
   if (isPublicPath(pathname)) {
-    if (token && secret) {
+    if (token && secret && !isAuthPath(pathname)) {
       try {
         const { payload } = await jwtVerify(token, new TextEncoder().encode(secret));
         const role = (payload as { role?: string | string[] }).role;
@@ -74,10 +113,14 @@ export async function middleware(req: NextRequest) {
       return NextResponse.next();
     }
     if (p.needsEmailVerification) {
-      return NextResponse.redirect(new URL('/auth/verify-email', req.nextUrl));
+      const target = new URL('/auth/verify-email', req.nextUrl);
+      target.searchParams.set(AUTH_CALLBACK_PARAM, getSafeCallbackPath(pathname));
+      return NextResponse.redirect(target);
     }
     if (p.needsOnboarding) {
-      return NextResponse.redirect(new URL('/auth/onboarding', req.nextUrl));
+      const target = new URL('/auth/onboarding', req.nextUrl);
+      target.searchParams.set(AUTH_CALLBACK_PARAM, getSafeCallbackPath(pathname));
+      return NextResponse.redirect(target);
     }
     // Admin autenticado solo en /admin; si intenta ir a otra ruta protegida, al dashboard
     if (isAdminRole(p.role) && !isAdminPath(pathname) && !isAuthPath(pathname)) {

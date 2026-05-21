@@ -171,28 +171,36 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
             style={{ zIndex: 100000 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center border-b border-gray-200 px-3 py-2 flex-shrink-0">
-              <div className="flex-1 [&_input]:text-sm [&_input]:py-2 [&_input]:pr-3">
-                <SearchInput
-                  ref={inputRef}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Buscar productos..."
-                  onClear={() => setSearchTerm('')}
-                  showClearButton={true}
-                />
+            <div className="border-b border-gray-200 px-3 py-2 flex-shrink-0">
+              <div className="max-w-3xl mx-auto w-full flex items-center gap-2">
+                <div className="flex-1 min-w-0">
+                  <SearchInput
+                    ref={inputRef}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Buscar productos..."
+                    onClear={() => setSearchTerm('')}
+                    showClearButton={true}
+                    variant="ghost"
+                    size="sm"
+                    fullWidth
+                    leftIcon={<Search size={12} />}
+                    inputClassName="focus:border-gray-300 focus:ring-2 focus:ring-gray-100 focus:ring-offset-0"
+                  />
+                </div>
+                <button
+                  onClick={onClose}
+                  className="p-1.5 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+                  aria-label="Cerrar búsqueda"
+                >
+                  <X className="w-5 h-5 text-gray-600" />
+                </button>
               </div>
-              <button
-                onClick={onClose}
-                className="ml-2 p-1.5 hover:bg-gray-100 rounded transition-colors"
-                aria-label="Cerrar búsqueda"
-              >
-                <X className="w-5 h-5 text-gray-600" />
-              </button>
             </div>
 
             <div className="flex-1 overflow-y-auto px-3 py-2">
-              {isSearching ? (
+              <div className="max-w-3xl mx-auto w-full">
+                {isSearching ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#Ed3237]" />
                 </div>
@@ -202,7 +210,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                   <p className="text-gray-400 text-xs mt-1">Intenta con otros términos de búsqueda</p>
                 </div>
               ) : searchTerm && results.length > 0 ? (
-                <div className="max-w-3xl mx-auto">
+                <>
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-xs text-gray-600">
                       {results.length} {results.length === 1 ? 'resultado' : 'resultados'}
@@ -224,14 +232,15 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                       />
                     ))}
                   </div>
-                </div>
+                </>
               ) : (
-                <div className="max-w-3xl mx-auto text-center py-8">
+                <div className="text-center py-8">
                   <Search className="w-10 h-10 text-gray-300 mx-auto mb-2" />
                   <p className="text-gray-500 text-sm">Busca productos por nombre, categoría o descripción</p>
                   <p className="text-gray-400 text-xs mt-1">Escribe para comenzar a buscar</p>
                 </div>
               )}
+              </div>
             </div>
           </motion.div>
         </>

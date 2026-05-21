@@ -10,12 +10,12 @@ interface Brand {
 }
 
 const brands: Brand[] = [
-    { id: 1, name: 'Coca Cola', image: '/imgs/products/coca.jpg' },
-    { id: 2, name: 'Stellantis', image: '/imgs/products/stellantis.jpg' },
-    { id: 3, name: 'Tarjeta Naranja', image: '/imgs/products/naranja.jpg' },
-    { id: 4, name: 'Reina Fabiola', image: '/imgs/products/fabiola.jpg' },
-    { id: 5, name: 'Horse', image: '/imgs/products/horse.jpg' },
-    { id: 6, name: 'CNH', image: '/imgs/products/cnh.jpg' },
+    { id: 1, name: 'Coca Cola', image: '/imgs/marcas/coca.jpg' },
+    { id: 2, name: 'Stellantis', image: '/imgs/marcas/stellantis.jpg' },
+    { id: 3, name: 'Tarjeta Naranja', image: '/imgs/marcas/naranja.jpg' },
+    { id: 4, name: 'Reina Fabiola', image: '/imgs/marcas/fabiola.jpg' },
+    { id: 5, name: 'Horse', image: '/imgs/marcas/horse.jpg' },
+    { id: 6, name: 'CNH', image: '/imgs/marcas/cnh.jpg' },
 ];
 
 const UniformesShowcase = () => {

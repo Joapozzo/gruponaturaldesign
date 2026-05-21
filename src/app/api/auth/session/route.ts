@@ -7,6 +7,7 @@ import type { SessionUserState } from '@/types/auth.types';
 const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
 const JWT_SECRET = process.env.AUTH_COOKIE_SECRET || process.env.JWT_SECRET;
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+const SESSION_TIMEOUT_MS = 12000;
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,12 +20,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), SESSION_TIMEOUT_MS);
+
     const res = await fetch(`${API_URL}/auth/session`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ idToken }),
-    });
-    const data = await res.json();
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeout));
+
+    const data = await res.json().catch(() => ({}));
 
     if (!res.ok || !data.success) {
       return NextResponse.json(
@@ -64,7 +70,13 @@ export async function POST(request: NextRequest) {
       path: '/',
     });
     return response;
-  } catch (e) {
+  } catch (e: unknown) {
+    if (e instanceof DOMException && e.name === 'AbortError') {
+      return NextResponse.json(
+        { success: false, error: 'Timeout de sesión contra API' },
+        { status: 504 }
+      );
+    }
     console.error('[auth/session]', e);
     return NextResponse.json(
       { success: false, error: 'Error interno' },

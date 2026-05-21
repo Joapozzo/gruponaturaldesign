@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import { syncService } from '@/app/services/sync.service';
 import { productosKeys } from '@/app/utils/productosKeys';
 import { useSync } from '@/components/admin/SyncContext';
@@ -44,10 +45,33 @@ export function useProductosSync({ onSuccess, onError }: UseProductosSyncParams 
       queryClient.invalidateQueries({ queryKey: productosKeys.all });
       cooldownUntilRef.current = Date.now() + SYNC_COOLDOWN_SECONDS * 1000;
       setCooldownRemainingSeconds(SYNC_COOLDOWN_SECONDS);
-      onSuccess?.(data.message || 'Sincronización completada correctamente');
+
+      const anyData = data as Record<string, unknown> | undefined;
+      const base =
+        typeof anyData?.message === 'string'
+          ? anyData.message
+          : 'Sincronización de productos completada';
+      const stats =
+        anyData?.procesados != null
+          ? ` · ${String(anyData.exitosos ?? '?')} exitosos / ${String(anyData.procesados)} procesados`
+          : '';
+      const stockExtra =
+        anyData?.stockPrecios != null && typeof anyData.stockPrecios === 'object'
+          ? ' · Stock depósito actualizado'
+          : '';
+      const msg = `${base}${stats}${stockExtra}`;
+      toast.success(msg, { duration: 7000 });
+      onSuccess?.(msg);
     },
-    onError: (error: Error) => {
-      onError?.(error.message || 'Error al sincronizar productos');
+    onError: (error: unknown) => {
+      const msg =
+        error instanceof Error
+          ? error.message
+          : error && typeof error === 'object' && 'message' in error
+            ? String((error as { message: unknown }).message)
+            : 'Error al sincronizar productos';
+      toast.error(msg, { duration: 8000 });
+      onError?.(msg);
     },
   });
 

@@ -19,6 +19,10 @@ export const getWhatsAppNumberForUrl = (phoneNumber: string = WHATSAPP_PHONE_NUM
     return phoneNumber.replace(/\D/g, '');
 };
 
+/** Dirección / instrucciones para retiro en tienda (checkout paso envío). */
+export const CHECKOUT_STORE_PICKUP_ADDRESS =
+    'Alta Córdoba, Córdoba Capital. Coordiná el retiro por WhatsApp indicando tu nombre y número de pedido.';
+
 
 
 

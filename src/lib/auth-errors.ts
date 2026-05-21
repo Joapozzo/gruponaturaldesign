@@ -36,6 +36,7 @@ const BACKEND_FRIENDLY = [
   'Email y contraseña requeridos',
   'La contraseña debe tener al menos',
   'Las contraseñas no coinciden',
+  'Usuario desactivado',
 ];
 
 function isBackendFriendly(msg: string): boolean {

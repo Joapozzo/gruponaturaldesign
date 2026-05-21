@@ -6,6 +6,8 @@ import type { ProfileUser } from '@/app/types/profile.types';
 
 interface ProfileUserCardProps {
   user: ProfileUser;
+  /** Encabezado de la tarjeta (ej. "Mi perfil" o "Datos de la cuenta"). */
+  heading?: string;
   /** Si true, muestra badge de rol (útil en admin). */
   showRole?: boolean;
 }
@@ -14,7 +16,11 @@ interface ProfileUserCardProps {
  * Tarjeta de solo lectura con datos del usuario.
  * Reutilizable en perfil de usuario y en vistas de admin.
  */
-export function ProfileUserCard({ user, showRole = true }: ProfileUserCardProps) {
+export function ProfileUserCard({
+  user,
+  heading = 'Datos de la cuenta',
+  showRole = true,
+}: ProfileUserCardProps) {
   const fullName = [user.nombre, user.apellido].filter(Boolean).join(' ') || '—';
 
   return (
@@ -24,7 +30,7 @@ export function ProfileUserCard({ user, showRole = true }: ProfileUserCardProps)
     >
       <div className="px-4 sm:px-6 py-4 border-b border-gray-100 bg-gray-50/50">
         <h2 id="profile-user-heading" className="text-sm font-semibold text-gray-700">
-          Datos de la cuenta
+          {heading}
         </h2>
       </div>
       <div className="p-4 sm:p-6 space-y-4">

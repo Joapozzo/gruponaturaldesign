@@ -5,6 +5,7 @@ import { ShoppingCart, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import QuantityControlsUI from '@/app/components/ui/QuantityControls';
 import Button from '@/components/ui/Button';
+import NewsletterOutOfStockForm from '@/app/components/newsletter/NewsletterOutOfStockForm';
 
 interface QuantityControlsProductPageProps {
     currentQuantity: number;
@@ -36,6 +37,25 @@ export default function QuantityControlsProductPage({
     // Si no está en el carrito, mostrar botón para agregar primera unidad (mismo Button que ui/Button, más grandes)
     if (currentQuantity === 0) {
         const cannotAdd = disabled || isAdding || !canAddMore || maxReached || outOfStock;
+        if (outOfStock) {
+            return (
+                <div className="mt-1 sm:px-0">
+                    <NewsletterOutOfStockForm />
+                    <div className="mt-3">
+                        <Button
+                            onClick={() => router.push('/mayorista')}
+                            variant="brandRedOutline"
+                            size="xl"
+                            fullWidth
+                        >
+                            <Users className="w-5 h-5" />
+                            <span className="hidden sm:inline">QUIERO COMPRAR POR MAYOR</span>
+                            <span className="sm:hidden">POR MAYOR</span>
+                        </Button>
+                    </div>
+                </div>
+            );
+        }
         return (
             <div className="mt-1 sm:px-0">
                 {outOfStock && (

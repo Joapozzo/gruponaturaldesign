@@ -113,6 +113,12 @@ export interface ProductVariant {
     colorHex?: string;          // Color en formato hexadecimal (opcional)
     stock?: number;              // Stock disponible
     producto: ProductWithImage;  // Datos completos del producto
+    /** BD: `productos_web.id` */
+    productoWebId?: number;
+    /** BD: `productos_padre.id` */
+    productoPadreId?: number;
+    /** BD: `productos_web.sfactory_id` → pedido `sfactory_item_id` */
+    sfactoryItemId?: number;
 }
 
 export interface GroupedProduct {
@@ -123,4 +129,6 @@ export interface GroupedProduct {
     totalVariants: number;              // Total de variantes
     availableColors?: string[];         // Colores disponibles (si aplica)
     availableSizes?: string[];          // Talles disponibles (si aplica)
+    /** BD: `productos_padre.id` (detalle / adaptador) */
+    productoPadreId?: number;
 }

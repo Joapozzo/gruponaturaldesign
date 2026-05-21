@@ -11,8 +11,9 @@
   --gray-medium: #666666;
   --gray-bg: #F5F5F5;
 
-  /* Debe coincidir con el pt del wrapper (ConditionalLayout): 62px mobile, 112px desktop (PromoBanner 32px + Navbar) */
-  --navbar-total: 62px;
+  /* PromoBanner 32px + Navbar (h-11). Debe coincidir con ConditionalLayout pt. */
+  --site-header-offset: 76px;
+  --navbar-total: var(--site-header-offset);
   
   /* Primary colors */
   --primary-50: #f0f9ff;
@@ -73,9 +74,17 @@
   --color-neutral-900: var(--neutral-900);
 }
 
+@media (min-width: 640px) {
+  :root {
+    /* PromoBanner 32px + Navbar (h-14) */
+    --site-header-offset: 88px;
+  }
+}
+
 @media (min-width: 1024px) {
   :root {
-    --navbar-total: 112px;
+    /* PromoBanner 32px + Navbar (h-16 + menú desktop) */
+    --site-header-offset: 137px;
   }
 }
 

@@ -107,6 +107,10 @@ export function useProductCardCart({
           
           addToCart({
             id: productId,
+            productoWebId: selectedVariant.id,
+            productoPadreId: selectedVariant.productoPadreId,
+            sfactoryItemId: selectedVariant.sfactoryId,
+            codigo: selectedVariant.codigo,
             nombre: productoNombre || '',
             descripcion: productoNombre || '',
             categoria: categoria || 'Sin categoría',
@@ -136,6 +140,10 @@ export function useProductCardCart({
       
       addToCart({
         id: productId,
+        productoWebId: selectedVariant.id,
+        productoPadreId: selectedVariant.productoPadreId,
+        sfactoryItemId: selectedVariant.sfactoryId,
+        codigo: selectedVariant.codigo,
         nombre: productoNombre || '',
         descripcion: productoNombre || '',
         categoria: categoria || 'Sin categoría',

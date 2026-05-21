@@ -12,7 +12,12 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
   const isInCheckout = pathname?.startsWith('/checkout');
   const isInAdmin = pathname?.startsWith('/admin');
   const isAuth = pathname?.startsWith('/auth');
+  const isMaintenance = pathname?.startsWith('/maintenance');
   const isWholesalePage = pathname === '/mayorista';
+
+  if (isMaintenance) {
+    return <>{children}</>;
+  }
 
   if (isAuth) {
     return <>{children}</>;
@@ -33,7 +38,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
       <div className="flex min-h-screen flex-col">
         <PromoBanner />
         <Navbar />
-        <main className="flex-1 pt-[78px] sm:pt-[90px] lg:pt-[142px]" role="main">
+        <main className="flex-1 pt-[var(--site-header-offset)]" role="main">
           {children}
         </main>
         <Footer />
@@ -47,7 +52,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
     <div className="flex min-h-screen flex-col">
       <PromoBanner />
       <Navbar />
-      <main className="flex-1 pt-[78px] sm:pt-[90px] lg:pt-[142px]" role="main">
+      <main className="flex-1 pt-[var(--site-header-offset)]" role="main">
         {children}
       </main>
       <Footer />

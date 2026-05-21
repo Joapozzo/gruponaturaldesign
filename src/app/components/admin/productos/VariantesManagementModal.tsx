@@ -62,11 +62,12 @@ function VariantesManagementModal({
         </div>
       }
       size="xl"
-      className="max-w-6xl"
+      className="max-w-6xl h-[80vh] min-h-0 flex flex-col"
+      contentClassName="flex flex-1 min-h-0 flex-col overflow-hidden overscroll-contain p-6"
     >
-      <div className="flex flex-col h-full min-h-0">
+      <div className="flex flex-col h-full min-h-0 overflow-hidden">
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 mb-4 -mx-6 px-6 flex-shrink-0">
+        <div className="flex border-b border-gray-200 mb-4 flex-shrink-0">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -91,8 +92,8 @@ function VariantesManagementModal({
           ))}
         </div>
 
-        {/* Tab Content */}
-        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+        {/* Tab Content - altura fija, tabla scrollea internamente */}
+        <div className="flex-1 min-h-0 overflow-hidden">
           <AnimatePresence mode="wait">
             {activeTab === 'stock' && (
               <motion.div
@@ -101,6 +102,7 @@ function VariantesManagementModal({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
+                className="flex h-full min-h-0 flex-col"
               >
                 <VariantesStockTable
                   producto={producto}
@@ -117,6 +119,7 @@ function VariantesManagementModal({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
+                className="flex h-full min-h-0 flex-col overflow-hidden"
               >
                 <VariantesImagesManager
                   productoPadreId={producto.id}
@@ -134,7 +137,7 @@ function VariantesManagementModal({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="p-2"
+                className="flex h-full min-h-0 flex-col overflow-auto p-2"
               >
                 <DocumentosManager
                   productoPadreId={producto.id}

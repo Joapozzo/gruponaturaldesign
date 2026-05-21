@@ -1,9 +1,23 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useCart } from '@/app/components/hooks/useCart';
 import { useSyncAuthToCart } from '@/app/hooks/useSyncAuthToCart';
+import CheckoutShell from '@/app/components/checkout/CheckoutShell';
+import {
+  CHECKOUT_ROUTES,
+  isCheckoutStepPath,
+} from '@/app/components/checkout/checkoutRoutes';
+import { useCartStore } from '@/app/stores/cartStore';
+import { useCheckoutSessionLifecycle } from '@/app/hooks/useCheckoutSessionLifecycle';
+
+/** Pasos que exigen ítems en carrito (en /pago el carrito puede vaciarse al confirmar el pedido). */
+const CHECKOUT_ROUTES_REQUIRE_CART: readonly string[] = [
+  CHECKOUT_ROUTES.pedido,
+  CHECKOUT_ROUTES.datos,
+  CHECKOUT_ROUTES.envio,
+];
 
 export default function CheckoutLayout({
   children,
@@ -13,61 +27,33 @@ export default function CheckoutLayout({
   const router = useRouter();
   const pathname = usePathname();
   const { itemCount } = useCart();
+  const [cartHydrated, setCartHydrated] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return useCartStore.persist?.hasHydrated() ?? false;
+  });
   useSyncAuthToCart();
+  useCheckoutSessionLifecycle();
 
-  // Prevenir navegación fuera del checkout
   useEffect(() => {
-    // Si el carrito está vacío, redirigir al catálogo
-    if (itemCount === 0 && pathname === '/checkout') {
-      router.push('/shoponline');
-      return;
-    }
-
-    // Prevenir navegación con el botón de retroceso del navegador
-    const handlePopState = (event: PopStateEvent) => {
-      // Si estamos en checkout, prevenir el retroceso
-      if (pathname?.startsWith('/checkout')) {
-        // Reemplazar el estado actual para evitar que el usuario salga
-        window.history.pushState(null, '', pathname);
-        // Opcional: mostrar un mensaje o confirmación
-        const confirmExit = window.confirm(
-          '¿Estás seguro de que quieres salir del checkout? Tu pedido se guardará.'
-        );
-        if (confirmExit) {
-          router.push('/shoponline');
-        }
-      }
-    };
-
-    // Agregar el estado inicial para prevenir retroceso
-    window.history.pushState(null, '', pathname);
-
-    window.addEventListener('popstate', handlePopState);
-
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, [pathname, router, itemCount]);
-
-  // Prevenir navegación con teclas (Ctrl+H, Alt+Left, etc.)
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Prevenir atajos de navegación comunes
-      if (
-        (event.ctrlKey || event.metaKey) &&
-        (event.key === 'h' || event.key === 'H')
-      ) {
-        event.preventDefault();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
+    if (!useCartStore.persist) return;
+    setCartHydrated(useCartStore.persist.hasHydrated());
+    return useCartStore.persist.onFinishHydration(() => setCartHydrated(true));
   }, []);
+
+  useEffect(() => {
+    if (!cartHydrated) return;
+    if (
+      itemCount === 0 &&
+      pathname != null &&
+      CHECKOUT_ROUTES_REQUIRE_CART.includes(pathname)
+    ) {
+      router.replace('/shoponline');
+    }
+  }, [pathname, router, itemCount, cartHydrated]);
+
+  if (isCheckoutStepPath(pathname)) {
+    return <CheckoutShell>{children}</CheckoutShell>;
+  }
 
   return <>{children}</>;
 }
-

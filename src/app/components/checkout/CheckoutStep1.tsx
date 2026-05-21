@@ -1,15 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useCart } from '../hooks/useCart';
 import Button from '@/components/ui/Button';
-import { Trash2, ArrowRight } from 'lucide-react';
-import QuantityControlsUI from '@/app/components/ui/QuantityControls';
-import BordadoSwitch from '../product-card/components/BordadoSwitch';
-import { ProductImage } from '../product-card/components/ProductImage';
-import { formatPrice, formatPriceWithoutIVA } from '@/app/utils/productHelpers';
+import { ArrowRight } from 'lucide-react';
+import { CheckoutCartItem } from './CheckoutCartItem';
+import { CheckoutActionBar } from './CheckoutActionBar';
 import { getStockMessage } from '@/app/services/stockService';
 import { useConfirmModal } from '../hooks/useModal';
 import ConfirmModal from '../modal/ConfirmModal';
@@ -23,7 +20,7 @@ interface CheckoutStep1Props {
 
 export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
   const router = useRouter();
-  const { items, updateBordado, removeFromCart, itemCount, canAddToCart, subtotal, iva, total } = useCart();
+  const { items, removeFromCart, itemCount, canAddToCart, subtotal, total } = useCart();
   const { config, isWholesaleLimitReached, isNearWholesaleLimit } = useSales();
   const { updateQuantity: baseUpdateQuantity } = useCartQuantityUpdate({
     minQuantity: 1,
@@ -59,88 +56,35 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
-      {/* LEFT SIDE - Resumen del Pedido con controles */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <h2 className="text-xs sm:text-sm font-bold text-black mb-1.5">RESUMEN DEL PEDIDO</h2>
+    <div className="pb-24 lg:pb-0">
+      <div className="flex flex-col gap-2">
+        <h2 className="text-xs sm:text-sm font-bold text-black">RESUMEN DEL PEDIDO</h2>
 
-        {/* Cart Items - Compact Row Layout */}
-        <div className="space-y-1.5 pr-2">
-          {items.map((item) => (
-            <motion.div
-              key={item.product.id}
-              layout
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              className="bg-white border-l-2 border-black p-1 sm:p-1.5 lg:p-2 relative group hover:shadow-sm transition-shadow rounded"
-            >
-              <div className="flex items-center gap-2">
-                {/* Product Image - Más alta en mobile, más grande en desktop */}
-                <div className="relative w-10 h-14 sm:w-12 sm:h-16 lg:w-14 lg:h-18 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
-                  <ProductImage
-                    src={item.product.imagen}
-                    alt={item.product.nombre || 'Producto'}
-                    className="w-full h-full"
-                    fill
-                    sizes="(max-width: 768px) 48px, 64px"
-                    objectFit="cover"
-                  />
-                </div>
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+          {/* LEFT SIDE - Items del pedido */}
+          <div className="flex-1 min-w-0">
+            <div className="space-y-3">
+              {items.map((item) => (
+                <CheckoutCartItem
+                  key={item.product.id}
+                  item={item}
+                  onQuantityChange={handleQuantityChange}
+                  onRemove={removeFromCart}
+                  canAddMore={
+                    canAddToCart(item.product.id, 1).canAdd &&
+                    (item.product.stock === undefined || item.quantity < (item.product.stock || 0))
+                  }
+                  maxReached={
+                    item.quantity >= config.MAX_QUANTITY ||
+                    (item.product.stock !== undefined && item.quantity >= (item.product.stock || 0))
+                  }
+                />
+              ))}
+            </div>
+          </div>
 
-                {/* Product Info - Compacto en mobile, más grande en desktop */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-black text-[10px] sm:text-xs leading-tight line-clamp-1">{item.product.nombre}</h3>
-                  {item.especificaciones && (
-                    <p className="text-[9px] sm:text-[10px] text-gray-600 mt-0.5 line-clamp-1">{item.especificaciones}</p>
-                  )}
-                  {/* Switch de Bordado */}
-                  <div className="mt-1">
-                    <BordadoSwitch
-                      value={item.bordado || false}
-                      onChange={(value) => updateBordado(item.product.id, value)}
-                      isMobile={false}
-                      size="small"
-                    />
-                  </div>
-                  {/* Precio */}
-                  <div className="mt-0.5">
-                    <p className="text-[10px] sm:text-xs font-bold text-black">{formatPrice(item.subtotal)}</p>
-                    {item.subtotal > 0 && (
-                      <p className="text-[9px] sm:text-[10px] text-gray-500">{formatPriceWithoutIVA(item.subtotal)}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Quantity Controls - Estilo CartDrawer sin outline */}
-                <div className="flex items-center gap-2">
-                  <div className="flex justify-center">
-                    <QuantityControlsUI
-                      quantity={item.quantity}
-                      onIncrement={() => handleQuantityChange(item.product.id, item.quantity + 1)}
-                      onDecrement={() => handleQuantityChange(item.product.id, item.quantity - 1)}
-                      canAddMore={canAddToCart(item.product.id, 1).canAdd && (item.product.stock === undefined || item.quantity < (item.product.stock || 0))}
-                      maxReached={item.quantity >= config.MAX_QUANTITY || (item.product.stock !== undefined && item.quantity >= (item.product.stock || 0))}
-                    />
-                  </div>
-                  {/* Remove Button - Siempre visible */}
-                  <button
-                    onClick={() => removeFromCart(item.product.id)}
-                    className="w-6 h-7 sm:h-6 text-red-600 hover:text-black hover:bg-gray-100 transition-colors flex items-center justify-center rounded opacity-100"
-                    aria-label="Eliminar"
-                  >
-                    <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-
-        </div>
-      </div>
-
-      {/* RIGHT SIDE - Resumen del Carrito Fijo */}
-      <div className="w-full lg:w-80 flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
+          {/* RIGHT SIDE - Resumen del Carrito Fijo */}
+          <div className="w-full lg:w-80 flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
 
         {/* Resumen de precios */}
         <div className="bg-white border border-gray-200 p-3 sm:p-4 rounded-lg space-y-1.5">
@@ -149,7 +93,7 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
             <div className="flex justify-between text-gray-500 text-xs sm:text-sm">
               <span>Subtotal sin impuestos</span>
               <span>${subtotal.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
-            </div>
+        </div>
             <div className="flex justify-between text-sm sm:text-base font-bold text-black pt-2 border-t border-gray-300">
               <span className="tracking-wide">TOTAL</span>
               <span>${total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
@@ -190,31 +134,12 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
             </div>
           </div>
         ) : (
-          <>
-            {/* Action Buttons - Row en mobile, col en desktop */}
-            <div className="flex flex-row lg:flex-col gap-1.5 sm:gap-2 lg:gap-2.5">
-              <Button 
-                variant="black" 
-                size="sm" 
-                fullWidth 
-                onClick={onNext} 
-                className="flex-1 lg:flex-none text-xs sm:text-sm py-1.5 sm:py-2"
-                aria-label="Continuar al siguiente paso del checkout"
-              >
-                CONTINUAR
-              </Button>
-              <Button 
-                variant="blackOutline" 
-                size="sm" 
-                fullWidth 
-                onClick={onBack} 
-                className="flex-1 lg:flex-none text-xs sm:text-sm py-1.5 sm:py-2"
-                aria-label="Volver a seguir comprando"
-              >
-                SEGUIR COMPRANDO
-              </Button>
-            </div>
-          </>
+          <CheckoutActionBar
+            onContinue={onNext}
+            onBack={onBack}
+            backLabel="VOLVER"
+            className="mt-auto"
+          />
         )}
 
         {/* Botón para volver a compra minorista si están cerca del límite */}
@@ -253,7 +178,8 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
               <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0 text-black mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              <p>Los tiempos de entrega se coordinarán vía WhatsApp</p>
+              {/* <p>Los tiempos de entrega se coordinarán vía WhatsApp</p> */}
+              <p>Los tiempos de entrega se coordinan por email tras confirmar tu pedido</p>
             </div>
             <div className="flex gap-1.5 sm:gap-2">
               <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0 text-black mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -270,6 +196,8 @@ export default function CheckoutStep1({ onNext, onBack }: CheckoutStep1Props) {
           </div>
         </div>
 
+          </div>
+        </div>
       </div>
 
       {/* Modal de confirmación mayorista */}

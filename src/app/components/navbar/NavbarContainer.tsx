@@ -137,7 +137,7 @@ export const Navbar: React.FC = () => {
             <SearchModal isOpen={isSearchOpen} onClose={closeSearch} />
 
             {/* Banner Mayorista - Solo si supera 20 unidades y no está en checkout */}
-            {isWholesale() && pathname !== '/checkout' && (
+            {isWholesale() && !pathname?.startsWith('/checkout') && (
                 <div className="w-full shadow-md">
                     <WholesaleBanner />
                 </div>

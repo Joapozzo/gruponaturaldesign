@@ -6,7 +6,57 @@ interface SyncProgress {
   message?: string;
 }
 
+export interface StockPreciosSyncData {
+  warehouseId: number;
+  codigosConsultados: number;
+  variantesActualizadas: number;
+  lotes: number;
+  llamadasApi: number;
+  codigosOmitidos: string[];
+}
+
 class SyncService {
+  /**
+   * Stock y precios desde depósito ecommerce (S-Factory inventario), solo variantes WORKWEAR/OFFICE.
+   */
+  async syncStockPrecios(warehouseId?: number): Promise<{
+    success: boolean;
+    message?: string;
+    data: StockPreciosSyncData;
+  }> {
+    const endpoint = `/sync/stock-precios`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 300000);
+
+    try {
+      const response = await apiClient.post<StockPreciosSyncData>(
+        endpoint,
+        warehouseId != null ? { warehouseId } : {},
+        { signal: controller.signal }
+      );
+
+      if (!response.success || response.data === undefined) {
+        throw new Error(response.message || 'Error al sincronizar stock y precios');
+      }
+
+      return {
+        success: true,
+        message: response.message,
+        data: response.data,
+      };
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : error && typeof error === 'object' && 'message' in error
+            ? String((error as { message: string }).message)
+            : 'Error desconocido';
+      throw new Error(errorMessage);
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
   /**
    * Sincroniza productos desde SFactory
    * @param onProgress - Callback opcional para recibir progreso de la sincronización

@@ -1,10 +1,11 @@
 import { z } from 'zod';
+import { createConsumerEmailSchema } from './email.schema';
 import { createPasswordSchema } from './password.schema';
 
 /** Schema para el formulario de registro (email + contraseña + confirmar) */
 export const registerFormSchema = z
   .object({
-    email: z.string().min(1, 'El email es requerido').email('Email inválido'),
+    email: createConsumerEmailSchema(),
     password: createPasswordSchema(),
     confirmPassword: z.string().min(1, 'Confirmá la contraseña'),
   })

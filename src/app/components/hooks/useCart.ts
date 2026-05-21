@@ -17,6 +17,7 @@ export const useCart = () => {
         customerData: store.customerData,
         shippingData: store.shippingData,
         paymentData: store.paymentData,
+        cuponAplicado: store.cuponAplicado,
 
         // Verificaciones
         isEmpty: store.items.length === 0,
@@ -34,6 +35,7 @@ export const useCart = () => {
         setCustomerData: store.setCustomerData,
         setShippingData: store.setShippingData,
         setPaymentData: store.setPaymentData,
+        setCuponAplicado: store.setCuponAplicado,
 
         // Helpers
         isInCart: (productId: number) =>

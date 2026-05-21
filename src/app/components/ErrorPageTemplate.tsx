@@ -12,6 +12,10 @@ interface ErrorPageTemplateProps {
     description: string;
     icon: LucideIcon;
     showBackButton?: boolean;
+    /** Inicio + catálogo; desactivar en mantenimiento u otras pantallas sin navegación útil. */
+    showDefaultActions?: boolean;
+    /** CTAs extra en la fila de botones (ej. WhatsApp en mantenimiento). */
+    actions?: React.ReactNode;
     children?: React.ReactNode;
 }
 
@@ -21,6 +25,8 @@ export default function ErrorPageTemplate({
     description,
     icon: Icon,
     showBackButton = true,
+    showDefaultActions = true,
+    actions,
     children,
 }: ErrorPageTemplateProps) {
     const router = useRouter();
@@ -69,25 +75,31 @@ export default function ErrorPageTemplate({
                     transition={{ duration: 0.6, delay: 0.4 }}
                     className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12"
                 >
-                    <Button
-                        variant="black"
-                        size="lg"
-                        onClick={() => router.push('/')}
-                        className="inline-flex items-center space-x-2 w-full sm:w-auto"
-                    >
-                        <Home className="w-5 h-5" />
-                        <span>Ir al Inicio</span>
-                    </Button>
+                    {showDefaultActions && (
+                        <>
+                            <Button
+                                variant="black"
+                                size="lg"
+                                onClick={() => router.push('/')}
+                                className="inline-flex items-center space-x-2 w-full sm:w-auto"
+                            >
+                                <Home className="w-5 h-5" />
+                                <span>Ir al Inicio</span>
+                            </Button>
 
-                    <Button
-                        variant="blackOutline"
-                        size="lg"
-                        onClick={() => router.push('/shoponline')}
-                        className="inline-flex items-center space-x-2 w-full sm:w-auto"
-                    >
-                        <ShoppingBag className="w-5 h-5" />
-                        <span>Ver Catálogo</span>
-                    </Button>
+                            <Button
+                                variant="blackOutline"
+                                size="lg"
+                                onClick={() => router.push('/shoponline')}
+                                className="inline-flex items-center space-x-2 w-full sm:w-auto"
+                            >
+                                <ShoppingBag className="w-5 h-5" />
+                                <span>Ver Catálogo</span>
+                            </Button>
+                        </>
+                    )}
+
+                    {actions}
 
                     {showBackButton && (
                         <Button
@@ -141,8 +153,7 @@ export default function ErrorPageTemplate({
                     </div>
                 </motion.div> */}
 
-                {/* Contenido personalizado adicional */}
-                {children && (
+                {children ? (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -151,7 +162,7 @@ export default function ErrorPageTemplate({
                     >
                         {children}
                     </motion.div>
-                )}
+                ) : null}
 
                 {/* Ilustración decorativa */}
                 {/* <motion.div

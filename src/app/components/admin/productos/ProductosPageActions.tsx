@@ -2,7 +2,7 @@
 
 import Button from '@/components/ui/Button';
 import { useProductosPageActions } from '@/app/hooks/useProductosPageActions';
-import { Download, Plus, RefreshCw, RotateCw } from 'lucide-react';
+import { Package, Plus, RefreshCw, RotateCw } from 'lucide-react';
 
 interface ProductosPageActionsProps {
   empresaId: number;
@@ -15,11 +15,14 @@ interface ProductosPageActionsProps {
 export function ProductosPageActions({ empresaId }: ProductosPageActionsProps) {
   const {
     handleSync,
+    handleSyncStock,
     handleRefresh,
     handleExport,
     handleCreate,
     isSyncing,
+    isStockSyncing,
     isSyncDisabled,
+    isStockDisabled,
     cooldownRemainingSeconds,
     isRefreshing,
     isExporting,
@@ -32,6 +35,8 @@ export function ProductosPageActions({ empresaId }: ProductosPageActionsProps) {
         ? `Disponible en ${cooldownRemainingSeconds}s`
         : 'Sincronizar';
 
+  const stockButtonLabel = isStockSyncing ? 'Stock…' : 'Sync stock';
+
   return (
     <div className="flex items-center gap-2">
       <Button
@@ -42,6 +47,16 @@ export function ProductosPageActions({ empresaId }: ProductosPageActionsProps) {
       >
         <RotateCw className={`w-4 h-4 mr-2 inline ${isSyncing ? 'animate-spin' : ''}`} />
         {syncButtonLabel}
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleSyncStock}
+        disabled={isStockDisabled}
+        title="Actualiza stock (y precio si aplica) desde el depósito ecommerce en S-Factory"
+      >
+        <Package className={`w-4 h-4 mr-2 inline ${isStockSyncing ? 'animate-pulse' : ''}`} />
+        {stockButtonLabel}
       </Button>
       <Button
         variant="ghost"

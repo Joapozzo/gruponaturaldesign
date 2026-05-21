@@ -3,6 +3,7 @@ import { Poppins, Montserrat } from "next/font/google";
 import "./globals.css";
 import ConditionalLayout from "./components/ConditionalLayout";
 import { Providers } from "./components/Providers";
+import NewsletterPopup from "./components/newsletter/NewsletterPopup";
 import { WHATSAPP_PHONE_NUMBER, WHATSAPP_PHONE_NUMBER_FORMATTED } from "./utils/constants";
 
 // Fuentes según el manual de marca NTDS
@@ -270,6 +271,7 @@ export default function RootLayout({
           <ConditionalLayout>
             {children}
           </ConditionalLayout>
+          <NewsletterPopup />
         </Providers>
       </body>
     </html>

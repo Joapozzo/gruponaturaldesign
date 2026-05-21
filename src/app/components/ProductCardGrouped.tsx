@@ -15,6 +15,7 @@ import VariantSelector from './product-card/components/VariantSelector';
 import QuantityControls from './product-card/components/QuantityControls';
 import BordadoSwitch from './product-card/components/BordadoSwitch';
 import { canAddQuantity, getStockMessage } from '@/app/services/stockService';
+import { useEmpresaPrecioConfig } from '@/app/hooks/useEmpresaPrecioConfig';
 import { useConfirmModal } from './hooks/useModal';
 import ConfirmModal from './modal/ConfirmModal';
 
@@ -72,6 +73,10 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
         handleMouseEnter,
         handleMouseLeave,
     } = useProductCardState({ group, expandedSku, onExpandChange });
+
+    const { data: precioConfig } = useEmpresaPrecioConfig();
+    const cuotas = precioConfig?.cuotasFinanciado ?? 3;
+    const cuotasLabel = `${cuotas} ${cuotas === 1 ? 'cuota de' : 'cuotas de'}`;
 
     // Usar la variante seleccionada para mostrar
     const product = selectedVariant.producto;
@@ -266,6 +271,10 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
             addToCart(
                 {
                     id: selectedVariantId,
+                    productoWebId: selectedVariant.productoWebId,
+                    productoPadreId: selectedVariant.productoPadreId,
+                    sfactoryItemId: selectedVariant.sfactoryItemId,
+                    codigo: selectedVariant.codigo,
                     nombre: group.skuBase || product.Descripcion || product.NOMBRE || 'Sin descripción',
                     descripcion: product.DescripcionCorta || product.Descripcion || '',
                     imagen: mainImage || '',
@@ -483,7 +492,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                         {/* Precio cuotas - abajo */}
                         {formatted3Cuotas && (
                             <span className={`text-gray-700 mt-0.5 ${isMobile ? 'text-[10px]' : compact ? 'text-[9px]' : 'text-[10px]'}`}>
-                                3 cuotas: {formatted3Cuotas}
+                                {cuotasLabel} {formatted3Cuotas}
                             </span>
                         )}
                     </div>

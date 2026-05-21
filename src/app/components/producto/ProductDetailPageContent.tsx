@@ -211,6 +211,7 @@ export default function ProductDetailPageContent({
                 onPrev={prevImage}
                 onOpenModal={openModal}
                 isOutOfStock={showOutOfStock}
+                stock={selectedVariant?.stock}
               />
             </Suspense>
             {/* Código y Categoría debajo de las imágenes */}

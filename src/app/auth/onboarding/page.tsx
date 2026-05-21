@@ -1,17 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AuthForm } from '@/components/auth/AuthForm';
 import { useAuth } from '@/contexts/AuthContext';
 import Button from '@/components/ui/Button';
 import { TextField } from '@/app/components/producto/fields/TextField';
 import { formatAuthError } from '@/lib/auth-errors';
+import {
+  AUTH_CALLBACK_PARAM,
+  getSafeCallbackPath,
+  resolvePostLoginDestination,
+  withAuthCallback,
+} from '@/lib/auth-callback-url';
 import toast from 'react-hot-toast';
 
-export default function OnboardingPage() {
+function OnboardingContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = getSafeCallbackPath(searchParams.get(AUTH_CALLBACK_PARAM));
   const { firebaseUser, sessionState, isLoading, getToken, logout, refreshSessionState } = useAuth();
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
@@ -31,13 +39,13 @@ export default function OnboardingPage() {
         } catch {
           // ignore
         }
-        const target = irAHome ? '/' : '/auth/login';
+        const target = irAHome ? '/' : withAuthCallback('/auth/login', callbackUrl);
         window.location.href = target;
         return;
       }
-      router.replace(irAHome ? '/' : '/auth/login');
+      router.replace(irAHome ? '/' : withAuthCallback('/auth/login', callbackUrl));
     } catch {
-      router.replace(irAHome ? '/' : '/auth/login');
+      router.replace(irAHome ? '/' : withAuthCallback('/auth/login', callbackUrl));
     } finally {
       setLeaving(false);
     }
@@ -46,18 +54,17 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (isLoading) return;
     if (!firebaseUser) {
-      router.replace('/auth/login');
+      router.replace(withAuthCallback('/auth/login', callbackUrl));
       return;
     }
     if (sessionState?.onboardingCompleted) {
-      router.replace('/');
+      router.replace(resolvePostLoginDestination(sessionState.role, callbackUrl));
       return;
     }
     if (sessionState?.needsEmailVerification) {
-      router.replace('/auth/verify-email');
+      router.replace(withAuthCallback('/auth/verify-email', callbackUrl));
       return;
     }
-    // Solo pre-llenar nombre/apellido cuando vengan de Firebase/Google (nombre real), no username ni placeholder
     const emailPart = sessionState?.email?.split('@')[0]?.toLowerCase() ?? '';
     const nombreReal = sessionState?.nombre?.trim();
     const isNombreDeProvider =
@@ -67,7 +74,7 @@ export default function OnboardingPage() {
       !nombreReal.includes('@');
     if (isNombreDeProvider) setNombre(sessionState!.nombre!);
     if (sessionState?.apellido?.trim()) setApellido(sessionState.apellido.trim());
-  }, [firebaseUser, sessionState, isLoading, router]);
+  }, [firebaseUser, sessionState, isLoading, router, callbackUrl]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -98,8 +105,8 @@ export default function OnboardingPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al guardar.');
-      await refreshSessionState();
-      router.replace(sessionState?.role === 'ADMIN' ? '/admin/dashboard' : '/');
+      const nextState = await refreshSessionState();
+      router.replace(resolvePostLoginDestination(nextState?.role, callbackUrl));
     } catch (err: unknown) {
       const msg = formatAuthError(err);
       setError(msg);
@@ -182,5 +189,22 @@ export default function OnboardingPage() {
         </p>
       </AuthForm>
     </AuthShell>
+  );
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense
+      fallback={
+        <AuthShell title="Cargando...">
+          <div className="animate-pulse space-y-4">
+            <div className="h-10 bg-gray-200 rounded-lg" />
+            <div className="h-10 bg-gray-200 rounded-lg" />
+          </div>
+        </AuthShell>
+      }
+    >
+      <OnboardingContent />
+    </Suspense>
   );
 }

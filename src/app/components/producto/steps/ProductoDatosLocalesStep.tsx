@@ -37,7 +37,7 @@ export const ProductoDatosLocalesStep = memo<ProductoDatosLocalesStepProps>(func
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-2">Datos locales</h3>
         <p className="text-sm text-gray-600">
-          Descripción marketing y visibilidad. La descripción corta y el detalle se editan en el paso <strong>Datos SFactory</strong>. Las imágenes se gestionan en el administrador de imágenes del producto.
+          Descripción marketing y visibilidad. La descripción corta y el detalle se editan en el paso <strong>Datos SFactory</strong>. Las imágenes y el <strong>precio/stock de la tienda</strong> (caché local por producto, como el resto del catálogo ecommerce) se gestionan en <strong>Gestionar variantes</strong> desde el listado de productos.
         </p>
       </div>
 

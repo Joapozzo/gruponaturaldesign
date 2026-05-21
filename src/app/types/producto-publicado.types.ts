@@ -18,6 +18,10 @@ export interface VariantePublicada {
   precio: number;
   imagen: string | null; // Imagen por color (todas las variantes del mismo color tienen la misma)
   tieneImagen: boolean;
+  /** `productos_padre.id` */
+  productoPadreId: number;
+  /** `productos_web.sfactory_id` → `PedidoItem.sfactoryItemId` */
+  sfactoryId: number;
 }
 
 // ============================================

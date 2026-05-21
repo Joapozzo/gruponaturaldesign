@@ -55,7 +55,7 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-2">Datos SFactory</h3>
         <p className="text-sm text-gray-600">
-          Completa o modifica los datos que se envían a SFactory (descripción, rubro, etc.). Los precios se gestionan en Gestionar variantes.
+          Completa o modifica los datos que se envían a SFactory (descripción, rubro, etc.). En el ERP cada variante es un <strong>ítem con su propio SKU</strong>; el precio y stock “de fábrica” se actualizan por ítem o vía sync. El precio y stock <strong>de la tienda</strong> (caché local) se editan en <strong>Gestionar variantes</strong>, agrupados al producto padre.
         </p>
       </div>
 
@@ -117,7 +117,9 @@ export const ProductoDatosSFactoryStep: React.FC<ProductoDatosSFactoryStepProps>
 
       {/* Solo lectura: valores que vienen de SFactory y no se editan aquí */}
       <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Solo lectura (desde SFactory)</p>
+        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
+          Solo lectura (desde SFactory — límites de stock a nivel ítem/SKU)
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <TextField
             id="stock_minimo"

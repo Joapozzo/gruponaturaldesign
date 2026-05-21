@@ -63,7 +63,7 @@ const FormModal: React.FC<FormModalProps> = ({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="space-y-4 flex-1 overflow-y-auto px-2 pt-2 pb-4"
+          className="space-y-4 flex-1 overflow-y-auto pt-2 pb-4"
         >
           {children}
         </motion.div>

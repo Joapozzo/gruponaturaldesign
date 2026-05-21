@@ -12,6 +12,9 @@ import {
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import type { SessionUserState } from '@/types/auth.types';
+import { clearCheckoutSession } from '@/app/stores/cartStore';
+import { useClearCheckoutOnAuthChange } from '@/app/hooks/useClearCheckoutOnAuthChange';
+import { tryHandleMaintenanceResponse } from '@/lib/api-maintenance';
 
 type AuthContextValue = {
   firebaseUser: FirebaseUser | null;
@@ -21,25 +24,53 @@ type AuthContextValue = {
   register: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
-  refreshSessionState: () => Promise<void>;
+  refreshSessionState: () => Promise<SessionUserState | null>;
   getToken: () => Promise<string | null>;
   resendVerificationEmail: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-async function callSessionApi(idToken: string): Promise<SessionUserState> {
-  const res = await fetch('/api/auth/session', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ idToken }),
-    credentials: 'include',
-  });
-  const data = await res.json();
-  if (!res.ok || !data.success) {
-    throw new Error(data.error || 'Error al crear sesión');
+class AuthSessionError extends Error {
+  status?: number;
+
+  constructor(message: string, status?: number) {
+    super(message);
+    this.name = 'AuthSessionError';
+    this.status = status;
   }
-  return data.data;
+}
+
+async function callSessionApi(idToken: string, timeoutMs = 10000): Promise<SessionUserState> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch('/api/auth/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken }),
+      credentials: 'include',
+      signal: controller.signal,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (tryHandleMaintenanceResponse(res.status, data)) {
+      throw new AuthSessionError('Servicio en mantenimiento', 503);
+    }
+    if (!res.ok || !data.success) {
+      throw new AuthSessionError(data.error || 'Error al crear sesión', res.status);
+    }
+    return data.data as SessionUserState;
+  } catch (error: unknown) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new AuthSessionError('Timeout al crear sesión', 504);
+    }
+    if (error instanceof AuthSessionError) {
+      throw error;
+    }
+    throw new AuthSessionError('Error al crear sesión');
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -48,18 +79,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const getTokenRef = useRef<() => Promise<string | null>>(async () => null);
 
-  const refreshSessionState = useCallback(async () => {
+  useClearCheckoutOnAuthChange();
+
+  const refreshSessionState = useCallback(async (): Promise<SessionUserState | null> => {
     const user = auth.currentUser;
     if (!user) {
       setSessionState(null);
-      return;
+      return null;
     }
     try {
-      const token = await user.getIdToken();
-      const state = await callSessionApi(token);
+      let token = await user.getIdToken();
+      let state: SessionUserState;
+      try {
+        state = await callSessionApi(token);
+      } catch (error: unknown) {
+        // Solo forzar refresh de token cuando realmente fue 401 (token inválido/expirado).
+        if (error instanceof AuthSessionError && error.status === 401) {
+          token = await user.getIdToken(true);
+          state = await callSessionApi(token);
+        } else {
+          throw error;
+        }
+      }
       setSessionState(state);
+      return state;
     } catch {
       setSessionState(null);
+      return null;
     }
   }, []);
 
@@ -90,8 +136,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       try {
-        const token = await user.getIdToken();
-        const state = await callSessionApi(token);
+        let token = await user.getIdToken();
+        let state: SessionUserState;
+        try {
+          state = await callSessionApi(token);
+        } catch (error: unknown) {
+          // Reintento único con token forzado para 401 real.
+          if (error instanceof AuthSessionError && error.status === 401) {
+            token = await user.getIdToken(true);
+            state = await callSessionApi(token);
+          } else {
+            throw error;
+          }
+        }
         setSessionState(state);
       } catch {
         setSessionState(null);
@@ -116,6 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
+    clearCheckoutSession();
     const res = await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
     await res.json().catch(() => ({}));
     setSessionState(null);

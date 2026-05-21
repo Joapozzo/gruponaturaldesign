@@ -48,8 +48,9 @@ export function groupedProductToProductoPublicado(group: GroupedProduct): Produc
   // Convertir variantes (extraer URL de imagen correctamente)
   const variantes: VariantePublicada[] = group.variants.map((variant, index) => {
     const imagen = getFirstImageUrl(variant.producto);
+    const productoWebId = variant.productoWebId ?? index + 1;
     return {
-      id: index + 1, // ID temporal basado en índice
+      id: productoWebId,
       codigo: variant.codigo,
       color: variant.color || null,
       talle: variant.talle || null,
@@ -57,6 +58,8 @@ export function groupedProductToProductoPublicado(group: GroupedProduct): Produc
       precio: variant.producto.PrecioVenta || 0,
       imagen,
       tieneImagen: Boolean(imagen),
+      productoPadreId: variant.productoPadreId ?? group.productoPadreId ?? 0,
+      sfactoryId: variant.sfactoryItemId ?? 0,
     };
   });
 

@@ -14,6 +14,13 @@ import { TextField } from '@/app/components/producto/fields/TextField';
 import { AuthPasswordField } from '@/components/auth/AuthPasswordField';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatAuthError } from '@/lib/auth-errors';
+import { loginFormSchema } from '@/lib/schemas/login.schema';
+import {
+  AUTH_CALLBACK_PARAM,
+  getSafeCallbackPath,
+  resolvePostLoginDestination,
+  withAuthCallback,
+} from '@/lib/auth-callback-url';
 import toast from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
 
@@ -29,7 +36,9 @@ const fieldVariants = {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') ?? searchParams.get('redirect') ?? '/';
+  const callbackUrl = getSafeCallbackPath(
+    searchParams.get(AUTH_CALLBACK_PARAM) ?? searchParams.get('redirect'),
+  );
   const { login, loginWithGoogle, sessionState, firebaseUser } = useAuth();
   const { email, setEmail, password, setPassword, error, setError } = useAuthForm();
   const [isLoading, setIsLoading] = useState(false);
@@ -37,32 +46,32 @@ function LoginForm() {
   useEffect(() => {
     if (!firebaseUser || !sessionState) return;
     if (sessionState.needsEmailVerification) {
-      router.replace('/auth/verify-email');
+      router.replace(withAuthCallback('/auth/verify-email', callbackUrl));
       return;
     }
     if (sessionState.needsOnboarding) {
-      router.replace('/auth/onboarding');
+      router.replace(withAuthCallback('/auth/onboarding', callbackUrl));
       return;
     }
-    const destination =
-      sessionState.role === 'ADMIN' && (callbackUrl === '/' || !callbackUrl)
-        ? '/admin/dashboard'
-        : callbackUrl || '/';
-    router.replace(destination);
+    router.replace(resolvePostLoginDestination(sessionState.role, callbackUrl));
   }, [firebaseUser, sessionState, callbackUrl, router]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    if (!email.trim() || !password) {
-      const msg = 'Email y contraseña son requeridos.';
+    const parsed = loginFormSchema.safeParse({ email: email.trim(), password });
+    if (!parsed.success) {
+      const msg =
+        parsed.error.flatten().fieldErrors.email?.[0] ??
+        parsed.error.flatten().fieldErrors.password?.[0] ??
+        'Revisá los datos.';
       setError(msg);
       toast.error(msg);
       return;
     }
     setIsLoading(true);
     try {
-      await login(email.trim(), password);
+      await login(parsed.data.email, parsed.data.password);
     } catch (err: unknown) {
       const msg = formatAuthError(err);
       setError(msg);
@@ -127,7 +136,10 @@ function LoginForm() {
         </motion.div>
       </AuthForm>
       <div className="flex items-center justify-between mt-4 text-sm">
-        <Link href="/auth/register" className="text-[#Ed3237] hover:underline">
+        <Link
+          href={withAuthCallback('/auth/register', callbackUrl)}
+          className="text-[#Ed3237] hover:underline"
+        >
           Crear cuenta
         </Link>
         <Link href="/auth/forgot-password" className="text-[#Ed3237] hover:underline">

@@ -13,6 +13,8 @@ interface BaseModalProps {
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   closeOnOverlayClick?: boolean;
   className?: string;
+  /** Clases del área bajo el header (por defecto incluye scroll vertical). */
+  contentClassName?: string;
   zIndex?: number;
 }
 
@@ -33,6 +35,7 @@ const BaseModal: React.FC<BaseModalProps> = ({
   size = 'md',
   closeOnOverlayClick = true,
   className = '',
+  contentClassName = 'p-6 overflow-y-auto overflow-x-hidden flex-1 min-h-0 overscroll-contain',
   zIndex = 999999,
 }) => {
   const [mounted, setMounted] = useState(false);
@@ -73,10 +76,12 @@ const BaseModal: React.FC<BaseModalProps> = ({
 
           {/* Modal Container - Full screen container */}
           <div
-            className="fixed inset-0 p-4 pointer-events-none flex items-center justify-center"
+            className="fixed inset-0 p-4 pointer-events-none flex items-center justify-center overflow-x-hidden overflow-y-auto"
             style={{ zIndex }}
           >
-            <div className={`pointer-events-auto w-full ${sizeClasses[size]} ${className}`}>
+            <div
+              className={`pointer-events-auto my-auto w-full shrink-0 ${sizeClasses[size]} ${className}`}
+            >
               <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -86,7 +91,7 @@ const BaseModal: React.FC<BaseModalProps> = ({
                   damping: 25,
                   stiffness: 300,
                 }}
-                className="bg-white rounded-lg shadow-2xl w-full flex flex-col max-h-[90vh] overflow-hidden"
+                className="bg-white rounded-lg shadow-2xl w-full h-full min-h-0 flex flex-col max-h-[90vh] overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Header */}
@@ -120,8 +125,8 @@ const BaseModal: React.FC<BaseModalProps> = ({
                   </div>
                 )}
 
-                {/* Content - Altura según contenido; scroll si supera 90vh */}
-                <div className="p-6 overflow-y-auto overflow-x-hidden flex-1 min-h-0 overscroll-contain">{children}</div>
+                {/* Content - por defecto scroll aquí; override con contentClassName si el hijo maneja scroll */}
+                <div className={contentClassName}>{children}</div>
               </motion.div>
             </div>
           </div>

@@ -17,7 +17,7 @@ export const SALES_CONFIG = {
   
   // Rutas
   WHOLESALE_ROUTE: '/mayorista',
-  CHECKOUT_ROUTE: '/checkout',
+  CHECKOUT_ROUTE: '/checkout/pedido',
   SHOP_ROUTE: '/shoponline',
 } as const;
 

@@ -1,31 +1,51 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { useAuth } from '@/contexts/AuthContext';
 import { auth } from '@/lib/firebase';
 import Button from '@/components/ui/Button';
-import Link from 'next/link';
+import {
+  AUTH_CALLBACK_PARAM,
+  getSafeCallbackPath,
+  resolvePostLoginDestination,
+  withAuthCallback,
+} from '@/lib/auth-callback-url';
 
-export default function VerifyEmailPage() {
+function LoadingSkeleton() {
+  return (
+    <div className="animate-pulse space-y-4">
+      <div className="h-10 bg-gray-200 rounded-lg" />
+      <div className="h-10 bg-gray-200 rounded-lg" />
+    </div>
+  );
+}
+
+function VerifyEmailContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = getSafeCallbackPath(searchParams.get(AUTH_CALLBACK_PARAM));
   const { firebaseUser, sessionState, isLoading, resendVerificationEmail, refreshSessionState, logout } = useAuth();
   const [resending, setResending] = useState(false);
   const [sent, setSent] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {
     if (isLoading) return;
     if (!firebaseUser) {
-      router.replace('/auth/login');
+      router.replace(withAuthCallback('/auth/login', callbackUrl));
       return;
     }
     if (sessionState && !sessionState.needsEmailVerification) {
-      if (sessionState.needsOnboarding) router.replace('/auth/onboarding');
-      else router.replace(sessionState.role === 'ADMIN' ? '/admin/dashboard' : '/');
+      if (sessionState.needsOnboarding) {
+        router.replace(withAuthCallback('/auth/onboarding', callbackUrl));
+      } else {
+        router.replace(resolvePostLoginDestination(sessionState.role, callbackUrl));
+      }
     }
-  }, [firebaseUser, sessionState, isLoading, router]);
+  }, [firebaseUser, sessionState, isLoading, router, callbackUrl]);
 
   const handleYaRevisé = async () => {
     const user = auth.currentUser;
@@ -54,31 +74,32 @@ export default function VerifyEmailPage() {
     }
   };
 
+  const handleUsarOtraCuenta = async () => {
+    setLeaving(true);
+    try {
+      await logout();
+      router.replace(withAuthCallback('/auth/login', callbackUrl));
+    } catch {
+      router.replace(withAuthCallback('/auth/login', callbackUrl));
+    } finally {
+      setLeaving(false);
+    }
+  };
+
   if (isLoading || !firebaseUser) {
     return (
       <AuthShell title="Cargando...">
-        <div className="animate-pulse space-y-4">
-          <div className="h-10 bg-gray-200 rounded-lg" />
-          <div className="h-10 bg-gray-200 rounded-lg" />
-        </div>
+        <LoadingSkeleton />
       </AuthShell>
     );
   }
 
   return (
-    <AuthShell
-      title="Email no verificado"
-      subtitle="Tu cuenta aún no está verificada."
-    >
+    <AuthShell title="Verificá tu email">
       <div className="space-y-4 text-center">
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          <p className="font-medium">Tu email no está verificado</p>
-          <p className="mt-0.5 text-amber-700">
-            Enviamos un enlace a <strong>{firebaseUser.email}</strong>. Abrí el correo, hacé clic en el enlace y después tocá &quot;Ya revisé mi email&quot;.
-          </p>
-        </div>
         <p className="text-sm text-gray-600">
-          Si no ves el correo, revisá la carpeta de spam o solicitá otro enlace.
+          Enviamos un enlace a <strong>{firebaseUser.email}</strong>. Abrí el correo, hacé clic en el enlace y después
+          confirmá acá. Si no llega, revisá spam o reenviá el enlace.
         </p>
         <Button
           type="button"
@@ -100,19 +121,29 @@ export default function VerifyEmailPage() {
         >
           {resending ? 'Enviando...' : sent ? 'Enlace reenviado' : 'Reenviar enlace'}
         </Button>
-        <div className="flex flex-col gap-2 text-center">
-          <Link href="/auth/login" className="text-sm text-[#Ed3237] hover:underline">
-            Volver a iniciar sesión
-          </Link>
-          <button
-            type="button"
-            onClick={() => logout()}
-            className="text-sm text-gray-500 hover:text-gray-700"
-          >
-            Cerrar sesión
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleUsarOtraCuenta}
+          disabled={leaving}
+          className="text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50"
+        >
+          {leaving ? 'Saliendo...' : 'Usar otra cuenta'}
+        </button>
       </div>
     </AuthShell>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense
+      fallback={
+        <AuthShell title="Cargando...">
+          <LoadingSkeleton />
+        </AuthShell>
+      }
+    >
+      <VerifyEmailContent />
+    </Suspense>
   );
 }

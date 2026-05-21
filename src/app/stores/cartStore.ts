@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CartState, CartProduct, CartItem, CustomerData, ShippingData, PaymentData } from '../types/cart';
 
-import { IVA_RATE, WHATSAPP_PHONE_NUMBER, getWhatsAppNumberForUrl } from '@/app/utils/constants';
+import { WHATSAPP_PHONE_NUMBER, getWhatsAppNumberForUrl } from '@/app/utils/constants';
+import { calculateTotals } from '@/app/stores/cartTotals';
 import { canAddQuantity } from '@/app/services/stockService';
 import { SALES_CONFIG } from '../config/sales.config';
 
@@ -20,8 +21,24 @@ export const useCartStore = create<CartState>()(
             totalTransfer: 0,
             iva: 0,
             total: 0,
+            cuponAplicado: null,
+            cuponDescuento: 0,
 
             addItem: (product: CartProduct, quantity = 1, especificaciones = '', bordado = false) => {
+                // Validar stock antes de agregar
+                const existingItem = get().items.find(
+                    (item) => item.product.id === product.id && 
+                    item.especificaciones === especificaciones &&
+                    item.bordado === bordado
+                );
+                const currentQuantity = existingItem?.quantity || 0;
+                const stock = product.stock ?? null;
+                
+                if (!canAddQuantity(stock, currentQuantity, quantity)) {
+                    // Stock insuficiente - no agregar
+                    return;
+                }
+
                 set((state) => {
                     const existingIndex = state.items.findIndex(
                         (item) => item.product.id === product.id && 
@@ -154,12 +171,30 @@ export const useCartStore = create<CartState>()(
                     totalTransfer: 0,
                     iva: 0,
                     total: 0,
+                    cuponAplicado: null,
+                    cuponDescuento: 0,
                 });
+            },
+
+            clearCheckoutSession: () => {
+                set((state) => ({
+                    customerData: null,
+                    shippingData: null,
+                    paymentData: null,
+                    cuponAplicado: null,
+                    cuponDescuento: 0,
+                    ...calculateTotals(state.items),
+                }));
             },
 
             setCustomerData: (data: CustomerData) => set({ customerData: data }),
             setShippingData: (data: ShippingData) => set({ shippingData: data }),
             setPaymentData: (data: PaymentData) => set({ paymentData: data }),
+
+            setCuponAplicado: (cupon) => set({
+                cuponAplicado: cupon,
+                cuponDescuento: cupon ? cupon.descuentoTotal : 0,
+            }),
 
             generateWhatsAppMessage: () => {
                 const state = get();
@@ -238,8 +273,9 @@ export const useCartStore = create<CartState>()(
                 paymentData: state.paymentData,
             }),
             onRehydrateStorage: () => (state) => {
-                // Recalcular totales cuando se carga desde localStorage
                 if (state && state.items) {
+                    state.cuponAplicado = null;
+                    state.cuponDescuento = 0;
                     const totals = calculateTotals(state.items);
                     state.itemCount = totals.itemCount;
                     state.subtotal = totals.subtotal;
@@ -254,58 +290,9 @@ export const useCartStore = create<CartState>()(
     )
 );
 
-function calculateTotals(items: CartItem[]) {
-    const itemCount = items.reduce((acc, item) => acc + item.quantity, 0);
-    
-    // Calcular totales con precio lista
-    const totalLista = items.reduce((acc, item) => {
-        if (item.subtotal === 0 && item.product.precioLista && item.product.precioLista > 0) {
-            return acc + (item.quantity * item.product.precioLista);
-        }
-        return acc + item.subtotal;
-    }, 0);
-    
-    // Calcular totales con precio transfer
-    const totalTransfer = items.reduce((acc, item) => {
-        if (item.subtotalTransfer !== undefined) {
-            return acc + item.subtotalTransfer;
-        }
-        // Si no hay subtotalTransfer pero hay precioTransfer, calcularlo
-        if (item.product.precioTransfer && item.product.precioTransfer > 0) {
-            return acc + (item.quantity * item.product.precioTransfer);
-        }
-        return acc;
-    }, 0);
-    
-    // Calcular subtotal sin impuestos (usando precioSinImp si está disponible, sino calcular)
-    const subtotalSinImp = items.reduce((acc, item) => {
-        if (item.subtotalSinImp !== undefined) {
-            return acc + item.subtotalSinImp;
-        }
-        // Si no hay subtotalSinImp pero hay precioSinImp, calcularlo
-        if (item.product.precioSinImp && item.product.precioSinImp > 0) {
-            return acc + (item.quantity * item.product.precioSinImp);
-        }
-        // Fallback: calcular desde precioLista / 1.21
-        const precioLista = item.product.precioLista || item.product.precio || 0;
-        return acc + (item.quantity * precioLista / (1 + IVA_RATE));
-    }, 0);
-    
-    // El totalLista ya incluye IVA, entonces:
-    // - Subtotal sin impuestos = totalLista / 1.21
-    // - IVA = totalLista - subtotal sin impuestos
-    const subtotalSinImpuestos = totalLista / (1 + IVA_RATE);
-    const iva = totalLista - subtotalSinImpuestos;
-
-    return { 
-        itemCount, 
-        subtotal: subtotalSinImpuestos,  // Subtotal sin impuestos (precio lista)
-        subtotalTransfer: totalTransfer / (1 + IVA_RATE), // Subtotal transfer sin impuestos
-        totalLista,  // Total con precio lista (con IVA)
-        totalTransfer,  // Total con precio transfer (con IVA)
-        iva, 
-        total: totalLista  // Mantener compatibilidad (total con lista)
-    };
+/** Limpia cupón y datos de checkout sin vaciar productos (p. ej. logout o salir del funnel). */
+export function clearCheckoutSession() {
+    useCartStore.getState().clearCheckoutSession();
 }
 
 export const sendOrderViaWhatsApp = (message: string) => {

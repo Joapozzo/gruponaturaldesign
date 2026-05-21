@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProfilePageLayout } from '@/app/components/profile/ProfilePageLayout';
 import { ProfileUserCard } from '@/app/components/profile/ProfileUserCard';
-import { ProfileOrdersSection } from '@/app/components/profile/ProfileOrdersSection';
-import { MOCK_ORDERS } from '@/app/data/mockOrders';
+import { ProfileOrdersList } from '@/app/components/profile/orders/ProfileOrdersList';
+import { ProfilePageSkeleton } from '@/app/components/profile/skeletons/ProfilePageSkeleton';
 import type { ProfileUser } from '@/app/types/profile.types';
 import type { SessionUserState } from '@/types/auth.types';
 
@@ -33,17 +33,13 @@ export default function PerfilPage() {
     if (isLoading) return;
     if (!sessionState) {
       router.replace('/auth/login?callbackUrl=/perfil');
-      return;
     }
   }, [isLoading, sessionState, router]);
 
   if (isLoading) {
     return (
       <ProfilePageLayout title="Mi perfil">
-        <div className="animate-pulse space-y-6">
-          <div className="h-40 bg-gray-200 rounded-lg" />
-          <div className="h-32 bg-gray-200 rounded-lg" />
-        </div>
+        <ProfilePageSkeleton />
       </ProfilePageLayout>
     );
   }
@@ -55,17 +51,23 @@ export default function PerfilPage() {
   const profileUser = sessionToProfileUser(sessionState);
 
   return (
-    <ProfilePageLayout
-      title="Mi perfil"
-      subtitle="Datos de tu cuenta y historial de pedidos"
-    >
-      <div className="space-y-8">
-        <ProfileUserCard user={profileUser} showRole={false} />
-        {/* <ProfileOrdersSection
-          orders={MOCK_ORDERS}
-          title="Mis pedidos"
-          emptyMessage="Aún no tenés pedidos."
-        /> */}
+    <ProfilePageLayout title="Mi perfil" hideHeader>
+      <header className="mb-6 lg:hidden">
+        <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">
+          Mi perfil
+        </h1>
+        <p className="mt-1 text-sm text-gray-600">
+          Datos de tu cuenta y historial de pedidos
+        </p>
+      </header>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 lg:items-start">
+        <div className="lg:col-span-4">
+          <ProfileUserCard user={profileUser} heading="Mi perfil" showRole={false} />
+        </div>
+        <div className="lg:col-span-8 min-w-0">
+          <ProfileOrdersList enabled asPanel />
+        </div>
       </div>
     </ProfilePageLayout>
   );

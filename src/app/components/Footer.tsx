@@ -4,13 +4,14 @@ import Image from 'next/image';
 import { WhatsApp } from './logos/WhatsApp';
 import { useWhatsApp } from './hooks/useWhatsApp';
 import { WHATSAPP_PHONE_NUMBER } from '@/app/utils/constants';
+import NewsletterFooterForm from '@/app/components/newsletter/NewsletterFooterForm';
 
 const Footer = () => {
     const { openWhatsApp } = useWhatsApp({ defaultMessage: "¡Hola! Me interesa conocer más sobre los uniformes de NTDS. ¿Te gustaría hablar conmigo?" });
     return (
         <footer className="bg-[var(--black)] text-white pt-12 pb-6">
             <div className="w-full px-4 lg:px-15">
-                <div className="grid md:grid-cols-4 gap-8">
+                <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8">
                     <div className="md:col-span-2">
                         <div className="flex items-center space-x-3 mb-6">
                             <div className="w-25 h-25 flex items-center justify-center">
@@ -85,6 +86,14 @@ const Footer = () => {
                                 Rivera Indarte 2143, Córdoba
                             </p>
                         </div>
+                    </div>
+
+                    <div>
+                        <h4 className="font-bold mb-4 text-sm md:text-base">NEWSLETTER</h4>
+                        <p className="mb-3 text-xs md:text-sm text-gray-400">
+                            Recibí novedades, lanzamientos y ofertas exclusivas.
+                        </p>
+                        <NewsletterFooterForm />
                     </div>
                 </div>
             </div>

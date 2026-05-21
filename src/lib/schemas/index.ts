@@ -11,3 +11,11 @@ export {
 } from './password.schema';
 
 export { registerFormSchema, type RegisterFormData } from './register.schema';
+
+export { loginFormSchema, type LoginFormData } from './login.schema';
+
+export {
+  createConsumerEmailSchema,
+  consumerEmailSchema,
+  type ConsumerEmailSchemaOptions,
+} from './email.schema';

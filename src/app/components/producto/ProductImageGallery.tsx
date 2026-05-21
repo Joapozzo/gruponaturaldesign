@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Package, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
 import Image from 'next/image';
 import DriveImageGallery from '@/app/components/DriveImageGallery';
+import { getStockMessage } from '@/app/services/stockService';
 import { ProductWithImage } from '@/app/types/producto';
 
 interface ProductImageGalleryProps {
@@ -17,6 +18,7 @@ interface ProductImageGalleryProps {
     onOpenModal: (validImages?: string[], validIndex?: number) => void;
     /** Si true, muestra overlay "Agotado" solo sobre la imagen principal (la grande) */
     isOutOfStock?: boolean;
+    stock?: number | null;
 }
 
 export default function ProductImageGallery({
@@ -29,7 +31,9 @@ export default function ProductImageGallery({
     onPrev,
     onOpenModal,
     isOutOfStock = false,
+    stock,
 }: ProductImageGalleryProps) {
+    const showLowStockBadge = getStockMessage(stock) === 'ÚLTIMAS UNIDADES';
     const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
     const [isHovering, setIsHovering] = useState(false);
     const [validImages, setValidImages] = useState<string[]>([]);
@@ -140,6 +144,7 @@ export default function ProductImageGallery({
                     driveFolderUrl={product.fotosDriveUrl}
                     productName={productName}
                     isOutOfStock={isOutOfStock}
+                    stock={stock}
                 />
             ) : (
                 // Galería local: desktop 50% ancho, caber en 100vh
@@ -255,6 +260,14 @@ export default function ProductImageGallery({
                                 {displayImages.length > 1 && (
                                     <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full p-1.5 sm:p-2 transition-all duration-300 z-20">
                                         <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                                    </div>
+                                )}
+                                {showLowStockBadge && (
+                                    <div
+                                        className="absolute top-2 left-2 sm:top-3 sm:left-3 z-20 pointer-events-none rounded bg-[var(--red)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-md sm:text-xs"
+                                        aria-label="Últimas unidades disponibles"
+                                    >
+                                        ÚLTIMAS UNIDADES
                                     </div>
                                 )}
                                 {/* Overlay Agotado solo sobre la imagen principal */}

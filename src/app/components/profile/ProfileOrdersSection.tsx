@@ -1,11 +1,11 @@
 'use client';
 
 import React from 'react';
-import { OrderCard } from './OrderCard';
-import type { OrderSummary } from '@/app/types/profile.types';
+import { OrderCard } from './orders/OrderCard';
+import type { CuentaPedidoListItem } from '@/app/validation/cuentaPedidos.schema';
 
 interface ProfileOrdersSectionProps {
-  orders: OrderSummary[];
+  orders: CuentaPedidoListItem[];
   /** Título de la sección (ej. "Mis pedidos" o "Pedidos del cliente"). */
   title?: string;
   emptyMessage?: string;

@@ -114,7 +114,7 @@ export const ProductoDatosComunesStep: React.FC<ProductoDatosComunesStepProps> =
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.2 }}
-      className="space-y-4 px-2 pb-2"
+      className="space-y-4 pb-2"
     >
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-2">Datos comunes</h3>

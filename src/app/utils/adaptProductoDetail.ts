@@ -169,6 +169,9 @@ export function adaptProductoPadreToGroupedProduct(
       talle: variante.talle || undefined,
       color: variante.color || undefined,
       stock: variante.stockCache ? Number(variante.stockCache) : undefined,
+      productoWebId: variante.id,
+      productoPadreId: variante.productoPadreId,
+      sfactoryItemId: variante.sfactoryId,
       producto: variantProduct,
     };
   });
@@ -193,6 +196,7 @@ export function adaptProductoPadreToGroupedProduct(
   return {
     skuBase: productoPadre.nombre,
     skuBaseSlug: productoPadre.slug || undefined,
+    productoPadreId: productoPadre.id,
     displayProduct,
     variants,
     totalVariants: variants.length,

@@ -23,6 +23,8 @@ export type OrderStatus =
 export interface OrderItemLine {
   id: string;
   productName: string;
+  /** Slug para `/producto/[slug]` cuando existe en catálogo. */
+  productSlug?: string;
   quantity: number;
   unitPrice: number;
   subtotal: number;

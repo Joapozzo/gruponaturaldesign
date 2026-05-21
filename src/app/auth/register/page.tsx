@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AuthForm } from '@/components/auth/AuthForm';
@@ -15,6 +15,12 @@ import Button from '@/components/ui/Button';
 import { TextField } from '@/app/components/producto/fields/TextField';
 import { formatAuthError } from '@/lib/auth-errors';
 import { registerFormSchema } from '@/lib/schemas/register.schema';
+import {
+  AUTH_CALLBACK_PARAM,
+  getSafeCallbackPath,
+  resolvePostLoginDestination,
+  withAuthCallback,
+} from '@/lib/auth-callback-url';
 import toast from 'react-hot-toast';
 
 const fieldVariants = {
@@ -26,8 +32,10 @@ const fieldVariants = {
   }),
 };
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = getSafeCallbackPath(searchParams.get(AUTH_CALLBACK_PARAM));
   const { register: registerFirebase, loginWithGoogle, firebaseUser, sessionState, isLoading: authLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,20 +43,18 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Redirigir a onboarding, verify-email o home cuando ya hay sesión (ej. después de Google)
   useEffect(() => {
     if (authLoading || !firebaseUser || !sessionState) return;
     if (sessionState.needsEmailVerification) {
-      router.replace('/auth/verify-email');
+      router.replace(withAuthCallback('/auth/verify-email', callbackUrl));
       return;
     }
     if (sessionState.needsOnboarding) {
-      router.replace('/auth/onboarding');
+      router.replace(withAuthCallback('/auth/onboarding', callbackUrl));
       return;
     }
-    const destination = sessionState.role === 'ADMIN' ? '/admin/dashboard' : '/';
-    router.replace(destination);
-  }, [firebaseUser, sessionState, authLoading, router]);
+    router.replace(resolvePostLoginDestination(sessionState.role, callbackUrl));
+  }, [firebaseUser, sessionState, authLoading, router, callbackUrl]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -72,7 +78,7 @@ export default function RegisterPage() {
     setIsLoading(true);
     try {
       await registerFirebase(result.data.email, result.data.password);
-      router.replace('/auth/verify-email');
+      router.replace(withAuthCallback('/auth/verify-email', callbackUrl));
     } catch (err: unknown) {
       const msg = formatAuthError(err);
       setError(msg);
@@ -161,7 +167,7 @@ export default function RegisterPage() {
       </motion.div>
       <p className="text-center text-sm text-gray-600 mt-6">
         ¿Ya tenés cuenta?{' '}
-        <Link href="/auth/login" className="text-[#Ed3237] hover:underline">
+        <Link href={withAuthCallback('/auth/login', callbackUrl)} className="text-[#Ed3237] hover:underline">
           Iniciar sesión
         </Link>
       </p>
@@ -171,5 +177,23 @@ export default function RegisterPage() {
         </Link>
       </p>
     </AuthShell>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <AuthShell title="Crear cuenta" subtitle="Email y contraseña">
+          <div className="animate-pulse space-y-4">
+            <div className="h-10 bg-gray-200 rounded-lg" />
+            <div className="h-10 bg-gray-200 rounded-lg" />
+            <div className="h-10 bg-gray-200 rounded-lg" />
+          </div>
+        </AuthShell>
+      }
+    >
+      <RegisterForm />
+    </Suspense>
   );
 }

@@ -7,12 +7,23 @@ import Button from '@/components/ui/Button';
 import Select from '@/app/components/ui/Select';
 import { useVariantesStock } from '@/app/hooks/useVariantesStock';
 import { useBulkSelection } from '@/app/hooks/useBulkSelection';
+import { useEmpresaPrecioConfig, calcularPreciosDerivados } from '@/app/hooks/useEmpresaPrecioConfig';
 import type { ProductoPadreConVariantes, ProductoWebResponse } from '@/app/types/producto.types';
 import { formatNombreConGenero } from './columns';
-import { Search, Save, Loader2 } from 'lucide-react';
+import { Search, Save, Loader2, Settings } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { calcularPreciosDerivados } from '@/app/utils/calcularPreciosDerivados';
 import { productosKeys } from '@/app/utils/productosKeys';
+
+/**
+ * Stock “sucio” solo si el número editado difiere del guardado.
+ * null/undefined se tratan como 0 (evita “Modificado” por 0 vs null tras sync).
+ */
+function isStockDirty(
+  edited: number | null | undefined,
+  saved: number | string | null | undefined
+): boolean {
+  return Number(edited ?? 0) !== Number(saved ?? 0);
+}
 
 interface VariantesStockTableProps {
   producto: ProductoPadreConVariantes;
@@ -135,7 +146,7 @@ export function VariantesStockTable({
     const selected = variantes.filter(v => bulkSelection.selectedIds.has(v.id));
     return selected.some(
       v =>
-        (v.editedStock ?? 0) !== (v.stockCache ?? 0) ||
+        isStockDirty(v.editedStock, v.stockCache) ||
         (v.editedPrecio ?? v.precioCache) !== (v.precioCache ?? null)
     );
   }, [variantes, bulkSelection.selectedIds, bulkSelection.selectedCount]);
@@ -275,18 +286,28 @@ export function VariantesStockTable({
     [tallesUnicos]
   );
 
+  const { data: config } = useEmpresaPrecioConfig();
+
   const preciosDerivados = useMemo(
-    () => calcularPreciosDerivados(precioGeneral),
-    [precioGeneral]
+    () => calcularPreciosDerivados(precioGeneral, config ?? undefined),
+    [precioGeneral, config]
   );
 
   const formatPrecio = (n: number) =>
     n.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
-    <div className="space-y-4 overflow-visible p-2">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden">
+      <div className="rounded-lg border border-blue-200 bg-blue-50/80 px-4 py-3 text-sm text-blue-900 shrink-0">
+        <p className="font-medium text-blue-950">Caché ecommerce (por producto padre)</p>
+        <p className="mt-1 text-blue-800/95 leading-relaxed">
+          Los valores de <strong>precio</strong> y <strong>stock</strong> que guardás acá actualizan la base de la tienda para las variantes seleccionadas (misma idea que las imágenes: todo el producto desde un solo lugar). En{' '}
+          <strong>S-Factory</strong> cada SKU es un ítem distinto; para alinear precio/stock con el ERP usá la edición/sync correspondiente.
+        </p>
+      </div>
+
       {/* Precio y stock en la misma línea; aplican a seleccionadas al guardar */}
-      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-4">
+      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-4 shrink-0">
         <div className="flex flex-wrap items-end gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -330,13 +351,17 @@ export function VariantesStockTable({
         {precioGeneral != null && precioGeneral > 0 && (
           <div className="pt-3 border-t border-gray-200 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
             <div>
-              <span className="text-gray-500 block">Transferencia (15% desc.)</span>
+              <span className="text-gray-500 block">
+                Transferencia ({config ? (config.descuentoTransferencia * 100).toFixed(0) : 15}% desc.)
+              </span>
               <span className="font-medium text-gray-800">
                 ${preciosDerivados.precioTransfer != null ? formatPrecio(preciosDerivados.precioTransfer) : '–'}
               </span>
             </div>
             <div>
-              <span className="text-gray-500 block">Financiado ({preciosDerivados.cuotas} cuotas)</span>
+              <span className="text-gray-500 block">
+                Financiado ({preciosDerivados.cuotas} cuota{preciosDerivados.cuotas !== 1 ? 's' : ''})
+              </span>
               <span className="font-medium text-gray-800">
                 ${preciosDerivados.precioFinanciado != null ? formatPrecio(preciosDerivados.precioFinanciado) : '–'}
                 <span className="text-gray-500 font-normal">/cuota</span>
@@ -353,7 +378,7 @@ export function VariantesStockTable({
       </div>
 
       {/* Selección bulk */}
-      <div className="flex flex-wrap items-center gap-2 py-2 border-b border-gray-100">
+      <div className="flex flex-wrap items-center gap-2 py-2 border-b border-gray-100 shrink-0">
         <span className="text-sm text-gray-600">
           {bulkSelection.selectedCount} de {variantes.length} seleccionada{bulkSelection.selectedCount !== 1 ? 's' : ''}
         </span>
@@ -366,7 +391,7 @@ export function VariantesStockTable({
       </div>
 
       {/* Filtros rápidos: padding para que los focus rings no se corten */}
-      <div className="flex flex-wrap gap-3 overflow-visible py-1 px-1 -mx-1">
+      <div className="flex flex-wrap gap-3 overflow-visible py-1 px-1 -mx-1 shrink-0">
         <div className="relative flex-shrink-0 min-w-0">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
           <input
@@ -419,8 +444,8 @@ export function VariantesStockTable({
         </div>
       </div>
 
-      {/* Tabla compacta: padding para que focus/active no se corten */}
-      <div className="overflow-x-auto overflow-y-visible border border-gray-200 rounded-lg p-px">
+      {/* Tabla con scroll interno */}
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-auto border border-gray-200 rounded-lg mt-4">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
@@ -450,7 +475,10 @@ export function VariantesStockTable({
               </tr>
             ) : (
               filteredVariantes.map((variante, index) => {
-                const stockChanged = variante.editedStock !== variante.stockCache;
+                const stockChanged = isStockDirty(
+                  variante.editedStock,
+                  variante.stockCache
+                );
                 const precioChanged = variante.precioPersonalizado
                   ? variante.editedPrecio !== variante.precioCache
                   : (variante.editedPrecio !== precioGeneral);
@@ -552,7 +580,7 @@ export function VariantesStockTable({
       </div>
 
       {/* Resumen */}
-      <div className="flex justify-between items-center text-sm text-gray-600 pt-2 border-t">
+      <div className="flex justify-between items-center text-sm text-gray-600 pt-2 border-t flex-shrink-0">
         <span>
           Mostrando {filteredVariantes.length} de {variantes.length} variantes
         </span>

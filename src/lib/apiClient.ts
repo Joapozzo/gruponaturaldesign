@@ -1,5 +1,9 @@
 import { getAccessToken } from './auth-client';
 import type { ApiResponse, ApiError, PaginatedApiResponse } from './types/api.types';
+import {
+  isMaintenanceApiPayload,
+  tryHandleMaintenanceResponse,
+} from './api-maintenance';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
 
@@ -138,13 +142,21 @@ export class ApiClient {
 
       // Si la respuesta HTTP no es exitosa, normalizar error
       if (!response.ok) {
+        if (tryHandleMaintenanceResponse(response.status, responseData)) {
+          throw this.normalizeError(responseData, 503);
+        }
         // 401 en peticiones que requieren auth: redirigir a login (token faltante/vencido)
         if (response.status === 401 && !skipAuth && typeof window !== 'undefined') {
           window.location.href = '/auth/login?reason=session_expired';
         }
         // 503: un reintento automático solo para GET (evitar reenviar POST/PUT)
         const isGet = (fetchOptions.method ?? 'GET').toUpperCase() === 'GET';
-        if (response.status === 503 && !_retry503 && isGet) {
+        if (
+          response.status === 503 &&
+          !_retry503 &&
+          isGet &&
+          !isMaintenanceApiPayload(responseData)
+        ) {
           await new Promise((r) => setTimeout(r, 2000));
           return this.request<T>(endpoint, { ...options, _retry503: true });
         }

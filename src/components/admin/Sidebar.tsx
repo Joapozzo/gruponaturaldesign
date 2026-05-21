@@ -7,15 +7,16 @@ import {
   LayoutDashboard,
   Package,
   ShoppingCart,
-  Users,
+  User,
   ChevronLeft,
   ChevronRight,
-  LogOut,
   Menu,
   X,
   Settings,
   FileText,
   Percent,
+  UserRoundCog,
+  Mail,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -37,7 +38,6 @@ const menuItems: MenuItem[] = [
     icon: LayoutDashboard,
     href: '/admin/dashboard',
     badge: null,
-    disabled: true, // En desarrollo
   },
   {
     name: 'Productos',
@@ -49,28 +49,31 @@ const menuItems: MenuItem[] = [
     name: 'Pedidos',
     icon: ShoppingCart,
     href: '/admin/pedidos',
-    badge: 5,
-    disabled: true, // En desarrollo
+    badge: null,
   },
-  {
+{
     name: 'Cupones',
     icon: Percent,
     href: '/admin/cupones',
     badge: null,
-    disabled: true, // En desarrollo
   },
   {
     name: 'Clientes',
-    icon: Users,
+    icon: UserRoundCog,
     href: '/admin/clientes',
     badge: null,
   },
   {
+    name: 'Emails',
+    icon: Mail,
+    href: '/admin/emails',
+    badge: null,
+  },
+  {
     name: 'Usuarios',
-    icon: Users,
+    icon: User,
     href: '/admin/usuarios',
     badge: null,
-    disabled: true, // En desarrollo
   },
   {
     name: 'Auditoría',
@@ -83,7 +86,6 @@ const menuItems: MenuItem[] = [
     icon: Settings,
     href: '/admin/configuracion',
     badge: null,
-    disabled: true, // En desarrollo
   },
 ];
 

@@ -103,6 +103,10 @@ export function useProductCart(
         addToCart(
             {
                 id: productId,
+                productoWebId: selectedVariant.productoWebId,
+                productoPadreId: selectedVariant.productoPadreId,
+                sfactoryItemId: selectedVariant.sfactoryItemId,
+                codigo: selectedVariant.codigo,
                 nombre: groupedProduct.skuBase || displayProduct?.NOMBRE || 'Sin nombre',
                 descripcion: displayProduct?.Descripcion || displayProduct?.DescripcionCorta || '',
                 imagen: productImage,

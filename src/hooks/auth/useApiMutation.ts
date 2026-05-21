@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { tryHandleMaintenanceResponse } from '@/lib/api-maintenance';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? '';
 
@@ -42,6 +43,9 @@ export function useApiMutation<TBody extends object, TResponse = unknown>({
         });
         const json = await res.json().catch(() => ({}));
         if (!res.ok) {
+          if (tryHandleMaintenanceResponse(res.status, json)) {
+            return;
+          }
           const msg = (json as { error?: string }).error ?? res.statusText ?? 'Error en la solicitud';
           setError(msg);
           onError?.(msg);

@@ -1,9 +1,10 @@
 "use client";
 import React from 'react';
 import { motion } from 'framer-motion';
+import { CreditCard, Landmark, Tag } from 'lucide-react';
 import { ProductWithImage, ProductVariant } from '@/app/types/producto';
-import { formatPrice, formatPriceWithoutIVA } from '../../utils/productHelpers';
-import { getStockMessage } from '@/app/services/stockService';
+import { formatPrice } from '../../utils/productHelpers';
+import { useEmpresaPrecioConfig } from '@/app/hooks/useEmpresaPrecioConfig';
 
 interface ProductInfoProps {
     productName: string;
@@ -15,6 +16,9 @@ interface ProductInfoProps {
 
 export default function ProductInfo({ productName, displayProduct, selectedVariant, price, hideTitle = false }: ProductInfoProps) {
     const formattedPrice = formatPrice(price);
+    const { data: precioConfig } = useEmpresaPrecioConfig();
+    const cuotas = precioConfig?.cuotasFinanciado ?? 3;
+    const cuotasLabel = `${cuotas} ${cuotas === 1 ? 'cuota de' : 'cuotas de'}`;
     
     // Obtener precios adicionales
     const precioTransfer = selectedVariant?.producto?.precioTransfer || displayProduct.precioTransfer;
@@ -38,10 +42,16 @@ export default function ProductInfo({ productName, displayProduct, selectedVaria
     
     // Obtener textiles del producto
     const textiles = selectedVariant?.producto?.textiles || displayProduct.textiles;
-    
-    // Obtener mensaje de stock (sin mostrar número exacto)
-    const stock = selectedVariant?.stock;
-    const stockMessage = getStockMessage(stock);
+
+    const showPriceRows = Boolean(formattedTransfer || formatted3Cuotas);
+
+    const priceRowClass =
+        'flex items-start gap-2.5 rounded-lg border border-neutral-200 bg-neutral-100 px-3 py-2.5 sm:items-center sm:gap-3';
+    const priceIconClass =
+        'mt-0.5 size-4 shrink-0 text-neutral-600 sm:mt-0 sm:size-[18px]';
+    const priceLabelClass = 'text-xs font-semibold text-neutral-700 sm:text-sm';
+    const priceAmountClass =
+        'text-base font-bold tabular-nums text-neutral-900 sm:text-lg';
 
     return (
         <motion.div
@@ -53,54 +63,65 @@ export default function ProductInfo({ productName, displayProduct, selectedVaria
             {/* Título y precio */}
             <div className="w-full">
                 {!hideTitle && (
-                    <h1 className="text-sm sm:text-base lg:text-lg font-medium text-gray-900 mb-1 leading-tight">
+                    <h1 className="text-sm sm:text-base lg:text-lg font-medium text-neutral-900 mb-1 leading-tight">
                         {productName}
                     </h1>
                 )}
-                <div className="flex flex-col items-start space-y-0.5 mb-3">
-                    {/* Precio lista - más grande */}
-                    <span className="text-sm sm:text-base lg:text-lg font-bold text-gray-900">
-                        {formattedPrice}
-                    </span>
-                    {/* Transfer y cuotas - más pequeños, lado a lado */}
-                    {(formattedTransfer || formatted3Cuotas) && (
-                        <div className="flex flex-col mt-0.5">
+                <div className="mb-3 flex w-full flex-col gap-2">
+                    {showPriceRows ? (
+                        <>
+                            <div className={priceRowClass}>
+                                <Tag className={priceIconClass} aria-hidden />
+                                <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
+                                    <span className={priceLabelClass}>Precio de lista</span>
+                                    <span className={priceAmountClass}>{formattedPrice}</span>
+                                </div>
+                            </div>
                             {formattedTransfer && (
-                                <span className="text-[10px] sm:text-xs text-gray-600">
-                                    Transfer: {formattedTransfer}
-                                </span>
+                                <div className="flex items-start gap-2.5 rounded-lg border border-[var(--red)] bg-neutral-100 px-3 py-2.5 sm:items-center sm:gap-3">
+                                    <Landmark
+                                        className="mt-0.5 size-4 shrink-0 text-[var(--red)] sm:mt-0 sm:size-[18px]"
+                                        aria-hidden
+                                    />
+                                    <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
+                                        <span className="text-xs font-semibold text-[var(--red)] sm:text-sm">
+                                            Transferencia
+                                        </span>
+                                        <span className="text-base font-bold tabular-nums text-[var(--red)] sm:text-lg">
+                                            {formattedTransfer}
+                                        </span>
+                                    </div>
+                                </div>
                             )}
                             {formatted3Cuotas && (
-                                <span className="text-[10px] sm:text-xs text-gray-600">
-                                    3 cuotas: {formatted3Cuotas}
-                                </span>
+                                <div className={priceRowClass}>
+                                    <CreditCard className={priceIconClass} aria-hidden />
+                                    <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
+                                        <span className={priceLabelClass}>{cuotasLabel}</span>
+                                        <span className={priceAmountClass}>{formatted3Cuotas}</span>
+                                    </div>
+                                </div>
                             )}
-                        </div>
+                        </>
+                    ) : (
+                        <span className="text-sm font-bold tabular-nums text-neutral-900 sm:text-base lg:text-lg">
+                            {formattedPrice}
+                        </span>
                     )}
-                    {/* Precio sin impuestos - más pequeño, abajo */}
+
                     {formattedSImp && (
-                        <span className="text-[10px] sm:text-xs text-gray-500 mb-0.5">
-                            Sin impuestos: {formattedSImp}
-                        </span>
-                    )}
-                    {/* Mensaje de stock bajo (sin mostrar número exacto) */}
-                    {stockMessage && (
-                        <span className={`text-[10px] sm:text-xs font-semibold mt-0.5 ${
-                            stockMessage === 'ÚLTIMAS UNIDADES' 
-                                ? 'text-orange-600' 
-                                : 'text-red-600'
-                        }`}>
-                            {stockMessage}
-                        </span>
+                        <p className="text-[10px] leading-snug text-neutral-400">
+                            Sin impuestos nacionales: {formattedSImp}.
+                        </p>
                     )}
                 </div>
                 {/* Descripción completa del producto */}
                 {description && (
                     <div className="mb-2">
-                        <h3 className="text-[10px] sm:text-xs font-bold text-gray-900 uppercase tracking-wide mb-0.5">
+                        <h3 className="text-[10px] sm:text-xs font-bold text-neutral-900 uppercase tracking-wide mb-0.5">
                             Descripción
                         </h3>
-                        <p className="text-gray-700 text-[10px] sm:text-xs leading-relaxed">
+                        <p className="text-neutral-700 text-[10px] sm:text-xs leading-relaxed">
                             {description}
                         </p>
                     </div>
@@ -108,10 +129,10 @@ export default function ProductInfo({ productName, displayProduct, selectedVaria
                 {/* Textiles */}
                 {textiles && (
                     <div className="mb-1.5">
-                        <h3 className="text-[10px] sm:text-xs font-bold text-gray-900 uppercase tracking-wide mb-0.5">
+                        <h3 className="text-[10px] sm:text-xs font-bold text-neutral-900 uppercase tracking-wide mb-0.5">
                             Textiles
                         </h3>
-                        <p className="text-gray-700 text-[10px] sm:text-xs leading-relaxed">
+                        <p className="text-neutral-700 text-[10px] sm:text-xs leading-relaxed">
                             {textiles}
                         </p>
                     </div>
@@ -119,10 +140,10 @@ export default function ProductInfo({ productName, displayProduct, selectedVaria
                 {/* Material (fallback si no hay textiles) */}
                 {!textiles && displayProduct.Material && (
                     <div className="mb-1.5">
-                        <h3 className="text-[10px] sm:text-xs font-bold text-gray-900 uppercase tracking-wide mb-0.5">
+                        <h3 className="text-[10px] sm:text-xs font-bold text-neutral-900 uppercase tracking-wide mb-0.5">
                             Material
                         </h3>
-                        <p className="text-gray-700 text-[10px] sm:text-xs">
+                        <p className="text-neutral-700 text-[10px] sm:text-xs">
                             {displayProduct.Material}
                         </p>
                     </div>

@@ -1,6 +1,13 @@
+import type { CuponAplicado } from './cupones';
+
 // Tipos base del producto en el carrito
 export interface CartProduct {
     id: number;
+    /** IDs para checkout MP / S-Factory; si faltan, el cliente puede usar `id` como respaldo */
+    productoWebId?: number;
+    productoPadreId?: number;
+    sfactoryItemId?: number;
+    codigo?: string;
     nombre: string;
     descripcion: string;
     categoria: string;
@@ -39,6 +46,25 @@ export interface CustomerData {
     tipo_documento?: 'DNI' | 'CUIT' | 'CUIL';
 }
 
+/** Payload alineado con `CheckoutEnvioClientPayload` del API (sin `address`: se arma al iniciar MP). */
+export interface CheckoutEnvioSelection {
+    provider: 'correo' | 'andreani';
+    deliveryType: 'homeDelivery' | 'agency';
+    parcel: {
+        weightGrams: number;
+        height: number;
+        width: number;
+        depth: number;
+        declaredValue: number;
+    };
+    cpDestino: string;
+    clientQuotedAmount: number;
+    /** MiCorreo: productType (ej. CP, EP) de la tarifa elegida */
+    correoProductType?: string;
+    agencyId?: string;
+    agencyLabel?: string;
+}
+
 // Datos de envío
 export interface ShippingData {
     tipo: 'envio' | 'retiro';
@@ -48,11 +74,16 @@ export interface ShippingData {
     codigo_postal?: string;
     notas?: string;
     fecha_entrega?: string;
+    /** Preferencias UI checkout (carrier / modalidad). */
+    checkoutProvider?: 'correo' | 'andreani';
+    checkoutDelivery?: 'homeDelivery' | 'agency';
+    /** Cotización aceptada (servidor la valida de nuevo en MP). */
+    checkoutEnvio?: CheckoutEnvioSelection;
 }
 
 // Datos de pago
 export interface PaymentData {
-    metodo: 'whatsapp' | 'transferencia' | 'efectivo' | 'tarjeta';
+    metodo: 'whatsapp' | 'transferencia' | 'efectivo' | 'tarjeta' | 'mercado_pago';
     notas?: string;
 }
 
@@ -71,6 +102,10 @@ export interface CartState {
     iva: number;
     total: number; // Mantener por compatibilidad (total con lista)
 
+    // Cupón
+    cuponAplicado: CuponAplicado | null;
+    cuponDescuento: number;
+
     // Actions
     addItem: (product: CartProduct, quantity?: number, especificaciones?: string, bordado?: boolean) => void;
     removeItem: (productId: number) => void;
@@ -78,10 +113,14 @@ export interface CartState {
     updateEspecificaciones: (productId: number, especificaciones: string) => void;
     updateBordado: (productId: number, bordado: boolean) => void;
     clearCart: () => void;
+    /** Limpia cupón y datos de checkout; mantiene ítems del carrito. */
+    clearCheckoutSession: () => void;
 
     setCustomerData: (data: CustomerData) => void;
     setShippingData: (data: ShippingData) => void;
     setPaymentData: (data: PaymentData) => void;
+
+    setCuponAplicado: (cupon: CuponAplicado | null) => void;
 
     generateWhatsAppMessage: () => string;
 }
