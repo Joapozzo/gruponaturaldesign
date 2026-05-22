@@ -1,5 +1,6 @@
 import type { AdminPedidoDetalle } from '@/app/types/adminPedidoDetalle.types';
 import type { EstadoPedido } from '@/app/types/pedido.types';
+import { isRetiroEnTiendaPedido } from '@/app/utils/pedidoEntregaDisplay';
 
 const TERMINAL: EstadoPedido[] = ['cancelado', 'vencido', 'entregado'];
 
@@ -12,10 +13,14 @@ export interface WebPedidoActions {
   confirmLabel: string;
   awaitingMercadoPago: boolean;
   paymentPendingMessage: string | null;
+  canEnviarListoRetiro: boolean;
+  canMarcarRetirado: boolean;
 }
 
 /** Estados SFactory ERP que admiten aprobar desde admin (cotización / en curso). */
 const SFACTORY_APROBABLE = new Set(['1', '5']);
+
+const PICKUP_ACTIVE: EstadoPedido[] = ['confirmado', 'procesando', 'despachado'];
 
 export function getWebPedidoActions(pedido: AdminPedidoDetalle): WebPedidoActions {
   const awaitingMercadoPago =
@@ -35,6 +40,11 @@ export function getWebPedidoActions(pedido: AdminPedidoDetalle): WebPedidoAction
   const canSyncSfactory = hasOrden;
 
   const canReject = !TERMINAL.includes(pedido.estadoInterno);
+
+  const isRetiro = isRetiroEnTiendaPedido(pedido);
+  const pickupActivo = PICKUP_ACTIVE.includes(pedido.estadoInterno);
+  const canEnviarListoRetiro = isRetiro && pickupActivo;
+  const canMarcarRetirado = isRetiro && pickupActivo;
 
   let confirmLabel = 'Confirmar y enviar a SFactory';
   if (canAprobarEnSfactory && !canConfirmWeb) {
@@ -60,5 +70,7 @@ export function getWebPedidoActions(pedido: AdminPedidoDetalle): WebPedidoAction
     confirmLabel,
     awaitingMercadoPago,
     paymentPendingMessage,
+    canEnviarListoRetiro,
+    canMarcarRetirado,
   };
 }

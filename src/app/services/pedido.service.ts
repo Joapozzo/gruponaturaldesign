@@ -204,6 +204,28 @@ class PedidoService {
   async syncStock() {
     return apiClient.post(`/admin/pedidos/sync-stock`, {});
   }
+
+  async enviarListoRetiro(id: number) {
+    const response = await apiClient.post<{ success: boolean; message?: string }>(
+      `/admin/pedidos/${id}/enviar-listo-retiro`,
+      {}
+    );
+    if (!response.success) {
+      throw new Error(response.message || response.error || 'No se pudo enviar el aviso de retiro');
+    }
+    return response;
+  }
+
+  async marcarRetirado(id: number, options?: { sendEmail?: boolean }) {
+    const response = await apiClient.post<{ success: boolean; message?: string }>(
+      `/admin/pedidos/${id}/marcar-retirado`,
+      { sendEmail: options?.sendEmail !== false }
+    );
+    if (!response.success) {
+      throw new Error(response.message || response.error || 'No se pudo marcar como retirado');
+    }
+    return response;
+  }
 }
 
 export const pedidoService = new PedidoService();

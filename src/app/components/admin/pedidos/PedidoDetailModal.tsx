@@ -142,6 +142,30 @@ export function PedidoDetailModal({ row, isOpen, onClose }: PedidoDetailModalPro
     },
   });
 
+  const listoRetiroMutation = useMutation({
+    mutationFn: (id: number) => pedidoService.enviarListoRetiro(id),
+    onSuccess: async (res) => {
+      toast.success((res as { message?: string }).message || 'Aviso de retiro enviado');
+      await invalidate();
+      await refetchDetalle();
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : 'No se pudo enviar el aviso de retiro');
+    },
+  });
+
+  const marcarRetiradoMutation = useMutation({
+    mutationFn: (id: number) => pedidoService.marcarRetirado(id),
+    onSuccess: async (res) => {
+      toast.success((res as { message?: string }).message || 'Pedido marcado como retirado');
+      await invalidate();
+      await refetchDetalle();
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : 'No se pudo marcar como retirado');
+    },
+  });
+
   const title = useMemo(() => {
     if (!row) return 'Pedido';
     if (row.source === 'web') return `Pedido ecommerce #${row.id}`;
@@ -155,7 +179,9 @@ export function PedidoDetailModal({ row, isOpen, onClose }: PedidoDetailModalPro
     aprobarSfactoryMutation.isPending ||
     syncMutation.isPending ||
     reintentarMutation.isPending ||
-    rechazarMutation.isPending;
+    rechazarMutation.isPending ||
+    listoRetiroMutation.isPending ||
+    marcarRetiradoMutation.isPending;
 
   const body = !row ? null : row.source === 'web' ? (
     webQuery.isPending ? (
@@ -188,6 +214,8 @@ export function PedidoDetailModal({ row, isOpen, onClose }: PedidoDetailModalPro
             motivo: motivoRechazo.trim() || undefined,
           })
         }
+        onEnviarListoRetiro={() => listoRetiroMutation.mutate(webPedido.id)}
+        onMarcarRetirado={() => marcarRetiradoMutation.mutate(webPedido.id)}
       />
     ) : null
   ) : sfQuery.isPending ? (
@@ -221,6 +249,8 @@ function WebDetalleBody({
   onSync,
   onReintentar,
   onReject,
+  onEnviarListoRetiro,
+  onMarcarRetirado,
 }: {
   pedido: AdminPedidoDetalle;
   actions: ReturnType<typeof getWebPedidoActions>;
@@ -232,6 +262,8 @@ function WebDetalleBody({
   onSync: () => void;
   onReintentar: () => void;
   onReject: () => void;
+  onEnviarListoRetiro: () => void;
+  onMarcarRetirado: () => void;
 }) {
   const entrega = formatPedidoEntregaDisplay(pedido);
   const showActions =
@@ -240,6 +272,8 @@ function WebDetalleBody({
     actions.canReintentarSfactory ||
     actions.canSyncSfactory ||
     actions.canReject ||
+    actions.canEnviarListoRetiro ||
+    actions.canMarcarRetirado ||
     actions.paymentPendingMessage != null;
 
   return (
@@ -431,6 +465,12 @@ function WebDetalleBody({
               sincronizar el estado local.
             </p>
           ) : null}
+          {actions.canEnviarListoRetiro || actions.canMarcarRetirado ? (
+            <p className="text-xs text-neutral-600">
+              Retiro en tienda: enviá el aviso cuando el pedido esté listo. Podés marcar como retirado
+              en cualquier momento (con o sin haber enviado el aviso).
+            </p>
+          ) : null}
           {actions.canReject && (
             <div>
               <label className="text-xs font-medium text-neutral-600">Motivo rechazo (opcional)</label>
@@ -467,6 +507,16 @@ function WebDetalleBody({
             {actions.canReject ? (
               <Button variant="redOutline" disabled={busy} onClick={onReject}>
                 Rechazar / cancelar
+              </Button>
+            ) : null}
+            {actions.canEnviarListoRetiro ? (
+              <Button variant="black" disabled={busy} onClick={onEnviarListoRetiro}>
+                Enviar aviso: listo para retirar
+              </Button>
+            ) : null}
+            {actions.canMarcarRetirado ? (
+              <Button variant="ghost" disabled={busy} onClick={onMarcarRetirado}>
+                Marcar como retirado
               </Button>
             ) : null}
           </div>

@@ -6,6 +6,8 @@ import PageHeader from '@/components/admin/PageHeader';
 import { AdminEmailsPageActions } from '@/app/components/admin/emails/AdminEmailsPageActions';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
+import { MAX_NEWSLETTER_RECIPIENTS } from '@/app/config/newsletterLimits';
+import { useBulkSelection } from '@/app/hooks/useBulkSelection';
 import {
   EmailLog,
   Subscriber,
@@ -22,7 +24,7 @@ const tabs: Array<{ id: TabId; label: string }> = [
   { id: 'history', label: 'Historial' },
 ];
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+type RecipientMode = 'all' | 'selected';
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleString('es-AR', {
@@ -32,13 +34,6 @@ function formatDate(value: string): string {
     hour: '2-digit',
     minute: '2-digit',
   });
-}
-
-function parseRecipientList(value: string): string[] {
-  return value
-    .split(/[\n,]+/)
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
 }
 
 function SkeletonRows({ rows, columns }: { rows: number; columns: number }) {
@@ -94,9 +89,73 @@ function PaginationControls({
 function CampaignTab() {
   const [subject, setSubject] = useState('');
   const [htmlBody, setHtmlBody] = useState('<p>Escribí el contenido de la campaña.</p>');
-  const [recipientMode, setRecipientMode] = useState<'all' | 'custom'>('all');
-  const [customRecipients, setCustomRecipients] = useState('');
+  const [recipientMode, setRecipientMode] = useState<RecipientMode>('all');
   const [isSending, setIsSending] = useState(false);
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [totalActive, setTotalActive] = useState(0);
+  const [isLoadingSubscribers, setIsLoadingSubscribers] = useState(true);
+
+  const bulkSelection = useBulkSelection(subscribers);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoadingSubscribers(true);
+    newsletterAdminService
+      .getSubscribers({ page: 1, limit: 100, active: true })
+      .then((result) => {
+        if (cancelled) return;
+        setSubscribers(result.data);
+        setTotalActive(result.pagination.total);
+      })
+      .catch((error) => {
+        toast.error(error instanceof Error ? error.message : 'Error al cargar suscriptores');
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingSubscribers(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const selectedEmails = useMemo(
+    () =>
+      subscribers
+        .filter((subscriber) => bulkSelection.selectedIds.has(subscriber.id))
+        .map((subscriber) => subscriber.email),
+    [subscribers, bulkSelection.selectedIds]
+  );
+
+  const handleToggleSubscriber = (subscriber: Subscriber) => {
+    if (
+      !bulkSelection.selectedIds.has(subscriber.id) &&
+      bulkSelection.selectedCount >= MAX_NEWSLETTER_RECIPIENTS
+    ) {
+      toast.error(`Máximo ${MAX_NEWSLETTER_RECIPIENTS} destinatarios por campaña.`);
+      return;
+    }
+    bulkSelection.toggleSelect(subscriber.id);
+  };
+
+  const handleSelectAllVisible = () => {
+    if (subscribers.length === 0) return;
+    if (allOnPageSelected) {
+      bulkSelection.clearSelection();
+      return;
+    }
+    if (subscribers.length <= MAX_NEWSLETTER_RECIPIENTS) {
+      bulkSelection.selectAll();
+      return;
+    }
+    bulkSelection.clearSelection();
+    subscribers.slice(0, MAX_NEWSLETTER_RECIPIENTS).forEach((subscriber) => {
+      bulkSelection.toggleSelect(subscriber.id);
+    });
+    toast(`Se seleccionaron los primeros ${MAX_NEWSLETTER_RECIPIENTS} suscriptores.`, {
+      icon: 'ℹ️',
+    });
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -112,17 +171,27 @@ function CampaignTab() {
       return;
     }
 
-    const recipients =
-      recipientMode === 'custom' ? parseRecipientList(customRecipients) : undefined;
+    let recipients: string[] | undefined;
 
-    if (recipientMode === 'custom') {
-      if (!recipients?.length) {
-        toast.error('Ingresá al menos un destinatario.');
+    if (recipientMode === 'selected') {
+      if (selectedEmails.length === 0) {
+        toast.error('Seleccioná al menos un suscriptor.');
         return;
       }
-      const invalid = recipients.find((email) => !emailRegex.test(email));
-      if (invalid) {
-        toast.error(`Email inválido: ${invalid}`);
+      if (selectedEmails.length > MAX_NEWSLETTER_RECIPIENTS) {
+        toast.error(`Máximo ${MAX_NEWSLETTER_RECIPIENTS} destinatarios por campaña.`);
+        return;
+      }
+      recipients = selectedEmails;
+    } else {
+      if (totalActive === 0) {
+        toast.error('No hay suscriptores activos.');
+        return;
+      }
+      if (totalActive > MAX_NEWSLETTER_RECIPIENTS) {
+        toast.error(
+          `Hay ${totalActive} suscriptores activos. El límite es ${MAX_NEWSLETTER_RECIPIENTS}. Usá "Seleccionar suscriptores".`
+        );
         return;
       }
     }
@@ -134,10 +203,13 @@ function CampaignTab() {
         htmlBody: trimmedHtml,
         recipientList: recipients,
       });
-      const count = result?.recipients ?? recipients?.length;
+      const count = result?.recipients ?? recipients?.length ?? totalActive;
       toast.success(
         count != null ? `Newsletter enviado a ${count} destinatarios` : 'Newsletter enviado'
       );
+      if (recipientMode === 'selected') {
+        bulkSelection.clearSelection();
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Error al enviar newsletter');
     } finally {
@@ -145,9 +217,17 @@ function CampaignTab() {
     }
   };
 
+  const allOnPageSelected =
+    subscribers.length > 0 && bulkSelection.selectedCount === subscribers.length;
+
   return (
     <Card variant="bordered" className="p-5">
       <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          Plan Resend gratis: hasta <strong>{MAX_NEWSLETTER_RECIPIENTS} emails por día</strong>.
+          Cada destinatario cuenta como un envío (incluye otros mails transaccionales del mismo día).
+        </div>
+
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-900">Asunto</label>
           <input
@@ -194,32 +274,105 @@ function CampaignTab() {
                 className="accent-black"
               />
               Todos los suscriptores activos
+              {!isLoadingSubscribers && (
+                <span className="text-gray-500">({totalActive})</span>
+              )}
             </label>
             <label className="flex items-center gap-2 text-sm text-gray-700">
               <input
                 type="radio"
-                checked={recipientMode === 'custom'}
-                onChange={() => setRecipientMode('custom')}
+                checked={recipientMode === 'selected'}
+                onChange={() => setRecipientMode('selected')}
                 className="accent-black"
               />
-              Lista personalizada
+              Seleccionar suscriptores
             </label>
           </div>
-          {recipientMode === 'custom' && (
-            <textarea
-              rows={5}
-              value={customRecipients}
-              onChange={(event) => setCustomRecipients(event.target.value)}
-              placeholder="email1@dominio.com, email2@dominio.com"
-              className="mt-3 w-full resize-none rounded border border-gray-300 p-3 text-sm focus:border-black focus:outline-none"
-            />
+
+          {recipientMode === 'all' && !isLoadingSubscribers && totalActive > MAX_NEWSLETTER_RECIPIENTS && (
+            <p className="mt-3 text-sm text-amber-800">
+              Superás el límite de {MAX_NEWSLETTER_RECIPIENTS} destinatarios. Elegí suscriptores
+              manualmente.
+            </p>
+          )}
+
+          {recipientMode === 'selected' && (
+            <div className="mt-4 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
+                <span>
+                  {bulkSelection.selectedCount} de {Math.min(subscribers.length, MAX_NEWSLETTER_RECIPIENTS)}{' '}
+                  seleccionados (máx. {MAX_NEWSLETTER_RECIPIENTS})
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleSelectAllVisible}
+                    className="rounded border border-gray-300 px-2.5 py-1 text-xs font-medium hover:border-black"
+                  >
+                    {allOnPageSelected ? 'Quitar todos' : 'Seleccionar todos'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={bulkSelection.clearSelection}
+                    disabled={bulkSelection.selectedCount === 0}
+                    className="rounded border border-gray-300 px-2.5 py-1 text-xs font-medium hover:border-black disabled:opacity-50"
+                  >
+                    Limpiar
+                  </button>
+                </div>
+              </div>
+
+              <div className="max-h-64 overflow-y-auto rounded border border-gray-200">
+                {isLoadingSubscribers ? (
+                  <div className="space-y-2 p-3">
+                    {Array.from({ length: 5 }).map((_, index) => (
+                      <div key={index} className="h-8 rounded bg-gray-100 animate-pulse" />
+                    ))}
+                  </div>
+                ) : subscribers.length > 0 ? (
+                  <ul className="divide-y divide-gray-100">
+                    {subscribers.map((subscriber) => {
+                      const isSelected = bulkSelection.selectedIds.has(subscriber.id);
+                      return (
+                        <li key={subscriber.id}>
+                          <label className="flex cursor-pointer items-center gap-3 px-3 py-2.5 hover:bg-gray-50">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => handleToggleSubscriber(subscriber)}
+                              className="accent-black"
+                            />
+                            <span className="min-w-0 flex-1 truncate text-sm text-gray-900">
+                              {subscriber.email}
+                            </span>
+                            <span className="shrink-0 text-xs text-gray-500">
+                              {formatDate(subscriber.subscribedAt)}
+                            </span>
+                          </label>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <p className="p-4 text-center text-sm text-gray-500">
+                    No hay suscriptores activos.
+                  </p>
+                )}
+              </div>
+
+              {totalActive > subscribers.length && (
+                <p className="text-xs text-gray-500">
+                  Mostrando los primeros {subscribers.length} de {totalActive} suscriptores activos.
+                </p>
+              )}
+            </div>
           )}
         </div>
 
         <div className="flex justify-end">
           <button
             type="submit"
-            disabled={isSending}
+            disabled={isSending || isLoadingSubscribers}
             className="rounded bg-black px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#Ed3237] disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isSending ? 'Enviando...' : 'Enviar campaña'}

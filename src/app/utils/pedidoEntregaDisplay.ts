@@ -44,19 +44,23 @@ function labelFromSnapshot(snap: CheckoutEnvioSnapshot): string {
 
 function isLikelyRetiro(pedido: AdminPedidoDetalle): boolean {
   const costo = Number(pedido.costoEnvio ?? 0);
-  const sinEnvioPostal =
+  return (
     !pedido.formaEnvio &&
     costo <= 0 &&
     !pedido.entregaCp?.trim() &&
     !pedido.andreaniSucursalId &&
-    !pedido.checkoutEnvioSnapshot;
-  return sinEnvioPostal;
+    !pedido.checkoutEnvioSnapshot
+  );
 }
 
 export interface PedidoEntregaDisplay {
   tipoLabel: string;
   detalle?: string;
   costoEnvioLabel: string;
+}
+
+export function isRetiroEnTiendaPedido(pedido: AdminPedidoDetalle): boolean {
+  return isLikelyRetiro(pedido);
 }
 
 export function formatPedidoEntregaDisplay(pedido: AdminPedidoDetalle): PedidoEntregaDisplay {

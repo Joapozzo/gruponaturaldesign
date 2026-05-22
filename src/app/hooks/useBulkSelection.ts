@@ -1,12 +1,14 @@
 import { useState, useCallback, useMemo } from 'react';
 
+type SelectableId = string | number;
+
 /**
  * Hook reutilizable para manejar selección bulk en tablas
  */
-export function useBulkSelection<T extends { id: number }>(items: T[]) {
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+export function useBulkSelection<T extends { id: SelectableId }>(items: T[]) {
+  const [selectedIds, setSelectedIds] = useState<Set<SelectableId>>(new Set());
 
-  const toggleSelect = useCallback((id: number) => {
+  const toggleSelect = useCallback((id: SelectableId) => {
     setSelectedIds((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) {
@@ -48,4 +50,3 @@ export function useBulkSelection<T extends { id: number }>(items: T[]) {
     clearSelection,
   };
 }
-
