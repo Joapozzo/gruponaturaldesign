@@ -22,8 +22,8 @@ export function PasswordRules({ password, options, className = '', mode = 'all' 
     if (!next) return null;
 
     return (
-      <p className={`text-xs text-gray-500 ${className}`} role="status" aria-live="polite">
-        Falta: {next.label}
+      <p className={`text-xs text-red-500 ${className}`} role="status" aria-live="polite">
+        {next.label}
       </p>
     );
   }

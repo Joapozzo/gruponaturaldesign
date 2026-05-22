@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+import { CheckCircle2, Clock3, HelpCircle, XCircle } from 'lucide-react';
 import type { MpReturnUiStatus } from '@/app/services/mpResultQuery';
 import Button from '@/components/ui/Button';
 
@@ -14,30 +16,62 @@ export interface MpResultStatusBlockProps {
   onRetryCheckout?: () => void;
 }
 
-function statusTitle(ui: MpReturnUiStatus): string {
-  switch (ui) {
-    case 'approved':
-      return 'Pago aprobado';
-    case 'pending':
-      return 'Aguardando pago';
-    case 'failure':
-      return 'Pago no completado';
-    default:
-      return 'Resultado del pago';
+const STATUS_CONFIG: Record<
+  MpReturnUiStatus,
+  {
+    title: string;
+    description: string;
+    badge: string;
+    badgeClass: string;
+    ringClass: string;
+    Icon: typeof CheckCircle2;
+    iconClass: string;
   }
-}
+> = {
+  approved: {
+    title: 'Pago aprobado',
+    description: 'Tu pedido quedó registrado. Recibirás novedades por email.',
+    badge: 'Aprobado',
+    badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+    ringClass: 'ring-emerald-100',
+    Icon: CheckCircle2,
+    iconClass: 'text-emerald-600',
+  },
+  pending: {
+    title: 'Aguardando pago',
+    description:
+      'Si elegiste efectivo o un medio pendiente de acreditación, completá el pago con los datos indicados abajo. Esta pantalla se actualiza sola cuando se acredita.',
+    badge: 'Pendiente',
+    badgeClass: 'bg-amber-50 text-amber-900 border-amber-200',
+    ringClass: 'ring-amber-100',
+    Icon: Clock3,
+    iconClass: 'text-amber-600',
+  },
+  failure: {
+    title: 'Pago no completado',
+    description:
+      'El cobro no se concretó. No se debitó el monto. Podés volver al checkout e intentar con otro medio.',
+    badge: 'No completado',
+    badgeClass: 'bg-red-50 text-red-800 border-red-200',
+    ringClass: 'ring-red-100',
+    Icon: XCircle,
+    iconClass: 'text-[#Ed3237]',
+  },
+  unknown: {
+    title: 'Resultado del pago',
+    description: 'Si tenés dudas, contactanos con el número de operación (si figura abajo).',
+    badge: 'Consultar',
+    badgeClass: 'bg-gray-50 text-gray-800 border-gray-200',
+    ringClass: 'ring-gray-100',
+    Icon: HelpCircle,
+    iconClass: 'text-gray-600',
+  },
+};
 
-function statusDescription(ui: MpReturnUiStatus): string {
-  switch (ui) {
-    case 'approved':
-      return 'Tu pedido quedó registrado. Recibirás novedades por email.';
-    case 'pending':
-      return 'Si elegiste un medio en efectivo o pendiente de acreditación, completá el pago con los datos indicados abajo. Esta pantalla se actualiza sola cuando el pago se acredita.';
-    case 'failure':
-      return 'No se completó el cobro. Podés volver al checkout e intentar de nuevo.';
-    default:
-      return 'Si tenés dudas, contactanos con el número de operación (si figura abajo).';
-  }
+function formatExternalReference(ref: string | null): string | null {
+  if (!ref) return null;
+  const m = ref.match(/^pedido_(\d+)$/);
+  return m ? `#${m[1]}` : ref;
 }
 
 export default function MpResultStatusBlock({
@@ -49,78 +83,96 @@ export default function MpResultStatusBlock({
   offlinePaymentReference,
   onRetryCheckout,
 }: MpResultStatusBlockProps) {
-  const accent =
-    uiStatus === 'approved'
-      ? 'bg-red-600'
-      : uiStatus === 'pending'
-        ? 'bg-amber-600'
-        : uiStatus === 'failure'
-          ? 'bg-gray-700'
-          : 'bg-black';
+  const cfg = STATUS_CONFIG[uiStatus];
+  const { Icon } = cfg;
+  const pedidoLabel = formatExternalReference(externalReference);
 
   return (
-    <div className="w-full max-w-lg mx-auto bg-white border-2 border-black rounded-lg p-6 sm:p-8 shadow-sm">
-      <div
-        className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${accent}`}
-      >
-        {uiStatus === 'approved' ? (
-          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-        ) : (
-          <span className="text-white text-2xl font-bold">MP</span>
+    <div className="w-full max-w-lg mx-auto overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div className="flex items-center justify-between gap-3 border-b border-gray-100 bg-[#f7fbfd] px-5 py-4">
+        <Image
+          src="/logos/mp-logo.png"
+          alt="Mercado Pago"
+          width={120}
+          height={32}
+          className="h-7 w-auto object-contain"
+          priority
+        />
+        <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${cfg.badgeClass}`}>
+          {cfg.badge}
+        </span>
+      </div>
+
+      <div className="px-6 py-8 sm:px-8">
+        <div
+          className={`mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-white ring-8 ${cfg.ringClass}`}
+        >
+          <Icon className={`h-9 w-9 ${cfg.iconClass}`} aria-hidden />
+        </div>
+
+        <h1 className="mb-2 text-center text-xl font-bold text-black sm:text-2xl">{cfg.title}</h1>
+        <p className="mb-6 text-center text-sm leading-relaxed text-gray-600">{cfg.description}</p>
+
+        {(snapshotTotalLabel != null || snapshotItemCount != null) && (
+          <div className="mb-4 rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-800">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Resumen</p>
+            <div className="flex justify-between gap-4">
+              {snapshotItemCount != null && (
+                <span>
+                  <span className="text-gray-500">Productos</span>
+                  <br />
+                  <strong>{snapshotItemCount} u.</strong>
+                </span>
+              )}
+              {snapshotTotalLabel != null && (
+                <span className="text-right">
+                  <span className="text-gray-500">Total</span>
+                  <br />
+                  <strong>{snapshotTotalLabel}</strong>
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {uiStatus === 'pending' && offlinePaymentReference && (
+          <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm">
+            <p className="mb-1 font-semibold text-amber-900">Referencia para pagar en sucursal</p>
+            <p className="break-all font-mono text-base text-gray-900">{offlinePaymentReference}</p>
+            <p className="mt-2 text-xs text-gray-600">
+              Conservá este código hasta que el pago figure como acreditado en Mercado Pago.
+            </p>
+          </div>
+        )}
+
+        {(paymentId || pedidoLabel) && (
+          <dl className="space-y-2 rounded-xl border border-gray-100 bg-white p-4 text-xs sm:text-sm">
+            {pedidoLabel && (
+              <div className="flex justify-between gap-3">
+                <dt className="text-gray-500">Pedido</dt>
+                <dd className="font-mono font-medium text-gray-900">{pedidoLabel}</dd>
+              </div>
+            )}
+            {paymentId && (
+              <div className="flex justify-between gap-3">
+                <dt className="text-gray-500">ID de pago</dt>
+                <dd className="break-all text-right font-mono text-gray-900">{paymentId}</dd>
+              </div>
+            )}
+          </dl>
+        )}
+
+        {uiStatus === 'failure' && onRetryCheckout && (
+          <div className="mt-6">
+            <Button variant="brandRed" size="md" type="button" fullWidth onClick={onRetryCheckout}>
+              Reintentar pago
+            </Button>
+            <p className="mt-3 text-center text-xs text-gray-500">
+              También podés elegir transferencia o efectivo en el checkout.
+            </p>
+          </div>
         )}
       </div>
-      <h1 className="text-xl sm:text-2xl font-bold text-black text-center mb-2">{statusTitle(uiStatus)}</h1>
-      <p className="text-sm text-gray-600 text-center mb-6">{statusDescription(uiStatus)}</p>
-
-      {(snapshotTotalLabel != null || snapshotItemCount != null) && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-800 mb-4 space-y-1">
-          {snapshotItemCount != null && (
-            <p>
-              <strong>Productos:</strong> {snapshotItemCount} u.
-            </p>
-          )}
-          {snapshotTotalLabel != null && (
-            <p>
-              <strong>Total:</strong> {snapshotTotalLabel}
-            </p>
-          )}
-        </div>
-      )}
-
-      {uiStatus === 'pending' && offlinePaymentReference && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-gray-900 mb-4">
-          <p className="font-semibold text-amber-900 mb-1">Referencia para pagar en sucursal</p>
-          <p className="font-mono text-base break-all">{offlinePaymentReference}</p>
-          <p className="text-gray-600 mt-2 text-xs">
-            Conservá este código hasta que el pago figure como acreditado en Mercado Pago.
-          </p>
-        </div>
-      )}
-
-      <dl className="text-xs sm:text-sm text-gray-700 space-y-2 border-t border-gray-200 pt-4">
-        {paymentId && (
-          <div className="flex justify-between gap-2">
-            <dt className="text-gray-500">ID de pago</dt>
-            <dd className="font-mono text-right break-all">{paymentId}</dd>
-          </div>
-        )}
-        {externalReference && (
-          <div className="flex justify-between gap-2">
-            <dt className="text-gray-500">Referencia</dt>
-            <dd className="font-mono text-right break-all">{externalReference}</dd>
-          </div>
-        )}
-      </dl>
-
-      {uiStatus === 'failure' && onRetryCheckout && (
-        <div className="mt-6 flex justify-center">
-          <Button variant="black" size="sm" type="button" onClick={onRetryCheckout}>
-            Reintentar pago
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

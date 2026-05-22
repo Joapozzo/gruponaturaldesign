@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { applyActionCode, confirmPasswordReset, checkActionCode } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { AuthShell } from '@/components/auth/AuthShell';
@@ -13,7 +13,6 @@ type ActionStatus = 'loading' | 'success' | 'error' | 'form';
 type ActionMode = 'verifyEmail' | 'resetPassword' | 'recoverEmail' | null;
 
 function ActionContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const mode = (searchParams.get('mode') as ActionMode) || null;
   const oobCode = searchParams.get('oobCode');
@@ -33,14 +32,11 @@ function ActionContent() {
       return;
     }
     if (mode === 'verifyEmail') {
-      applyActionCode(auth, oobCode)
-        .then(() => {
-          setStatus('success');
-          setMessage('Email verificado. Ya podés iniciar sesión.');
-        })
-        .catch((err) => {
+      checkActionCode(auth, oobCode)
+        .then(() => setStatus('form'))
+        .catch(() => {
           setStatus('error');
-          setMessage(err.message || 'El enlace expiró o ya fue usado. Solicitá otro desde el login.');
+          setMessage('El enlace expiró o ya fue usado. Solicitá otro desde el registro o el login.');
         });
       return;
     }
@@ -68,6 +64,21 @@ function ActionContent() {
     setStatus('error');
     setMessage('Acción no reconocida.');
   }, [mode, oobCode, apiKey]);
+
+  const handleVerifyEmail = async () => {
+    if (!oobCode) return;
+    setSubmitting(true);
+    applyActionCode(auth, oobCode)
+      .then(() => {
+        setStatus('success');
+        setMessage('Email verificado. Ya podés iniciar sesión.');
+      })
+      .catch((err) => {
+        setStatus('error');
+        setMessage(err.message || 'El enlace expiró o ya fue usado. Solicitá otro desde el registro o el login.');
+      })
+      .finally(() => setSubmitting(false));
+  };
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,6 +110,33 @@ function ActionContent() {
         <div className="animate-pulse space-y-4">
           <div className="h-10 bg-gray-200 rounded-lg" />
           <div className="h-10 bg-gray-200 rounded-lg" />
+        </div>
+      </AuthShell>
+    );
+  }
+
+  if (status === 'form' && mode === 'verifyEmail') {
+    return (
+      <AuthShell
+        title="Verificá tu email"
+        subtitle="Confirmá tu dirección de correo para asegurar tu cuenta."
+      >
+        <div className="space-y-4">
+          <Button
+            type="button"
+            variant="brandRed"
+            size="md"
+            fullWidth
+            disabled={submitting}
+            onClick={handleVerifyEmail}
+          >
+            {submitting ? 'Verificando...' : 'Verificar email'}
+          </Button>
+          <p className="text-center">
+            <Link href="/auth/login" className="text-sm text-gray-500 hover:text-gray-700 hover:underline">
+              Volver a iniciar sesión
+            </Link>
+          </p>
         </div>
       </AuthShell>
     );

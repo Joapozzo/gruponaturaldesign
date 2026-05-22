@@ -39,7 +39,7 @@ describe('MpResultStatusBlock', () => {
         snapshotItemCount={3}
       />
     );
-    expect(screen.getByText(/Productos:/)).toBeTruthy();
+    expect(screen.getByText('Productos')).toBeTruthy();
     expect(screen.getByText(/3 u\./)).toBeTruthy();
     expect(screen.getByText(/\$ 10\.000/)).toBeTruthy();
   });
