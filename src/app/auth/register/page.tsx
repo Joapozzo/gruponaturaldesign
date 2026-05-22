@@ -130,7 +130,7 @@ function RegisterForm() {
             required
             disabled={isLoading}
           />
-          <PasswordRules password={password} className="mt-1.5" />
+          <PasswordRules password={password} mode="next" className="mt-1.5" />
         </motion.div>
         <motion.div custom={2} variants={fieldVariants} initial="hidden" animate="visible">
           <AuthPasswordField

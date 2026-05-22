@@ -71,6 +71,15 @@ export function getPasswordRuleChecks(
   return out;
 }
 
+/** Primera regla que aún no cumple (para hint progresivo en UI) */
+export function getNextPasswordRule(
+  value: string,
+  options: PasswordSchemaOptions = {}
+): { id: string; label: string } | null {
+  const next = getPasswordRuleChecks(value, options).find((c) => !c.ok);
+  return next ? { id: next.id, label: next.label } : null;
+}
+
 /** Crea un schema Zod de contraseña reutilizable */
 export function createPasswordSchema(options: PasswordSchemaOptions = {}) {
   const opts = { ...DEFAULT_OPTIONS, ...options };

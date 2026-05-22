@@ -5,6 +5,7 @@ export {
   passwordSchema,
   PASSWORD_RULES,
   getPasswordRuleChecks,
+  getNextPasswordRule,
   type PasswordSchemaOptions,
   type PasswordRuleId,
   type PasswordSchemaType,

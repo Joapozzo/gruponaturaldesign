@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { loginFormSchema } from './login.schema';
 import { registerFormSchema } from './register.schema';
 import { contactSchema } from '@/app/schemas/contactSchema';
-import { getPasswordRuleChecks } from './password.schema';
+import { getNextPasswordRule, getPasswordRuleChecks } from './password.schema';
 
 describe('authSchemas', () => {
   const prev = process.env.NEXT_PUBLIC_ALLOW_ANY_EMAIL_DOMAIN;
@@ -62,5 +62,11 @@ describe('authSchemas', () => {
     expect(weak.every((r) => r.ok)).toBe(false);
     const strong = getPasswordRuleChecks('Abcdef1!');
     expect(strong.every((r) => r.ok)).toBe(true);
+  });
+
+  it('getNextPasswordRule devuelve la primera regla pendiente', () => {
+    expect(getNextPasswordRule('')?.id).toBe('minLength');
+    expect(getNextPasswordRule('abcdefgh')?.id).toBe('uppercase');
+    expect(getNextPasswordRule('Abcdefg1!')).toBeNull();
   });
 });

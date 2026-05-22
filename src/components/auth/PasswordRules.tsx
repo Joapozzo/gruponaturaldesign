@@ -1,16 +1,33 @@
 'use client';
 
-import { getPasswordRuleChecks, type PasswordSchemaOptions } from '@/lib/schemas/password.schema';
+import {
+  getNextPasswordRule,
+  getPasswordRuleChecks,
+  type PasswordSchemaOptions,
+} from '@/lib/schemas/password.schema';
 import { Check } from 'lucide-react';
 
 interface PasswordRulesProps {
   password: string;
   options?: PasswordSchemaOptions;
   className?: string;
+  /** 'all' lista todas; 'next' solo la primera regla pendiente */
+  mode?: 'all' | 'next';
 }
 
 /** Muestra las reglas de contraseña y las va completando al tipear (minimalista) */
-export function PasswordRules({ password, options, className = '' }: PasswordRulesProps) {
+export function PasswordRules({ password, options, className = '', mode = 'all' }: PasswordRulesProps) {
+  if (mode === 'next') {
+    const next = getNextPasswordRule(password, options);
+    if (!next) return null;
+
+    return (
+      <p className={`text-xs text-gray-500 ${className}`} role="status" aria-live="polite">
+        Falta: {next.label}
+      </p>
+    );
+  }
+
   const checks = getPasswordRuleChecks(password, options);
 
   return (

@@ -15,6 +15,7 @@ import type { SessionUserState } from '@/types/auth.types';
 import { clearCheckoutSession } from '@/app/stores/cartStore';
 import { useClearCheckoutOnAuthChange } from '@/app/hooks/useClearCheckoutOnAuthChange';
 import { tryHandleMaintenanceResponse } from '@/lib/api-maintenance';
+import { getEmailActionCodeSettings } from '@/lib/auth-action-url';
 
 type AuthContextValue = {
   firebaseUser: FirebaseUser | null;
@@ -165,7 +166,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const register = useCallback(async (email: string, password: string) => {
     const userCred = await createUserWithEmailAndPassword(auth, email.trim(), password);
-    await sendEmailVerification(userCred.user);
+    try {
+      await sendEmailVerification(userCred.user, getEmailActionCodeSettings());
+    } catch (e) {
+      console.error('[auth/register] sendEmailVerification', e);
+      // La cuenta ya existe; reenvío desde /auth/verify-email
+    }
   }, []);
 
   const loginWithGoogle = useCallback(async () => {
@@ -187,7 +193,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const resendVerificationEmail = useCallback(async () => {
     const user = auth.currentUser;
     if (!user) return;
-    await sendEmailVerification(user);
+    await sendEmailVerification(user, getEmailActionCodeSettings());
   }, []);
 
   const value: AuthContextValue = {

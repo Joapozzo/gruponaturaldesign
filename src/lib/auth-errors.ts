@@ -25,6 +25,7 @@ const FIREBASE_MESSAGES: Record<string, string> = {
   'auth/requires-recent-login': 'Por seguridad, volvé a iniciar sesión e intentá de nuevo.',
   'auth/expired-action-code': 'El enlace expiró. Solicitá uno nuevo.',
   'auth/invalid-action-code': 'El enlace no es válido o ya fue usado.',
+  'auth/internal-error': 'Error al enviar el email. Revisá la configuración de Firebase o reintentá más tarde.',
 };
 
 /** Mensajes del backend que ya son amigables; se devuelven tal cual. */

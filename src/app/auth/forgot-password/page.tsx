@@ -11,16 +11,7 @@ import toast from 'react-hot-toast';
 import { AuthForm } from '@/components/auth/AuthForm';
 import Button from '@/components/ui/Button';
 import { TextField } from '@/app/components/producto/fields/TextField';
-
-function getActionUrl(): string {
-  if (typeof window !== 'undefined') {
-    return `${window.location.origin}/auth/action`;
-  }
-  const base = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_VERCEL_URL
-    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-    : 'http://localhost:3002';
-  return `${base}/auth/action`;
-}
+import { getEmailActionCodeSettings } from '@/lib/auth-action-url';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -42,11 +33,7 @@ export default function ForgotPasswordPage() {
     }
     setLoading(true);
     try {
-      const actionCodeSettings = {
-        url: getActionUrl(),
-        handleCodeInApp: true,
-      };
-      await sendPasswordResetEmail(auth, parsed.data, actionCodeSettings);
+      await sendPasswordResetEmail(auth, parsed.data, getEmailActionCodeSettings());
       setSent(true);
     } catch (err: unknown) {
       const msg = formatAuthError(err);
