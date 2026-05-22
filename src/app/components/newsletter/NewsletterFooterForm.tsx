@@ -1,11 +1,21 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { useNewsletterSubscribe } from '@/app/hooks/useNewsletterSubscribe';
 
 export default function NewsletterFooterForm() {
   const [email, setEmail] = useState('');
   const { subscribe, state, error } = useNewsletterSubscribe();
+
+  useEffect(() => {
+    if (state === 'success') {
+      toast.success('¡Suscripto al newsletter!');
+      setEmail('');
+    } else if (state === 'error' && error) {
+      toast.error(error);
+    }
+  }, [state, error]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -30,8 +40,6 @@ export default function NewsletterFooterForm() {
           {state === 'loading' ? 'Enviando...' : 'Suscribirme'}
         </button>
       </div>
-      {state === 'success' && <p className="text-xs text-green-400">¡Suscripto!</p>}
-      {state === 'error' && error && <p className="text-xs text-red-300">{error}</p>}
     </form>
   );
 }
