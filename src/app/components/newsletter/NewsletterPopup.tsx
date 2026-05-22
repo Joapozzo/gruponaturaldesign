@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import BaseModal from '@/app/components/modal/BaseModal';
 import { useNewsletterEligible } from '@/app/hooks/useNewsletterEligible';
-import { useNewsletterSubscribe } from '@/app/hooks/useNewsletterSubscribe';
+import { useNewsletterSubscribe, NEWSLETTER_ALREADY_SUBSCRIBED_MESSAGE } from '@/app/hooks/useNewsletterSubscribe';
 
 const NEWSLETTER_FLAG = 'newsletter_subscribed';
 
@@ -33,6 +33,9 @@ export default function NewsletterPopup() {
 
   useEffect(() => {
     if (state === 'success') {
+      localStorage.setItem(NEWSLETTER_FLAG, 'true');
+      setIsOpen(false);
+    } else if (state === 'already_subscribed') {
       localStorage.setItem(NEWSLETTER_FLAG, 'true');
       setIsOpen(false);
     }
@@ -82,6 +85,9 @@ export default function NewsletterPopup() {
             {state === 'loading' ? 'Enviando...' : 'Suscribirme'}
           </button>
           {state === 'success' && <p className="text-sm text-green-700">¡Suscripto!</p>}
+          {state === 'already_subscribed' && (
+            <p className="text-sm text-gray-700">{NEWSLETTER_ALREADY_SUBSCRIBED_MESSAGE}</p>
+          )}
           {state === 'error' && error && <p className="text-sm text-red-600">{error}</p>}
         </form>
       </div>

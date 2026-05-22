@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { useNewsletterSubscribe } from '@/app/hooks/useNewsletterSubscribe';
+import { useNewsletterSubscribe, NEWSLETTER_ALREADY_SUBSCRIBED_MESSAGE } from '@/app/hooks/useNewsletterSubscribe';
 
 export default function NewsletterOutOfStockForm() {
   const [email, setEmail] = useState('');
@@ -32,6 +32,9 @@ export default function NewsletterOutOfStockForm() {
         </button>
       </form>
       {state === 'success' && <p className="mt-2 text-xs text-green-700">¡Suscripto!</p>}
+      {state === 'already_subscribed' && (
+        <p className="mt-2 text-xs text-gray-700">{NEWSLETTER_ALREADY_SUBSCRIBED_MESSAGE}</p>
+      )}
       {state === 'error' && error && <p className="mt-2 text-xs text-red-600">{error}</p>}
     </div>
   );

@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { useNewsletterSubscribe } from '@/app/hooks/useNewsletterSubscribe';
+import { useNewsletterSubscribe, NEWSLETTER_ALREADY_SUBSCRIBED_MESSAGE } from '@/app/hooks/useNewsletterSubscribe';
 
 export default function NewsletterFooterForm() {
   const [email, setEmail] = useState('');
@@ -11,6 +11,9 @@ export default function NewsletterFooterForm() {
   useEffect(() => {
     if (state === 'success') {
       toast.success('¡Suscripto al newsletter!');
+      setEmail('');
+    } else if (state === 'already_subscribed') {
+      toast(NEWSLETTER_ALREADY_SUBSCRIBED_MESSAGE, { icon: 'ℹ️' });
       setEmail('');
     } else if (state === 'error' && error) {
       toast.error(error);

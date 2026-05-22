@@ -2,8 +2,12 @@
 
 import { useCallback, useState } from 'react';
 import { apiClient } from '@/lib/apiClient';
+import type { ApiError } from '@/lib/types/api.types';
 
-type SubscribeState = 'idle' | 'loading' | 'success' | 'error';
+export const NEWSLETTER_ALREADY_SUBSCRIBED_MESSAGE =
+  'Ya estás suscripto a nuestro newsletter.';
+
+type SubscribeState = 'idle' | 'loading' | 'success' | 'error' | 'already_subscribed';
 
 function getErrorMessage(e: unknown): string {
   if (e instanceof Error) return e.message;
@@ -11,6 +15,17 @@ function getErrorMessage(e: unknown): string {
     return String((e as { message?: unknown }).message);
   }
   return 'Error al suscribirse.';
+}
+
+function isAlreadySubscribedError(e: unknown): boolean {
+  if (!e || typeof e !== 'object') return false;
+  const err = e as ApiError & { alreadySubscribed?: boolean };
+  if (err.alreadySubscribed === true) return true;
+  if (err.status === 409) {
+    const msg = (err.message ?? '').toLowerCase();
+    return msg.includes('ya estás suscripto') || msg.includes('ya estas suscripto');
+  }
+  return false;
 }
 
 export function useNewsletterSubscribe() {
@@ -30,7 +45,11 @@ export function useNewsletterSubscribe() {
     setError(null);
 
     try {
-      const res = await apiClient.post('/newsletter/subscribe', { email }, { skipAuth: true });
+      const res = await apiClient.post<{ email?: string }>(
+        '/newsletter/subscribe',
+        { email },
+        { skipAuth: true }
+      );
       if (res.success) {
         if (typeof window !== 'undefined') {
           localStorage.setItem('newsletter_subscribed', 'true');
@@ -43,18 +62,18 @@ export function useNewsletterSubscribe() {
         setTimeout(() => setState('idle'), 3000);
       }
     } catch (e) {
-      const msg = getErrorMessage(e);
-      if (msg.toLowerCase().includes('409') || msg.toLowerCase().includes('ya')) {
+      if (isAlreadySubscribedError(e)) {
         if (typeof window !== 'undefined') {
           localStorage.setItem('newsletter_subscribed', 'true');
         }
-        setState('success');
-        setTimeout(() => setState('idle'), 3000);
-      } else {
-        setError(msg);
-        setState('error');
-        setTimeout(() => setState('idle'), 3000);
+        setError(getErrorMessage(e) || NEWSLETTER_ALREADY_SUBSCRIBED_MESSAGE);
+        setState('already_subscribed');
+        setTimeout(() => setState('idle'), 4000);
+        return;
       }
+      setError(getErrorMessage(e));
+      setState('error');
+      setTimeout(() => setState('idle'), 3000);
     }
   }, []);
 

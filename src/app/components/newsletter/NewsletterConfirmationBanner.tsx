@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import { useNewsletterEligible } from '@/app/hooks/useNewsletterEligible';
-import { useNewsletterSubscribe } from '@/app/hooks/useNewsletterSubscribe';
+import { useNewsletterSubscribe, NEWSLETTER_ALREADY_SUBSCRIBED_MESSAGE } from '@/app/hooks/useNewsletterSubscribe';
 
 const NEWSLETTER_FLAG = 'newsletter_subscribed';
 
@@ -29,7 +29,7 @@ export default function NewsletterConfirmationBanner({
   }, [defaultEmail]);
 
   useEffect(() => {
-    if (state === 'success') {
+    if (state === 'success' || state === 'already_subscribed') {
       setVisible(false);
     }
   }, [state]);
@@ -63,6 +63,9 @@ export default function NewsletterConfirmationBanner({
         </button>
       </form>
       {state === 'success' && <p className="mt-2 text-sm text-green-700">¡Suscripto!</p>}
+      {state === 'already_subscribed' && (
+        <p className="mt-2 text-sm text-gray-700">{NEWSLETTER_ALREADY_SUBSCRIBED_MESSAGE}</p>
+      )}
       {state === 'error' && error && <p className="mt-2 text-sm text-red-600">{error}</p>}
     </div>
   );
