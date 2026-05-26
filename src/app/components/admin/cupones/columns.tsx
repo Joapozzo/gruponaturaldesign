@@ -1,13 +1,9 @@
 'use client';
 
 import type { CuponListItem } from '@/app/types/cupones';
+import { formatDateOnlyEsAR } from '@/app/utils/dateOnly';
 import { AdminCuponEstadoBadge } from '@/components/cupon/AdminCuponEstadoBadge';
 import { AdminCuponTipoLabel } from '@/components/cupon/AdminCuponTipoLabel';
-
-function formatDate(date: string | null) {
-  if (!date) return 'Sin límite';
-  return new Date(date).toLocaleDateString('es-AR');
-}
 
 function formatAlcance(alcance: string) {
   return alcance.replace(/_/g, ' ');
@@ -59,7 +55,7 @@ export const cuponColumns = [
     key: 'fechaFin',
     header: 'Válido hasta',
     render: (cupon: CuponListItem) => (
-      <span className="text-sm text-neutral-600">{formatDate(cupon.fechaFin)}</span>
+      <span className="text-sm text-neutral-600">{formatDateOnlyEsAR(cupon.fechaFin)}</span>
     ),
   },
 ];

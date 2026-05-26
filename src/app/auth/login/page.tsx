@@ -1,8 +1,8 @@
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AuthForm } from '@/components/auth/AuthForm';
@@ -21,6 +21,7 @@ import {
   resolvePostLoginDestination,
   withAuthCallback,
 } from '@/lib/auth-callback-url';
+import type { SessionUserState } from '@/types/auth.types';
 import toast from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
 
@@ -33,28 +34,41 @@ const fieldVariants = {
   }),
 };
 
+function redirectAfterAuth(state: SessionUserState, callbackUrl: string): void {
+  if (state.needsEmailVerification) {
+    window.location.href = withAuthCallback('/auth/verify-email', callbackUrl);
+    return;
+  }
+  if (state.needsOnboarding) {
+    window.location.href = withAuthCallback('/auth/onboarding', callbackUrl);
+    return;
+  }
+  window.location.href = resolvePostLoginDestination(state.role, callbackUrl);
+}
+
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = getSafeCallbackPath(
     searchParams.get(AUTH_CALLBACK_PARAM) ?? searchParams.get('redirect'),
   );
-  const { login, loginWithGoogle, sessionState, firebaseUser } = useAuth();
+  const {
+    login,
+    loginWithGoogle,
+    sessionState,
+    firebaseUser,
+    isLoading: authLoading,
+  } = useAuth();
   const { email, setEmail, password, setPassword, error, setError } = useAuthForm();
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const redirectingRef = useRef(false);
 
   useEffect(() => {
-    if (!firebaseUser || !sessionState) return;
-    if (sessionState.needsEmailVerification) {
-      router.replace(withAuthCallback('/auth/verify-email', callbackUrl));
-      return;
-    }
-    if (sessionState.needsOnboarding) {
-      router.replace(withAuthCallback('/auth/onboarding', callbackUrl));
-      return;
-    }
-    router.replace(resolvePostLoginDestination(sessionState.role, callbackUrl));
-  }, [firebaseUser, sessionState, callbackUrl, router]);
+    if (authLoading || !firebaseUser || !sessionState || redirectingRef.current) return;
+    redirectingRef.current = true;
+    setIsRedirecting(true);
+    redirectAfterAuth(sessionState, callbackUrl);
+  }, [firebaseUser, sessionState, authLoading, callbackUrl]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -71,13 +85,24 @@ function LoginForm() {
     }
     setIsLoading(true);
     try {
-      await login(parsed.data.email, parsed.data.password);
+      const state = await login(parsed.data.email, parsed.data.password);
+      if (!state) {
+        const msg = 'No se pudo iniciar sesión. Intentá de nuevo.';
+        setError(msg);
+        toast.error(msg);
+        return;
+      }
+      redirectingRef.current = true;
+      setIsRedirecting(true);
+      redirectAfterAuth(state, callbackUrl);
     } catch (err: unknown) {
       const msg = formatAuthError(err);
       setError(msg);
       toast.error(msg);
     } finally {
-      setIsLoading(false);
+      if (!redirectingRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -85,15 +110,38 @@ function LoginForm() {
     setError(null);
     setIsLoading(true);
     try {
-      await loginWithGoogle();
+      const state = await loginWithGoogle();
+      if (!state) {
+        const msg = 'No se pudo iniciar sesión con Google. Intentá de nuevo.';
+        setError(msg);
+        toast.error(msg);
+        return;
+      }
+      redirectingRef.current = true;
+      setIsRedirecting(true);
+      redirectAfterAuth(state, callbackUrl);
     } catch (err: unknown) {
       const msg = formatAuthError(err);
       setError(msg);
       toast.error(msg);
     } finally {
-      setIsLoading(false);
+      if (!redirectingRef.current) {
+        setIsLoading(false);
+      }
     }
   };
+
+  if (authLoading || (firebaseUser && !sessionState) || isRedirecting) {
+    return (
+      <AuthShell title="Entrar" subtitle="Iniciá sesión con tu cuenta">
+        <div className="animate-pulse space-y-4">
+          <div className="h-10 bg-gray-200 rounded-lg" />
+          <div className="h-10 bg-gray-200 rounded-lg" />
+          <div className="h-10 bg-gray-200 rounded-lg" />
+        </div>
+      </AuthShell>
+    );
+  }
 
   return (
     <AuthShell title="Entrar" subtitle="Iniciá sesión con tu cuenta">

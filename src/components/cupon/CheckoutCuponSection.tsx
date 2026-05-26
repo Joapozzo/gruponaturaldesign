@@ -2,39 +2,33 @@
 
 import React from 'react';
 import { useCart } from '@/app/components/hooks/useCart';
-import { useCheckoutCupon } from '@/app/hooks/useCheckoutCupon';
+import type { UseCheckoutCuponReturn } from '@/app/hooks/useCheckoutCupon';
 import { CuponCodeField } from './CuponCodeField';
 import { CuponAppliedBanner } from './CuponAppliedBanner';
 import toast from 'react-hot-toast';
 
 interface CheckoutCuponSectionProps {
   className?: string;
+  cupon: UseCheckoutCuponReturn;
 }
 
-export function CheckoutCuponSection({ className }: CheckoutCuponSectionProps) {
+export function CheckoutCuponSection({ className, cupon }: CheckoutCuponSectionProps) {
   const { items, cuponAplicado, setCuponAplicado } = useCart();
 
-  const { codigo, setCodigo, cuponAplicado: localCupon, isValidating, errorMessage, validate, clearCupon } = useCheckoutCupon({
-    onSuccess: (cupon) => {
-      setCuponAplicado(cupon);
-      toast.success(`Cupón "${cupon.codigo}" aplicado: -$${cupon.descuentoTotal.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`);
-    },
-    onError: (error) => {
-      toast.error(error.message || 'Cupón inválido');
-    },
-  });
-
   const handleAplicar = async () => {
-    await validate(items);
+    try {
+      await cupon.validate(items);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Cupón inválido');
+    }
   };
 
   const handleRemove = () => {
-    clearCupon();
+    cupon.clearCupon();
     setCuponAplicado(null);
-    setCodigo('');
   };
 
-  const currentCupon = localCupon || cuponAplicado;
+  const currentCupon = cupon.cuponAplicado || cuponAplicado;
 
   return (
     <div className={className}>
@@ -42,11 +36,11 @@ export function CheckoutCuponSection({ className }: CheckoutCuponSectionProps) {
         <CuponAppliedBanner cupon={currentCupon} onRemove={handleRemove} />
       ) : (
         <CuponCodeField
-          value={codigo}
-          onChange={setCodigo}
+          value={cupon.codigo}
+          onChange={cupon.setCodigo}
           onAplicar={handleAplicar}
-          isLoading={isValidating}
-          error={errorMessage}
+          isLoading={cupon.isValidating}
+          error={cupon.errorMessage}
         />
       )}
     </div>

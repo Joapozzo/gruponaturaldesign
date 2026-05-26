@@ -6,6 +6,8 @@ import { Home, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useMpPaymentResult } from '@/app/hooks/useMpPaymentResult';
 import {
+  abandonarCheckoutMp,
+  clearCheckoutMpSnapshot,
   fetchPaymentStatusMp,
   readCheckoutMpSnapshot,
   type PaymentStatusMpResponse,
@@ -50,6 +52,7 @@ function PagoResultadoInner() {
   const { clearCart } = useCart();
   const router = useRouter();
   const clearedRef = useRef(false);
+  const abandonRef = useRef(false);
 
   const snap = typeof window !== 'undefined' ? readCheckoutMpSnapshot() : null;
   const pedidoId =
@@ -66,8 +69,23 @@ function PagoResultadoInner() {
     if (effectiveUi === 'approved' && !clearedRef.current) {
       clearedRef.current = true;
       clearCart();
+      clearCheckoutMpSnapshot();
     }
   }, [effectiveUi, clearCart]);
+
+  useEffect(() => {
+    if (effectiveUi !== 'failure' || pedidoId == null || abandonRef.current) return;
+    abandonRef.current = true;
+    void (async () => {
+      try {
+        await abandonarCheckoutMp(pedidoId);
+      } catch {
+        /* pago acreditado o ya cancelado — no bloquear la UI */
+      } finally {
+        clearCheckoutMpSnapshot();
+      }
+    })();
+  }, [effectiveUi, pedidoId]);
 
   useEffect(() => {
     if (pedidoId == null || uiStatus !== 'pending') return;

@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Plus, RefreshCw, Server, Warehouse, Info } from 'lucide-react';
+import { Plus, RefreshCw, Server, Warehouse, Info, PackageSearch } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import BaseModal from '@/app/components/modal/BaseModal';
+import { ShippingTrackingModal } from '@/app/components/shipping';
 import { CrearPedidoForm } from '@/app/components/admin/pedidos/CrearPedidoForm';
 import { PedidosEstadosHelpModal } from '@/app/components/admin/pedidos/PedidosEstadosHelpModal';
 import { pedidoService } from '@/app/services/pedido.service';
@@ -17,6 +18,7 @@ export function PedidosPageActions() {
   const [syncingStock, setSyncingStock] = useState(false);
   const [showCrear, setShowCrear] = useState(false);
   const [showEstadosHelp, setShowEstadosHelp] = useState(false);
+  const [showTracking, setShowTracking] = useState(false);
 
   const refresh = async () => {
     await queryClient.invalidateQueries({ queryKey: pedidosKeys.all });
@@ -67,6 +69,10 @@ export function PedidosPageActions() {
           <Info className="w-4 h-4 mr-2 inline" />
           Estados
         </Button>
+        <Button variant="ghost" size="sm" onClick={() => setShowTracking(true)}>
+          <PackageSearch className="w-4 h-4 mr-2 inline" />
+          Seguimiento
+        </Button>
         <Button variant="primary" size="sm" onClick={() => setShowCrear(true)}>
           <Plus className="w-4 h-4 mr-2 inline" />
           Nuevo Pedido
@@ -89,6 +95,7 @@ export function PedidosPageActions() {
       </BaseModal>
 
       <PedidosEstadosHelpModal isOpen={showEstadosHelp} onClose={() => setShowEstadosHelp(false)} />
+      <ShippingTrackingModal isOpen={showTracking} onClose={() => setShowTracking(false)} />
     </>
   );
 }

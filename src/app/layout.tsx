@@ -4,7 +4,7 @@ import "./globals.css";
 import ConditionalLayout from "./components/ConditionalLayout";
 import { Providers } from "./components/Providers";
 import NewsletterPopup from "./components/newsletter/NewsletterPopup";
-import { WHATSAPP_PHONE_NUMBER, WHATSAPP_PHONE_NUMBER_FORMATTED } from "./utils/constants";
+import { BRAND_NAME, BRAND_SHORT, WHATSAPP_PHONE_NUMBER, WHATSAPP_PHONE_NUMBER_FORMATTED } from "./utils/constants";
 
 // Fuentes según el manual de marca NTDS
 // Franklin Gothic Heavy no está en Google Fonts, usamos Poppins como fallback principal
@@ -32,12 +32,12 @@ export const metadata: Metadata = {
   
   // Título optimizado para SEO
   title: {
-    default: "NTDS - Indumentaria para empresas de diseño | Natural Design",
-    template: "%s | NTDS Natural Design"
+    default: `${BRAND_NAME} - Indumentaria para empresas de diseño`,
+    template: `%s | ${BRAND_NAME}`
   },
 
   // Descripción optimizada con keywords
-  description: "NTDS Natural Design: Indumentaria para empresas, ropa de trabajo y merchandising de diseño en Córdoba. +25 años de experiencia, +500 clientes satisfechos. Calidad y diseño en uniformes profesionales.",
+  description: `${BRAND_NAME}: Indumentaria para empresas, ropa de trabajo y merchandising de diseño en Córdoba. +25 años de experiencia, +500 clientes satisfechos. Calidad y diseño en uniformes profesionales.`,
 
   // Keywords principales
   keywords: [
@@ -60,10 +60,10 @@ export const metadata: Metadata = {
   ],
 
   // Información del sitio
-  applicationName: "NTDS Natural Design",
-  authors: [{ name: "Natural Design", url: "https://naturalonline.com.ar" }],
-  creator: "Natural Design",
-  publisher: "NTDS Natural Design",
+  applicationName: BRAND_NAME,
+  authors: [{ name: BRAND_NAME, url: "https://naturalonline.com.ar" }],
+  creator: BRAND_NAME,
+  publisher: BRAND_NAME,
 
   // Configuración de idioma y región
   alternates: {
@@ -78,15 +78,15 @@ export const metadata: Metadata = {
     type: "website",
     locale: "es_AR",
     url: "https://naturalonline.com.ar",
-    title: "NTDS - Indumentaria para empresas de Diseño",
+    title: `${BRAND_NAME} - Indumentaria para empresas de Diseño`,
     description: "Indumentaria para empresas, ropa de trabajo y merchandising de diseño en Córdoba. +25 años de experiencia vistiendo empresas con calidad y estilo.",
-    siteName: "NTDS Natural Design",
+    siteName: BRAND_NAME,
     images: [
       {
         url: "/icon-512.png",
         width: 1200,
         height: 630,
-        alt: "NTDS Natural Design - Indumentaria para empresas",
+        alt: `${BRAND_NAME} - Indumentaria para empresas`,
       },
     ],
   },
@@ -94,7 +94,7 @@ export const metadata: Metadata = {
   // Twitter Card
   twitter: {
     card: "summary_large_image",
-    title: "NTDS - Indumentaria para empresas de Diseño",
+    title: `${BRAND_NAME} - Indumentaria para empresas de Diseño`,
     description: "Indumentaria para empresas y ropa de trabajo de calidad en Córdoba. +25 años de experiencia, +500 clientes satisfechos.",
     images: ["/twitter-image.jpg"],
     creator: "@naturaldesign_ntds",
@@ -189,8 +189,8 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              "name": "NTDS Natural Design",
-              "alternateName": "Natural Design",
+              "name": BRAND_NAME,
+              "alternateName": BRAND_SHORT,
               "url": "https://naturalonline.com.ar",
               "logo": "https://naturalonline.com.ar/icon-512.png",
               "image": "https://naturalonline.com.ar/og-image.jpg",

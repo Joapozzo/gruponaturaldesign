@@ -10,6 +10,8 @@ interface UseCheckoutCuponOptions {
   onError?: (error: Error) => void;
 }
 
+export type UseCheckoutCuponReturn = ReturnType<typeof useCheckoutCupon>;
+
 export function useCheckoutCupon(options?: UseCheckoutCuponOptions) {
   const [codigo, setCodigo] = useState('');
   const [cuponAplicado, setCuponAplicado] = useState<CuponAplicado | null>(null);
@@ -81,6 +83,47 @@ export function useCheckoutCupon(options?: UseCheckoutCuponOptions) {
     return cuponAplicado?.codigo;
   }, [isValidForCheckout, cuponAplicado]);
 
+  /** Revalida si hace falta y devuelve el código listo para el POST de checkout. */
+  const resolveForCheckout = useCallback(
+    async (items: CartItem[]): Promise<string | undefined> => {
+      if (isValidForCheckout()) return cuponAplicado?.codigo;
+
+      const code =
+        cuponAplicado?.codigo?.trim() ||
+        useCartStore.getState().cuponAplicado?.codigo?.trim() ||
+        codigo.trim();
+      if (!code) return undefined;
+
+      const data = await validarCupon({
+        codigo: code,
+        items: mapItems(items),
+        formaPago: 'mercado_pago',
+      });
+
+      if (!data.aplicable || !data.cupon) {
+        throw new Error(data.mensaje || 'Cupón no aplicable');
+      }
+
+      const cupon: CuponAplicado = {
+        id: data.cupon.id,
+        codigo: data.cupon.codigo,
+        nombre: data.cupon.nombre,
+        tipoDescuento: data.cupon.tipoDescuento,
+        valorDescuento: data.cupon.valorDescuento,
+        descuentoTotal: data.descuentoTotal,
+      };
+
+      setCodigo(code);
+      setUltimaValidacion(data);
+      setCuponAplicado(cupon);
+      useCartStore.getState().setCuponAplicado(cupon);
+      options?.onSuccess?.(cupon);
+
+      return cupon.codigo;
+    },
+    [isValidForCheckout, cuponAplicado, codigo, mapItems, options]
+  );
+
   return {
     codigo,
     setCodigo,
@@ -93,6 +136,7 @@ export function useCheckoutCupon(options?: UseCheckoutCuponOptions) {
     clearCupon,
     isValidForCheckout,
     getCuponForCheckout,
+    resolveForCheckout,
     appliedDiscount: cuponAplicado?.descuentoTotal ?? 0,
   };
 }

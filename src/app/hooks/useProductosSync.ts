@@ -46,18 +46,16 @@ export function useProductosSync({ onSuccess, onError }: UseProductosSyncParams 
       cooldownUntilRef.current = Date.now() + SYNC_COOLDOWN_SECONDS * 1000;
       setCooldownRemainingSeconds(SYNC_COOLDOWN_SECONDS);
 
-      const anyData = data as Record<string, unknown> | undefined;
-      const base =
-        typeof anyData?.message === 'string'
-          ? anyData.message
-          : 'Sincronización de productos completada';
-      const stats =
-        anyData?.procesados != null
-          ? ` · ${String(anyData.exitosos ?? '?')} exitosos / ${String(anyData.procesados)} procesados`
-          : '';
+      const resumen = data.resumen;
+      const paso1 = data.syncSfactory;
+      const paso2 = data.procesamiento;
+      const base = 'Sincronización de productos completada';
+      const stats = resumen
+        ? ` · ${resumen.exitosos ?? '?'} exitosos · ${resumen.productosWeb ?? 0} variantes escritas · ${resumen.productosWebOmitidos ?? 0} omitidas · paso1 omitidos ${paso1?.omitidos ?? resumen.productosSfactoryOmitidos ?? 0} · grupos ${paso2?.gruposProcesados ?? resumen.gruposProcesados ?? '?'}`
+        : '';
       const stockExtra =
-        anyData?.stockPrecios != null && typeof anyData.stockPrecios === 'object'
-          ? ' · Stock depósito actualizado'
+        data.stockPrecios != null
+          ? ` · Stock depósito: ${data.stockPrecios.variantesActualizadas} actualizadas`
           : '';
       const msg = `${base}${stats}${stockExtra}`;
       toast.success(msg, { duration: 7000 });

@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
@@ -21,7 +22,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { BRAND_NAME } from '@/app/utils/constants';
 import { useSidebar } from './SidebarContext';
 
 interface MenuItem {
@@ -153,7 +154,7 @@ export default function Sidebar() {
                 <Link href="/admin" className="flex items-center gap-3">
                   <Image
                     src="/logos/logo-1.svg"
-                    alt="NTDS Natural Design Logo"
+                    alt={`${BRAND_NAME} Logo`}
                     width={50}
                     height={22}
                     className="object-contain"

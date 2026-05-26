@@ -21,9 +21,9 @@ type AuthContextValue = {
   firebaseUser: FirebaseUser | null;
   sessionState: SessionUserState | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<SessionUserState | null>;
   register: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
+  loginWithGoogle: () => Promise<SessionUserState | null>;
   logout: () => Promise<void>;
   refreshSessionState: () => Promise<SessionUserState | null>;
   getToken: () => Promise<string | null>;
@@ -79,22 +79,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [sessionState, setSessionState] = useState<SessionUserState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const getTokenRef = useRef<() => Promise<string | null>>(async () => null);
+  const sessionSyncGenRef = useRef(0);
 
   useClearCheckoutOnAuthChange();
 
-  const refreshSessionState = useCallback(async (): Promise<SessionUserState | null> => {
-    const user = auth.currentUser;
-    if (!user) {
-      setSessionState(null);
-      return null;
-    }
+  const syncSessionForUser = useCallback(async (user: FirebaseUser): Promise<SessionUserState | null> => {
+    const gen = ++sessionSyncGenRef.current;
     try {
       let token = await user.getIdToken();
       let state: SessionUserState;
       try {
         state = await callSessionApi(token);
       } catch (error: unknown) {
-        // Solo forzar refresh de token cuando realmente fue 401 (token inválido/expirado).
         if (error instanceof AuthSessionError && error.status === 401) {
           token = await user.getIdToken(true);
           state = await callSessionApi(token);
@@ -102,13 +98,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw error;
         }
       }
-      setSessionState(state);
+      if (gen === sessionSyncGenRef.current) {
+        setSessionState(state);
+      }
       return state;
     } catch {
-      setSessionState(null);
+      if (gen === sessionSyncGenRef.current) {
+        setSessionState(null);
+      }
       return null;
     }
   }, []);
+
+  const refreshSessionState = useCallback(async (): Promise<SessionUserState | null> => {
+    const user = auth.currentUser;
+    if (!user) {
+      sessionSyncGenRef.current += 1;
+      setSessionState(null);
+      return null;
+    }
+    return syncSessionForUser(user);
+  }, [syncSessionForUser]);
 
   useEffect(() => {
     getTokenRef.current = async () => {
@@ -132,37 +142,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsub = auth.onAuthStateChanged(async (user) => {
       setFirebaseUser(user ?? null);
       if (!user) {
+        sessionSyncGenRef.current += 1;
         setSessionState(null);
         setIsLoading(false);
         return;
       }
       try {
-        let token = await user.getIdToken();
-        let state: SessionUserState;
-        try {
-          state = await callSessionApi(token);
-        } catch (error: unknown) {
-          // Reintento único con token forzado para 401 real.
-          if (error instanceof AuthSessionError && error.status === 401) {
-            token = await user.getIdToken(true);
-            state = await callSessionApi(token);
-          } else {
-            throw error;
-          }
-        }
-        setSessionState(state);
-      } catch {
-        setSessionState(null);
+        await syncSessionForUser(user);
       } finally {
         setIsLoading(false);
       }
     });
     return () => unsub();
-  }, []);
+  }, [syncSessionForUser]);
 
   const login = useCallback(async (email: string, password: string) => {
     await signInWithEmailAndPassword(auth, email.trim(), password);
-  }, []);
+    return refreshSessionState();
+  }, [refreshSessionState]);
 
   const register = useCallback(async (email: string, password: string) => {
     const userCred = await createUserWithEmailAndPassword(auth, email.trim(), password);
@@ -176,7 +173,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginWithGoogle = useCallback(async () => {
     await signInWithPopup(auth, new GoogleAuthProvider());
-  }, []);
+    return refreshSessionState();
+  }, [refreshSessionState]);
 
   const logout = useCallback(async () => {
     clearCheckoutSession();

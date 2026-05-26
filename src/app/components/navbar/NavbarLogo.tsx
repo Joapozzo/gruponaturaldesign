@@ -2,6 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import { BRAND_NAME } from '@/app/utils/constants';
 
 interface NavbarLogoProps {
     width: number;
@@ -26,7 +27,7 @@ export const NavbarLogo: React.FC<NavbarLogoProps> = ({
 
     const imageProps = {
         src: "/logos/logo-1.svg",
-        alt: "NTDS Natural Design Logo",
+        alt: `${BRAND_NAME} Logo`,
         width,
         height,
         className: "cursor-pointer object-contain",

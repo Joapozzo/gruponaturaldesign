@@ -40,6 +40,8 @@ export interface AdminPedidoDetalle {
   formaEnvio?: string | null;
   andreaniSucursalId?: string | null;
   andreaniSucursalDescripcion?: string | null;
+  andreaniNumeroEnvio?: string | null;
+  correoTrackingNumber?: string | null;
   checkoutEnvioSnapshot?: unknown;
   observaciones?: string | null;
   trackingUrl?: string | null;

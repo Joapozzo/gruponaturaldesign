@@ -10,9 +10,43 @@ export interface StockPreciosSyncData {
   warehouseId: number;
   codigosConsultados: number;
   variantesActualizadas: number;
+  variantesOmitidas: number;
+  preciosActualizados: number;
   lotes: number;
   llamadasApi: number;
   codigosOmitidos: string[];
+}
+
+export interface ProductosSyncResumen {
+  productosSfactory?: number;
+  productosSfactoryOmitidos?: number;
+  productosPadre?: number;
+  productosWeb?: number;
+  productosWebOmitidos?: number;
+  gruposProcesados?: number;
+  gruposOmitidos?: number;
+  exitosos?: number;
+  fallidos?: number;
+}
+
+export interface ProductosSyncResult {
+  syncSfactory?: {
+    procesados: number;
+    insertados: number;
+    actualizados: number;
+    omitidos: number;
+  };
+  procesamiento?: {
+    gruposProcesados: number;
+    gruposOmitidos: number;
+    productosWebOmitidos: number;
+    productosPadreCreados: number;
+    productosWebCreados: number;
+    exitosos: number;
+    fallidos: number;
+  };
+  resumen?: ProductosSyncResumen;
+  stockPrecios?: StockPreciosSyncData;
 }
 
 class SyncService {
@@ -63,7 +97,7 @@ class SyncService {
    */
   async syncProductos(
     onProgress?: (progress: SyncProgress) => void
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<ProductosSyncResult> {
     const endpoint = `/sync/productos`;
     
     try {
@@ -79,7 +113,7 @@ class SyncService {
       // Notificar progreso intermedio (fetch no soporta progreso real)
       onProgress?.({ current: 25, total: 100, message: 'Sincronizando productos...' });
       
-      const response = await apiClient.post<{ success: boolean; message: string }>(
+      const response = await apiClient.post<ProductosSyncResult>(
         endpoint,
         {},
         {
@@ -87,14 +121,12 @@ class SyncService {
         }
       );
       
-      // Limpiar timeout si la petición se completó
       clearTimeout(timeoutId);
       
       if (!response.data) {
         throw new Error('Error al sincronizar productos');
       }
       
-      // Notificar completado
       onProgress?.({ current: 100, total: 100, message: 'Sincronización completada' });
       
       return response.data;

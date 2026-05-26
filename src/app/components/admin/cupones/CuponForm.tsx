@@ -10,6 +10,7 @@ import { useCuponAdminMutations } from '@/app/hooks/useCuponAdminMutations';
 import toast from 'react-hot-toast';
 import { Loader2, Save, Info } from 'lucide-react';
 import type { CuponCreatePayload } from '@/app/types/cupones';
+import { dateOnlyFromIso, todayDateOnlyAR } from '@/app/utils/dateOnly';
 
 interface CuponFormProps {
   cuponId?: number;
@@ -52,7 +53,7 @@ export function CuponForm({ cuponId, onClose }: CuponFormProps) {
     valorDescuento: 0,
     alcance: 'carrito_completo',
     estado: 'activo',
-    fechaInicio: new Date().toISOString().split('T')[0],
+    fechaInicio: todayDateOnlyAR(),
   });
 
   useEffect(() => {
@@ -69,8 +70,8 @@ export function CuponForm({ cuponId, onClose }: CuponFormProps) {
         montoMaximoDescuento: existingCupon.montoMaximoDescuento || undefined,
         usoMaximo: existingCupon.usoMaximo || undefined,
         usoMaximoUsuario: existingCupon.usoMaximoUsuario || undefined,
-        fechaInicio: existingCupon.fechaInicio.split('T')[0],
-        fechaFin: existingCupon.fechaFin ? existingCupon.fechaFin.split('T')[0] : undefined,
+        fechaInicio: dateOnlyFromIso(existingCupon.fechaInicio) ?? todayDateOnlyAR(),
+        fechaFin: dateOnlyFromIso(existingCupon.fechaFin),
         esExclusivoWeb: existingCupon.esExclusivoWeb,
         aplicaIVA: existingCupon.aplicaIVA,
         requiereCodigo: existingCupon.requiereCodigo,

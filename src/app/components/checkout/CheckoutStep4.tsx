@@ -26,6 +26,7 @@ import { useSales } from '../../contexts/SalesContext';
 import OrderSummarySection from '@/app/components/checkout/OrderSummarySection';
 import NewsletterCheckoutOptIn from '@/app/components/newsletter/NewsletterCheckoutOptIn';
 import { useNewsletterSubscribe } from '@/app/hooks/useNewsletterSubscribe';
+import toast from 'react-hot-toast';
 
 interface CheckoutStep4Props {
   onBack: () => void;
@@ -98,6 +99,9 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
   const cuponHook = useCheckoutCupon({
     onSuccess: (cupon) => {
       useCartStore.getState().setCuponAplicado(cupon);
+      toast.success(
+        `Cupón "${cupon.codigo}" aplicado: -$${cupon.descuentoTotal.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`
+      );
     },
   });
   const { isWholesaleLimitReached } = useSales();
@@ -129,6 +133,14 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
 
   const handleSubmitOrder = async () => {
     if (isWholesaleLimitReached) {
+      return;
+    }
+
+    let cuponCodigo: string | undefined;
+    try {
+      cuponCodigo = await cuponHook.resolveForCheckout(items);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Cupón inválido');
       return;
     }
 
@@ -173,7 +185,7 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
           itemCount,
           clienteEmail: customerData.email,
         },
-        cuponCodigo: cuponHook.getCuponForCheckout(),
+        cuponCodigo,
       });
       return;
     }
@@ -217,7 +229,7 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
         items: mapCartItemsToMpPayload(items),
         formaPago: payment.metodo as 'efectivo' | 'transferencia',
         ...(checkoutEnvio ? { checkoutEnvio } : {}),
-        cuponCodigo: cuponHook.getCuponForCheckout(),
+        cuponCodigo,
       });
 
       saveCheckoutManualSnapshot({
@@ -263,7 +275,7 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
   return (
     <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 lg:items-start pb-36 lg:pb-0">
       <section className="w-full lg:flex-[7] lg:min-w-0 flex flex-col gap-4 sm:gap-5">
-        <CheckoutCuponSection />
+        <CheckoutCuponSection cupon={cuponHook} />
 
         <h2 className="text-sm sm:text-base font-bold text-black tracking-tight">FORMA DE PAGO</h2>
 

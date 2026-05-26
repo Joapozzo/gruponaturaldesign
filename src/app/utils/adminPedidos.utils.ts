@@ -97,18 +97,45 @@ export function mergePedidosLists(web: Pedido[], sfactory: SFactoryPedido[]): Ad
   );
 }
 
+function matchesAdminPedidoSearch(row: AdminPedidoRow, q: string): boolean {
+  const idStr = String(row.id);
+  const haystack = [
+    row.numero,
+    idStr,
+    `#${idStr}`,
+    row.cliente,
+    row.clienteSub,
+    row.titulo,
+  ]
+    .filter(Boolean)
+    .map((s) => s!.toLowerCase());
+
+  return haystack.some((s) => s.includes(q));
+}
+
+export function filterMergedRowsBySearch(rows: AdminPedidoRow[], search: string): AdminPedidoRow[] {
+  const q = search.trim().toLowerCase();
+  if (!q) return rows;
+  return rows.filter((row) => matchesAdminPedidoSearch(row, q));
+}
+
 export function filterSfactoryBySearch(rows: SFactoryPedido[], search: string): SFactoryPedido[] {
   const q = search.trim().toLowerCase();
   if (!q) return rows;
-  return rows.filter((p) => {
-    const idStr = String(p.id);
-    if (idStr.includes(q)) return true;
-    if (p.numero?.toLowerCase().includes(q)) return true;
-    if (p.cliente?.toLowerCase().includes(q)) return true;
-    if (p.ref_cliente?.toLowerCase().includes(q)) return true;
-    if (p.titulo?.toLowerCase().includes(q)) return true;
-    return false;
-  });
+  return rows.filter((p) =>
+    matchesAdminPedidoSearch(normalizeSfactoryPedido(p), q)
+  );
+}
+
+export function normalizeDateRange(
+  desde: string,
+  hasta: string,
+  changed: 'desde' | 'hasta'
+): { desde: string; hasta: string } {
+  if (desde <= hasta) return { desde, hasta };
+  return changed === 'hasta'
+    ? { desde: hasta, hasta }
+    : { desde, hasta: desde };
 }
 
 export function filterRowsByFechaRange(

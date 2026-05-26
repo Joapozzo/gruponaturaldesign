@@ -12,6 +12,7 @@ import ConfirmModal from '@/app/components/modal/ConfirmModal';
 import { useCuponesAdminList } from '@/app/hooks/useCuponesAdminList';
 import { useCuponAdminMutations } from '@/app/hooks/useCuponAdminMutations';
 import { cuponColumns } from './columns';
+import { CuponCodigoCell } from './CuponCodigoCell';
 import type { CuponEstado, CuponListItem } from '@/app/types/cupones';
 
 interface CuponesTableClientProps {
@@ -78,7 +79,12 @@ export function CuponesTableClient({ onEdit }: CuponesTableClientProps) {
       cuponColumns.map((col) => ({
         accessorKey: col.key,
         header: col.header,
-        cell: ({ row }) => col.render(row.original),
+        cell: ({ row }) =>
+          col.key === 'codigo' ? (
+            <CuponCodigoCell codigo={row.original.codigo} />
+          ) : (
+            col.render(row.original)
+          ),
       })),
     []
   );

@@ -67,6 +67,10 @@ export interface IniciarPagoMpResponse {
   pedidoId: number;
   checkoutUrl: string;
   preferenceId: string;
+  /** Total productos según S-Factory (post cotización). */
+  subtotalProductos?: number;
+  costoEnvio?: number;
+  totalCobro?: number;
 }
 
 export interface CheckoutMpSnapshot {
@@ -108,6 +112,23 @@ export function readCheckoutMpSnapshot(): CheckoutMpSnapshot | null {
     return JSON.parse(raw) as CheckoutMpSnapshot;
   } catch {
     return null;
+  }
+}
+
+export function clearCheckoutMpSnapshot(): void {
+  if (typeof window === 'undefined') return;
+  sessionStorage.removeItem(CHECKOUT_MP_SNAPSHOT_KEY);
+}
+
+/** Cancela en el servidor un checkout MP abandonado (sin pago acreditado). */
+export async function abandonarCheckoutMp(pedidoId: number): Promise<void> {
+  const res = await apiClient.post<unknown>(`/cuenta/pedidos/${pedidoId}/abandonar-checkout`, {});
+  if (!res.success) {
+    const msg =
+      (res as { message?: string }).message ??
+      (res as { error?: string }).error ??
+      'No se pudo cancelar el checkout';
+    throw new Error(msg);
   }
 }
 

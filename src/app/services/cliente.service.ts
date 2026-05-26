@@ -61,9 +61,23 @@ class ClienteService {
     return response.data;
   }
 
-  async sync(): Promise<{ exitosos: number; fallidos: number; errores: string[] }> {
+  async sync(): Promise<{
+    exitosos: number;
+    actualizados: number;
+    insertados: number;
+    omitidos: number;
+    fallidos: number;
+    errores: string[];
+  }> {
     const endpoint = `/clientes/sync`;
-    const response = await apiClient.post<{ exitosos: number; fallidos: number; errores: string[] }>(endpoint);
+    const response = await apiClient.post<{
+      exitosos: number;
+      actualizados: number;
+      insertados: number;
+      omitidos: number;
+      fallidos: number;
+      errores: string[];
+    }>(endpoint);
     if (!response.data) {
       throw new Error('Error al sincronizar clientes');
     }

@@ -2,6 +2,10 @@
  * Constantes globales de la aplicación
  */
 
+/** Nombre público de marca (SEO, títulos, textos). NTDS es la sigla; no combinar ambos. */
+export const BRAND_NAME = 'Natural Design';
+export const BRAND_SHORT = 'NTDS';
+
 // IVA en Argentina (21%)
 export const IVA_RATE = 0.21;
 

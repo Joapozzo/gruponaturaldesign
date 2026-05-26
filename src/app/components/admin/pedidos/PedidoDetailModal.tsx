@@ -19,6 +19,12 @@ import type { AdminPedidoRow } from '@/app/types/adminPedido.types';
 import type { AdminPedidoDetalle } from '@/app/types/adminPedidoDetalle.types';
 import { useMemo, useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
+import {
+  PedidoShippingTrackingField,
+  ShippingTrackingModal,
+  type ShippingTrackingModalInitial,
+} from '@/app/components/shipping';
+import { resolvePedidoShippingTracking } from '@/app/utils/pedidoShippingTracking';
 
 function money(value: string | number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(Number(value));
@@ -33,12 +39,18 @@ interface PedidoDetailModalProps {
 export function PedidoDetailModal({ row, isOpen, onClose }: PedidoDetailModalProps) {
   const queryClient = useQueryClient();
   const [motivoRechazo, setMotivoRechazo] = useState('');
+  const [trackingModalOpen, setTrackingModalOpen] = useState(false);
+  const [trackingInitial, setTrackingInitial] = useState<ShippingTrackingModalInitial | undefined>();
 
   const webId = row?.source === 'web' ? row.id : null;
   const sfactoryOrdenId = row?.source === 'sfactory' ? row.id : null;
 
   useEffect(() => {
-    if (!isOpen) setMotivoRechazo('');
+    if (!isOpen) {
+      setMotivoRechazo('');
+      setTrackingModalOpen(false);
+      setTrackingInitial(undefined);
+    }
   }, [isOpen]);
 
   useEffect(() => {
@@ -183,6 +195,17 @@ export function PedidoDetailModal({ row, isOpen, onClose }: PedidoDetailModalPro
     listoRetiroMutation.isPending ||
     marcarRetiradoMutation.isPending;
 
+  const openPedidoTracking = (pedido: AdminPedidoDetalle) => {
+    const resolved = resolvePedidoShippingTracking(pedido);
+    setTrackingInitial({
+      pedidoId: pedido.id,
+      provider: resolved.shippingProvider ?? undefined,
+      trackingNumber: resolved.trackingNumber ?? undefined,
+      trackingUrl: resolved.trackingUrl,
+    });
+    setTrackingModalOpen(true);
+  };
+
   const body = !row ? null : row.source === 'web' ? (
     webQuery.isPending ? (
       <div className="flex items-center justify-center py-12 text-neutral-500 gap-2">
@@ -216,6 +239,7 @@ export function PedidoDetailModal({ row, isOpen, onClose }: PedidoDetailModalPro
         }
         onEnviarListoRetiro={() => listoRetiroMutation.mutate(webPedido.id)}
         onMarcarRetirado={() => marcarRetiradoMutation.mutate(webPedido.id)}
+        onOpenTracking={() => openPedidoTracking(webPedido)}
       />
     ) : null
   ) : sfQuery.isPending ? (
@@ -232,9 +256,16 @@ export function PedidoDetailModal({ row, isOpen, onClose }: PedidoDetailModalPro
   );
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} title={title} size="xl">
-      {body}
-    </BaseModal>
+    <>
+      <BaseModal isOpen={isOpen} onClose={onClose} title={title} size="xl">
+        {body}
+      </BaseModal>
+      <ShippingTrackingModal
+        isOpen={trackingModalOpen}
+        onClose={() => setTrackingModalOpen(false)}
+        initial={trackingInitial}
+      />
+    </>
   );
 }
 
@@ -251,6 +282,7 @@ function WebDetalleBody({
   onReject,
   onEnviarListoRetiro,
   onMarcarRetirado,
+  onOpenTracking,
 }: {
   pedido: AdminPedidoDetalle;
   actions: ReturnType<typeof getWebPedidoActions>;
@@ -264,8 +296,10 @@ function WebDetalleBody({
   onReject: () => void;
   onEnviarListoRetiro: () => void;
   onMarcarRetirado: () => void;
+  onOpenTracking: () => void;
 }) {
   const entrega = formatPedidoEntregaDisplay(pedido);
+  const shippingTracking = resolvePedidoShippingTracking(pedido);
   const showActions =
     actions.canConfirmWeb ||
     actions.canAprobarEnSfactory ||
@@ -374,21 +408,12 @@ function WebDetalleBody({
               <dd>{pedido.entregaNotas}</dd>
             </div>
           ) : null}
-          {pedido.trackingUrl ? (
-            <div className="sm:col-span-2">
-              <dt className="text-neutral-500">Tracking</dt>
-              <dd>
-                <a
-                  href={pedido.trackingUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
-                >
-                  {pedido.trackingUrl}
-                </a>
-              </dd>
-            </div>
-          ) : null}
+          <PedidoShippingTrackingField
+            shippingProvider={shippingTracking.shippingProvider}
+            trackingNumber={shippingTracking.trackingNumber}
+            trackingUrl={shippingTracking.trackingUrl}
+            onOpenTracking={onOpenTracking}
+          />
         </dl>
       </section>
 
@@ -419,22 +444,35 @@ function WebDetalleBody({
             </tbody>
           </table>
         </div>
-        <div className="mt-3 flex justify-end gap-6 text-sm">
-          <span className="text-neutral-600">
-            Subtotal <span className="font-medium text-neutral-900">{money(pedido.subtotal)}</span>
-          </span>
-          {Number(pedido.descuento ?? 0) > 0 ? (
-            <span className="text-neutral-600">
+        <div className="mt-3 flex flex-col items-end gap-1 text-sm">
+          <div className="text-neutral-600">
+            {pedido.sfactoryOrdenId != null ? 'Subtotal productos (S-Factory)' : 'Subtotal productos'}{' '}
+            <span className="font-medium text-neutral-900">{money(pedido.subtotal)}</span>
+          </div>
+          {Number(pedido.costoEnvio ?? 0) > 0 ? (
+            <div className="text-neutral-600">
+              + Envío{' '}
+              <span className="font-medium text-neutral-900">{money(pedido.costoEnvio ?? 0)}</span>
+            </div>
+          ) : null}
+          {Number(pedido.descuento ?? 0) > 0 && pedido.sfactoryOrdenId == null ? (
+            <div className="text-neutral-600">
               Desc. <span className="font-medium">{money(pedido.descuento ?? 0)}</span>
-            </span>
+            </div>
           ) : null}
           {pedido.cuponCodigoSnapshot ? (
-            <span className="text-neutral-600">
-              Cupón {pedido.cuponCodigoSnapshot}{' '}
-              <span className="font-medium">{money(pedido.cuponDescuentoTotal ?? 0)}</span>
-            </span>
+            <div className="text-neutral-500 text-xs">
+              Cupón {pedido.cuponCodigoSnapshot}
+              {Number(pedido.cuponDescuentoTotal ?? 0) > 0
+                ? ` (${money(pedido.cuponDescuentoTotal ?? 0)} aplicado en ERP)`
+                : null}
+            </div>
           ) : null}
-          <span className="text-base font-semibold">Total {money(pedido.total)}</span>
+          <div className="pt-1 border-t border-neutral-200 w-full flex justify-end gap-2">
+            <span className="text-base font-semibold text-neutral-900">
+              Total a cobrar {money(pedido.total)}
+            </span>
+          </div>
         </div>
       </section>
 
@@ -455,7 +493,9 @@ function WebDetalleBody({
           ) : null}
           {actions.canConfirmWeb ? (
             <p className="text-xs text-neutral-600">
-              Confirmar reserva stock y crea el pedido en SFactory. El estado final será{' '}
+              {pedido.sfactoryOrdenId != null
+                ? 'Confirmar reserva stock y aprueba la orden ya cotizada en S-Factory. El estado final será '
+                : 'Confirmar reserva stock y crea el pedido en SFactory. El estado final será '}
               <strong>confirmado</strong>.
             </p>
           ) : null}

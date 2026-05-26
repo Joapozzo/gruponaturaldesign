@@ -46,7 +46,7 @@ function SummaryTotals({
       </div>
       {shippingExtra > 0 ? (
         <div className={rowClass}>
-          <span>Envío</span>
+          <span>+ Envío postal</span>
           <span className={valueClass}>{formatPrice(shippingExtra)}</span>
         </div>
       ) : null}
@@ -62,7 +62,9 @@ function SummaryTotals({
           compact ? 'pt-2 text-sm' : 'pt-1.5 sm:pt-2 mt-1.5 sm:mt-2 text-sm sm:text-base',
         )}
       >
-        <span className="font-medium text-gray-600">Total</span>
+        <span className="font-medium text-gray-600">
+          Total{shippingExtra > 0 ? ' (productos + envío)' : ''}
+        </span>
         <span className="font-semibold text-gray-900 tabular-nums">{formatPrice(payTotal)}</span>
       </div>
     </div>
@@ -227,7 +229,7 @@ function PaymentFooterSummary({
         </div>
         {shippingExtra > 0 ? (
           <div className="flex justify-between text-[11px] text-gray-500">
-            <span>Envío</span>
+            <span>+ Envío postal</span>
             <span className="tabular-nums text-gray-700">{formatPrice(shippingExtra)}</span>
           </div>
         ) : null}
@@ -238,9 +240,12 @@ function PaymentFooterSummary({
           </div>
         ) : null}
         <div className="flex justify-between text-sm font-semibold text-gray-900 pt-1 border-t border-gray-200">
-          <span>TOTAL</span>
+          <span>TOTAL{shippingExtra > 0 ? ' (productos + envío)' : ''}</span>
           <span className="tabular-nums">{formatPrice(payTotal)}</span>
         </div>
+        <p className="text-[10px] text-gray-400 pt-1">
+          Al pagar con Mercado Pago, el total de productos se confirma con S-Factory; el envío se suma aparte.
+        </p>
       </div>
     </div>
   );

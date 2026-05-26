@@ -38,6 +38,13 @@ export function useStockSync({ onSuccess, onError }: UseStockSyncParams = {}) {
 
       const d = result.data;
       if (d) {
+        if (d.variantesActualizadas === 0 && d.variantesOmitidas > 0) {
+          const msg = `Stock: sin cambios (${d.variantesOmitidas} variantes omitidas) · depósito ${d.warehouseId}`;
+          toast.success(msg, { duration: 6000 });
+          onSuccess?.(msg);
+          return;
+        }
+
         if (d.variantesActualizadas === 0) {
           if (d.codigosConsultados === 0) {
             const msg =
@@ -52,10 +59,16 @@ export function useStockSync({ onSuccess, onError }: UseStockSyncParams = {}) {
           return;
         }
 
+        const omitidosMsg =
+          d.variantesOmitidas > 0
+            ? ` · ${d.variantesOmitidas} sin cambios (omitidas)`
+            : '';
+        const preciosMsg =
+          d.preciosActualizados > 0 ? ` · ${d.preciosActualizados} precios` : '';
         const omitidos = d.codigosOmitidos?.length
           ? ` · Omitidos en S-Factory: ${d.codigosOmitidos.length} (${d.codigosOmitidos.slice(0, 5).join(', ')}${d.codigosOmitidos.length > 5 ? '…' : ''})`
           : '';
-        const okMsg = `Stock: ${d.variantesActualizadas} variantes actualizadas · depósito ${d.warehouseId} · ${d.llamadasApi ?? d.lotes} llamada(s) API${omitidos}`;
+        const okMsg = `Stock: ${d.variantesActualizadas} variantes actualizadas${omitidosMsg}${preciosMsg} · depósito ${d.warehouseId} · ${d.llamadasApi ?? d.lotes} llamada(s) API${omitidos}`;
         if (d.codigosOmitidos?.length) {
           toast(okMsg, { duration: 10000, icon: '⚠️' });
         } else {

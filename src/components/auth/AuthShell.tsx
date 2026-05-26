@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import { BRAND_NAME } from '@/app/utils/constants';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import React from 'react';
 
 interface AuthShellProps {
   children: React.ReactNode;
@@ -31,7 +32,7 @@ export function AuthShell({ children, title, subtitle }: AuthShellProps) {
         <div className="flex justify-center mb-6">
           <Image
             src="/logos/logo-1.svg"
-            alt="NTDS Natural Design"
+            alt={BRAND_NAME}
             width={160}
             height={48}
             priority

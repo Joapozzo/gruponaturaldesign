@@ -1,8 +1,8 @@
-import { WHATSAPP_PHONE_NUMBER, getWhatsAppNumberForUrl } from '@/app/utils/constants';
+import { BRAND_NAME, WHATSAPP_PHONE_NUMBER, getWhatsAppNumberForUrl } from '@/app/utils/constants';
 
 export const metadata = {
-    title: 'Políticas de Cambio y Devolución | NTDS Natural Design',
-    description: 'Políticas de cambio y devolución de NTDS Natural Design. Conocé nuestros términos y condiciones para cambios y devoluciones.',
+    title: `Políticas de Cambio y Devolución | ${BRAND_NAME}`,
+    description: `Políticas de cambio y devolución de ${BRAND_NAME}. Conocé nuestros términos y condiciones para cambios y devoluciones.`,
 };
 
 export default function PoliticasCambioDevolucion() {

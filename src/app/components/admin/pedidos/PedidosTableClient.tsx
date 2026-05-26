@@ -10,15 +10,17 @@ import Button from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Table, type TableColumn } from '@/components/ui/Table';
 import { TableSkeleton } from '@/components/ui/TableSkeleton';
+import { useTableSearchParams } from '@/app/hooks/useTableSearchParams';
 import { pedidoService } from '@/app/services/pedido.service';
 import { pedidosKeys } from '@/app/utils/pedidosKeys';
 import type { AdminPedidoRow, PedidoOrigenFilter } from '@/app/types/adminPedido.types';
-import type { EstadoPedido, PedidoQueryParams } from '@/app/types/pedido.types';
+import type { EstadoPedido } from '@/app/types/pedido.types';
 import {
   applyAdminPedidosFilters,
+  filterMergedRowsBySearch,
   filterRowsByFechaRange,
-  filterSfactoryBySearch,
   mergePedidosLists,
+  normalizeDateRange,
   paginateAdminPedidos,
   parseEstadoUrlParam,
   parseSyncStatusUrlParam,
@@ -85,9 +87,18 @@ export function PedidosTableClient() {
   const queryClient = useQueryClient();
   const [detailRow, setDetailRow] = useState<AdminPedidoRow | null>(null);
 
-  const search = searchParams.get('search')?.trim() || '';
-  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
-  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '10', 10) || 10));
+  const {
+    page,
+    limit: rawLimit,
+    searchInput,
+    debouncedSearch,
+    setSearchInput,
+    setPage,
+    setLimit,
+    clearSearch,
+  } = useTableSearchParams({ defaultLimit: 10 });
+  const limit = Math.min(100, Math.max(1, rawLimit));
+
   const origen = parseOrigenParam(searchParams.get('origen'));
   const estadoParam = searchParams.get('estado');
   const { estadoWeb, estadoSfactory } = parseEstadoUrlParam(estadoParam);
@@ -99,7 +110,6 @@ export function PedidosTableClient() {
   const hasta = searchParams.get('hasta') || today;
 
   const mergeQueryBase = {
-    search: search || undefined,
     desde,
     hasta,
     estado: estadoWeb,
@@ -170,31 +180,43 @@ export function PedidosTableClient() {
     [pushParams]
   );
 
-  const setPage = useCallback(
-    (p: number) => {
+  const setDesde = useCallback(
+    (value: string) => {
       pushParams((next) => {
-        next.set('page', String(p));
-      });
-    },
-    [pushParams]
-  );
-
-  const setLimit = useCallback(
-    (l: number) => {
-      pushParams((next) => {
-        next.set('limit', String(l));
+        const currentHasta = next.get('hasta') || today;
+        const { desde: desdeVal, hasta: hastaVal } = normalizeDateRange(
+          value,
+          currentHasta,
+          'desde'
+        );
+        next.set('desde', desdeVal);
+        next.set('hasta', hastaVal);
         next.set('page', '1');
       });
     },
-    [pushParams]
+    [pushParams, today]
+  );
+
+  const setHasta = useCallback(
+    (value: string) => {
+      pushParams((next) => {
+        const currentDesde = next.get('desde') || thirtyDaysAgo;
+        const { desde: desdeVal, hasta: hastaVal } = normalizeDateRange(
+          currentDesde,
+          value,
+          'hasta'
+        );
+        next.set('desde', desdeVal);
+        next.set('hasta', hastaVal);
+        next.set('page', '1');
+      });
+    },
+    [pushParams, thirtyDaysAgo]
   );
 
   const mergedPage = useMemo(() => {
     const webRows = webQuery.data ?? [];
-    let sfactoryRows = sfactoryQuery.data ?? [];
-    if (search) {
-      sfactoryRows = filterSfactoryBySearch(sfactoryRows, search);
-    }
+    const sfactoryRows = sfactoryQuery.data ?? [];
 
     const merged = mergePedidosLists(webRows, sfactoryRows);
     const byDate = filterRowsByFechaRange(merged, desde, hasta);
@@ -204,11 +226,12 @@ export function PedidosTableClient() {
       estadoSfactory: estadoSf || undefined,
       syncStatuses,
     });
-    return paginateAdminPedidos(filtered, page, limit);
+    const bySearch = filterMergedRowsBySearch(filtered, debouncedSearch);
+    return paginateAdminPedidos(bySearch, page, limit);
   }, [
     webQuery.data,
     sfactoryQuery.data,
-    search,
+    debouncedSearch,
     origen,
     estadoSfactory,
     syncStatuses,
@@ -372,20 +395,15 @@ export function PedidosTableClient() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
               <input
                 type="text"
-                defaultValue={search}
-                key={search}
-                placeholder="ID, cliente, email, PE-..."
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    setFilterParam('search', e.currentTarget.value.trim());
-                  }
-                }}
+                value={searchInput}
+                placeholder="ID, cliente, email, WEB-, PE-..."
+                onChange={(e) => setSearchInput(e.target.value)}
                 className="h-9 w-full pl-9 pr-9 border border-neutral-300 px-2 text-sm outline-none focus:border-black rounded-md"
               />
-              {search ? (
+              {searchInput ? (
                 <button
                   type="button"
-                  onClick={() => setFilterParam('search', '')}
+                  onClick={clearSearch}
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-neutral-500 hover:text-black"
                   aria-label="Limpiar búsqueda"
                 >
@@ -415,7 +433,7 @@ export function PedidosTableClient() {
             <input
               type="date"
               value={desde}
-              onChange={(e) => setFilterParam('desde', e.target.value)}
+              onChange={(e) => setDesde(e.target.value)}
               className="h-9 w-36 border border-neutral-300 px-2 text-sm outline-none focus:border-black rounded-md"
             />
           </div>
@@ -425,7 +443,7 @@ export function PedidosTableClient() {
             <input
               type="date"
               value={hasta}
-              onChange={(e) => setFilterParam('hasta', e.target.value)}
+              onChange={(e) => setHasta(e.target.value)}
               className="h-9 w-36 border border-neutral-300 px-2 text-sm outline-none focus:border-black rounded-md"
             />
           </div>

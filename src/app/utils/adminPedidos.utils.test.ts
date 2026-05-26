@@ -5,9 +5,11 @@ import {
   parseSyncStatusUrlParam,
   mergePedidosLists,
   filterSfactoryBySearch,
+  filterMergedRowsBySearch,
   paginateAdminPedidos,
   applyAdminPedidosFilters,
 } from './adminPedidos.utils';
+import type { AdminPedidoRow } from '@/app/types/adminPedido.types';
 import type { Pedido, SFactoryPedido } from '@/app/types/pedido.types';
 
 function webPedido(partial: Partial<Pedido> & Pick<Pedido, 'id'>): Pedido {
@@ -59,6 +61,37 @@ describe('adminPedidos.utils', () => {
     ] as SFactoryPedido[];
     expect(filterSfactoryBySearch(rows, 'acme')).toHaveLength(1);
     expect(filterSfactoryBySearch(rows, 'zzz')).toHaveLength(0);
+  });
+
+  it('filterMergedRowsBySearch por WEB-, #id y email', () => {
+    const rows: AdminPedidoRow[] = [
+      {
+        key: 'web-5',
+        source: 'web',
+        id: 5,
+        numero: 'WEB-5',
+        cliente: 'Juan',
+        clienteSub: 'juan@gmail.com',
+        fecha: '2024-01-01',
+        total: 100,
+        estadoLabel: 'Ok',
+      },
+      {
+        key: 'sfactory-10',
+        source: 'sfactory',
+        id: 10,
+        numero: 'PE-10',
+        cliente: 'Acme',
+        fecha: '2024-01-01',
+        total: 50,
+        estadoLabel: 'Ok',
+      },
+    ];
+    expect(filterMergedRowsBySearch(rows, 'WEB-5')).toHaveLength(1);
+    expect(filterMergedRowsBySearch(rows, '#5')).toHaveLength(1);
+    expect(filterMergedRowsBySearch(rows, 'juan@gmail.com')).toHaveLength(1);
+    expect(filterMergedRowsBySearch(rows, 'PE-10')).toHaveLength(1);
+    expect(filterMergedRowsBySearch(rows, 'zzz')).toHaveLength(0);
   });
 
   it('paginateAdminPedidos respeta limit y total', () => {

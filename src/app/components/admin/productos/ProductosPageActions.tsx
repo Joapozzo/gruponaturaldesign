@@ -44,6 +44,7 @@ export function ProductosPageActions({ empresaId }: ProductosPageActionsProps) {
         size="sm"
         onClick={handleSync}
         disabled={isSyncDisabled}
+        title="Catálogo completo desde S-Factory (rubros WORKWEAR/OFFICE). Solo escribe cambios detectados."
       >
         <RotateCw className={`w-4 h-4 mr-2 inline ${isSyncing ? 'animate-spin' : ''}`} />
         {syncButtonLabel}
