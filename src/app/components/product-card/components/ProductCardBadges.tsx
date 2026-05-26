@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Star } from 'lucide-react';
+import { formatPrice } from '@/app/utils/productHelpers';
 
 interface ProductCardBadgesProps {
   destacado?: boolean;
@@ -37,7 +38,7 @@ export const ProductCardBadges: React.FC<ProductCardBadgesProps> = ({
         {/* Badge 3 Cuotas - Alineado con el nombre, sobre la imagen */}
         {precio3Cuotas && (
           <div className="px-2 py-1 rounded-md text-xs font-semibold shadow-lg" style={{ backgroundColor: 'var(--gray-medium)', color: 'var(--white)' }}>
-            3x ${Math.round(precio3Cuotas).toLocaleString()}
+            3x {formatPrice(precio3Cuotas)}
           </div>
         )}
       </div>

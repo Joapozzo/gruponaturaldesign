@@ -112,6 +112,7 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
   }));
 
   const [isProcessing, setIsProcessing] = useState(false);
+  const [manualError, setManualError] = useState<string | null>(null);
   const [newsletterOptIn, setNewsletterOptIn] = useState(true);
   const { subscribe: newsletterSubscribe } = useNewsletterSubscribe();
 
@@ -122,6 +123,7 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
 
   const handlePaymentSelect = (metodo: PaymentMethodId) => {
     clearError();
+    setManualError(null);
     setPayment({ ...payment, metodo });
   };
 
@@ -146,11 +148,11 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
 
     if (payment.metodo === 'mercado_pago') {
       if (!customerData?.email) {
-        alert('Faltan datos del cliente.');
+        toast.error('Faltan datos del cliente.');
         return;
       }
       if (!firebaseUser) {
-        alert('Iniciá sesión para pagar con Mercado Pago.');
+        toast.error('Iniciá sesión para pagar con Mercado Pago.', { duration: 5000 });
         return;
       }
       clearError();
@@ -190,21 +192,20 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
       return;
     }
 
+    if (!customerData?.email) {
+      toast.error('Faltan datos del cliente.');
+      return;
+    }
+    if (!firebaseUser) {
+      toast.error('Iniciá sesión para confirmar el pedido.', { duration: 5000 });
+      return;
+    }
+
+    setManualError(null);
     setIsProcessing(true);
 
     try {
       setPaymentData(payment);
-
-      if (!customerData?.email) {
-        alert('Faltan datos del cliente.');
-        setIsProcessing(false);
-        return;
-      }
-      if (!firebaseUser) {
-        alert('Iniciá sesión para confirmar el pedido.');
-        setIsProcessing(false);
-        return;
-      }
       subscribeNewsletterIfNeeded(customerData.email);
 
       const clienteNombre = `${customerData.nombre} ${customerData.apellido}`.trim();
@@ -245,8 +246,12 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
         pedidoData.redirectPath ??
           `/checkout/instrucciones-pago?pedidoId=${pedidoData.pedidoId}`
       );
-    } catch {
-      alert('Hubo un error al procesar tu pedido. Por favor, intenta nuevamente.');
+    } catch (error) {
+      setManualError(
+        error instanceof Error
+          ? error.message
+          : 'Hubo un error al procesar tu pedido. Por favor, intenta nuevamente.'
+      );
       setIsProcessing(false);
     }
   };
@@ -384,6 +389,12 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
                 Abrir Mercado Pago manualmente
               </a>
             ) : null}
+          </div>
+        )}
+
+        {manualError && (
+          <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-2 py-1.5">
+            <p>{manualError}</p>
           </div>
         )}
 

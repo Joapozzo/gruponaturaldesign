@@ -6,6 +6,7 @@
 'use client';
 
 import React from 'react';
+import { formatPrice } from '@/app/utils/productHelpers';
 
 interface ProductCardHeaderProps {
   nombre: string;
@@ -33,7 +34,7 @@ export const ProductCardHeader: React.FC<ProductCardHeaderProps> = ({
               <span className="hidden md:inline">Precio lista:</span>
             </span>
             <span className="text-base font-semibold text-gray-900">
-              ${precioLista.toLocaleString()}
+              {formatPrice(precioLista)}
             </span>
           </div>
         )}
@@ -44,7 +45,7 @@ export const ProductCardHeader: React.FC<ProductCardHeaderProps> = ({
               <span className="hidden md:inline">Precio transfer:</span>
             </span>
             <span className="text-sm text-gray-600">
-              ${precioTransfer.toLocaleString()}
+              {formatPrice(precioTransfer)}
             </span>
           </div>
         )}
@@ -53,7 +54,7 @@ export const ProductCardHeader: React.FC<ProductCardHeaderProps> = ({
       {/* Precio sin impuestos */}
       {precioSinImp != null && (
         <div className="text-[10px] text-gray-400 mt-1">
-          Precios sin impuestos nacionales: ${Math.round(precioSinImp).toLocaleString()}
+          Precios sin impuestos nacionales: {formatPrice(precioSinImp)}
         </div>
       )}
 
