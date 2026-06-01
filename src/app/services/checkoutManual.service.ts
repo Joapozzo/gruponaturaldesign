@@ -75,9 +75,27 @@ export async function fetchInstruccionesPago(
 }
 
 export async function fetchDatosBancariosPublic(): Promise<DatosBancariosPublic | null> {
-  const res = await apiClient.get<DatosBancariosPublic | null>('/checkout/datos-bancarios');
+  const res = await apiClient.get<DatosBancariosPublic | null>('/checkout/datos-bancarios', {
+    skipAuth: true,
+  });
   if (!res.success) {
     throw new Error(res.message || 'Error al obtener datos bancarios');
   }
   return res.data ?? null;
+}
+
+export interface PrecioConfigPublic {
+  descuentoTransferencia: number;
+  iva: number;
+  cuotasFinanciado: number;
+}
+
+export async function fetchPrecioConfigPublic(): Promise<PrecioConfigPublic> {
+  const res = await apiClient.get<PrecioConfigPublic>('/checkout/config-precios', {
+    skipAuth: true,
+  });
+  if (!res.success || res.data == null) {
+    throw new Error(res.message || 'Error al obtener configuración de precios');
+  }
+  return res.data;
 }

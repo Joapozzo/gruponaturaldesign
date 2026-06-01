@@ -45,10 +45,10 @@ export default function QuantityControlsProductPage({
                         <Button
                             onClick={() => router.push('/mayorista')}
                             variant="brandRedOutline"
-                            size="xl"
+                            size="lg"
                             fullWidth
                         >
-                            <Users className="w-5 h-5" />
+                            <Users className="w-4 h-4" />
                             <span className="hidden sm:inline">QUIERO COMPRAR POR MAYOR</span>
                             <span className="sm:hidden">POR MAYOR</span>
                         </Button>
@@ -70,11 +70,11 @@ export default function QuantityControlsProductPage({
                         onClick={onIncrement}
                         disabled={cannotAdd}
                         variant={isAdding ? 'brandRed' : cannotAdd ? 'gray' : 'black'}
-                        size="xl"
+                        size="lg"
                         fullWidth
                         className="flex-1"
                     >
-                        <ShoppingCart className="w-5 h-5" />
+                        <ShoppingCart className="w-4 h-4" />
                         <span>
                             {isAdding
                                 ? 'AGREGADO!'
@@ -90,11 +90,11 @@ export default function QuantityControlsProductPage({
                     <Button
                         onClick={() => router.push('/mayorista')}
                         variant="brandRedOutline"
-                        size="xl"
+                        size="lg"
                         fullWidth
                         className="flex-1"
                     >
-                        <Users className="w-5 h-5" />
+                        <Users className="w-4 h-4" />
                         <span className="hidden sm:inline">QUIERO COMPRAR POR MAYOR</span>
                         <span className="sm:hidden">POR MAYOR</span>
                     </Button>
@@ -140,10 +140,10 @@ export default function QuantityControlsProductPage({
                 <Button
                     onClick={() => router.push('/mayorista')}
                     variant="brandRedOutline"
-                    size="xl"
+                    size="lg"
                     className="sm:min-w-[180px]"
                 >
-                    <Users className="w-5 h-5" />
+                    <Users className="w-4 h-4" />
                     <span className="hidden sm:inline">QUIERO COMPRAR POR MAYOR</span>
                     <span className="sm:hidden">POR MAYOR</span>
                 </Button>

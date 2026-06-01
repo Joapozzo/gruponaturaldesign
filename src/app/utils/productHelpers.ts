@@ -148,6 +148,14 @@ const COLOR_MAPPING: { [key: string]: string[] } = {
     'gris': ['gris'], // Para camisas drill que solo dicen "Gris"
 };
 
+function sortImagesByNumber(images: string[]): string[] {
+    return [...images].sort((a, b) => {
+        const numA = parseInt(a.match(/-(\d+)\./)?.[1] || '0', 10);
+        const numB = parseInt(b.match(/-(\d+)\./)?.[1] || '0', 10);
+        return numA - numB;
+    });
+}
+
 /**
  * Normaliza el nombre del color para buscar en archivos
  * Si el color no está en el mapeo, lo convierte a slug directamente
@@ -162,6 +170,40 @@ function normalizeColorForFile(color: string | null | undefined): string[] {
     // Si no está, convertir a slug y buscar ese color directamente
     const colorSlug = colorLower.replace(/\s+/g, '-');
     return [colorSlug];
+}
+
+/**
+ * Filtra URLs de imagen que correspondan a un color (por slug en el path).
+ * Retorna [] si no hay coincidencias — no mezcla otros colores.
+ */
+export function filterImagesByColor(
+    productImages: string[],
+    color: string | null | undefined,
+): string[] {
+    if (!color || productImages.length === 0) return [];
+
+    const colorVariants = normalizeColorForFile(color);
+    if (colorVariants.length === 0) return [];
+
+    const filtered = productImages.filter((img) => {
+        if (!img) return false;
+        const imgLower = img.toLowerCase();
+
+        for (const colorVariant of colorVariants) {
+            if (
+                imgLower.includes(`-${colorVariant}-`) ||
+                imgLower.includes(`-${colorVariant}.`) ||
+                imgLower.includes(`-${colorVariant}/`) ||
+                imgLower.endsWith(`-${colorVariant}`) ||
+                imgLower.endsWith(`-${colorVariant}.jpg`)
+            ) {
+                return true;
+            }
+        }
+        return false;
+    });
+
+    return filtered.length > 0 ? sortImagesByNumber(filtered) : [];
 }
 
 /**
@@ -312,45 +354,10 @@ export function getProductImages(
         return [PLACEHOLDER_IMAGE];
     }
 
-    // Si hay color seleccionado, filtrar las imágenes del CSV que correspondan a ese color
     if (color) {
-        const colorVariants = normalizeColorForFile(color);
-        if (colorVariants.length > 0) {
-            // Buscar TODAS las variantes del color (ej: "grismelange" y "melange" para "gris melange")
-            const filteredImages = productImages.filter(img => {
-                if (!img) return false;
-                const imgLower = img.toLowerCase();
-
-                // Buscar cada variante del color en la ruta de la imagen
-                for (const colorVariant of colorVariants) {
-                    // Buscar el color en la ruta de la imagen de múltiples formas:
-                    // - "/imgs/products/buzo-standard-unisex/buzo-standard-unisex-grismelange-1.jpg"
-                    // - "buzo-standard-unisex-grismelange-1"
-                    // Puede estar como: -color- o -color. o -color/ o al final -color
-                    if (imgLower.includes(`-${colorVariant}-`) ||
-                        imgLower.includes(`-${colorVariant}.`) ||
-                        imgLower.includes(`-${colorVariant}/`) ||
-                        imgLower.endsWith(`-${colorVariant}`) ||
-                        imgLower.endsWith(`-${colorVariant}.jpg`)) {
-                        return true;
-                    }
-                }
-                return false;
-            });
-
-            // Si encontramos imágenes del color, retornarlas (ordenadas por número si es posible)
-            if (filteredImages.length > 0) {
-                // Ordenar por número de imagen si es posible (para mantener orden 1, 2, 3, 4)
-                return filteredImages.sort((a, b) => {
-                    const numA = parseInt(a.match(/-(\d+)\./)?.[1] || '0', 10);
-                    const numB = parseInt(b.match(/-(\d+)\./)?.[1] || '0', 10);
-                    return numA - numB;
-                });
-            }
-        }
+        return filterImagesByColor(productImages, color);
     }
 
-    // Si no hay color o no se encontraron imágenes del color, retornar todas las imágenes del CSV
     return productImages;
 }
 

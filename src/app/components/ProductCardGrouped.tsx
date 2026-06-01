@@ -15,7 +15,7 @@ import VariantSelector from './product-card/components/VariantSelector';
 import QuantityControls from './product-card/components/QuantityControls';
 import BordadoSwitch from './product-card/components/BordadoSwitch';
 import { canAddQuantity, getStockMessage } from '@/app/services/stockService';
-import { useEmpresaPrecioConfig } from '@/app/hooks/useEmpresaPrecioConfig';
+import { usePrecioConfigPublic } from '@/app/hooks/usePrecioConfigPublic';
 import { useConfirmModal } from './hooks/useModal';
 import ConfirmModal from './modal/ConfirmModal';
 
@@ -74,7 +74,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
         handleMouseLeave,
     } = useProductCardState({ group, expandedSku, onExpandChange });
 
-    const { data: precioConfig } = useEmpresaPrecioConfig();
+    const { data: precioConfig } = usePrecioConfigPublic();
     const cuotas = precioConfig?.cuotasFinanciado ?? 3;
     const cuotasLabel = `${cuotas} ${cuotas === 1 ? 'cuota de' : 'cuotas de'}`;
 

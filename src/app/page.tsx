@@ -35,11 +35,11 @@ export default async function HomePage() {
     <HydrationBoundary state={dehydrate(queryClient)}>
       <div className="min-h-screen bg-white">
         <Hero />
-        
+
         <Suspense fallback={<ProductosDestacadosSkeleton />}>
           <ProductosDestacados />
         </Suspense>
-        
+
         {/* Categorías + DesignHero (100vh c/u), mismo gap */}
         <div className="w-full flex flex-col gap-2">
           <Categorias />
@@ -47,7 +47,6 @@ export default async function HomePage() {
           <div className="w-full px-4 lg:px-15 shrink-0">
             <DesignHero />
           </div>
-          <InstagramCTA />
         </div>
         {/* Secciones separadas con gap; ComoTrabajamos + Contacto juntos con pt-20 opcional */}
         <div className="flex flex-col gap-16 lg:gap-20">
@@ -57,7 +56,8 @@ export default async function HomePage() {
           <Faq />
           <div className="flex flex-col pt-0">
             <ComoTrabajamos />
-              <Contacto />
+            <InstagramCTA />
+            <Contacto />
           </div>
         </div>
       </div>

@@ -1,22 +1,25 @@
 "use client";
 import React from 'react';
-import { motion } from 'framer-motion';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
+
+const DESIGN_IMAGES = [
+  { src: '/imgs/sections/design-1.jpg', alt: 'Uniformes profesionales - diseño 1' },
+  { src: '/imgs/sections/design-2.jpg', alt: 'Uniformes profesionales - diseño 2' },
+] as const;
 
 const DesignHero = () => {
   return (
-    <div className="w-full bg-white overflow-x-hidden min-h-0 lg:h-screen">
+    <div className="w-full bg-[#DFDCE3] overflow-x-hidden min-h-0 lg:h-screen">
       <div className="w-full mx-auto relative overflow-x-hidden lg:h-full lg:min-h-screen">
-        <div className="grid grid-cols-1 lg:grid-cols-10 gap-2 w-full min-h-0 lg:h-full">
-          {/* Texto - 70% (7 de 10 columnas), mismo gap que Categorias */}
+        <div className="grid grid-cols-1 lg:grid-cols-[40fr_60fr] gap-2 w-full min-h-0 lg:h-full">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="lg:col-span-7 flex flex-col justify-center px-6 lg:pl-12 lg:pr-8 xl:pl-16 xl:pr-10 py-12 lg:py-16 relative z-20 bg-[#D4D4D4]"
+            className="flex flex-col justify-center px-6 lg:pl-12 lg:pr-8 xl:pl-16 xl:pr-10 py-12 lg:py-16 relative z-20 bg-[#DFDCE3]"
           >
-            {/* Título principal */}
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -29,7 +32,6 @@ const DesignHero = () => {
               PARA DESTACAR.
             </motion.h2>
 
-            {/* Subtítulo */}
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -41,21 +43,28 @@ const DesignHero = () => {
             </motion.p>
           </motion.div>
 
-          {/* Imagen - 30% (3 de 10 columnas) */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="lg:col-span-3 relative h-[50vh] sm:h-[60vh] lg:h-full w-full min-h-[280px]"
+            className="flex flex-row w-full h-[50vh] sm:h-[60vh] lg:h-full min-h-[280px]"
           >
-            <Image
-              src="/imgs/design_hero.jpg"
-              alt="Modelos vistiendo uniformes profesionales"
-              fill
-              className="object-cover"
-              priority
-            />
+            {DESIGN_IMAGES.map((img, i) => (
+              <div
+                key={img.src}
+                className="relative flex-1 min-w-0 h-full"
+              >
+                <Image
+                  src={img.src}
+                  alt={img.alt}
+                  fill
+                  className="object-cover object-center"
+                  priority={i === 0}
+                  sizes="(max-width: 1024px) 50vw, 30vw"
+                />
+              </div>
+            ))}
           </motion.div>
         </div>
       </div>

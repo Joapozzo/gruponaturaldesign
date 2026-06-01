@@ -2,41 +2,22 @@
 
 import React from 'react';
 import { ArrowLeft } from 'lucide-react';
-import Image from 'next/image';
+import Hero from '@/app/components/Hero';
 import Button from '@/components/ui/Button';
+
+const WHOLESALE_DESKTOP = ['/imgs/hero/hero-desktop.jpg'];
+const WHOLESALE_MOBILE = ['/imgs/hero/hero-mobile.jpg'];
 
 const HeroMayorista = () => {
     return (
-        <section
+        <Hero
             id="wholesale-hero"
-            className="relative w-full flex flex-col overflow-hidden"
+            desktopSlides={WHOLESALE_DESKTOP}
+            mobileSlides={WHOLESALE_MOBILE}
+            alt="Hero mayorista"
+            carousel={false}
+            showScrollHint={false}
         >
-            {/* Mobile: hero-2-mobile 1890×3360 → aspect 9/16, se ve completa */}
-            <div className="relative w-full aspect-[9/16] md:hidden">
-                <Image
-                    src="/imgs/hero-2-mobile.png"
-                    alt="Hero mayorista"
-                    fill
-                    priority
-                    quality={90}
-                    sizes="100vw"
-                    className="object-cover object-center"
-                />
-            </div>
-            {/* Desktop: hero-2, misma dimensión que Hero (aspect 2/1) */}
-            <div className="relative w-full aspect-[2/1] hidden md:block">
-                <Image
-                    src="/imgs/hero-2.png"
-                    alt="Hero mayorista"
-                    fill
-                    priority
-                    quality={90}
-                    sizes="100vw"
-                    className="object-cover object-center"
-                />
-            </div>
-
-            {/* Botón Volver, debajo del navbar */}
             <div className="absolute left-0 z-10 w-full px-4 lg:px-15 top-6 lg:top-8 md:top-8">
                 <Button
                     variant="lightWhiteOutline"
@@ -48,7 +29,7 @@ const HeroMayorista = () => {
                     <span>Volver</span>
                 </Button>
             </div>
-        </section>
+        </Hero>
     );
 };
 

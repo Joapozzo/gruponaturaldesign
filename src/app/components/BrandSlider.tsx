@@ -123,7 +123,7 @@ const BrandsSlider = () => {
                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
 
                 {/* Logo de la marca - Ajustado para móvil */}
-                <motion.div
+                {/* <motion.div
                     className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-white/90 backdrop-blur-sm rounded-lg p-2 sm:p-3 shadow-lg"
                     initial={{ opacity: 0, scale: 0.8 }}
                     whileInView={{ opacity: 1, scale: 1 }}
@@ -133,16 +133,16 @@ const BrandsSlider = () => {
                     <span className="text-xs sm:text-sm font-bold text-gray-900 tracking-wide">
                         {brand.name}
                     </span>
-                </motion.div>
+                </motion.div> */}
 
                 {/* Badge de "Proyecto realizado" - Ajustado para móvil */}
-                <motion.div
+                {/* <motion.div
                     className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 bg-gray-900 text-white px-2 py-1 sm:px-3 sm:py-2 rounded-lg text-xs font-medium tracking-wide opacity-0 group-hover:opacity-100 transition-all duration-500"
                     initial={{ y: 10 }}
                     whileHover={{ y: 0 }}
                 >
                     PROYECTO REALIZADO
-                </motion.div>
+                </motion.div> */}
             </div>
 
             {/* Nombre de la marca debajo */}
@@ -156,9 +156,9 @@ const BrandsSlider = () => {
                 <h4 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">
                     {brand.name}
                 </h4>
-                <p className="text-xs sm:text-sm text-gray-600">
+                {/* <p className="text-xs sm:text-sm text-gray-600">
                     Uniformes corporativos
-                </p>
+                </p> */}
             </motion.div>
         </motion.div>
     );
@@ -183,7 +183,7 @@ const BrandsSlider = () => {
                     {slides.map((slide, slideIndex) => (
                         <div
                             key={slideIndex}
-                            className="flex-shrink-0 flex gap-2 sm:gap-4 md:gap-8 px-2 sm:px-4 md:px-8"
+                            className="flex-shrink-0 flex gap-2 sm:gap-4 md:gap-8 px-2"
                             style={{ width: `${100 / totalSlides}%` }}
                         >
                             {slide.map((brand, index) => renderBrandCard(brand, index))}

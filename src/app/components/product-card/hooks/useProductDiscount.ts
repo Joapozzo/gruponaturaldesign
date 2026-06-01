@@ -6,19 +6,16 @@
 interface UseProductDiscountProps {
   precioLista: number | null;
   precioTransfer: number | null;
-  precio3Cuotas: number | null;
 }
 
 interface UseProductDiscountReturn {
   descuento: number | null;
   tieneDescuento: boolean;
-  precio3Cuotas: number | null;
 }
 
 export function useProductDiscount({
   precioLista,
   precioTransfer,
-  precio3Cuotas,
 }: UseProductDiscountProps): UseProductDiscountReturn {
   const tieneDescuento = Boolean(
     precioLista &&
@@ -33,7 +30,6 @@ export function useProductDiscount({
   return {
     descuento,
     tieneDescuento,
-    precio3Cuotas: precio3Cuotas || null,
   };
 }
 

@@ -34,7 +34,9 @@ export const getColorHex = (colorName: string): string => {
         'TOPO': '#4A4A4A',
         'GRIS PERLA': '#E8E8E8',
         'GRISPERLA': '#E8E8E8',
+        'GRIS ACERO': '#71797E',
         'PERLA': '#E8E8E8',
+        'VERDE MILITAR': '#4B5320',
         'GRAY': '#808080',
         'GREY': '#808080',
         
@@ -72,6 +74,11 @@ export const getColorHex = (colorName: string): string => {
         'BORDO': '#800020',
         'ARENA': '#C2B280',
         'HUESO': '#F5F5DC',
+        'RAYADO CELESTE ANCHO': '#87CEEB',
+        'RAYAS 1: CELESTE': '#87CEEB',
+        'RAYAS 1: COMBINADAS': '#808080',
+        'RAYAS 2: COMBINADAS': '#808080',
+        'RAYAS 2: FINA AZUL': '#0066CC',
     };
     
     // Buscar coincidencia exacta primero

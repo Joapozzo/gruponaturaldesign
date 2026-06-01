@@ -2,10 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Users, Award, Clock, ArrowRight } from 'lucide-react';
+import { Users, Award, Clock, Briefcase, ArrowRight } from 'lucide-react';
 import Section from './Section';
 import Button from '@/components/ui/Button';
 import Image from 'next/image';
+
+const NOSOTROS_IMAGES = [
+    { src: '/imgs/sections/nosotros-1.jpg', alt: 'Equipo Natural Design - 1' },
+    { src: '/imgs/sections/nosotros-2.jpg', alt: 'Equipo Natural Design - 2' },
+] as const;
 
 const useCountAnimation = (end: number, duration = 2000, start = 0) => {
     const [count, setCount] = useState(start);
@@ -67,19 +72,19 @@ const StatCard: React.FC<StatCardProps> = ({
             initial={{ opacity: 0, scale: 0.96 }}
             animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.96 }}
             transition={{ duration: 0.4, delay: delay / 1000 }}
-            className={`aspect-square min-w-0 flex flex-col items-center justify-center p-2 sm:p-3 md:p-4 transition-all duration-300 ${isHighlight
+            className={`min-w-0 flex flex-col items-center justify-center py-4 px-2 transition-all duration-300 ${isHighlight
                     ? 'bg-[var(--red)] border border-[var(--red)] hover:bg-[var(--red-dark)] text-white'
                     : 'bg-gray-50 border border-gray-100 hover:border-gray-200 hover:bg-white'
                 }`}
         >
-            <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 mb-1.5 sm:mb-3">
+            <div className="flex items-center justify-center w-8 h-8 mb-2">
                 <Icon className={isHighlight ? 'text-white' : 'text-gray-600'} size={20} />
             </div>
-            <span className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold tabular-nums leading-none truncate max-w-full ${isHighlight ? 'text-white' : 'text-gray-900'
+            <span className={`text-2xl sm:text-3xl font-bold tabular-nums leading-none truncate max-w-full ${isHighlight ? 'text-white' : 'text-gray-900'
                 }`}>
                 {count}{suffix}
             </span>
-            <span className={`text-[10px] sm:text-xs uppercase tracking-wider mt-1 sm:mt-2 text-center ${isHighlight ? 'text-white/90' : 'text-gray-500'
+            <span className={`text-[10px] sm:text-xs uppercase tracking-wider mt-1.5 text-center ${isHighlight ? 'text-white/90' : 'text-gray-500'
                 }`}>
                 {label}
             </span>
@@ -95,69 +100,29 @@ const Nosotros = () => {
     return (
         <Section
             id="nosotros"
-            title="Sobre nosotros"
-            subtitle="Más de 25 años vistiendo equipos con calidad."
             background="white"
-            padding="none"
-            contentClassName="w-full px-4 lg:px-15 py-8 lg:py-12"
+            padding="lg"
+            animated={false}
+            contentClassName="w-full px-4 lg:px-15"
         >
-            {/* Desktop: foto (2/5) + texto (3/5); Mobile: columna */}
-            <div className="flex flex-col lg:grid lg:grid-cols-[2fr_3fr] lg:items-stretch gap-2">
-                {/* Bloque 1: Foto (misma altura que el texto en desktop) */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    transition={{ duration: 0.6 }}
-                    viewport={{ once: true }}
-                    className="relative w-full aspect-[4/5] lg:aspect-auto lg:min-h-0 lg:h-full order-1 overflow-hidden"
-                >
-                    <Image
-                        src="/imgs/nosotros.jpg"
-                        alt="Equipo Natural Design"
-                        className="absolute inset-0 w-full h-full object-cover object-top"
-                        width={900}
-                        height={900}
-                        sizes="100vw"
-                    />
-                </motion.div>
-
-                {/* Bloque 2: Texto + estadísticas en cards */}
+            <div className="flex flex-col gap-8 lg:grid lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:grid-rows-[auto_auto] lg:items-stretch lg:gap-x-12 lg:gap-y-6 w-full py-8 lg:py-12">
                 <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.1 }}
+                    transition={{ duration: 0.6 }}
                     viewport={{ once: true }}
-                    className="flex flex-col justify-center py-4 lg:py-0 px-2 order-2"
+                    className="flex flex-col justify-start gap-6 lg:col-start-2 lg:row-start-1 order-1"
                 >
-
-
-                    {/* Grilla 3 cuadrados: una stat destacada en rojo */}
-                    <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 min-w-0">
-                        <StatCard
-                            icon={Clock}
-                            number={25}
-                            suffix="+"
-                            label="Años"
-                            delay={100}
-                        />
-                        <StatCard
-                            icon={Users}
-                            number={500}
-                            suffix="+"
-                            label="Clientes"
-                            delay={150}
-                            variant="highlight"
-                        />
-                        <StatCard
-                            icon={Award}
-                            number={100}
-                            suffix="%"
-                            label="Calidad"
-                            delay={200}
-                        />
+                    <div>
+                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-gray-900 leading-tight">
+                            Sobre nosotros
+                        </h2>
+                        <p className="text-sm md:text-base text-gray-600 leading-relaxed mt-3">
+                            Más de 25 años vistiendo equipos con calidad.
+                        </p>
                     </div>
 
-                    <div className="space-y-6 mt-8">
+                    <div className="space-y-4">
                         <p className="text-base text-gray-800 leading-relaxed">
                             Especialistas en uniformes empresariales, ropa de trabajo y prendas promocionales en Córdoba. Asesoramiento integral y desarrollo de productos.
                         </p>
@@ -170,11 +135,70 @@ const Nosotros = () => {
                         variant="black"
                         size="md"
                         onClick={() => scrollToSection('contacto')}
-                        className="tracking-wide inline-flex items-center gap-2 w-fit mt-8"
+                        className="tracking-wide inline-flex items-center gap-2 w-fit"
                     >
                         <span>Contactar</span>
                         <ArrowRight className="w-4 h-4" />
                     </Button>
+                </motion.div>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                    viewport={{ once: true }}
+                    className="grid grid-cols-2 gap-3 min-w-0 lg:col-start-2 lg:row-start-2 lg:self-end order-3"
+                >
+                    <StatCard
+                        icon={Clock}
+                        number={25}
+                        suffix="+"
+                        label="Años"
+                        delay={100}
+                    />
+                    <StatCard
+                        icon={Users}
+                        number={500}
+                        suffix="+"
+                        label="Clientes"
+                        delay={150}
+                        variant="highlight"
+                    />
+                    <StatCard
+                        icon={Award}
+                        number={100}
+                        suffix="%"
+                        label="Calidad"
+                        delay={200}
+                    />
+                    <StatCard
+                        icon={Briefcase}
+                        number={120}
+                        suffix="+"
+                        label="Proyectos"
+                        delay={250}
+                    />
+                </motion.div>
+
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                    viewport={{ once: true }}
+                    className="flex flex-row w-full aspect-square overflow-hidden order-2 lg:col-start-1 lg:row-start-1 lg:row-span-2 lg:aspect-auto lg:h-full lg:min-h-0"
+                >
+                    {NOSOTROS_IMAGES.map((img, i) => (
+                        <div key={img.src} className="relative flex-1 min-w-0 h-full">
+                            <Image
+                                src={img.src}
+                                alt={img.alt}
+                                fill
+                                className="object-cover object-center"
+                                priority={i === 0}
+                                sizes="(min-width: 1024px) 29vw, 50vw"
+                            />
+                        </div>
+                    ))}
                 </motion.div>
             </div>
         </Section>

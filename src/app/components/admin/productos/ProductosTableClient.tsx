@@ -17,7 +17,7 @@ import { getProductosColumns } from '@/app/components/admin/productos/columns';
 import { BulkActions } from '@/app/components/admin/productos/BulkActions';
 import type { ProductoPadreConVariantes } from '@/app/types/producto.types';
 import type { ProductoPadreBusqueda } from '@/app/services/producto.service';
-import { Search } from 'lucide-react';
+import { TableSearchInput } from '@/app/components/admin/TableSearchInput';
 
 // Lazy load modales
 const ProductoSeleccionModal = React.lazy(() => import('@/app/components/producto/ProductoSeleccionModal'));
@@ -36,7 +36,7 @@ interface ProductosTableClientProps {
  */
 export function ProductosTableClient({ empresaId }: ProductosTableClientProps) {
   // Search params (page, limit, search con debounce)
-  const { page, limit, searchInput, debouncedSearch, setSearchInput, setPage, setLimit, clearSearch } = useTableSearchParams();
+  const { page, limit, searchParam, debouncedSearch, commitSearch, setPage, setLimit, clearSearch } = useTableSearchParams();
 
   // Filtros (sincronizados con URL)
   const filters = useProductosFiltersWithParams();
@@ -165,8 +165,8 @@ export function ProductosTableClient({ empresaId }: ProductosTableClientProps) {
         <ProductosFilters
           filters={filters}
           disabled={disabled}
-          hasSearchTerm={searchInput.trim().length > 0}
-          onClearFilters={clearSearch}
+          hasSearchTerm={searchParam.trim().length > 0}
+          onClearFilters={filters.clearFiltersToUrl}
         />
 
         {/* Búsqueda y Acciones Bulk */}
@@ -174,16 +174,12 @@ export function ProductosTableClient({ empresaId }: ProductosTableClientProps) {
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
             {/* Búsqueda */}
             <div className="flex-1 w-full sm:w-auto">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Buscar productos..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black"
-                />
-              </div>
+              <TableSearchInput
+                value={searchParam}
+                onDebouncedChange={commitSearch}
+                onClear={clearSearch}
+                placeholder="Buscar productos..."
+              />
             </div>
 
             {/* Operaciones Bulk */}

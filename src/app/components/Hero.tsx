@@ -5,88 +5,149 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 
-const HERO_SLIDES = ['/imgs/hero-1.jpg', '/imgs/hero-2.jpg', '/imgs/hero-3.jpg'];
-const HERO_SLIDES_MOBILE = ['/imgs/hero-mobile-1.jpg', '/imgs/hero-mobile-2.jpg', '/imgs/hero-mobile-3.jpg'];
+const DEFAULT_DESKTOP_SLIDES = [
+  '/imgs/hero/hero-desktop.jpg',
+  '/imgs/hero/hero2-desktop.jpg',
+];
+const DEFAULT_MOBILE_SLIDES = [
+  '/imgs/hero/hero-mobile.jpg',
+  '/imgs/hero/hero2-mobile.jpg',
+];
 const AUTO_PLAY_MS = 5000;
 
-const Hero = () => {
+export type HeroProps = {
+  id?: string;
+  desktopSlides?: string[];
+  mobileSlides?: string[];
+  alt?: string;
+  /** Por defecto: true si hay más de un slide en desktop */
+  carousel?: boolean;
+  showScrollHint?: boolean;
+  children?: React.ReactNode;
+};
+
+type HeroPanelProps = {
+  slides: string[];
+  aspectClass: string;
+  visibilityClass: string;
+  index: number;
+  carousel: boolean;
+  alt: string;
+  showScrollHint: boolean;
+};
+
+function HeroSlideImage({
+  src,
+  alt,
+  priority,
+}: {
+  src: string;
+  alt: string;
+  priority?: boolean;
+}) {
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      priority={priority}
+      quality={90}
+      sizes="100vw"
+      className="object-cover object-center"
+    />
+  );
+}
+
+function HeroPanel({
+  slides,
+  aspectClass,
+  visibilityClass,
+  index,
+  carousel,
+  alt,
+  showScrollHint,
+}: HeroPanelProps) {
+  return (
+    <div className={`relative w-full ${aspectClass} ${visibilityClass}`}>
+      {carousel ? (
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={index}
+            className="absolute inset-0 w-full h-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <HeroSlideImage
+              src={slides[index]}
+              alt={`${alt} ${index + 1}`}
+              priority={index === 0}
+            />
+          </motion.div>
+        </AnimatePresence>
+      ) : (
+        <div className="absolute inset-0 w-full h-full">
+          <HeroSlideImage src={slides[0]} alt={alt} priority />
+        </div>
+      )}
+      {showScrollHint && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10"
+        >
+          <ChevronDown className="text-white animate-bounce" size={24} />
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
+const Hero = ({
+  id = 'inicio',
+  desktopSlides = DEFAULT_DESKTOP_SLIDES,
+  mobileSlides = DEFAULT_MOBILE_SLIDES,
+  alt = 'Hero',
+  carousel = desktopSlides.length > 1,
+  showScrollHint = carousel,
+  children,
+}: HeroProps) => {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
+    if (!carousel) return;
     const t = setInterval(() => {
-      setIndex((i) => (i + 1) % HERO_SLIDES.length);
+      setIndex((i) => (i + 1) % desktopSlides.length);
     }, AUTO_PLAY_MS);
     return () => clearInterval(t);
-  }, []);
+  }, [carousel, desktopSlides.length]);
 
   return (
     <section
-      id="inicio"
+      id={id}
       className="relative w-full flex flex-col overflow-hidden"
     >
-      {/* Mobile: carrusel vertical (9/16), imágenes completas como HeroMayorista */}
-      <div className="relative w-full aspect-[9/16] md:hidden">
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={index}
-            className="absolute inset-0 w-full h-full"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <Image
-              src={HERO_SLIDES_MOBILE[index]}
-              alt={`Hero ${index + 1}`}
-              fill
-              priority={index === 0}
-              quality={90}
-              sizes="100vw"
-              className="object-cover object-center"
-            />
-          </motion.div>
-        </AnimatePresence>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10"
-        >
-          <ChevronDown className="text-white animate-bounce" size={24} />
-        </motion.div>
-      </div>
-
-      {/* Desktop: carrusel 2:1 */}
-      <div className="relative w-full aspect-[2/1] hidden md:block">
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={index}
-            className="absolute inset-0 w-full h-full"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <Image
-              src={HERO_SLIDES[index]}
-              alt={`Hero ${index + 1}`}
-              fill
-              priority={index === 0}
-              quality={90}
-              sizes="100vw"
-              className="object-cover object-center"
-            />
-          </motion.div>
-        </AnimatePresence>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10"
-        >
-          <ChevronDown className="text-white animate-bounce" size={24} />
-        </motion.div>
-      </div>
+      <HeroPanel
+        slides={mobileSlides}
+        aspectClass="aspect-[9/16]"
+        visibilityClass="md:hidden"
+        index={index}
+        carousel={carousel}
+        alt={alt}
+        showScrollHint={showScrollHint}
+      />
+      <HeroPanel
+        slides={desktopSlides}
+        aspectClass="aspect-[2/1]"
+        visibilityClass="hidden md:block"
+        index={index}
+        carousel={carousel}
+        alt={alt}
+        showScrollHint={showScrollHint}
+      />
+      {children}
     </section>
   );
 };

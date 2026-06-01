@@ -18,6 +18,7 @@ export function useProductImages(
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const [modalImages, setModalImages] = useState<string[]>([]);
     const [modalImageIndex, setModalImageIndex] = useState(0);
+    const [modalLabel, setModalLabel] = useState<string | undefined>(undefined);
 
     // Recalcular imágenes cuando cambia el color o el productName
     // Si la variante no tiene imágenes, no usar placeholder (galería muestra ninguna)
@@ -66,20 +67,23 @@ export function useProductImages(
         }
     };
 
-    const openModal = (validImages?: string[], validIndex?: number) => {
+    const openModal = (validImages?: string[], validIndex?: number, label?: string) => {
         if (validImages && validImages.length > 0) {
             setModalImages(validImages);
             setModalImageIndex(validIndex !== undefined ? validIndex : 0);
+            setModalLabel(label);
         } else {
             // Si no se pasan imágenes válidas, usar todas las imágenes filtradas por color
             setModalImages(images);
             setModalImageIndex(currentImageIndex);
+            setModalLabel(undefined);
         }
         setIsImageModalOpen(true);
     };
 
     const closeModal = () => {
         setIsImageModalOpen(false);
+        setModalLabel(undefined);
     };
 
     return {
@@ -93,6 +97,7 @@ export function useProductImages(
         goToImage,
         openModal,
         closeModal,
+        modalLabel,
     };
 }
 

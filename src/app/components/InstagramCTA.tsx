@@ -41,15 +41,15 @@ const InstagramCTA = () => {
             padding="none"
             className="w-full bg-white h-screen overflow-hidden"
         >
-            <div className="w-full px-4 lg:px-15 h-screen">
-                <div className="grid grid-cols-1 lg:grid-cols-10 gap-2 h-full min-h-0 items-stretch">
-                    {/* Texto - 30% (3 de 10 columnas) */}
+            <div className="w-full h-screen">
+                <div className="grid grid-cols-1 lg:grid-cols-10 gap-0 h-full min-h-0 items-stretch">
+                    {/* Texto - más ancho para que las fotos en 2x2 queden más verticales */}
                     <motion.div
                         initial={{ opacity: 0, x: -50 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.8 }}
-                        className="lg:col-span-3 h-[50vh] sm:h-[60vh] lg:h-full min-h-[280px] flex flex-col justify-center px-8 lg:px-12 xl:px-16 py-12 lg:py-16 relative z-20 bg-gray-100"
+                        className="lg:col-span-4 h-[50vh] sm:h-[60vh] lg:h-full min-h-[280px] flex flex-col justify-center px-8 lg:px-12 xl:px-16 py-12 lg:py-16 relative z-20 bg-gray-100"
                     >
                         <motion.h2
                             initial={{ opacity: 0, y: 20 }}
@@ -103,13 +103,13 @@ const InstagramCTA = () => {
                         </motion.div>
                     </motion.div>
 
-                    {/* Grid 2x2 de fotos - 70% (7 de 10 columnas) */}
+                    {/* Grid 2x2 de fotos */}
                     <motion.div
                         initial={{ opacity: 0, x: 50 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.8, delay: 0.2 }}
-                        className="lg:col-span-7 grid grid-cols-2 grid-rows-2 gap-2 h-[50vh] sm:h-[60vh] lg:h-full min-h-[280px]"
+                        className="lg:col-span-6 grid grid-cols-2 grid-rows-2 gap-0 h-[50vh] sm:h-[60vh] lg:h-full min-h-[280px]"
                     >
                         {posts.map((post, index) => (
                             <motion.a

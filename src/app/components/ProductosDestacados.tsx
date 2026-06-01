@@ -127,13 +127,13 @@ const ProductosDestacados = () => {
                   pauseOnMouseEnter: true,
                 }
           }
-          loop={count > 5}
-          loopAdditionalSlides={count > 5 ? 2 : 0}
+          loop={count > 5 && !expandedSku}
+          loopAdditionalSlides={count > 5 && !expandedSku ? 2 : 0}
           breakpoints={breakpoints}
           className="pb-12"
         >
           {productos.map((producto, index) => (
-            <SwiperSlide key={producto.codigoAgrupacion} className="mb-5 !flex !items-start !border-0 [border:0]">
+            <SwiperSlide key={`${producto.id}-${index}`} className="mb-5 !flex !items-start !border-0 [border:0]">
               <div className="w-full flex-shrink-0 border-0 [border:0]">
                 <ProductCardPublicado
                   producto={producto}
@@ -184,7 +184,7 @@ const CTAButton = ({ onClick }: { onClick: () => void }) => (
     whileInView={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.8, delay: 0.3 }}
     viewport={{ once: true }}
-    className="text-center my-10"
+    className="text-center my-8"
   >
     <Button
       variant="black"

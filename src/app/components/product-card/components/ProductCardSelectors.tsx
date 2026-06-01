@@ -26,14 +26,13 @@ export const ProductCardSelectors: React.FC<ProductCardSelectorsProps> = ({
   onColorChange,
   onTalleChange,
 }) => {
-  if (variants.length <= 1) {
+  if (availableColors.length <= 1 && availableTalles.length <= 1) {
     return null;
   }
 
   return (
     <div className="overflow-visible">
-      {/* Selector de color - Mostrar siempre si hay colores (incluso si es 1) */}
-      {availableColors.length > 0 && (
+      {availableColors.length > 1 && (
         <ColorSelector
           colors={availableColors}
           variants={variants}
@@ -46,8 +45,7 @@ export const ProductCardSelectors: React.FC<ProductCardSelectorsProps> = ({
         />
       )}
 
-      {/* Selector de talle - Mostrar siempre si hay talles (incluso si es 1) */}
-      {availableTalles.length > 0 && (
+      {availableTalles.length > 1 && (
         <SizeSelector
           sizes={availableTalles}
           selectedSize={selectedTalle}

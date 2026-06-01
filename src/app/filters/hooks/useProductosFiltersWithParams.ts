@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useProductosFilters, type ProductosFilters } from './useProductosFilters';
 
@@ -12,6 +12,7 @@ export function useProductosFiltersWithParams() {
   const filters = useProductosFilters();
   const isInitialMount = useRef(true);
   const isUpdatingFromUrl = useRef(false);
+  const skipNextSyncRef = useRef(false);
 
   // Leer filtros de URL al montar
   useEffect(() => {
@@ -57,7 +58,17 @@ export function useProductosFiltersWithParams() {
 
   // Sincronizar cambios de filtros con URL (solo cuando cambian desde el componente, no desde URL)
   useEffect(() => {
-    if (isInitialMount.current || isUpdatingFromUrl.current) return;
+    if (isInitialMount.current) return;
+
+    if (isUpdatingFromUrl.current) {
+      isUpdatingFromUrl.current = false;
+      return;
+    }
+
+    if (skipNextSyncRef.current) {
+      skipNextSyncRef.current = false;
+      return;
+    }
 
     const params = new URLSearchParams(searchParams.toString());
 
@@ -109,6 +120,23 @@ export function useProductosFiltersWithParams() {
     // No incluir searchParams: si no, al cambiar page o limit se dispara este efecto y se resetea page a 1
   }, [filters.filters, router]);
 
-  return filters;
+  /** Limpia filtros, búsqueda y URL en un solo replace (evita races con useTableSearchParams). */
+  const clearFiltersToUrl = useCallback(() => {
+    skipNextSyncRef.current = true;
+    isUpdatingFromUrl.current = true;
+    filters.clearFilters();
+
+    const params = new URLSearchParams();
+    params.set('page', '1');
+    params.set('limit', searchParams.get('limit') || '20');
+    params.set('orderBy', 'name');
+    params.set('orderDirection', 'asc');
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [filters.clearFilters, router, searchParams]);
+
+  return {
+    ...filters,
+    clearFiltersToUrl,
+  };
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { Suspense, useMemo } from 'react';
+import React, { Suspense, useMemo, useCallback, useRef } from 'react';
+import toast from 'react-hot-toast';
 import Section from '@/app/components/Section';
 import { useProductDetail } from '@/app/hooks/useProductDetail';
 import { useProductImages } from '@/app/hooks/useProductImages';
@@ -13,10 +14,9 @@ import ProductHeader from '@/app/components/producto/ProductHeader';
 import ProductImageGallery from '@/app/components/producto/ProductImageGallery';
 import ProductInfo from '@/app/components/producto/ProductInfo';
 import ProductVariantSelector from '@/app/components/producto/ProductVariantSelector';
-import ProductSpecs from '@/app/components/producto/ProductSpecs';
+// import ProductSpecs from '@/app/components/producto/ProductSpecs';
 import QuantityControlsProductPage from '@/app/components/producto/QuantityControlsProductPage';
-import ProductResources from '@/app/components/producto/ProductResources';
-import ProductShowroomInfo from '@/app/components/producto/ProductShowroomInfo';
+import ProductDetailMetaCard from '@/app/components/producto/ProductDetailMetaCard';
 import ProductImageModal from '@/app/components/producto/ProductImageModal';
 import ProductNotFound from '@/app/components/producto/ProductNotFound';
 import RelatedProducts from '@/app/components/producto/RelatedProducts';
@@ -108,13 +108,11 @@ export default function ProductDetailPageContent({
     goToImage,
     openModal,
     closeModal,
+    modalLabel,
   } = useProductImages(
     selectedVariant?.producto?.imagenes,
     selectedVariant?.producto?.imagen ?? null,
     5,
-    productName,
-    selectedColor,
-    groupedProduct?.availableColors
   );
     
   // Ref para el getter de bordado (se actualizará después de que useBordado se inicialice)
@@ -144,13 +142,23 @@ export default function ProductDetailPageContent({
   const {
     bordado,
     canActivateBordado,
-    itemsNeeded,
     itemCount,
     handleBordadoToggle,
   } = useBordado({
     cartItem,
     handleBordadoChange,
   });
+
+  const onBordadoChange = useCallback(
+    (value: boolean) => {
+      if (showOutOfStock && value) {
+        toast.error('No podés activar bordado en un producto sin stock.', { duration: 4000 });
+        return;
+      }
+      handleBordadoToggle(value);
+    },
+    [showOutOfStock, handleBordadoToggle],
+  );
 
   // Sincronizar el ref con el valor de bordado del hook
   React.useEffect(() => {
@@ -178,6 +186,7 @@ export default function ProductDetailPageContent({
 
   // Obtener datos del producto
   const displayProduct = groupedProduct.displayProduct;
+  const showroomFloorRef = useRef<HTMLDivElement>(null);
 
   return (
     <div className="min-h-screen bg-white">
@@ -192,14 +201,14 @@ export default function ProductDetailPageContent({
       {/* Contenido principal - mismo ancho que page.tsx y Navbar (px-4 lg:px-15) */}
       <Section
         id="product-content"
-        className="pt-2 sm:pt-4 pb-6 sm:pb-8"
+        padding="none"
+        className="pt-2 sm:pt-3 pb-6 sm:pb-8"
         contentClassName="w-full px-4 lg:px-15"
         noPadding
       >
-        {/* Grid 50% galería | 50% info, pegados con separación */}
-        <div className="grid lg:grid-cols-2 lg:gap-6 xl:gap-8 gap-4 sm:gap-6 mb-6 sm:mb-8 items-start" style={{ overflow: 'visible' }}>
-          {/* Columna izquierda: Galería 50% ancho, entra en 100vh */}
-          <div className="lg:min-h-[calc(100vh-12rem)] lg:flex lg:flex-col relative">
+        {/* Galería (ancho de la img) + info (espacio restante) */}
+        <div className="flex flex-col lg:flex-row lg:items-stretch lg:gap-6 xl:gap-8 gap-4 sm:gap-6 mb-6 sm:mb-8" style={{ overflow: 'visible' }}>
+          <div className="shrink-0 w-full lg:w-auto relative overflow-visible">
             <Suspense fallback={<ProductImageGallerySkeleton />}>
               <ProductImageGallery
                 product={selectedVariant.producto}
@@ -212,78 +221,55 @@ export default function ProductDetailPageContent({
                 onOpenModal={openModal}
                 isOutOfStock={showOutOfStock}
                 stock={selectedVariant?.stock}
+                showroomAlignRef={showroomFloorRef}
               />
             </Suspense>
-            {/* Código y Categoría debajo de las imágenes */}
+            {/* Código y Categoría — oculto por ahora
             <div className="mt-3 w-full">
-              <div className="flex flex-col sm:flex-row gap-0">
-                {images.length > 1 && (
-                  <div className="hidden sm:block w-20 mr-4 flex-shrink-0" />
-                )}
-                <div className="flex-1 w-full">
-                  <ProductSpecs
-                    selectedVariant={selectedVariant}
-                    displayProduct={displayProduct}
-                  />
-                </div>
-              </div>
+              <ProductSpecs
+                selectedVariant={selectedVariant}
+                displayProduct={displayProduct}
+              />
             </div>
+            */}
           </div>
 
-          {/* Columna derecha: Información del producto 50%, pegada a la img con separación */}
-          <div className="space-y-5 sm:space-y-6 lg:pt-0" style={{ overflow: 'visible' }}>
-            {/* Nombre del producto */}
-            <div className="mb-2 sm:mb-3">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight leading-tight">
-                {productName}
-              </h1>
-            </div>
-            
-            {/* Información del producto con Suspense */}
-            <Suspense fallback={<ProductInfoSkeleton />}>
-              <ProductInfo
-                productName={productName}
-                displayProduct={displayProduct}
-                selectedVariant={selectedVariant}
-                price={selectedVariant.producto.PrecioVenta}
-                hideTitle
-              />
-            </Suspense>
-
-            {/* Sección de personalización: Bordado, Color y Talle */}
-            <div className="mt-4 space-y-4" style={{ overflow: 'visible' }}>
-              {/* Switch de Bordado - más grande */}
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-start">
+          {/* Info del producto */}
+          <div className="flex-1 min-w-0 flex flex-col">
+            <div className="flex flex-col gap-4 sm:gap-5">
+              {/* Nombre + bordado */}
+              <div className="flex flex-col gap-2.5 sm:gap-3">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight leading-tight">
+                  {productName}
+                </h1>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-[10px] sm:text-xs font-medium tabular-nums ${
+                      canActivateBordado ? 'text-neutral-600' : 'text-neutral-400'
+                    }`}
+                    title="Prendas en carrito para activar bordado (mín. 5)"
+                  >
+                    {itemCount}/5
+                  </span>
                   <BordadoSwitch
                     value={bordado}
-                    onChange={handleBordadoToggle}
+                    onChange={onBordadoChange}
                     isMobile={false}
-                    size="large"
-                    disabled={!canActivateBordado || showOutOfStock}
+                    size="medium"
                   />
                 </div>
-                {!canActivateBordado && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-2.5">
-                    <p className="text-xs text-red-700 font-semibold">
-                      {itemsNeeded > 0 
-                        ? `Agrega ${itemsNeeded} ${itemsNeeded === 1 ? 'prenda más' : 'prendas más'} al carrito para activar el bordado (${itemCount}/5)`
-                        : `Mínimo 5 prendas para activar bordado (${itemCount}/5)`
-                      }
-                    </p>
-                  </div>
-                )}
-                {canActivateBordado && (
-                  <div className="bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-400 rounded-lg p-2.5">
-                    <p className="text-xs text-red-700 font-bold flex items-center gap-1.5">
-                      <span>✨</span>
-                      <span>Puedes bordar tu logo en todas las prendas</span>
-                    </p>
-                  </div>
-                )}
               </div>
 
-              {/* Selectores de Color y Talle con Suspense */}
+              <Suspense fallback={<ProductInfoSkeleton />}>
+                <ProductInfo
+                  productName={productName}
+                  displayProduct={displayProduct}
+                  selectedVariant={selectedVariant}
+                  price={selectedVariant.producto.PrecioVenta}
+                  hideTitle
+                />
+              </Suspense>
+
               <Suspense fallback={<ProductVariantsSkeleton />}>
                 <ProductVariantSelector
                   groupedProduct={groupedProduct}
@@ -294,10 +280,7 @@ export default function ProductDetailPageContent({
                   onSizeSelect={handleSizeSelect}
                 />
               </Suspense>
-            </div>
 
-            {/* Controles de cantidad */}
-            <div className="mt-5 sm:px-0">
               <QuantityControlsProductPage
                 currentQuantity={currentQuantity}
                 isAdding={isAdding}
@@ -312,15 +295,14 @@ export default function ProductDetailPageContent({
               />
             </div>
 
-            {/* Enlaces a recursos externos */}
-            <div className="mt-5">
-              <ProductResources product={selectedVariant.producto} />
-            </div>
-
-            {/* Información adicional - showroom */}
-            <div className="mt-5">
-              <ProductShowroomInfo />
-            </div>
+            <ProductDetailMetaCard
+              product={selectedVariant.producto}
+              selectedVariant={selectedVariant}
+              displayProduct={displayProduct}
+              onOpenImageModal={openModal}
+              className="mt-6 sm:mt-8"
+              showroomFloorRef={showroomFloorRef}
+            />
           </div>
         </div>
 
@@ -336,7 +318,7 @@ export default function ProductDetailPageContent({
         onClose={closeModal}
         images={modalImages}
         currentImageIndex={modalImageIndex}
-        productName={productName}
+        productName={modalLabel ?? productName}
         onNext={nextImage}
         onPrev={prevImage}
       />

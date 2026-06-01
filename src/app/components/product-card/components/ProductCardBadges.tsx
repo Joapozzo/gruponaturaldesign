@@ -2,18 +2,15 @@
 
 import React from 'react';
 import { Star } from 'lucide-react';
-import { formatPrice } from '@/app/utils/productHelpers';
 
 interface ProductCardBadgesProps {
   destacado?: boolean;
   descuento?: number | null; // Porcentaje de descuento
-  precio3Cuotas?: number | null;
 }
 
 export const ProductCardBadges: React.FC<ProductCardBadgesProps> = ({
   destacado = false,
   descuento = null,
-  precio3Cuotas = null,
 }) => {
   return (
     <>
@@ -32,13 +29,6 @@ export const ProductCardBadges: React.FC<ProductCardBadgesProps> = ({
         {descuento && descuento > 0 && (
           <div className="px-2 py-1 rounded-md text-xs font-bold shadow-lg" style={{ backgroundColor: 'var(--red)', color: 'var(--white)' }}>
             -{descuento}% transfer
-          </div>
-        )}
-
-        {/* Badge 3 Cuotas - Alineado con el nombre, sobre la imagen */}
-        {precio3Cuotas && (
-          <div className="px-2 py-1 rounded-md text-xs font-semibold shadow-lg" style={{ backgroundColor: 'var(--gray-medium)', color: 'var(--white)' }}>
-            3x {formatPrice(precio3Cuotas)}
           </div>
         )}
       </div>

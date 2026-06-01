@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { useCart } from '@/app/components/hooks/useCart';
 
 interface UseBordadoOptions {
@@ -40,10 +41,18 @@ export function useBordado({ cartItem, handleBordadoChange }: UseBordadoOptions)
   }, [itemCount, cartItem, bordado, handleBordadoChange]);
 
   const handleBordadoToggle = (value: boolean) => {
-    if (canActivateBordado) {
-      setBordado(value);
-      handleBordadoChange(value);
+    if (!canActivateBordado && value) {
+      toast.error(
+        itemsNeeded > 0
+          ? `Agregá ${itemsNeeded} ${itemsNeeded === 1 ? 'prenda más' : 'prendas más'} al carrito para activar bordado (${itemCount}/5)`
+          : `Necesitás mínimo 5 prendas en el carrito para activar bordado (${itemCount}/5)`,
+        { duration: 4500 },
+      );
+      return;
     }
+
+    setBordado(value);
+    handleBordadoChange(value);
   };
 
   return {

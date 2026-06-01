@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
-import Button from '@/components/ui/Button';
+import { cn } from '@/lib/utils';
 
 interface PaginationProps {
     currentPage: number;
@@ -27,36 +27,29 @@ const Pagination: React.FC<PaginationProps> = ({
         const maxVisiblePages = 7;
 
         if (totalPages <= maxVisiblePages) {
-            // Mostrar todas las páginas si son pocas
             for (let i = 1; i <= totalPages; i++) {
                 pages.push(i);
             }
-        } else {
-            // Lógica para páginas con ellipsis
-            if (currentPage <= 4) {
-                // Cerca del inicio
-                for (let i = 1; i <= 5; i++) {
-                    pages.push(i);
-                }
-                pages.push('ellipsis');
-                pages.push(totalPages);
-            } else if (currentPage >= totalPages - 3) {
-                // Cerca del final
-                pages.push(1);
-                pages.push('ellipsis');
-                for (let i = totalPages - 4; i <= totalPages; i++) {
-                    pages.push(i);
-                }
-            } else {
-                // En el medio
-                pages.push(1);
-                pages.push('ellipsis');
-                for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-                    pages.push(i);
-                }
-                pages.push('ellipsis');
-                pages.push(totalPages);
+        } else if (currentPage <= 4) {
+            for (let i = 1; i <= 5; i++) {
+                pages.push(i);
             }
+            pages.push('ellipsis');
+            pages.push(totalPages);
+        } else if (currentPage >= totalPages - 3) {
+            pages.push(1);
+            pages.push('ellipsis');
+            for (let i = totalPages - 4; i <= totalPages; i++) {
+                pages.push(i);
+            }
+        } else {
+            pages.push(1);
+            pages.push('ellipsis');
+            for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                pages.push(i);
+            }
+            pages.push('ellipsis');
+            pages.push(totalPages);
         }
 
         return pages;
@@ -71,81 +64,78 @@ const Pagination: React.FC<PaginationProps> = ({
             transition={{ duration: 0.6 }}
             className="mt-6 sm:mt-12"
         >
-            {/* Información de resultados */}
             <div className="text-center mb-3 sm:mb-6">
-                <p className="text-xs sm:text-sm text-gray-600">
-                    Mostrando <span className="font-semibold text-gray-900">{showingFrom}</span> a{' '}
-                    <span className="font-semibold text-gray-900">{showingTo}</span> de{' '}
-                    <span className="font-semibold text-gray-900">{totalProducts}</span> productos
+                <p className="text-xs sm:text-sm text-gray-500">
+                    Mostrando <span className="text-gray-900">{showingFrom}</span> a{' '}
+                    <span className="text-gray-900">{showingTo}</span> de{' '}
+                    <span className="text-gray-900">{totalProducts}</span> productos
                 </p>
             </div>
 
-            {/* Controles de paginación */}
-            <div className="flex items-center justify-center space-x-1 sm:space-x-2">
-                {/* Botón anterior */}
-                <Button
-                    variant="grayOutline"
-                    size="sm"
+            <div className="flex items-center justify-center gap-3 sm:gap-4">
+                <button
+                    type="button"
+                    aria-label="P?gina anterior"
                     onClick={() => onPageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-3"
+                    className="p-1 text-gray-500 transition-colors hover:text-gray-900 disabled:pointer-events-none disabled:opacity-30"
                 >
-                    <ChevronLeft size={12} />
-                    <span className="hidden sm:inline">Anterior</span>
-                </Button>
+                    <ChevronLeft className="h-5 w-5" />
+                </button>
 
-                {/* Números de página */}
-                <div className="flex items-center space-x-0.5 sm:space-x-1">
-                    {visiblePages.map((page, index) => (
-                        <React.Fragment key={index}>
-                            {page === 'ellipsis' ? (
-                                <div className="flex items-center justify-center w-7 h-7 sm:w-10 sm:h-10">
-                                    <MoreHorizontal size={12} className="text-gray-400" />
-                                </div>
-                            ) : (
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={() => onPageChange(page)}
-                                    className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${currentPage === page
-                                            ? 'bg-gray-900 text-white shadow-lg'
-                                            : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-gray-300'
-                                        }`}
-                                >
-                                    {page}
-                                </motion.button>
-                            )}
-                        </React.Fragment>
-                    ))}
+                <div className="flex items-center gap-0.5 sm:gap-1">
+                    {visiblePages.map((page, index) =>
+                        page === 'ellipsis' ? (
+                            <span
+                                key={`ellipsis-${index}`}
+                                className="flex h-8 w-8 items-center justify-center"
+                                aria-hidden
+                            >
+                                <MoreHorizontal className="h-4 w-4 text-gray-300" />
+                            </span>
+                        ) : (
+                            <button
+                                key={page}
+                                type="button"
+                                onClick={() => onPageChange(page)}
+                                aria-current={currentPage === page ? 'page' : undefined}
+                                className={cn(
+                                    'min-w-8 h-8 px-1 text-xs sm:text-sm transition-colors',
+                                    currentPage === page
+                                        ? 'font-semibold text-gray-900'
+                                        : 'text-gray-500 hover:text-gray-800'
+                                )}
+                            >
+                                {page}
+                            </button>
+                        )
+                    )}
                 </div>
 
-                {/* Botón siguiente */}
-                <Button
-                    variant="grayOutline"
-                    size="sm"
+                <button
+                    type="button"
+                    aria-label="P?gina siguiente"
                     onClick={() => onPageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-3"
+                    className="p-1 text-gray-500 transition-colors hover:text-gray-900 disabled:pointer-events-none disabled:opacity-30"
                 >
-                    <span className="hidden sm:inline">Siguiente</span>
-                    <ChevronRight size={12} />
-                </Button>
+                    <ChevronRight className="h-5 w-5" />
+                </button>
             </div>
 
-            {/* Navegación rápida (móvil) */}
-            <div className="mt-3 sm:mt-4 flex items-center justify-center space-x-2 sm:space-x-4 sm:hidden">
+            <div className="mt-3 flex items-center justify-center gap-2 sm:hidden">
                 <select
                     value={currentPage}
-                    onChange={(e) => onPageChange(parseInt(e.target.value))}
-                    className="px-2 py-1.5 text-xs border border-gray-200 rounded-lg bg-white text-gray-900 focus:border-gray-500 outline-none"
+                    onChange={(e) => onPageChange(parseInt(e.target.value, 10))}
+                    className="border-0 border-b border-gray-300 bg-transparent py-1 text-xs text-gray-900 outline-none focus:border-gray-500"
                 >
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                         <option key={page} value={page}>
-                            Página {page}
+                            P?gina {page}
                         </option>
                     ))}
                 </select>
-                <span className="text-xs text-gray-600">de {totalPages}</span>
+                <span className="text-xs text-gray-500">de {totalPages}</span>
             </div>
         </motion.div>
     );

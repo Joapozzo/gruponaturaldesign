@@ -22,7 +22,7 @@ export function CheckoutCartItem({
   canAddMore,
   maxReached,
 }: Props) {
-  const { product, quantity, subtotal } = item;
+  const { product, quantity, subtotal, especificaciones, bordado = false } = item;
 
   return (
     <motion.div
@@ -46,9 +46,31 @@ export function CheckoutCartItem({
 
         <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold text-black text-sm sm:text-base leading-snug line-clamp-2 pr-6">
-              {product.nombre}
-            </h3>
+            <div className="flex-1 min-w-0 pr-6">
+              <h3 className="font-semibold text-black text-sm sm:text-base leading-snug line-clamp-2">
+                {product.nombre}
+              </h3>
+              {product.categoria ? (
+                <p className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wide mt-0.5">
+                  {product.categoria}
+                </p>
+              ) : null}
+              {especificaciones ? (
+                <p className="text-[10px] sm:text-xs text-gray-600 mt-1 line-clamp-2">
+                  {especificaciones}
+                </p>
+              ) : null}
+              {product.codigo ? (
+                <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">
+                  Código: {product.codigo}
+                </p>
+              ) : null}
+              {bordado ? (
+                <p className="text-[10px] sm:text-xs text-red-600 font-semibold mt-0.5">
+                  Bordado: SÍ
+                </p>
+              ) : null}
+            </div>
             <button
               type="button"
               onClick={() => onRemove(product.id)}
@@ -60,9 +82,14 @@ export function CheckoutCartItem({
           </div>
 
           <div className="flex items-end justify-between gap-2 mt-2">
-            <p className="text-sm sm:text-base font-bold text-black">
-              {formatPrice(subtotal)}
-            </p>
+            <div>
+              <p className="text-sm sm:text-base font-bold text-black tabular-nums">
+                {formatPrice(subtotal)}
+              </p>
+              <p className="text-[10px] sm:text-xs text-gray-500 tabular-nums">
+                {formatPrice(product.precioLista)} c/u
+              </p>
+            </div>
             <QuantityControlsUI
               quantity={quantity}
               onIncrement={() => onQuantityChange(product.id, quantity + 1)}

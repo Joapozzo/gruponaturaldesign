@@ -96,9 +96,11 @@ class SyncService {
    * @param onProgress - Callback opcional para recibir progreso de la sincronización
    */
   async syncProductos(
-    onProgress?: (progress: SyncProgress) => void
+    onProgress?: (progress: SyncProgress) => void,
+    options?: { forceReprocess?: boolean }
   ): Promise<ProductosSyncResult> {
-    const endpoint = `/sync/productos`;
+    const qs = options?.forceReprocess ? '?forceReprocess=true' : '';
+    const endpoint = `/sync/productos${qs}`;
     
     try {
       // Notificar inicio

@@ -4,13 +4,15 @@ import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
+import type { CartItem } from '@/app/types/cart';
+import { formatPrice } from '@/app/utils/productHelpers';
 
 interface CartDrawerFooterProps {
     isEmpty: boolean;
+    items: CartItem[];
     itemCount: number;
     subtotal: number;
-    totalLista: number;
-    totalTransfer: number;
+    subtotalTransfer: number;
     isInCheckout: boolean;
     isWholesaleLimitReached: boolean;
     bordadoMinItems: number;
@@ -26,10 +28,10 @@ interface CartDrawerFooterProps {
 
 export const CartDrawerFooter: React.FC<CartDrawerFooterProps> = ({
     isEmpty,
+    items,
     itemCount,
     subtotal,
-    totalLista,
-    totalTransfer,
+    subtotalTransfer,
     isInCheckout,
     isWholesaleLimitReached,
     bordadoMinItems,
@@ -56,19 +58,36 @@ export const CartDrawerFooter: React.FC<CartDrawerFooterProps> = ({
                 </div>
             )}
 
+            {/* Desglose por producto */}
+            {items.length > 0 && (
+                <div className="space-y-1 max-h-28 overflow-y-auto">
+                    {items.map((item, index) => (
+                        <div
+                            key={`${item.product.id}-${item.especificaciones ?? index}`}
+                            className="flex justify-between gap-2 text-[11px] text-gray-600"
+                        >
+                            <span className="truncate">
+                                {item.quantity}x {item.product.nombre}
+                            </span>
+                            <span className="shrink-0 tabular-nums text-gray-700">
+                                {formatPrice(item.subtotal)}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            )}
+
             {/* Resumen de precios */}
-            <div className="space-y-1">
-                <div className="flex justify-between text-gray-500 text-xs">
-                    <span>Subtotal sin impuestos</span>
-                    <span>${subtotal.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
-                </div>
-                <div className="flex justify-between text-gray-600 text-xs pt-1 border-t border-gray-200">
-                    <span>Total con transferencia</span>
-                    <span>${totalTransfer.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
-                </div>
-                <div className="flex justify-between text-base font-bold text-black pt-2 border-t border-gray-300">
-                    <span className="tracking-wide">TOTAL</span>
-                    <span>${totalLista.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+            <div className="space-y-1 pt-1 border-t border-gray-200">
+                {subtotalTransfer > 0 && subtotalTransfer < subtotal && (
+                    <div className="flex justify-between items-baseline gap-2 text-[11px] text-[#Ed3237] pb-1">
+                        <span className="font-medium">Con transferencia</span>
+                        <span className="font-semibold tabular-nums">{formatPrice(subtotalTransfer)}</span>
+                    </div>
+                )}
+                <div className="flex justify-between items-baseline text-base font-bold text-black pt-1 border-t border-gray-300">
+                    <span className="tracking-wide text-sm">Total sin imp.</span>
+                    <span className="tabular-nums">{formatPrice(subtotal)}</span>
                 </div>
             </div>
 

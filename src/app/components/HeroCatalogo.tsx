@@ -25,7 +25,7 @@ const HeroCatalogo = ({ productCount = 0, isLoading = false }: HeroCatalogoProps
             <div className="absolute inset-0 w-full h-full">
                 <div
                     className="absolute inset-0 w-full h-full bg-cover bg-top bg-no-repeat"
-                    style={{ backgroundImage: "url('/imgs/Hero-3.jpg')" }}
+                    style={{ backgroundImage: "url('/imgs/hero-3.jpg')" }}
                 />
                 <div className="absolute inset-0 bg-black/50"></div>
             </div>

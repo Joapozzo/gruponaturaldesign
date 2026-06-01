@@ -4,7 +4,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { Check, Eye, RefreshCw, Search, X } from 'lucide-react';
+import { Check, Eye, RefreshCw, X } from 'lucide-react';
+import { TableSearchInput } from '@/app/components/admin/TableSearchInput';
 import { Badge } from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -90,9 +91,9 @@ export function PedidosTableClient() {
   const {
     page,
     limit: rawLimit,
-    searchInput,
+    searchParam,
     debouncedSearch,
-    setSearchInput,
+    commitSearch,
     setPage,
     setLimit,
     clearSearch,
@@ -392,24 +393,14 @@ export function PedidosTableClient() {
           <div className="flex flex-col gap-1 flex-1 min-w-[200px] max-w-md">
             <span className="text-xs font-medium text-neutral-600">Buscar</span>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-              <input
-                type="text"
-                value={searchInput}
+              <TableSearchInput
+                value={searchParam}
+                onDebouncedChange={commitSearch}
+                onClear={clearSearch}
                 placeholder="ID, cliente, email, WEB-, PE-..."
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="h-9 w-full pl-9 pr-9 border border-neutral-300 px-2 text-sm outline-none focus:border-black rounded-md"
+                showClearButton
+                inputClassName="h-9 w-full pl-9 pr-9 border border-neutral-300 px-2 text-sm outline-none focus:border-black rounded-md"
               />
-              {searchInput ? (
-                <button
-                  type="button"
-                  onClick={clearSearch}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-neutral-500 hover:text-black"
-                  aria-label="Limpiar búsqueda"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              ) : null}
             </div>
           </div>
 

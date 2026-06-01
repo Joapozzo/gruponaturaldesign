@@ -30,9 +30,12 @@ const ProductCardPublicado: React.FC<ProductCardPublicadoProps> = ({
   const {
     showSelectors,
     hasExplicitSelection,
+    needsVariantSelection,
     handleAddToCartClick,
     handleCancel,
-    handleShowSelectors,
+    handleColorChange,
+    handleTalleChange,
+    handleVariantChange,
     selection,
     cart,
     images,
@@ -49,7 +52,6 @@ const ProductCardPublicado: React.FC<ProductCardPublicadoProps> = ({
   const discount = useProductDiscount({
     precioLista: producto?.precioLista || null,
     precioTransfer: producto?.precioTransfer || null,
-    precio3Cuotas: producto?.precio3Cuotas || null,
   });
 
   // Validaciones
@@ -84,7 +86,7 @@ const ProductCardPublicado: React.FC<ProductCardPublicadoProps> = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: index * 0.05 }}
-        className="relative h-full flex flex-col bg-white transition-all duration-300 font-sans !border-0 !border-transparent outline-none ring-0 !shadow-none [border:0] [box-shadow:none]"
+        className="relative flex flex-col bg-white transition-all duration-300 font-sans !border-0 !border-transparent outline-none ring-0 !shadow-none [border:0] [box-shadow:none]"
       >
         {/* Imagen del producto: overlay sobre toda el área (incl. badges); si agotado no mostramos badges */}
         <div onClick={handlers.handleProductClick} className="cursor-pointer relative flex-shrink-0">
@@ -102,7 +104,6 @@ const ProductCardPublicado: React.FC<ProductCardPublicadoProps> = ({
             <ProductCardBadges
               destacado={producto.destacado}
               descuento={discount.descuento}
-              precio3Cuotas={discount.precio3Cuotas}
             />
           )}
 
@@ -119,35 +120,18 @@ const ProductCardPublicado: React.FC<ProductCardPublicadoProps> = ({
           )}
         </div>
 
-        {/* Contenido: mismo alto en todas las cards (flex-1 + min-h); al desplegar selectores crece */}
-        <div className="flex-1 flex flex-col min-h-[200px] p-4">
+        {/* Contenido: altura mínima fija para alinear botones; crece solo al desplegar selectores */}
+        <div className="flex flex-col min-h-[7.5rem] p-4">
           {/* Header (nombre y precio) - Minimalista */}
           <ProductCardHeader
             nombre={producto.nombre || ''}
             precioLista={producto.precioLista || null}
-            precioTransfer={producto.precioTransfer || null}
-            precioSinImp={producto.precioSinImp || null}
             onClick={handlers.handleProductClick}
           />
 
-          {/* Cantidad de colores/talles: mostrar si hay opciones y el producto tiene stock en alguna variante (permite elegir otra) */}
-          {!showSelectors && !isProductOutOfStock && selection.availableColors.length > 0 && (
-            <div className="mb-2">
-              <span
-                className="text-xs text-gray-500 underline cursor-pointer hover:text-gray-700 transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleShowSelectors();
-                }}
-              >
-                {selection.availableColors.length} {selection.availableColors.length === 1 ? 'color' : 'colores'}
-              </span>
-            </div>
-          )}
-
-          {/* Selectores (solo cuando showSelectors es true) - Con animación */}
+          {/* Selectores (solo al agregar al carrito con múltiples opciones) */}
           <AnimatePresence>
-            {showSelectors && producto.variantes.length > 1 && (
+            {showSelectors && needsVariantSelection && (
               <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
@@ -166,15 +150,15 @@ const ProductCardPublicado: React.FC<ProductCardPublicadoProps> = ({
                   selectedTalle={selection.selectedTalle}
                   variants={producto.variantes}
                   variantStock={handlers.variantStock}
-                  onColorChange={selection.setSelectedColor}
-                  onTalleChange={selection.setSelectedTalle}
-                  onVariantChange={handlers.handleVariantChange}
+                  onColorChange={handleColorChange}
+                  onTalleChange={handleTalleChange}
+                  onVariantChange={handleVariantChange}
                 />
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Acciones (carrito, cantidad, bordado) - pegadas al fondo; botón a ancho completo de la card sin padding */}
+          {/* Acciones (carrito, cantidad, bordado) */}
           <div className="mt-auto pt-2 -mx-4">
             <ProductCardActions
               selectedVariant={selection.selectedVariant}

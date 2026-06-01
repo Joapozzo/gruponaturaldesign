@@ -37,7 +37,7 @@ const Categorias = () => {
 
                 {/* Categorías Grid - 100vh, mismo gap que DesignHero */}
                 <div className="w-full px-4 lg:px-15 h-screen">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full min-h-0">
+                    <div className="grid grid-cols-1 grid-rows-2 lg:grid-cols-2 lg:grid-rows-1 gap-2 h-full min-h-0">
                         {categorias.map((categoria, index) => (
                             <motion.div
                                 key={categoria.id}
@@ -45,13 +45,13 @@ const Categorias = () => {
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 transition={{ duration: 0.8, delay: index * 0.2 }}
                                 viewport={{ once: true }}
-                                className="group relative overflow-hidden cursor-pointer"
+                                className="group relative h-full min-h-0 overflow-hidden cursor-pointer"
                                 onMouseEnter={() => setHoveredCategory(categoria.id)}
                                 onMouseLeave={() => setHoveredCategory(null)}
                                 onClick={() => handleCategoryClick(categoria.route)}
                             >
                                 {/* Imagen de fondo - Más alta/rectangular */}
-                                <div className="relative h-full min-h-[300px] w-full overflow-hidden">
+                                <div className="relative h-full w-full overflow-hidden">
                                     <motion.img
                                         src={categoria.imagen}
                                         alt={categoria.nombre}

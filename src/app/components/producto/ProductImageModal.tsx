@@ -75,7 +75,7 @@ export default function ProductImageModal({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+                    className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4"
                     onClick={onClose}
                 >
                     <motion.div
@@ -85,32 +85,40 @@ export default function ProductImageModal({
                         className="relative w-full h-full max-w-7xl flex items-center justify-center"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {images.length > 0 && images[currentImageIndex] && !imageError ? (
-                            <Image
-                                src={images[currentImageIndex]}
-                                alt={`${productName} - Imagen expandida`}
-                                className="w-auto h-auto max-w-full max-h-[calc(100vh-2rem)] object-contain rounded-lg"
-                                width={1200}
-                                height={1200}
-                                unoptimized={true}
-                                onError={() => {
-                                    setImageError(true);
-                                }}
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-lg">
-                                <Package className="w-24 h-24 text-gray-400" />
-                            </div>
-                        )}
+                        <div className="relative inline-flex max-w-full max-h-[calc(100vh-2rem)]">
+                            {images.length > 0 && images[currentImageIndex] && !imageError ? (
+                                <Image
+                                    src={images[currentImageIndex]}
+                                    alt={`${productName} - Imagen expandida`}
+                                    className="w-auto h-auto max-w-full max-h-[calc(100vh-2rem)] object-contain rounded-lg"
+                                    width={1200}
+                                    height={1200}
+                                    unoptimized={true}
+                                    onError={() => {
+                                        setImageError(true);
+                                    }}
+                                />
+                            ) : (
+                                <div className="w-64 h-64 sm:w-80 sm:h-80 flex items-center justify-center bg-gray-200 rounded-lg">
+                                    <Package className="w-24 h-24 text-gray-400" />
+                                </div>
+                            )}
 
-                        {/* Botón cerrar */}
-                        <button
-                            onClick={onClose}
-                            className="absolute top-4 right-4 w-10 h-10 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors z-10"
-                            aria-label="Cerrar"
-                        >
-                            <X size={20} />
-                        </button>
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="absolute top-2 right-2 w-10 h-10 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors z-20"
+                                aria-label="Cerrar"
+                            >
+                                <X size={20} />
+                            </button>
+
+                            {hasMultipleImages && (
+                                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/70 text-white px-3 py-1.5 rounded-lg text-xs z-20 pointer-events-none">
+                                    {currentImageIndex + 1} de {images.length}
+                                </div>
+                            )}
+                        </div>
 
                         {/* Botón anterior */}
                         {hasMultipleImages && onPrev && (
@@ -138,15 +146,6 @@ export default function ProductImageModal({
                             >
                                 <ChevronRight size={24} />
                             </button>
-                        )}
-
-                        {/* Información de la imagen */}
-                        {hasMultipleImages && (
-                            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-lg text-sm z-10">
-                                <p className="text-xs text-gray-300">
-                                    {currentImageIndex + 1} de {images.length}
-                                </p>
-                            </div>
                         )}
 
                         {/* Áreas táctiles para navegación en móvil - izquierda y derecha */}

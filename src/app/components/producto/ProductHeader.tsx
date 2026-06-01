@@ -16,13 +16,13 @@ export default function ProductHeader({ groupedProduct, displayProduct }: Produc
     // const router = useRouter();
 
     return (
-        <div className="w-full pt-10 sm:pt-12 md:pt-14 relative">
+        <div className="w-full relative pt-3 sm:pt-4 lg:pt-5">
             <div className="w-full px-4 lg:px-15">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
-                    className="flex flex-col gap-3 py-1.5 sm:py-2"
+                    className="flex flex-col gap-1 pb-1 sm:pb-1.5"
                 >
                     {/* Flecha Volver arriba del breadcrumb */}
                     {/* <div className="flex justify-start">

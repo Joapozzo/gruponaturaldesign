@@ -24,8 +24,11 @@ interface ProductosFiltersProps {
  */
 export function ProductosFilters({ filters, disabled = false, hasSearchTerm = false, onClearFilters }: ProductosFiltersProps) {
   const handleClearFilters = () => {
-    filters.clearFilters();
-    onClearFilters?.();
+    if (onClearFilters) {
+      onClearFilters();
+    } else {
+      filters.clearFilters();
+    }
   };
 
   const showClearButton = filters.hasActiveFilters || hasSearchTerm;

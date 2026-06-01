@@ -25,11 +25,15 @@ interface UseProductCardPublicadoReturn {
   showSelectors: boolean;
   hasExplicitSelection: boolean;
   isExpanded: boolean;
+  needsVariantSelection: boolean;
   
   // Handlers
   handleAddToCartClick: () => Promise<void>;
   handleCancel: () => void;
   handleShowSelectors: () => void;
+  handleColorChange: (color: string) => void;
+  handleTalleChange: (talle: string) => void;
+  handleVariantChange: (codigo: string) => void;
   
   // Selección
   selection: ReturnType<typeof useProductCardSelection>;
@@ -95,21 +99,32 @@ export function useProductCardPublicado({
     setSelectedTalle: selection.setSelectedTalle,
   });
 
-  // Marcar como selección explícita cuando el usuario cambia color o talle (solo cuando está expandido)
-  useEffect(() => {
-    if (showSelectors && (selection.selectedColor || selection.selectedTalle)) {
-      setHasExplicitSelection(true);
-    }
-  }, [selection.selectedColor, selection.selectedTalle, showSelectors]);
+  const handleColorChange = (color: string) => {
+    selection.setSelectedColor(color);
+    setHasExplicitSelection(true);
+  };
+
+  const handleTalleChange = (talle: string) => {
+    selection.setSelectedTalle(talle);
+    setHasExplicitSelection(true);
+  };
+
+  const handleVariantChange = (codigo: string) => {
+    handlers.handleVariantChange(codigo);
+    setHasExplicitSelection(true);
+  };
 
   // Al colapsar, resetear selección explícita
   useEffect(() => {
     if (!showSelectors) setHasExplicitSelection(false);
   }, [showSelectors]);
 
+  const needsVariantSelection =
+    selection.availableColors.length > 1 || selection.availableTalles.length > 1;
+
   // Handler para mostrar selectores: notificar al padre con clave única (solo uno expandido a la vez)
   const handleShowSelectors = () => {
-    if (producto.variantes && producto.variantes.length > 1) {
+    if (needsVariantSelection) {
       if (onExpandChange) onExpandChange(expansionKey ?? producto.codigoAgrupacion ?? null);
       else setLocalShowSelectors(true);
     }
@@ -117,7 +132,7 @@ export function useProductCardPublicado({
 
   // Handler para agregar al carrito con despliegue de selectores
   const handleAddToCartClick = async () => {
-    if (producto.variantes && producto.variantes.length > 1 && !showSelectors) {
+    if (needsVariantSelection && !showSelectors) {
       if (onExpandChange) onExpandChange(expansionKey ?? producto.codigoAgrupacion ?? null);
       else setLocalShowSelectors(true);
       return;
@@ -145,9 +160,13 @@ export function useProductCardPublicado({
     showSelectors,
     hasExplicitSelection,
     isExpanded,
+    needsVariantSelection,
     handleAddToCartClick,
     handleCancel,
     handleShowSelectors,
+    handleColorChange,
+    handleTalleChange,
+    handleVariantChange,
     selection,
     cart,
     images,

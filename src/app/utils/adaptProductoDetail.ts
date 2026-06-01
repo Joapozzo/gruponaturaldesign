@@ -5,6 +5,71 @@
 import type { ProductoPadreConVariantes } from '../types/producto-detail.types';
 import type { GroupedProduct, ProductWithImage, ProductVariant } from '../types/producto';
 import { normalizeImageUrl } from './normalizeImageUrl';
+import { filterImagesByColor } from './productHelpers';
+
+function collectPadreImagenes(productoPadre: ProductoPadreConVariantes): string[] {
+  const urls: string[] = [];
+  if (productoPadre.imagenes && typeof productoPadre.imagenes === 'object') {
+    const imagenesArray = Array.isArray(productoPadre.imagenes)
+      ? productoPadre.imagenes
+      : Object.values(productoPadre.imagenes);
+    for (const img of imagenesArray) {
+      if (typeof img === 'string') {
+        const normalized = normalizeImageUrl(img);
+        if (normalized && !urls.includes(normalized)) {
+          urls.push(normalized);
+        }
+      }
+    }
+  }
+  return urls;
+}
+
+/** Imágenes de un color: variantes del mismo color + padre filtrado por slug en path. */
+function getImagenesForColor(
+  productoPadre: ProductoPadreConVariantes,
+  color: string | null | undefined,
+  padreImagenes: string[],
+): string[] {
+  if (!color) return [];
+
+  const seen = new Set<string>();
+  const result: string[] = [];
+  const colorLower = color.toLowerCase();
+
+  const add = (url: string | null | undefined) => {
+    const normalized = normalizeImageUrl(url);
+    if (normalized && !seen.has(normalized)) {
+      seen.add(normalized);
+      result.push(normalized);
+    }
+  };
+
+  for (const variante of productoPadre.productosWeb ?? []) {
+    if (variante.color?.toLowerCase() !== colorLower) continue;
+
+    if (variante.imagenVariante) {
+      add(variante.imagenVariante);
+    }
+
+    for (const img of variante.imagenes ?? []) {
+      if (!img.imagenUrl) continue;
+      if (!img.color || img.color.toLowerCase() === colorLower) {
+        add(img.imagenUrl);
+      }
+    }
+  }
+
+  for (const url of filterImagesByColor(padreImagenes, color)) {
+    add(url);
+  }
+
+  return result.sort((a, b) => {
+    const numA = parseInt(a.match(/-(\d+)\./)?.[1] || '0', 10);
+    const numB = parseInt(b.match(/-(\d+)\./)?.[1] || '0', 10);
+    return numA - numB;
+  });
+}
 
 /**
  * Adapta ProductoPadreConVariantes del backend a GroupedProduct del frontend
@@ -14,19 +79,10 @@ export function adaptProductoPadreToGroupedProduct(
 ): GroupedProduct {
   // Obtener la primera variante para el displayProduct
   const primeraVariante = productoPadre.productosWeb?.[0];
+  const padreImagenes = collectPadreImagenes(productoPadre);
   
   // Obtener todas las imágenes de todas las variantes (normalizadas)
-  const todasLasImagenes: string[] = [];
-  if (productoPadre.imagenes && typeof productoPadre.imagenes === 'object') {
-    const imagenesArray = Array.isArray(productoPadre.imagenes)
-      ? productoPadre.imagenes
-      : Object.values(productoPadre.imagenes);
-    const imagenesNormalizadas = imagenesArray
-      .filter((img): img is string => typeof img === 'string')
-      .map(normalizeImageUrl)
-      .filter((img): img is string => !!img);
-    todasLasImagenes.push(...imagenesNormalizadas);
-  }
+  const todasLasImagenes: string[] = [...padreImagenes];
   
   // Agregar imágenes de variantes (normalizadas)
   productoPadre.productosWeb?.forEach((variante) => {
@@ -134,20 +190,8 @@ export function adaptProductoPadreToGroupedProduct(
       ? Number(precioVariante.precioLista)
       : (variante.precioCache ? Number(variante.precioCache) : precioVenta);
 
-    // Obtener imágenes de esta variante (normalizadas)
-    const imagenesVariante: string[] = [];
-    if (variante.imagenVariante) {
-      const normalized = normalizeImageUrl(variante.imagenVariante);
-      if (normalized) imagenesVariante.push(normalized);
-    }
-    variante.imagenes?.forEach((img) => {
-      if (img.imagenUrl) {
-        const normalized = normalizeImageUrl(img.imagenUrl);
-        if (normalized && !imagenesVariante.includes(normalized)) {
-          imagenesVariante.push(normalized);
-        }
-      }
-    });
+    // Imágenes del color (compartidas entre talles), no solo de esta fila
+    const imagenesVariante = getImagenesForColor(productoPadre, variante.color, padreImagenes);
 
     // Crear ProductWithImage para esta variante
     const variantProduct: ProductWithImage = {
@@ -156,8 +200,8 @@ export function adaptProductoPadreToGroupedProduct(
       Descripcion: variante.descripcionCompleta || variante.nombre || displayProduct.Descripcion,
       PrecioVenta: precio,
       Barcode: variante.sfactoryBarcode || null,
-      imagen: imagenesVariante[0] || displayProduct.imagen,
-      imagenes: imagenesVariante.length > 0 ? imagenesVariante : displayProduct.imagenes,
+      imagen: imagenesVariante[0] ?? null,
+      imagenes: imagenesVariante,
       precioTransfer: precioVariante?.precioTransfer ? Number(precioVariante.precioTransfer) : displayProduct.precioTransfer,
       precioSImp: precioVariante?.precioSinImp ? Number(precioVariante.precioSinImp) : displayProduct.precioSImp,
       precio3cuotas: precioVariante?.precioFinanciado ? Number(precioVariante.precioFinanciado) : displayProduct.precio3cuotas,
@@ -176,14 +220,25 @@ export function adaptProductoPadreToGroupedProduct(
     };
   });
 
-  // Obtener colores y talles únicos
+  // Colores con al menos una variante con stock
   const availableColors = Array.from(
+    new Set(
+      (productoPadre.productosWeb || [])
+        .filter((v) => v.color && (v.stockCache ? Number(v.stockCache) : 0) > 0)
+        .map((v) => v.color as string)
+    )
+  ).sort();
+
+  // Si ninguno tiene stock, listar todos los colores existentes (producto agotado)
+  const allColors = Array.from(
     new Set(
       (productoPadre.productosWeb || [])
         .map((v) => v.color)
         .filter((c): c is string => !!c)
     )
   ).sort();
+
+  const colorsForSelector = availableColors.length > 0 ? availableColors : allColors;
 
   const availableSizes = Array.from(
     new Set(
@@ -200,7 +255,7 @@ export function adaptProductoPadreToGroupedProduct(
     displayProduct,
     variants,
     totalVariants: variants.length,
-    availableColors: availableColors.length > 0 ? availableColors : undefined,
+    availableColors: colorsForSelector.length > 0 ? colorsForSelector : undefined,
     availableSizes: availableSizes.length > 0 ? availableSizes : undefined,
   };
 }

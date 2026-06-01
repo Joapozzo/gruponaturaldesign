@@ -39,27 +39,13 @@ const ProductCardSkeleton: React.FC<ProductCardSkeletonProps> = ({ index = 0 }) 
 
       {/* Contenido */}
       <div className="p-4">
-        {/* Header - Precios y nombre */}
+        {/* Header - Nombre y precio */}
         <div className="mb-2">
-          {/* Precio lista skeleton */}
-          <div className="mb-1 flex items-center gap-2">
-            <div className="h-3 w-16 bg-gray-200 rounded animate-pulse" />
-            <div className="h-4 w-20 bg-gray-300 rounded animate-pulse" />
-          </div>
-          
-          {/* Nombre skeleton - 2 líneas posibles */}
           <div className="mb-1">
             <div className="h-4 w-full bg-gray-300 rounded animate-pulse mb-1" />
             <div className="h-4 w-2/3 bg-gray-300 rounded animate-pulse" />
           </div>
-          
-          {/* Precio sin impuestos skeleton */}
-          <div className="h-3 w-3/4 bg-gray-200 rounded animate-pulse mt-1" />
-        </div>
-
-        {/* Cantidad de colores skeleton */}
-        <div className="mb-2">
-          <div className="h-3 w-20 bg-gray-200 rounded animate-pulse" />
+          <div className="h-5 w-20 bg-gray-300 rounded animate-pulse mt-1" />
         </div>
 
         {/* Acciones skeleton - Botón de agregar */}
