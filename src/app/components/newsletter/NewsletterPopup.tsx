@@ -59,15 +59,13 @@ export default function NewsletterPopup() {
       onClose={handleClose}
       size="md"
       showCloseButton
-      contentClassName="p-6"
+      title="¿Querés recibir novedades?"
+      contentClassName="p-6 pt-4"
     >
       <div className="space-y-5">
-        <div>
-          <h2 className="text-2xl font-bold text-black">¿Querés recibir novedades?</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Enterate primero de nuevos productos, promociones y lanzamientos de NTDS.
-          </p>
-        </div>
+        <p className="text-sm text-gray-600">
+          Enterate primero de nuevos productos, promociones y lanzamientos de NTDS.
+        </p>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <input

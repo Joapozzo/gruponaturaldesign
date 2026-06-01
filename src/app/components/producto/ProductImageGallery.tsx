@@ -196,12 +196,14 @@ export default function ProductImageGallery({
                 onClick={(e) => selectImage(img, index, e)}
                 className={`relative overflow-hidden ring-2 transition-all duration-200 cursor-pointer ${
                     isDesktop
-                        ? 'flex-1 min-h-0 w-full rounded-lg'
+                        ? 'flex-1 min-w-0 aspect-[3/4] rounded-lg'
                         : 'flex-1 aspect-[4/5] min-h-[80px] sm:min-h-[96px] rounded-lg'
                 } ${
                     isActive
                         ? 'ring-white scale-[1.02] shadow-lg'
-                        : 'ring-white/40 opacity-85 hover:opacity-100 hover:ring-white/70'
+                        : isDesktop
+                          ? 'ring-white/70 hover:ring-white'
+                          : 'ring-white/40 opacity-85 hover:opacity-100 hover:ring-white/70'
                 }`}
                 whileTap={{ scale: 0.98 }}
                 aria-label={`Ver imagen ${index + 1}`}
@@ -373,10 +375,10 @@ export default function ProductImageGallery({
                         )}
                     </div>
 
-                    {/* Desktop: columna de miniaturas alineada al piso del showroom (sin cambiar tamaño de la principal) */}
+                    {/* Desktop: fila de miniaturas alineada al piso del showroom (sin cambiar tamaño de la principal) */}
                     {hasMultiple && desktopThumbHeight != null && (
                         <div
-                            className="absolute left-3 z-30 hidden lg:flex w-[32%] max-w-[148px] flex-col gap-2 pointer-events-auto"
+                            className="absolute inset-x-0 z-30 hidden lg:flex flex-row items-end gap-2 px-3 pointer-events-auto"
                             style={{ top: DESKTOP_THUMB_TOP_PX, height: desktopThumbHeight }}
                         >
                             {thumbnailImages.map((img, index) =>
