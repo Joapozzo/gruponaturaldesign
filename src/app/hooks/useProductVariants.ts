@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { GroupedProduct, ProductVariant } from '@/app/types/producto';
 
@@ -50,6 +50,202 @@ function sortSizes(sizes: string[]): string[] {
 
 function hasStock(variant: ProductVariant): boolean {
     return (variant.stock ?? 0) > 0;
+}
+
+function hasVariantImages(variant: ProductVariant): boolean {
+    const imagenes =
+        variant.producto.imagenes?.filter(
+            (img) => img?.trim() && !img.includes('producto-placeholder'),
+        ) ?? [];
+    const imagen = variant.producto.imagen?.trim();
+    return (
+        imagenes.length > 0 ||
+        Boolean(imagen && !imagen.includes('producto-placeholder'))
+    );
+}
+
+function hasProductLevelImages(groupedProduct: GroupedProduct): boolean {
+    const imagenes =
+        groupedProduct.displayProduct.imagenes?.filter(
+            (img) => img?.trim() && !img.includes('producto-placeholder'),
+        ) ?? [];
+    const imagen = groupedProduct.displayProduct.imagen?.trim();
+    return (
+        imagenes.length > 0 ||
+        Boolean(imagen && !imagen.includes('producto-placeholder'))
+    );
+}
+
+function isValidSelectableVariant(
+    variant: ProductVariant,
+    requireStock: boolean,
+    groupedProduct?: GroupedProduct | null,
+): boolean {
+    const skipImageCheck =
+        groupedProduct != null &&
+        !productHasColors(groupedProduct) &&
+        hasProductLevelImages(groupedProduct);
+
+    if (!skipImageCheck && !hasVariantImages(variant)) return false;
+    if (requireStock && !hasStock(variant)) return false;
+    return true;
+}
+
+function getProductColors(groupedProduct: GroupedProduct): string[] {
+    return Array.from(
+        new Set(
+            groupedProduct.variants
+                .map((v) => v.color)
+                .filter((c): c is string => Boolean(c)),
+        ),
+    );
+}
+
+function productHasColors(groupedProduct: GroupedProduct): boolean {
+    const fromAvailable = groupedProduct.availableColors?.length ?? 0;
+    if (fromAvailable > 0) return true;
+    return getProductColors(groupedProduct).length > 0;
+}
+
+function colorsMatch(
+    variantColor: string | null | undefined,
+    selectedColor: string | null,
+): boolean {
+    if (selectedColor) {
+        return variantColor?.toLowerCase() === selectedColor.toLowerCase();
+    }
+    return variantColor == null || variantColor === '';
+}
+
+function getAllTalles(groupedProduct: GroupedProduct): string[] {
+    if (groupedProduct.availableSizes && groupedProduct.availableSizes.length > 0) {
+        return groupedProduct.availableSizes;
+    }
+    return Array.from(
+        new Set(
+            groupedProduct.variants
+                .map((v) => v.talle)
+                .filter((t): t is string => Boolean(t)),
+        ),
+    );
+}
+
+function findBestVariantForTalle(
+    groupedProduct: GroupedProduct,
+    talle: string,
+    selectedColor: string | null,
+    requireStock: boolean,
+): ProductVariant | undefined {
+    const matches = groupedProduct.variants.filter(
+        (v) => colorsMatch(v.color, selectedColor) && v.talle === talle,
+    );
+    if (matches.length === 0) return undefined;
+
+    const withStock = matches.filter((v) => !requireStock || hasStock(v));
+    const pool = withStock.length > 0 ? withStock : requireStock ? [] : matches;
+    if (pool.length === 0) return undefined;
+
+    return pool.reduce((best, v) => {
+        if ((v.stock ?? 0) > (best.stock ?? 0)) return v;
+        if ((v.stock ?? 0) < (best.stock ?? 0)) return best;
+        return (v.productoWebId ?? 0) > (best.productoWebId ?? 0) ? v : best;
+    });
+}
+
+function findDefaultForTalleOnlyProduct(
+    groupedProduct: GroupedProduct,
+    preferredTalle?: string | null,
+): { variant: ProductVariant; color: string | null; size: string | null } | null {
+    const talles = sortSizes(getAllTalles(groupedProduct));
+
+    if (preferredTalle) {
+        const exact = findBestVariantForTalle(groupedProduct, preferredTalle, null, true)
+            ?? findBestVariantForTalle(groupedProduct, preferredTalle, null, false);
+        if (exact) {
+            return { variant: exact, color: null, size: exact.talle ?? null };
+        }
+    }
+
+    for (const talle of talles) {
+        const v = findBestVariantForTalle(groupedProduct, talle, null, true);
+        if (v) return { variant: v, color: null, size: talle };
+    }
+
+    for (const talle of talles) {
+        const v = findBestVariantForTalle(groupedProduct, talle, null, false);
+        if (v) return { variant: v, color: null, size: talle };
+    }
+
+    return null;
+}
+
+function findBestSelectableVariantForColor(
+    groupedProduct: GroupedProduct,
+    color: string,
+    preferredTalle?: string | null,
+    requireStock = true,
+): ProductVariant | undefined {
+    const colorLower = color.toLowerCase();
+    const colorVariants = groupedProduct.variants.filter(
+        (v) => v.color?.toLowerCase() === colorLower,
+    );
+
+    if (preferredTalle) {
+        const exact = colorVariants.find(
+            (v) =>
+                v.talle?.toLowerCase() === preferredTalle.toLowerCase() &&
+                isValidSelectableVariant(v, requireStock, groupedProduct),
+        );
+        if (exact) return exact;
+    }
+
+    const sizes = sortSizes(
+        colorVariants
+            .filter((v) => !!v.talle && isValidSelectableVariant(v, requireStock, groupedProduct))
+            .map((v) => v.talle!)
+            .filter((talle, index, self) => self.indexOf(talle) === index),
+    );
+
+    for (const talle of sizes) {
+        const variant = colorVariants.find(
+            (v) => v.talle === talle && isValidSelectableVariant(v, requireStock, groupedProduct),
+        );
+        if (variant) return variant;
+    }
+
+    return colorVariants.find((v) => isValidSelectableVariant(v, requireStock, groupedProduct));
+}
+
+function findDefaultSelectableVariant(
+    groupedProduct: GroupedProduct,
+    preferredTalle?: string | null,
+): { variant: ProductVariant; color: string } | null {
+    const colors =
+        groupedProduct.availableColors && groupedProduct.availableColors.length > 0
+            ? groupedProduct.availableColors
+            : getProductColors(groupedProduct);
+
+    for (const color of colors) {
+        const variant = findBestSelectableVariantForColor(
+            groupedProduct,
+            color,
+            preferredTalle,
+            true,
+        );
+        if (variant) return { variant, color };
+    }
+
+    for (const color of colors) {
+        const variant = findBestSelectableVariantForColor(
+            groupedProduct,
+            color,
+            preferredTalle,
+            false,
+        );
+        if (variant) return { variant, color };
+    }
+
+    return null;
 }
 
 function buildProductUrl(color: string | null, talle: string | null, pathname: string): string {
@@ -112,7 +308,10 @@ function findBestVariantForColor(
         if (variant) return variant;
     }
 
-    return groupedProduct.variants.find((v) => v.color?.toLowerCase() === colorLower);
+    if (!requireStock) {
+        return groupedProduct.variants.find((v) => v.color?.toLowerCase() === colorLower);
+    }
+    return undefined;
 }
 
 function getInitialVariantFromProduct(
@@ -125,14 +324,19 @@ function getInitialVariantFromProduct(
 
     const urlColor = searchParams?.get('color') ?? null;
     const urlTalle = searchParams?.get('talle') ?? null;
-    const selectableColors = groupedProduct.availableColors ?? [];
+    const allColors = getProductColors(groupedProduct);
 
     if (urlColor) {
-        const matchingColor = selectableColors.find(
+        const matchingColor = allColors.find(
             (c) => c.toLowerCase() === urlColor.toLowerCase(),
         );
         if (matchingColor) {
-            const variant = findBestVariantForColor(groupedProduct, matchingColor, urlTalle);
+            const variant = findBestSelectableVariantForColor(
+                groupedProduct,
+                matchingColor,
+                urlTalle,
+                true,
+            );
             if (variant) {
                 return {
                     variant,
@@ -143,20 +347,24 @@ function getInitialVariantFromProduct(
         }
     }
 
-    for (const color of selectableColors) {
-        const variant = findBestVariantForColor(groupedProduct, color);
-        if (variant && hasStock(variant)) {
-            return {
-                variant,
-                color,
-                size: variant.talle || null,
-            };
-        }
+    if (!productHasColors(groupedProduct)) {
+        const tallePick = findDefaultForTalleOnlyProduct(groupedProduct, urlTalle);
+        if (tallePick) return tallePick;
     }
 
+    const defaultPick = findDefaultSelectableVariant(groupedProduct, urlTalle);
+    if (defaultPick) {
+        return {
+            variant: defaultPick.variant,
+            color: defaultPick.color,
+            size: defaultPick.variant.talle || null,
+        };
+    }
+
+    const selectableColors = groupedProduct.availableColors ?? allColors;
     const fallbackColor = selectableColors[0] ?? groupedProduct.variants[0]?.color;
     if (fallbackColor) {
-        const variant = findBestVariantForColor(groupedProduct, fallbackColor, null, false);
+        const variant = findBestVariantForColor(groupedProduct, fallbackColor, urlTalle, false);
         if (variant) {
             return {
                 variant,
@@ -166,7 +374,11 @@ function getInitialVariantFromProduct(
         }
     }
 
-    const firstVariant = groupedProduct.variants[0];
+    const talleOnlyFallback = findDefaultForTalleOnlyProduct(groupedProduct, urlTalle);
+    if (talleOnlyFallback) return talleOnlyFallback;
+
+    const firstWithStock = groupedProduct.variants.find((v) => hasStock(v));
+    const firstVariant = firstWithStock ?? groupedProduct.variants[0];
     return {
         variant: firstVariant,
         color: firstVariant.color || null,
@@ -224,15 +436,29 @@ export function useProductVariants(groupedProduct: GroupedProduct | null) {
         return sizes;
     };
 
-    const availableSizes = selectedColor ? getAvailableSizesForColor(selectedColor) : [];
-    const orderedAvailableSizes = sortSizes(availableSizes);
+    const hasColors = groupedProduct ? productHasColors(groupedProduct) : false;
+
+    const availableSizes = useMemo(() => {
+        if (!groupedProduct) return [];
+        if (selectedColor) return getAvailableSizesForColor(selectedColor);
+        if (!hasColors) return sortSizes(getAllTalles(groupedProduct));
+        return [];
+    }, [groupedProduct, selectedColor, hasColors]);
+
+    const orderedAvailableSizes = availableSizes;
 
     const handleColorSelect = (color: string) => {
         if (!groupedProduct) return;
 
-        const variantWithStock = findBestVariantForColor(groupedProduct, color);
-        const variantWithColor = variantWithStock
-            ?? findBestVariantForColor(groupedProduct, color, null, false);
+        const variantWithStock = findBestSelectableVariantForColor(
+            groupedProduct,
+            color,
+            selectedSize,
+            true,
+        );
+        const variantWithColor =
+            variantWithStock ??
+            findBestSelectableVariantForColor(groupedProduct, color, selectedSize, false);
 
         if (!variantWithColor) return;
 
@@ -243,12 +469,13 @@ export function useProductVariants(groupedProduct: GroupedProduct | null) {
     };
 
     const handleSizeSelect = (size: string) => {
-        if (!selectedColor || !groupedProduct) return;
+        if (!groupedProduct) return;
 
-        const variant = groupedProduct.variants.find(
-            (v) =>
-                v.color?.toLowerCase() === selectedColor.toLowerCase() &&
-                v.talle === size,
+        const variant = findBestVariantForTalle(
+            groupedProduct,
+            size,
+            selectedColor,
+            false,
         );
 
         if (variant) {
@@ -263,6 +490,7 @@ export function useProductVariants(groupedProduct: GroupedProduct | null) {
         selectedSize,
         selectedVariant,
         orderedAvailableSizes,
+        hasColors,
         handleColorSelect,
         handleSizeSelect,
     };

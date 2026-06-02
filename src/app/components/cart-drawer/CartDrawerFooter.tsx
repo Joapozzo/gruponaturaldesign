@@ -15,7 +15,6 @@ interface CartDrawerFooterProps {
     subtotalTransfer: number;
     isInCheckout: boolean;
     isWholesaleLimitReached: boolean;
-    bordadoMinItems: number;
     config: {
         WHOLESALE_ROUTE: string;
         SHOP_ROUTE: string;
@@ -34,7 +33,6 @@ export const CartDrawerFooter: React.FC<CartDrawerFooterProps> = ({
     subtotalTransfer,
     isInCheckout,
     isWholesaleLimitReached,
-    bordadoMinItems,
     config,
     handleGoToCart,
     handleClearCart,
@@ -45,22 +43,10 @@ export const CartDrawerFooter: React.FC<CartDrawerFooterProps> = ({
     if (isEmpty) return null;
 
     return (
-        <div className="border-t border-gray-200 p-3 space-y-2 bg-white shadow-lg flex-shrink-0">
-            {/* Mensaje informativo de bordado */}
-            {itemCount >= bordadoMinItems && (
-                <div className="bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-400 rounded-lg p-2.5 mb-2 shadow-sm">
-                    <div className="flex items-center gap-1.5">
-                        <span className="text-red-600 text-sm">✨</span>
-                        <p className="text-[11px] text-red-700 font-bold tracking-wide">
-                            Con {itemCount} prendas puedes bordar tu logo
-                        </p>
-                    </div>
-                </div>
-            )}
-
+        <div className="border-t border-gray-200 p-3 space-y-2 bg-white shadow-lg shrink-0">
             {/* Desglose por producto */}
             {items.length > 0 && (
-                <div className="space-y-1 max-h-28 overflow-y-auto">
+                <div className="space-y-1">
                     {items.map((item, index) => (
                         <div
                             key={`${item.product.id}-${item.especificaciones ?? index}`}
@@ -95,7 +81,7 @@ export const CartDrawerFooter: React.FC<CartDrawerFooterProps> = ({
             {isWholesaleLimitReached && (
                 <div className="bg-gradient-to-r from-[#Ed3237] to-red-700 text-white p-2 rounded border border-[#Ed3237]">
                     <div className="flex items-start gap-1.5 mb-2">
-                        <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <div className="flex-1">
@@ -164,4 +150,3 @@ export const CartDrawerFooter: React.FC<CartDrawerFooterProps> = ({
         </div>
     );
 };
-

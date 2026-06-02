@@ -5,6 +5,7 @@ import { ProductWithImage, ProductVariant } from '@/app/types/producto';
 import { formatPrice } from '../../utils/productHelpers';
 import { usePrecioConfigPublic } from '@/app/hooks/usePrecioConfigPublic';
 import { cn } from '@/lib/utils';
+import BordadoSwitch from '@/app/components/product-card/components/BordadoSwitch';
 
 interface ProductInfoProps {
     productName: string;
@@ -13,6 +14,9 @@ interface ProductInfoProps {
     price: number | null | undefined;
     hideTitle?: boolean;
     className?: string;
+    bordado?: boolean;
+    onBordadoChange?: (value: boolean) => void;
+    canActivateBordado?: boolean;
 }
 
 export default function ProductInfo({
@@ -22,6 +26,9 @@ export default function ProductInfo({
     price,
     hideTitle = false,
     className,
+    bordado = false,
+    onBordadoChange,
+    canActivateBordado = false,
 }: ProductInfoProps) {
     const formattedPrice = formatPrice(price);
     const { data: precioConfig } = usePrecioConfigPublic();
@@ -79,6 +86,18 @@ export default function ProductInfo({
                     </p>
                 )}
             </div>
+
+            {onBordadoChange && (
+                <div className="mt-3 pt-3 border-t border-neutral-100">
+                    <BordadoSwitch
+                        value={bordado}
+                        onChange={onBordadoChange}
+                        isMobile={false}
+                        size="medium"
+                        disabled={!canActivateBordado}
+                    />
+                </div>
+            )}
         </motion.div>
     );
 }

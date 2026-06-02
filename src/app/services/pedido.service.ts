@@ -174,6 +174,18 @@ class PedidoService {
     return apiClient.post(`/admin/pedidos/${id}/aprobar`, {});
   }
 
+  async crearEnvioPostal(id: number) {
+    const response = await apiClient.post<{
+      result?: { ok: boolean; trackingNumber?: string; error?: string };
+      tracking?: { trackingNumber?: string | null };
+      message?: string;
+    }>(`/admin/pedidos/${id}/crear-envio`, {});
+    if (!response.success) {
+      throw new Error(response.message || response.error || 'No se pudo crear el envío');
+    }
+    return response;
+  }
+
   async rechazar(id: number, motivo?: string) {
     return apiClient.post(`/admin/pedidos/${id}/rechazar`, motivo ? { motivo } : {});
   }

@@ -2,6 +2,8 @@
  * Funciones helper para la página de producto
  */
 
+import { normalizeImageUrl } from './normalizeImageUrl';
+
 /**
  * Simplifica el nombre del producto para generar el slug de las imágenes
  * Remueve frases descriptivas comunes que no están en los nombres de carpetas
@@ -479,4 +481,23 @@ export function sortSizes(sizes: string[]): string[] {
         // Si no está en el orden predefinido, ordenar alfabéticamente
         return aLower.localeCompare(bLower);
     });
+}
+
+function isValidProductImageUrl(url: string | null | undefined): boolean {
+    if (!url?.trim()) return false;
+    return !url.includes('producto-placeholder');
+}
+
+/** Resuelve la mejor URL de imagen para carrito/catálogo (sin placeholder). */
+export function resolveCartProductImage(
+    ...candidates: (string | null | undefined)[]
+): string {
+    for (const raw of candidates) {
+        if (!isValidProductImageUrl(raw)) continue;
+        const normalized = normalizeImageUrl(raw);
+        if (normalized && isValidProductImageUrl(normalized)) {
+            return normalized;
+        }
+    }
+    return '';
 }

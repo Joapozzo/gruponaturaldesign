@@ -4,24 +4,20 @@ import { useConfirmModal } from './hooks/useModal';
 import ConfirmModal from './modal/ConfirmModal';
 import BordadoSwitch from './product-card/components/BordadoSwitch';
 import QuantityControlsUI from './ui/QuantityControls';
-import { formatPrice, parseProductSpecs } from '@/app/utils/productHelpers';
+import { formatPrice, resolveCartProductImage } from '@/app/utils/productHelpers';
 import { canAddQuantity } from '@/app/services/stockService';
 import { ProductImage } from './product-card/components/ProductImage';
 import { CartItemProps } from '../types/producto-publicado.types';
 import { useCartItemActions } from './hooks/useCartItemActions';
 import { useSales } from '@/app/contexts/SalesContext';
-import { useCart } from './hooks/useCart';
+import { CartItemVariantSpecs } from './cart/CartItemVariantSpecs';
 
 const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, onUpdateBordado, canAddMore = true }) => {
     const { product, quantity, especificaciones, bordado = false } = item;
     const { isOpen: isConfirmModalOpen, loading, modalOptions, closeModal, handleConfirm, showModal } = useConfirmModal();
-    const { canActivateBordado, config } = useSales();
-    const { itemCount } = useCart();
+    const { canActivateBordado } = useSales();
 
-    const { color, talle } = parseProductSpecs(especificaciones);
-    const specsLine = [color && `Color: ${color}`, talle && `Talle: ${talle}`]
-        .filter(Boolean)
-        .join(' · ');
+    const cartImageSrc = resolveCartProductImage(product.imagen) || undefined;
 
     const {
         handleProductClick,
@@ -49,7 +45,7 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, o
                 onClick={handleProductClick}
             >
                 <ProductImage
-                    src={product.imagen}
+                    src={cartImageSrc}
                     alt={product.nombre}
                     className="w-full h-full"
                     fill
@@ -69,28 +65,18 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, o
 
                     <div className="flex items-center gap-1.5 shrink-0">
                         {onUpdateBordado && (
-                            <div className="flex items-center gap-1">
-                                <span
-                                    className={`text-[10px] font-medium tabular-nums ${
-                                        canActivateBordado ? 'text-neutral-600' : 'text-neutral-400'
-                                    }`}
-                                    title={`Prendas en carrito para activar bordado (mín. ${config.BORDADO_MIN_ITEMS})`}
-                                >
-                                    {itemCount}/{config.BORDADO_MIN_ITEMS}
-                                </span>
-                                <BordadoSwitch
-                                    value={bordado}
-                                    onChange={(value) => {
-                                        if (canActivateBordado) {
-                                            onUpdateBordado(product.id, value);
-                                        }
-                                    }}
-                                    isMobile={false}
-                                    size="small"
-                                    disabled={!canActivateBordado}
-                                    hideLabels
-                                />
-                            </div>
+                            <BordadoSwitch
+                                value={bordado}
+                                onChange={(value) => {
+                                    if (canActivateBordado) {
+                                        onUpdateBordado(product.id, value);
+                                    }
+                                }}
+                                isMobile={false}
+                                size="small"
+                                disabled={!canActivateBordado}
+                                hideLabels
+                            />
                         )}
                         <motion.button
                             onClick={handleRemove}
@@ -104,9 +90,7 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, o
                     </div>
                 </div>
 
-                {specsLine ? (
-                    <p className="text-[11px] text-gray-500 line-clamp-1">{specsLine}</p>
-                ) : null}
+                <CartItemVariantSpecs especificaciones={especificaciones} />
 
                 <div className="flex items-center justify-between gap-2 mt-auto">
                     <QuantityControlsUI

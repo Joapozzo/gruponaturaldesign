@@ -124,6 +124,7 @@ export interface ProductVariant {
 export interface GroupedProduct {
     skuBase: string;                    // SKU sin número: L-OF-BU-RCON o nombre del producto
     skuBaseSlug?: string;               // Slug URL-friendly para navegación (ej: "jean-flow-dama")
+    destacado?: boolean;
     displayProduct: ProductWithImage;   // Producto principal para mostrar en cards
     variants: ProductVariant[];         // Array de variantes disponibles
     totalVariants: number;              // Total de variantes

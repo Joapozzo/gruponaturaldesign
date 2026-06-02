@@ -3,7 +3,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { GroupedProduct, ProductVariant, ProductWithImage } from '@/app/types/producto';
 import { useCart } from '@/app/components/hooks/useCart';
-import { createProductId, createProductSpecs, nombreToSlug, getProductImages } from '../utils/productHelpers';
+import { createProductId, createProductSpecs, nombreToSlug, getProductImages, resolveCartProductImage } from '../utils/productHelpers';
 import { canAddQuantity } from '@/app/services/stockService';
 import { useSales } from '../contexts/SalesContext';
 
@@ -76,16 +76,21 @@ export function useProductCart(
         const currentImages = getProductImages(
             product.imagenes,
             product.imagen,
-            1, // Solo necesitamos la primera imagen
+            1,
             productName,
             selectedVariant.color,
             groupedProduct.availableColors
         );
-        
-        // Usar la primera imagen de las imágenes actuales (ya filtradas por color)
-        const productImage = currentImages && currentImages.length > 0 
-            ? currentImages[0] 
-            : product.imagen || (product.imagenes && product.imagenes.length > 0 ? product.imagenes[0] : '') || '';
+
+        const productImage = resolveCartProductImage(
+            currentImages?.[0],
+            product.imagen,
+            ...(product.imagenes ?? []),
+            displayProduct?.imagen,
+            ...(displayProduct?.imagenes ?? []),
+            groupedProduct.displayProduct?.imagen,
+            ...(groupedProduct.displayProduct?.imagenes ?? []),
+        );
 
         // Asegurar que el precio sea un número válido
         const precio = product.PrecioVenta 

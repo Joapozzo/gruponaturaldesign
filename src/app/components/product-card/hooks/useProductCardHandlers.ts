@@ -5,6 +5,7 @@
 
 import { useRouter } from 'next/navigation';
 import type { ProductoPublicado } from '@/app/types/producto-publicado.types';
+import { buildVariantStockMap } from '@/app/utils/variantePublicada.utils';
 
 interface UseProductCardHandlersProps {
   producto: ProductoPublicado;
@@ -42,11 +43,7 @@ export function useProductCardHandlers({
     }
   };
 
-  // Stock por talle para el selector
-  const variantStock = producto.variantes.reduce((acc, v) => {
-    if (v.talle) acc[v.talle] = v.stock;
-    return acc;
-  }, {} as Record<string, number>);
+  const variantStock = buildVariantStockMap(producto.variantes);
 
   return {
     handleProductClick,

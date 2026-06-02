@@ -1,6 +1,6 @@
 /**
  * Hook para manejo del carrito de compras
- * Responsabilidad única: gestión de agregar, actualizar cantidad y bordado
+ * Responsabilidad única: gestión de agregar y actualizar cantidad
  */
 
 import { useState } from 'react';
@@ -9,6 +9,7 @@ import { canAddQuantity } from '@/app/services/stockService';
 import { useConfirmModal } from '@/app/components/hooks/useModal';
 import type { UseConfirmModalOptions } from '@/app/components/hooks/useModal';
 import type { VariantePublicada } from '@/app/types/producto-publicado.types';
+import { resolveCartProductImage } from '@/app/utils/productHelpers';
 
 interface UseProductCardCartProps {
   selectedVariant: VariantePublicada | null;
@@ -23,11 +24,7 @@ interface UseProductCardCartProps {
 
 interface UseProductCardCartReturn {
   cartQuantity: number;
-  bordado: boolean;
   isAddingToCart: boolean;
-  canActivateBordado: boolean;
-  itemsNeeded: number;
-  setBordado: (value: boolean) => void;
   handleAddToCart: () => Promise<void>;
   handleQuantityChange: (newQuantity: number) => void;
   wholesaleModal: {
@@ -49,8 +46,7 @@ export function useProductCardCart({
   categoria,
   createProductId,
 }: UseProductCardCartProps): UseProductCardCartReturn {
-  const { addToCart, updateQuantity, getProductQuantity, updateBordado, itemCount } = useCart();
-  const [bordado, setBordadoState] = useState(false);
+  const { addToCart, updateQuantity, getProductQuantity } = useCart();
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   const {
@@ -61,15 +57,52 @@ export function useProductCardCart({
     closeModal: closeWholesaleModal,
   } = useConfirmModal();
 
-  // Validar si se puede activar bordado (mínimo 5 prendas)
-  const canActivateBordado = itemCount >= 5;
-  const itemsNeeded = Math.max(0, 5 - itemCount);
-
   // ID del producto en el carrito
   const productId = selectedVariant ? createProductId(selectedVariant.codigo) : 0;
 
   // Cantidad en el carrito
   const cartQuantity = selectedVariant ? getProductQuantity(productId) : 0;
+
+  const resolveImagen = () =>
+    resolveCartProductImage(selectedVariant?.imagen, imagenPrincipal);
+
+  const addVariantToCart = () => {
+    if (!selectedVariant || !selectedVariant.codigo) {
+      console.warn('[useProductCardCart] No se puede agregar al carrito: variante inválida');
+      return;
+    }
+
+    const cantidad = 1;
+    const productId = createProductId(selectedVariant.codigo);
+    const precioListaValue = precioLista ?? selectedVariant.precio ?? 0;
+
+    const especificaciones = [
+      selectedVariant.color && `Color: ${selectedVariant.color}`,
+      selectedVariant.talle && `Talle: ${selectedVariant.talle}`,
+      `Código: ${selectedVariant.codigo}`,
+    ].filter(Boolean).join(' | ');
+
+    addToCart({
+      id: productId,
+      productoWebId: selectedVariant.id,
+      productoPadreId: selectedVariant.productoPadreId,
+      sfactoryItemId: selectedVariant.sfactoryId,
+      codigo: selectedVariant.codigo,
+      nombre: productoNombre || '',
+      descripcion: productoNombre || '',
+      categoria: categoria || 'Sin categoría',
+      precio: precioListaValue,
+      precioLista: precioListaValue,
+      precioTransfer: precioTransfer || null,
+      precioSinImp: precioSinImp || null,
+      imagen: resolveImagen(),
+      stock: selectedVariant.stock,
+      skuBaseSlug: undefined,
+    }, cantidad, especificaciones, false);
+
+    setIsAddingToCart(true);
+    setTimeout(() => setIsAddingToCart(false), 1000);
+  };
 
   // Handler para agregar al carrito
   const handleAddToCart = async () => {
@@ -78,14 +111,10 @@ export function useProductCardCart({
       return;
     }
 
-    const cantidad = 1;
-
-    // Validar stock
-    if (selectedVariant.stock < cantidad) {
+    if (selectedVariant.stock < 1) {
       return;
     }
 
-    // Si el precio es mayor a cierto umbral, mostrar modal de confirmación
     const precioUmbral = 50000;
     if (precioLista && precioLista > precioUmbral) {
       openWholesaleModal({
@@ -93,70 +122,10 @@ export function useProductCardCart({
         message: `¿Estás seguro de agregar este producto ($${precioLista.toLocaleString()}) al carrito?`,
         confirmText: 'Agregar',
         cancelText: 'Cancelar',
-        onConfirm: () => {
-          const productId = createProductId(selectedVariant.codigo);
-          // Usar precioLista del producto, sino precio de la variante, sino 0
-          const precioListaValue = precioLista ?? selectedVariant.precio ?? 0;
-          
-          // Crear especificaciones
-          const especificaciones = [
-            selectedVariant.color && `Color: ${selectedVariant.color}`,
-            selectedVariant.talle && `Talle: ${selectedVariant.talle}`,
-            `Código: ${selectedVariant.codigo}`,
-          ].filter(Boolean).join(' | ');
-          
-          addToCart({
-            id: productId,
-            productoWebId: selectedVariant.id,
-            productoPadreId: selectedVariant.productoPadreId,
-            sfactoryItemId: selectedVariant.sfactoryId,
-            codigo: selectedVariant.codigo,
-            nombre: productoNombre || '',
-            descripcion: productoNombre || '',
-            categoria: categoria || 'Sin categoría',
-            precio: precioListaValue, // Mantener compatibilidad
-            precioLista: precioListaValue,
-            precioTransfer: precioTransfer || null,
-            precioSinImp: precioSinImp || null,
-            imagen: selectedVariant.imagen || imagenPrincipal || '',
-            stock: selectedVariant.stock,
-            skuBaseSlug: undefined, // Se puede agregar si es necesario
-          }, cantidad, especificaciones, bordado);
-          setIsAddingToCart(true);
-          setTimeout(() => setIsAddingToCart(false), 1000);
-        },
+        onConfirm: addVariantToCart,
       });
     } else {
-      const productId = createProductId(selectedVariant.codigo);
-      // Usar precioLista del producto, sino precio de la variante, sino 0
-      const precioListaValue = precioLista ?? selectedVariant.precio ?? 0;
-      
-      // Crear especificaciones
-      const especificaciones = [
-        selectedVariant.color && `Color: ${selectedVariant.color}`,
-        selectedVariant.talle && `Talle: ${selectedVariant.talle}`,
-        `Código: ${selectedVariant.codigo}`,
-      ].filter(Boolean).join(' | ');
-      
-      addToCart({
-        id: productId,
-        productoWebId: selectedVariant.id,
-        productoPadreId: selectedVariant.productoPadreId,
-        sfactoryItemId: selectedVariant.sfactoryId,
-        codigo: selectedVariant.codigo,
-        nombre: productoNombre || '',
-        descripcion: productoNombre || '',
-        categoria: categoria || 'Sin categoría',
-        precio: precioListaValue, // Mantener compatibilidad
-        precioLista: precioListaValue,
-        precioTransfer: precioTransfer || null,
-        precioSinImp: precioSinImp || null,
-        imagen: selectedVariant.imagen || imagenPrincipal || '',
-        stock: selectedVariant.stock,
-        skuBaseSlug: undefined, // Se puede agregar si es necesario
-      }, cantidad, especificaciones, bordado);
-      setIsAddingToCart(true);
-      setTimeout(() => setIsAddingToCart(false), 1000);
+      addVariantToCart();
     }
   };
 
@@ -166,29 +135,14 @@ export function useProductCardCart({
 
     if (newQuantity <= 0) {
       updateQuantity(productId, 0);
-    } else {
-      // Validar stock
-      if (canAddQuantity(selectedVariant.stock, cartQuantity, newQuantity)) {
-        updateQuantity(productId, newQuantity);
-      }
-    }
-  };
-
-  // Handler para cambiar bordado
-  const setBordado = (value: boolean) => {
-    setBordadoState(value);
-    if (selectedVariant) {
-      updateBordado(productId, value);
+    } else if (canAddQuantity(selectedVariant.stock, cartQuantity, newQuantity)) {
+      updateQuantity(productId, newQuantity);
     }
   };
 
   return {
     cartQuantity,
-    bordado,
     isAddingToCart,
-    canActivateBordado,
-    itemsNeeded,
-    setBordado,
     handleAddToCart,
     handleQuantityChange,
     wholesaleModal: {
@@ -200,4 +154,3 @@ export function useProductCardCart({
     },
   };
 }
-

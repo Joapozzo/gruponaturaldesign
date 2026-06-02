@@ -14,6 +14,7 @@ import {
 } from '@/app/utils/cuentaPedidosDisplay';
 import { OrderStatusBadge } from './OrderStatusBadge';
 import { OrderItemRow } from '../OrderItemRow';
+import { shippingProviderLabel } from '@/app/components/shipping/shippingTracking.constants';
 
 interface OrderCardProps {
   order: CuentaPedidoListItem;
@@ -84,28 +85,49 @@ export function OrderCard({ order }: OrderCardProps) {
         </div>
       </button>
 
-      {(order.canViewPaymentInstructions || order.trackingUrl) && (
-        <div className="px-4 sm:px-6 pb-3 flex flex-wrap gap-2 border-b border-gray-50">
-          {order.canViewPaymentInstructions ? (
-            <Link
-              href={`/checkout/instrucciones-pago?pedidoId=${order.id}`}
-              className="text-xs font-medium text-red-600 hover:text-red-700 underline-offset-2 hover:underline"
-              onClick={(e) => e.stopPropagation()}
-            >
-              Ver datos de pago
-            </Link>
-          ) : null}
-          {order.trackingUrl ? (
-            <a
-              href={order.trackingUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs font-medium text-gray-700 hover:text-black"
-              onClick={(e) => e.stopPropagation()}
-            >
-              Seguir envío
-              <ExternalLink className="w-3 h-3" aria-hidden />
-            </a>
+      {(order.canViewPaymentInstructions ||
+        order.requiresPostalShipping ||
+        order.trackingUrl) && (
+        <div className="px-4 sm:px-6 pb-3 flex flex-col gap-1.5 border-b border-gray-50 text-xs">
+          <div className="flex flex-wrap gap-2">
+            {order.canViewPaymentInstructions ? (
+              <Link
+                href={`/checkout/instrucciones-pago?pedidoId=${order.id}`}
+                className="font-medium text-red-600 hover:text-red-700 underline-offset-2 hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Ver datos de pago
+              </Link>
+            ) : null}
+            {order.trackingUrl ? (
+              <a
+                href={order.trackingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 font-medium text-gray-700 hover:text-black"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Seguir envío
+                <ExternalLink className="w-3 h-3" aria-hidden />
+              </a>
+            ) : null}
+          </div>
+          {order.requiresPostalShipping ? (
+            <p className="text-gray-600" onClick={(e) => e.stopPropagation()}>
+              {order.shippingProvider
+                ? `${shippingProviderLabel(order.shippingProvider)} · `
+                : ''}
+              {order.trackingNumber ? (
+                <>
+                  Nº de envío:{' '}
+                  <span className="font-mono font-medium text-gray-900">{order.trackingNumber}</span>
+                </>
+              ) : order.estado === 'pendiente_confirmacion' ? (
+                'Nº de envío: pendiente de confirmación del pedido'
+              ) : (
+                'Nº de envío: en generación'
+              )}
+            </p>
           ) : null}
         </div>
       )}

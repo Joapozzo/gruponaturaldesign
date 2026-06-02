@@ -5,6 +5,10 @@
 
 import { useState, useMemo } from 'react';
 import type { ProductoPublicado, VariantePublicada } from '@/app/types/producto-publicado.types';
+import {
+  findBestVariantePublicada,
+  getDefaultVariantSelection,
+} from '@/app/utils/variantePublicada.utils';
 
 interface UseProductCardSelectionProps {
   producto: ProductoPublicado;
@@ -23,13 +27,17 @@ interface UseProductCardSelectionReturn {
 export function useProductCardSelection({
   producto,
 }: UseProductCardSelectionProps): UseProductCardSelectionReturn {
-  // Estado inicial: primer color y talle disponibles
-  const [selectedColor, setSelectedColorState] = useState<string | null>(
-    producto.colores && producto.colores.length > 0 ? producto.colores[0] : null
+  const initialSelection = useMemo(
+    () => getDefaultVariantSelection(producto),
+    [producto],
   );
-  
+
+  const [selectedColor, setSelectedColorState] = useState<string | null>(
+    initialSelection.color,
+  );
+
   const [selectedTalle, setSelectedTalleState] = useState<string | null>(
-    producto.talles && producto.talles.length > 0 ? producto.talles[0] : null
+    initialSelection.talle,
   );
 
   // Colores disponibles
@@ -41,14 +49,15 @@ export function useProductCardSelection({
     return [...new Set(raw)];
   }, [producto.talles]);
 
-  // Variante seleccionada
   const selectedVariant = useMemo(() => {
     if (!producto.variantes || producto.variantes.length === 0) {
       return null;
     }
-    return producto.variantes.find(
-      (v) => v.color === selectedColor && v.talle === selectedTalle
-    ) || producto.variantes[0] || null;
+    return findBestVariantePublicada(
+      producto.variantes,
+      selectedColor,
+      selectedTalle,
+    );
   }, [producto.variantes, selectedColor, selectedTalle]);
 
   // Handler para cambiar color (el talle se mantiene; la variante se resuelve por color+talle)

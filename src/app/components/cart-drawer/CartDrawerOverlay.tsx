@@ -14,7 +14,7 @@ export const CartDrawerOverlay: React.FC<CartDrawerOverlayProps> = ({ onClose })
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm w-screen h-screen"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm w-screen h-screen overscroll-none touch-none"
             style={{ zIndex: 99999 }}
             onClick={onClose}
         />

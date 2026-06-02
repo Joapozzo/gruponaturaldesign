@@ -12,6 +12,7 @@ import { mapEstadoPedidoLabel, mapEstadoPedidoBadgeVariant } from '@/app/utils/d
 import { mapMercadoPagoStatusLabel, mapSfactoryEstadoBadgeVariant } from '@/app/utils/pedidoEstadoDisplay';
 import {
   formatPedidoEntregaDisplay,
+  isRetiroEnTiendaPedido,
   mapFormaPagoLabel,
 } from '@/app/utils/pedidoEntregaDisplay';
 import { getWebPedidoActions } from '@/app/utils/pedidoWebActions';
@@ -178,6 +179,18 @@ export function PedidoDetailModal({ row, isOpen, onClose }: PedidoDetailModalPro
     },
   });
 
+  const crearEnvioMutation = useMutation({
+    mutationFn: (id: number) => pedidoService.crearEnvioPostal(id),
+    onSuccess: async (res) => {
+      toast.success((res as { message?: string }).message || 'Envío procesado');
+      await invalidate();
+      await refetchDetalle();
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : 'No se pudo crear el envío');
+    },
+  });
+
   const title = useMemo(() => {
     if (!row) return 'Pedido';
     if (row.source === 'web') return `Pedido ecommerce #${row.id}`;
@@ -193,7 +206,8 @@ export function PedidoDetailModal({ row, isOpen, onClose }: PedidoDetailModalPro
     reintentarMutation.isPending ||
     rechazarMutation.isPending ||
     listoRetiroMutation.isPending ||
-    marcarRetiradoMutation.isPending;
+    marcarRetiradoMutation.isPending ||
+    crearEnvioMutation.isPending;
 
   const openPedidoTracking = (pedido: AdminPedidoDetalle) => {
     const resolved = resolvePedidoShippingTracking(pedido);
@@ -239,6 +253,7 @@ export function PedidoDetailModal({ row, isOpen, onClose }: PedidoDetailModalPro
         }
         onEnviarListoRetiro={() => listoRetiroMutation.mutate(webPedido.id)}
         onMarcarRetirado={() => marcarRetiradoMutation.mutate(webPedido.id)}
+        onCrearEnvioPostal={() => crearEnvioMutation.mutate(webPedido.id)}
         onOpenTracking={() => openPedidoTracking(webPedido)}
       />
     ) : null
@@ -282,6 +297,7 @@ function WebDetalleBody({
   onReject,
   onEnviarListoRetiro,
   onMarcarRetirado,
+  onCrearEnvioPostal,
   onOpenTracking,
 }: {
   pedido: AdminPedidoDetalle;
@@ -296,10 +312,13 @@ function WebDetalleBody({
   onReject: () => void;
   onEnviarListoRetiro: () => void;
   onMarcarRetirado: () => void;
+  onCrearEnvioPostal: () => void;
   onOpenTracking: () => void;
 }) {
   const entrega = formatPedidoEntregaDisplay(pedido);
+  const postalShipping = !isRetiroEnTiendaPedido(pedido);
   const shippingTracking = resolvePedidoShippingTracking(pedido);
+  const hasBordado = (pedido.items ?? []).some((it) => it.bordado === true);
   const showActions =
     actions.canConfirmWeb ||
     actions.canAprobarEnSfactory ||
@@ -308,6 +327,7 @@ function WebDetalleBody({
     actions.canReject ||
     actions.canEnviarListoRetiro ||
     actions.canMarcarRetirado ||
+    actions.canCrearEnvioPostal ||
     actions.paymentPendingMessage != null;
 
   return (
@@ -327,6 +347,12 @@ function WebDetalleBody({
           <span className="text-xs text-neutral-600">Ref: {pedido.sfactoryExternalOrderId}</span>
         ) : null}
       </div>
+
+      {hasBordado ? (
+        <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+          Este pedido incluye prendas con bordado de logo.
+        </div>
+      ) : null}
 
       {actions.paymentPendingMessage ? (
         <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
@@ -413,6 +439,12 @@ function WebDetalleBody({
             trackingNumber={shippingTracking.trackingNumber}
             trackingUrl={shippingTracking.trackingUrl}
             onOpenTracking={onOpenTracking}
+            showWhenPending={postalShipping}
+            pendingLabel={
+              pedido.estadoInterno === 'pendiente_confirmacion'
+                ? 'Pendiente — se generará al confirmar el pedido (transferencia/efectivo) o tras el pago (Mercado Pago).'
+                : 'Pendiente — usá «Generar envío en carrier» o esperá el reintento automático.'
+            }
           />
         </dl>
       </section>
@@ -430,17 +462,27 @@ function WebDetalleBody({
               </tr>
             </thead>
             <tbody>
-              {(pedido.items ?? []).map((it) => (
+              {(pedido.items ?? []).map((it) => {
+                const specParts = [
+                  it.talle ? `Talle ${it.talle}` : null,
+                  it.color ?? null,
+                  it.bordado ? 'Bordado' : null,
+                ].filter(Boolean);
+                return (
                 <tr key={it.id} className="border-t border-neutral-100">
                   <td className="px-3 py-2">
                     <div className="font-medium">{it.nombre}</div>
                     <div className="text-xs text-neutral-500">{it.codigo}</div>
+                    {specParts.length > 0 ? (
+                      <div className="text-xs text-neutral-600 mt-0.5">{specParts.join(' · ')}</div>
+                    ) : null}
                   </td>
                   <td className="px-3 py-2 text-right">{Number(it.cantidad)}</td>
                   <td className="px-3 py-2 text-right">{money(it.precioUnitario)}</td>
                   <td className="px-3 py-2 text-right font-medium">{money(it.subtotal)}</td>
                 </tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         </div>
@@ -511,6 +553,12 @@ function WebDetalleBody({
               en cualquier momento (con o sin haber enviado el aviso).
             </p>
           ) : null}
+          {actions.canCrearEnvioPostal ? (
+            <p className="text-xs text-neutral-600">
+              Envío postal: al confirmar el pedido se intenta crear la orden en Andreani/Correo. Si
+              falló o quedó pendiente, usá el botón de abajo.
+            </p>
+          ) : null}
           {actions.canReject && (
             <div>
               <label className="text-xs font-medium text-neutral-600">Motivo rechazo (opcional)</label>
@@ -547,6 +595,11 @@ function WebDetalleBody({
             {actions.canReject ? (
               <Button variant="redOutline" disabled={busy} onClick={onReject}>
                 Rechazar / cancelar
+              </Button>
+            ) : null}
+            {actions.canCrearEnvioPostal ? (
+              <Button variant="black" disabled={busy} onClick={onCrearEnvioPostal}>
+                {busy ? 'Procesando...' : actions.crearEnvioPostalLabel}
               </Button>
             ) : null}
             {actions.canEnviarListoRetiro ? (

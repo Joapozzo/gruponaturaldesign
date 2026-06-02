@@ -23,6 +23,7 @@ export interface PedidoItem {
   subtotal: string | number;
   talle?: string | null;
   color?: string | null;
+  bordado?: boolean;
 }
 
 export interface Pedido {

@@ -5,7 +5,7 @@ import { X } from 'lucide-react';
 import type { CartItem } from '@/app/types/cart';
 import { ProductImage } from '../product-card/components/ProductImage';
 import QuantityControlsUI from '@/app/components/ui/QuantityControls';
-import { formatPrice } from '@/app/utils/productHelpers';
+import { formatPrice, resolveCartProductImage } from '@/app/utils/productHelpers';
 
 type Props = {
   item: CartItem;
@@ -23,6 +23,7 @@ export function CheckoutCartItem({
   maxReached,
 }: Props) {
   const { product, quantity, subtotal, especificaciones, bordado = false } = item;
+  const cartImageSrc = resolveCartProductImage(product.imagen) || undefined;
 
   return (
     <motion.div
@@ -35,7 +36,7 @@ export function CheckoutCartItem({
       <div className="flex gap-3 sm:gap-4 items-stretch min-h-[80px] sm:min-h-[88px]">
         <div className="relative w-20 h-24 sm:w-24 sm:h-28 shrink-0 bg-gray-100 rounded-lg overflow-hidden">
           <ProductImage
-            src={product.imagen}
+            src={cartImageSrc}
             alt={product.nombre || 'Producto'}
             className="w-full h-full"
             fill

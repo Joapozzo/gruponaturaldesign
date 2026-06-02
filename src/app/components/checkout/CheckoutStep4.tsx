@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -277,8 +277,38 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
     cuponAplicado: cuponAplicado || cuponHook.cuponAplicado,
   };
 
+  const mobileFooterRef = useRef<HTMLDivElement>(null);
+  const [mobileFooterPad, setMobileFooterPad] = useState(144);
+
+  useEffect(() => {
+    const el = mobileFooterRef.current;
+    if (!el) return;
+
+    const lgQuery = window.matchMedia('(min-width: 1024px)');
+
+    const update = () => {
+      if (lgQuery.matches) {
+        setMobileFooterPad(0);
+        return;
+      }
+      setMobileFooterPad(el.getBoundingClientRect().height + 16);
+    };
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    lgQuery.addEventListener('change', update);
+    return () => {
+      ro.disconnect();
+      lgQuery.removeEventListener('change', update);
+    };
+  }, [items.length, itemCount, shippingExtra, cuponDescuento, payment.metodo]);
+
   return (
-    <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 lg:items-start pb-36 lg:pb-0">
+    <div
+      className="flex flex-col lg:flex-row gap-4 lg:gap-8 lg:items-start lg:pb-0"
+      style={{ paddingBottom: mobileFooterPad > 0 ? mobileFooterPad : undefined }}
+    >
       <section className="w-full lg:flex-[7] lg:min-w-0 flex flex-col gap-4 sm:gap-5">
         <CheckoutCuponSection cupon={cuponHook} />
 
@@ -414,7 +444,10 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
         <OrderSummarySection {...summaryProps} variant="sidebar" />
       </div>
 
-      <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 overflow-hidden rounded-t-2xl border-t border-gray-200 bg-white shadow-[0_-8px_24px_-4px_rgb(0_0_0/0.08)]">
+      <div
+        ref={mobileFooterRef}
+        className="lg:hidden fixed bottom-0 inset-x-0 z-30 overflow-hidden rounded-t-2xl border-t border-gray-200 bg-white shadow-[0_-8px_24px_-4px_rgb(0_0_0/0.08)]"
+      >
         <OrderSummarySection {...summaryProps} variant="payment-footer" />
         <CheckoutActionBar
           onBack={onBack}

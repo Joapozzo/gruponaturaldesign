@@ -6,6 +6,7 @@
 import { GroupedProduct } from '@/app/types/producto';
 import type { ProductWithImage } from '@/app/types/producto';
 import { ProductoPublicado, VariantePublicada } from '@/app/types/producto-publicado.types';
+import { deduplicateVariantesPublicadas } from '@/app/utils/variantePublicada.utils';
 
 /**
  * Extrae la primera URL de imagen de un producto (imagen, imagenes[0] string, o imagenes[0].imagenUrl)
@@ -28,25 +29,8 @@ function getFirstImageUrl(producto: ProductWithImage): string | null {
  * Convierte un GroupedProduct a ProductoPublicado
  */
 export function groupedProductToProductoPublicado(group: GroupedProduct): ProductoPublicado {
-  // Extraer colores y talles únicos de las variantes
-  const colores = Array.from(
-    new Set(
-      group.variants
-        .map((v) => v.color)
-        .filter((c): c is string => Boolean(c))
-    )
-  );
-
-  const talles = Array.from(
-    new Set(
-      group.variants
-        .map((v) => v.talle)
-        .filter((t): t is string => Boolean(t))
-    )
-  );
-
   // Convertir variantes (extraer URL de imagen correctamente)
-  const variantes: VariantePublicada[] = group.variants.map((variant, index) => {
+  const variantesRaw: VariantePublicada[] = group.variants.map((variant, index) => {
     const imagen = getFirstImageUrl(variant.producto);
     const productoWebId = variant.productoWebId ?? index + 1;
     return {
@@ -63,7 +47,23 @@ export function groupedProductToProductoPublicado(group: GroupedProduct): Produc
     };
   });
 
-  // Calcular precios (usar el precio de la primera variante o displayProduct)
+  const variantes = deduplicateVariantesPublicadas(variantesRaw);
+
+  const colores = Array.from(
+    new Set(
+      variantes
+        .map((v) => v.color)
+        .filter((c): c is string => Boolean(c))
+    )
+  );
+
+  const talles = Array.from(
+    new Set(
+      variantes
+        .map((v) => v.talle)
+        .filter((t): t is string => Boolean(t))
+    )
+  );
   const precioLista = group.displayProduct.PrecioVenta || null;
   const precioTransfer = group.displayProduct.precioTransfer || null;
   const precio3Cuotas = group.displayProduct.precio3cuotas || null;
@@ -131,7 +131,7 @@ export function groupedProductToProductoPublicado(group: GroupedProduct): Produc
     // Agregados pre-calculados
     colores,
     talles,
-    totalVariantes: group.totalVariants,
+    totalVariantes: variantes.length,
     tieneStock: stockTotal > 0,
     stockTotal,
     precioMin,

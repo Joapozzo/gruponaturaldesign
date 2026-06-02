@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useMemo, useCallback, useRef } from 'react';
+import React, { Suspense, useMemo, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import Section from '@/app/components/Section';
 import { useProductDetail } from '@/app/hooks/useProductDetail';
@@ -21,7 +21,7 @@ import ProductImageModal from '@/app/components/producto/ProductImageModal';
 import ProductNotFound from '@/app/components/producto/ProductNotFound';
 import RelatedProducts from '@/app/components/producto/RelatedProducts';
 import ConfirmModal from '@/app/components/modal/ConfirmModal';
-import BordadoSwitch from '@/app/components/product-card/components/BordadoSwitch';
+import { useProductDiscount } from '@/app/components/product-card/hooks/useProductDiscount';
 import type { ProductoDetailResponse } from '@/app/services/producto-detail.service';
 
 // Skeletons específicos
@@ -77,6 +77,7 @@ export default function ProductDetailPageContent({
     selectedSize,
     selectedVariant,
     orderedAvailableSizes,
+    hasColors,
     handleColorSelect,
     handleSizeSelect,
   } = useProductVariants(groupedProduct);
@@ -95,8 +96,28 @@ export default function ProductDetailPageContent({
   );
   const showOutOfStock = productOutOfStock || selectedColorOutOfStock;
 
-  // Hook para manejar imágenes: usar SIEMPRE la variante seleccionada (no displayProduct)
-  // Así al cambiar variante se ven solo sus imágenes; si no tiene img, no se muestra ninguna
+  const precioListaDetail = useMemo(() => {
+    const precio = selectedVariant?.producto?.PrecioVenta;
+    return precio != null ? Number(precio) : null;
+  }, [selectedVariant]);
+
+  const { descuento: descuentoDetail } = useProductDiscount({
+    precioLista: precioListaDetail,
+    precioTransfer: selectedVariant?.producto?.precioTransfer ?? null,
+  });
+
+  const galleryImagenes = useMemo(() => {
+    const variantImgs = selectedVariant?.producto?.imagenes;
+    if (variantImgs && variantImgs.length > 0) return variantImgs;
+    return groupedProduct?.displayProduct?.imagenes;
+  }, [selectedVariant, groupedProduct?.displayProduct?.imagenes]);
+
+  const galleryImagen = useMemo(() => {
+    const variantImg = selectedVariant?.producto?.imagen;
+    if (variantImg?.trim()) return variantImg;
+    return groupedProduct?.displayProduct?.imagen ?? null;
+  }, [selectedVariant, groupedProduct?.displayProduct?.imagen]);
+
   const {
     images,
     currentImageIndex,
@@ -109,11 +130,7 @@ export default function ProductDetailPageContent({
     openModal,
     closeModal,
     modalLabel,
-  } = useProductImages(
-    selectedVariant?.producto?.imagenes,
-    selectedVariant?.producto?.imagen ?? null,
-    5,
-  );
+  } = useProductImages(galleryImagenes, galleryImagen, 5);
     
   // Ref para el getter de bordado (se actualizará después de que useBordado se inicialice)
   const bordadoRef = React.useRef<boolean>(false);
@@ -142,7 +159,6 @@ export default function ProductDetailPageContent({
   const {
     bordado,
     canActivateBordado,
-    itemCount,
     handleBordadoToggle,
   } = useBordado({
     cartItem,
@@ -186,7 +202,6 @@ export default function ProductDetailPageContent({
 
   // Obtener datos del producto
   const displayProduct = groupedProduct.displayProduct;
-  const showroomFloorRef = useRef<HTMLDivElement>(null);
 
   return (
     <div className="min-h-screen bg-white">
@@ -221,7 +236,8 @@ export default function ProductDetailPageContent({
                 onOpenModal={openModal}
                 isOutOfStock={showOutOfStock}
                 stock={selectedVariant?.stock}
-                showroomAlignRef={showroomFloorRef}
+                destacado={groupedProduct.destacado}
+                descuento={descuentoDetail}
               />
             </Suspense>
             {/* Código y Categoría — oculto por ahora
@@ -237,27 +253,11 @@ export default function ProductDetailPageContent({
           {/* Info del producto */}
           <div className="flex-1 min-w-0 flex flex-col">
             <div className="flex flex-col gap-4 sm:gap-5">
-              {/* Nombre + bordado */}
+              {/* Nombre */}
               <div className="flex flex-col gap-2.5 sm:gap-3">
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight leading-tight">
                   {productName}
                 </h1>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`text-[10px] sm:text-xs font-medium tabular-nums ${
-                      canActivateBordado ? 'text-neutral-600' : 'text-neutral-400'
-                    }`}
-                    title="Prendas en carrito para activar bordado (mín. 5)"
-                  >
-                    {itemCount}/5
-                  </span>
-                  <BordadoSwitch
-                    value={bordado}
-                    onChange={onBordadoChange}
-                    isMobile={false}
-                    size="medium"
-                  />
-                </div>
               </div>
 
               <Suspense fallback={<ProductInfoSkeleton />}>
@@ -267,6 +267,9 @@ export default function ProductDetailPageContent({
                   selectedVariant={selectedVariant}
                   price={selectedVariant.producto.PrecioVenta}
                   hideTitle
+                  bordado={bordado}
+                  onBordadoChange={onBordadoChange}
+                  canActivateBordado={canActivateBordado}
                 />
               </Suspense>
 
@@ -276,6 +279,7 @@ export default function ProductDetailPageContent({
                   selectedColor={selectedColor}
                   selectedSize={selectedSize}
                   availableSizes={orderedAvailableSizes}
+                  hasColors={hasColors}
                   onColorSelect={handleColorSelect}
                   onSizeSelect={handleSizeSelect}
                 />
@@ -301,7 +305,6 @@ export default function ProductDetailPageContent({
               displayProduct={displayProduct}
               onOpenImageModal={openModal}
               className="mt-6 sm:mt-8"
-              showroomFloorRef={showroomFloorRef}
             />
           </div>
         </div>

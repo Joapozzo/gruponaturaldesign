@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ProductoPublicado } from '../types/producto-publicado.types';
 import { useProductCardPublicado } from './product-card/hooks/useProductCardPublicado';
@@ -11,6 +11,7 @@ import { ProductCardSelectors } from './product-card/components/ProductCardSelec
 import { ProductCardActions } from './product-card/components/ProductCardActions';
 import { ProductCardBadges } from './product-card/components/ProductCardBadges';
 import ConfirmModal from './modal/ConfirmModal';
+import { deduplicateVariantesPublicadas } from '@/app/utils/variantePublicada.utils';
 
 interface ProductCardPublicadoProps {
   producto: ProductoPublicado;
@@ -54,6 +55,11 @@ const ProductCardPublicado: React.FC<ProductCardPublicadoProps> = ({
     precioTransfer: producto?.precioTransfer || null,
   });
 
+  const variantesUnicas = useMemo(
+    () => deduplicateVariantesPublicadas(producto?.variantes ?? []),
+    [producto?.variantes],
+  );
+
   // Validaciones
   if (!producto) {
     console.warn('[ProductCardPublicado] Producto es undefined');
@@ -71,14 +77,11 @@ const ProductCardPublicado: React.FC<ProductCardPublicadoProps> = ({
   const currentColor = selection.selectedColor ?? selection.selectedVariant?.color ?? null;
   const selectedColorOutOfStock = Boolean(
     currentColor &&
-      producto.variantes
+      variantesUnicas
         .filter((v) => v.color === currentColor)
         .every((v) => v.stock === 0)
   );
   const showOutOfStockOverlay = isProductOutOfStock || selectedColorOutOfStock;
-
-  // Solo deshabilitar acciones cuando la variante seleccionada no tiene stock (permite elegir otra)
-  const selectedVariantOutOfStock = !selection.selectedVariant || selection.selectedVariant.stock === 0;
 
   return (
     <>
@@ -158,18 +161,14 @@ const ProductCardPublicado: React.FC<ProductCardPublicadoProps> = ({
             )}
           </AnimatePresence>
 
-          {/* Acciones (carrito, cantidad, bordado) */}
+          {/* Acciones (carrito, cantidad) */}
           <div className="mt-auto pt-2 -mx-4">
             <ProductCardActions
               selectedVariant={selection.selectedVariant}
               cartQuantity={cart.cartQuantity}
-              bordado={cart.bordado}
               isAddingToCart={cart.isAddingToCart}
-              canActivateBordado={cart.canActivateBordado}
-              itemsNeeded={cart.itemsNeeded}
               onAddToCart={handleAddToCartClick}
               onQuantityChange={cart.handleQuantityChange}
-              onBordadoChange={cart.setBordado}
               showSelectors={showSelectors}
               onCloseSelectors={handleCancel}
               selectedColor={selection.selectedColor}
@@ -177,7 +176,7 @@ const ProductCardPublicado: React.FC<ProductCardPublicadoProps> = ({
               availableColors={selection.availableColors}
               availableTalles={selection.availableTalles}
               hasExplicitSelection={hasExplicitSelection}
-              productOutOfStock={selectedVariantOutOfStock}
+              productOutOfStock={isProductOutOfStock}
             />
           </div>
         </div>

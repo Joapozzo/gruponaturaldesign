@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   DndContext,
@@ -42,11 +42,52 @@ interface VariantesImagesManagerProps {
   onSuccess?: () => void;
 }
 
+/** Clave API para imágenes sin dimensión de color (solo talle / producto único) */
+const SIN_COLOR_KEY = 'sin-color';
+const GALERIA_SIN_COLOR_LABEL = 'Producto';
+
 /** Un solo ítem de preview (orden único para drag & drop) */
 interface PreviewItem {
   id: string;
   file: File;
   preview: string;
+}
+
+function colorLookupKey(color: string): string {
+  return color
+    .trim()
+    .toUpperCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ');
+}
+
+function dedupeProductColors(preferred: string[], extra: string[] = []): string[] {
+  const byKey = new Map<string, string>();
+  for (const c of preferred) {
+    if (!c?.trim()) continue;
+    byKey.set(colorLookupKey(c), c);
+  }
+  for (const c of extra) {
+    if (!c?.trim()) continue;
+    const key = colorLookupKey(c);
+    if (!byKey.has(key)) byKey.set(key, c);
+  }
+  return Array.from(byKey.values()).sort();
+}
+
+function getImagesForColor(
+  imagesByColor: Record<string, ProductImage[]> | undefined,
+  color: string
+): ProductImage[] {
+  if (!imagesByColor) return [];
+  const direct = imagesByColor[color];
+  if (direct?.length) return direct;
+  const key = colorLookupKey(color);
+  for (const [k, imgs] of Object.entries(imagesByColor)) {
+    if (colorLookupKey(k) === key && imgs.length > 0) return imgs;
+  }
+  return [];
 }
 
 // ---------------------------------------------------------------------------
@@ -203,7 +244,10 @@ export function VariantesImagesManager({
   productoPadreId,
   coloresDisponibles,
 }: VariantesImagesManagerProps) {
-  const [selectedColor, setSelectedColor] = useState<string>(coloresDisponibles[0] || '');
+  const esSoloTalle = coloresDisponibles.length === 0;
+  const [selectedColor, setSelectedColor] = useState<string>(
+    esSoloTalle ? SIN_COLOR_KEY : coloresDisponibles[0] || '',
+  );
   /** Un solo estado ordenado: permite reordenar en preview y acumular al elegir más archivos */
   const [previewItems, setPreviewItems] = useState<PreviewItem[]>([]);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -220,25 +264,58 @@ export function VariantesImagesManager({
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
+  useEffect(() => {
+    if (esSoloTalle) {
+      setSelectedColor(SIN_COLOR_KEY);
+      return;
+    }
+    if (!selectedColor.trim() && coloresDisponibles[0]) {
+      setSelectedColor(coloresDisponibles[0]);
+    }
+  }, [esSoloTalle, coloresDisponibles, selectedColor]);
+
+  const colorActivo = esSoloTalle ? SIN_COLOR_KEY : selectedColor;
+
   const coloresConImagenes = useMemo(() => {
     if (!imagesByColor) return [];
-    return Object.keys(imagesByColor).filter((c) => imagesByColor[c].length > 0);
+    return Object.keys(imagesByColor).filter(
+      (c) => c !== SIN_COLOR_KEY && imagesByColor[c].length > 0,
+    );
   }, [imagesByColor]);
 
-  const todosLosColores = useMemo(() => {
-    const set = new Set([...coloresDisponibles, ...coloresConImagenes]);
-    return Array.from(set).sort();
-  }, [coloresDisponibles, coloresConImagenes]);
+  const todosLosColores = useMemo(
+    () => dedupeProductColors(coloresDisponibles, coloresConImagenes),
+    [coloresDisponibles, coloresConImagenes],
+  );
 
-  const imagenesExistentes = useMemo(() => {
-    if (!imagesByColor) return 0;
-    const colorKey = todosLosColores.length > 0 ? selectedColor : 'sin-color';
-    return imagesByColor[colorKey]?.length || 0;
-  }, [imagesByColor, selectedColor, todosLosColores]);
+  const seccionesGaleria = useMemo(() => {
+    if (!imagesByColor) return [];
+    if (esSoloTalle) {
+      const images = getImagesForColor(imagesByColor, SIN_COLOR_KEY);
+      if (images.length === 0) return [];
+      return [{ key: SIN_COLOR_KEY, label: GALERIA_SIN_COLOR_LABEL, images }];
+    }
+    return [...coloresConImagenes]
+      .sort()
+      .map((color) => ({
+        key: color,
+        label: color,
+        images: getImagesForColor(imagesByColor, color),
+      }))
+      .filter((s) => s.images.length > 0);
+  }, [imagesByColor, esSoloTalle, coloresConImagenes]);
 
-  const MAX_IMAGENES_POR_COLOR = 3;
-  const puedeSubirMas = imagenesExistentes < MAX_IMAGENES_POR_COLOR;
-  const imagenesDisponibles = MAX_IMAGENES_POR_COLOR - imagenesExistentes;
+  const imagenesExistentes = useMemo(
+    () => getImagesForColor(imagesByColor, colorActivo).length,
+    [imagesByColor, colorActivo],
+  );
+
+  const MAX_IMAGENES = 3;
+  const puedeSubirMas = imagenesExistentes < MAX_IMAGENES;
+  const imagenesDisponibles = MAX_IMAGENES - imagenesExistentes;
+  const limiteAlcanzadoMsg = esSoloTalle
+    ? `Límite de ${MAX_IMAGENES} imágenes del producto alcanzado`
+    : `Límite de ${MAX_IMAGENES} imágenes para este color alcanzado`;
 
   // -------------------------------------------------------------------------
   // Selección de archivos (acumula con las ya elegidas, respeta límite)
@@ -278,10 +355,10 @@ export function VariantesImagesManager({
         );
         const newPreviews = await Promise.all(previewPromises);
         setPreviewItems((prev) => {
-          const slotsLeft = MAX_IMAGENES_POR_COLOR - imagenesExistentes - prev.length;
+          const slotsLeft = MAX_IMAGENES - imagenesExistentes - prev.length;
           const toAddCount = Math.min(compressedFiles.length, Math.max(0, slotsLeft));
           if (toAddCount <= 0) {
-            toast.error(`Límite de ${MAX_IMAGENES_POR_COLOR} imágenes para este color alcanzado`);
+            toast.error(limiteAlcanzadoMsg);
             return prev;
           }
           const toAddFiles = compressedFiles.slice(0, toAddCount);
@@ -298,20 +375,20 @@ export function VariantesImagesManager({
         toast.error('Error al procesar las imágenes');
       }
     },
-    [imagenesExistentes]
+    [imagenesExistentes, limiteAlcanzadoMsg],
   );
 
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
       e.stopPropagation();
-      if (todosLosColores.length > 0 && !selectedColor.trim()) {
+      if (!esSoloTalle && todosLosColores.length > 0 && !selectedColor.trim()) {
         toast.error('⚠️ Debe seleccionar un color antes de seleccionar imágenes');
         return;
       }
       handleFileSelect(e.dataTransfer.files);
     },
-    [handleFileSelect, todosLosColores, selectedColor]
+    [handleFileSelect, esSoloTalle, todosLosColores, selectedColor],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -348,7 +425,7 @@ export function VariantesImagesManager({
       const { active, over } = event;
       if (!over || active.id === over.id) return;
 
-      const images = imagesByColor?.[color] ?? [];
+      const images = getImagesForColor(imagesByColor, color);
       const oldIndex = images.findIndex((img) => img.id === active.id);
       const newIndex = images.findIndex((img) => img.id === over.id);
       if (oldIndex === -1 || newIndex === -1) return;
@@ -372,12 +449,8 @@ export function VariantesImagesManager({
   // -------------------------------------------------------------------------
 
   const handleUpload = useCallback(async () => {
-    if (todosLosColores.length > 0 && !selectedColor.trim()) {
+    if (!esSoloTalle && todosLosColores.length > 0 && !selectedColor.trim()) {
       toast.error('⚠️ Debe seleccionar un color antes de seleccionar imágenes');
-      return;
-    }
-    if (todosLosColores.length === 0) {
-      toast.error('⚠️ No hay colores disponibles. Debe crear una variante con color primero.');
       return;
     }
     if (previewItems.length === 0) {
@@ -385,12 +458,12 @@ export function VariantesImagesManager({
       return;
     }
     if (!puedeSubirMas) {
-      toast.error(`Ya alcanzaste el límite de ${MAX_IMAGENES_POR_COLOR} imágenes para este color`);
+      toast.error(limiteAlcanzadoMsg);
       return;
     }
-    if (imagenesExistentes + previewItems.length > MAX_IMAGENES_POR_COLOR) {
+    if (imagenesExistentes + previewItems.length > MAX_IMAGENES) {
       toast.error(
-        `Solo podés subir ${imagenesDisponibles} imagen(es) más. Ya tenés ${imagenesExistentes} de ${MAX_IMAGENES_POR_COLOR} permitidas.`
+        `Solo podés subir ${imagenesDisponibles} imagen(es) más. Ya tenés ${imagenesExistentes} de ${MAX_IMAGENES} permitidas.`,
       );
       return;
     }
@@ -400,7 +473,7 @@ export function VariantesImagesManager({
       await uploadMutation.mutateAsync({
         productoWebId: undefined,
         productoPadreId: productoPadreId,
-        color: todosLosColores.length > 0 ? selectedColor : '',
+        color: esSoloTalle ? '' : selectedColor,
         files: filesToUpload,
       });
       toast.success(`${filesToUpload.length} imagen(es) subida(s) exitosamente`);
@@ -410,6 +483,7 @@ export function VariantesImagesManager({
       toast.error(error instanceof Error ? error.message : 'Error al subir imágenes');
     }
   }, [
+    esSoloTalle,
     selectedColor,
     previewItems,
     productoPadreId,
@@ -419,6 +493,7 @@ export function VariantesImagesManager({
     puedeSubirMas,
     imagenesExistentes,
     imagenesDisponibles,
+    limiteAlcanzadoMsg,
   ]);
 
   // -------------------------------------------------------------------------
@@ -454,8 +529,9 @@ export function VariantesImagesManager({
   const isLoadingImages = isLoading || deleteMutation.isPending;
   const isUploading = uploadMutation.isPending;
   const isReordering = reorderMutation.isPending;
-  const mostrarSelectorColor = todosLosColores.length > 0;
-  const tieneColorSeleccionado = selectedColor.trim().length > 0;
+  const mostrarSelectorColor = !esSoloTalle && todosLosColores.length > 0;
+  const puedeSubirArchivos = esSoloTalle || selectedColor.trim().length > 0;
+  const tieneColorSeleccionado = esSoloTalle || selectedColor.trim().length > 0;
 
   // -------------------------------------------------------------------------
   // Render
@@ -480,7 +556,7 @@ export function VariantesImagesManager({
               <div className="flex flex-wrap gap-2">
                 {todosLosColores.map((color) => {
                   const isSelected = selectedColor === color;
-                  const hasImages = coloresConImagenes.includes(color);
+                  const hasImages = getImagesForColor(imagesByColor, color).length > 0;
                   return (
                     <motion.button
                       key={color}
@@ -498,7 +574,7 @@ export function VariantesImagesManager({
                       {color}
                       {hasImages && (
                         <span className="ml-1.5 text-xs opacity-75">
-                          ({imagesByColor?.[color]?.length || 0})
+                          ({getImagesForColor(imagesByColor, color).length})
                         </span>
                       )}
                     </motion.button>
@@ -513,11 +589,11 @@ export function VariantesImagesManager({
             </div>
           )}
 
-          {!mostrarSelectorColor && (
-            <div className="border-2 border-red-300 rounded-lg p-3 bg-red-50">
-              <p className="text-red-800 text-sm font-medium">⚠️ No hay colores disponibles</p>
-              <p className="text-xs text-red-600 mt-1">
-                Debe crear una variante con color antes de poder subir imágenes.
+          {!mostrarSelectorColor && esSoloTalle && (
+            <div className="border rounded-lg p-3 bg-blue-50 border-blue-200">
+              <p className="text-blue-900 text-sm font-medium">Producto sin colores</p>
+              <p className="text-xs text-blue-700 mt-1">
+                Las imágenes se comparten entre todos los talles (como en la tienda: solo selector de talle).
               </p>
             </div>
           )}
@@ -526,7 +602,9 @@ export function VariantesImagesManager({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-700">
-                {mostrarSelectorColor && tieneColorSeleccionado ? (
+                {esSoloTalle ? (
+                  'Subir imágenes del producto'
+                ) : mostrarSelectorColor && tieneColorSeleccionado ? (
                   <>
                     Subir para: <span className="text-blue-600">{selectedColor}</span>
                   </>
@@ -536,9 +614,9 @@ export function VariantesImagesManager({
                   'Subir imágenes'
                 )}
               </span>
-              {tieneColorSeleccionado && (
+              {puedeSubirArchivos && (
                 <span className="text-xs text-gray-500">
-                  {imagenesExistentes}/{MAX_IMAGENES_POR_COLOR}{' '}
+                  {imagenesExistentes}/{MAX_IMAGENES}{' '}
                   {imagenesDisponibles > 0
                     ? `(${imagenesDisponibles} disponibles)`
                     : '— Límite alcanzado'}
@@ -608,13 +686,11 @@ export function VariantesImagesManager({
             <Button
               onClick={handleUpload}
               disabled={
-                (mostrarSelectorColor && !tieneColorSeleccionado) ||
-                (!mostrarSelectorColor && todosLosColores.length === 0) ||
+                !puedeSubirArchivos ||
                 previewItems.length === 0 ||
                 isUploading ||
-                (tieneColorSeleccionado && !puedeSubirMas) ||
-                (tieneColorSeleccionado &&
-                  imagenesExistentes + previewItems.length > MAX_IMAGENES_POR_COLOR)
+                !puedeSubirMas ||
+                imagenesExistentes + previewItems.length > MAX_IMAGENES
               }
               variant="black"
               size="sm"
@@ -641,7 +717,9 @@ export function VariantesImagesManager({
       {/* ------------------------------------------------------------------ */}
       <div className="flex flex-col min-h-0 overflow-hidden border rounded-lg bg-gray-50/50 xl:max-h-[calc(90vh-12rem)]">
         <div className="p-4 flex-shrink-0 border-b border-gray-200">
-          <h3 className="text-base font-medium text-gray-800">Por color</h3>
+          <h3 className="text-base font-medium text-gray-800">
+            {esSoloTalle ? 'Galería del producto' : 'Por color'}
+          </h3>
           {isReordering && (
             <p className="text-xs text-blue-600 mt-0.5 flex items-center gap-1">
               <Loader2 className="h-3 w-3 animate-spin" /> Guardando orden...
@@ -654,25 +732,22 @@ export function VariantesImagesManager({
               <Loader2 className="mx-auto h-6 w-6 animate-spin mb-2" />
               <p className="text-sm">Cargando imágenes...</p>
             </div>
-          ) : !imagesByColor || Object.keys(imagesByColor).length === 0 ? (
+          ) : seccionesGaleria.length === 0 ? (
             <div className="text-center py-6 text-gray-500">
               <ImageIcon className="mx-auto h-10 w-10 text-gray-300 mb-2" />
               <p className="text-sm">No hay imágenes subidas</p>
             </div>
           ) : (
             <div className="space-y-4">
-              {todosLosColores.map((color) => {
-                const images = imagesByColor[color] || [];
-                if (images.length === 0) return null;
-                return (
+              {seccionesGaleria.map(({ key, label, images }) => (
                   <motion.div
-                    key={color}
+                    key={key}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="space-y-2"
                   >
                     <h4 className="text-sm font-medium text-gray-700">
-                      {color}{' '}
+                      {label}{' '}
                       <span className="text-xs text-gray-500 font-normal">
                         ({images.length} imagen{images.length !== 1 ? 'es' : ''})
                       </span>
@@ -685,7 +760,7 @@ export function VariantesImagesManager({
                     <DndContext
                       sensors={sensors}
                       collisionDetection={closestCenter}
-                      onDragEnd={(event) => handleGalleryDragEnd(event, color)}
+                      onDragEnd={(event) => handleGalleryDragEnd(event, key)}
                     >
                       <SortableContext
                         items={images.map((img) => img.id)}
@@ -705,8 +780,7 @@ export function VariantesImagesManager({
                       </SortableContext>
                     </DndContext>
                   </motion.div>
-                );
-              })}
+                ))}
             </div>
           )}
         </div>

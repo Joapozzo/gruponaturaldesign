@@ -1,5 +1,6 @@
 import { apiClient } from '@/lib/apiClient';
 import type { CartItem, CheckoutEnvioSelection, ShippingData } from '@/app/types/cart';
+import { parseProductSpecs } from '@/app/utils/productHelpers';
 
 export const CHECKOUT_MP_SNAPSHOT_KEY = 'checkout_mp_snapshot';
 
@@ -13,6 +14,7 @@ export interface CrearPedidoMpItemPayload {
   precioUnitario: number;
   talle?: string;
   color?: string;
+  bordado?: boolean;
 }
 
 /** Igual que `CheckoutEnvioClientPayload` en API; `address` obligatoria en domicilio. */
@@ -86,6 +88,7 @@ export function mapCartItemsToMpPayload(items: CartItem[]): CrearPedidoMpItemPay
     const p = line.product;
     const id = p.id;
     const precioUnitario = p.precioLista ?? p.precio ?? 0;
+    const { color, talle } = parseProductSpecs(line.especificaciones);
     return {
       productoWebId: p.productoWebId ?? id,
       productoPadreId: p.productoPadreId ?? id,
@@ -94,6 +97,9 @@ export function mapCartItemsToMpPayload(items: CartItem[]): CrearPedidoMpItemPay
       codigo: (p.codigo ?? String(id)).trim() || String(id),
       cantidad: line.quantity,
       precioUnitario,
+      ...(talle ? { talle } : {}),
+      ...(color ? { color } : {}),
+      ...(line.bordado ? { bordado: true } : {}),
     };
   });
 }

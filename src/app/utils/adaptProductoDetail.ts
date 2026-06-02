@@ -25,13 +25,58 @@ function collectPadreImagenes(productoPadre: ProductoPadreConVariantes): string[
   return urls;
 }
 
+function sortImagenesBySuffixNumber(urls: string[]): string[] {
+  return [...urls].sort((a, b) => {
+    const numA = parseInt(a.match(/-(\d+)\./)?.[1] || '0', 10);
+    const numB = parseInt(b.match(/-(\d+)\./)?.[1] || '0', 10);
+    return numA - numB;
+  });
+}
+
+/** Imágenes del producto sin dimensión de color (solo talle u otro). */
+function getImagenesSinColor(
+  productoPadre: ProductoPadreConVariantes,
+  padreImagenes: string[],
+): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  const add = (url: string | null | undefined) => {
+    const normalized = normalizeImageUrl(url);
+    if (normalized && !seen.has(normalized)) {
+      seen.add(normalized);
+      result.push(normalized);
+    }
+  };
+
+  for (const url of padreImagenes) {
+    add(url);
+  }
+
+  for (const variante of productoPadre.productosWeb ?? []) {
+    if (variante.imagenVariante) {
+      add(variante.imagenVariante);
+    }
+
+    for (const img of variante.imagenes ?? []) {
+      if (img.imagenUrl) {
+        add(img.imagenUrl);
+      }
+    }
+  }
+
+  return sortImagenesBySuffixNumber(result);
+}
+
 /** Imágenes de un color: variantes del mismo color + padre filtrado por slug en path. */
 function getImagenesForColor(
   productoPadre: ProductoPadreConVariantes,
   color: string | null | undefined,
   padreImagenes: string[],
 ): string[] {
-  if (!color) return [];
+  if (!color) {
+    return getImagenesSinColor(productoPadre, padreImagenes);
+  }
 
   const seen = new Set<string>();
   const result: string[] = [];
@@ -64,11 +109,7 @@ function getImagenesForColor(
     add(url);
   }
 
-  return result.sort((a, b) => {
-    const numA = parseInt(a.match(/-(\d+)\./)?.[1] || '0', 10);
-    const numB = parseInt(b.match(/-(\d+)\./)?.[1] || '0', 10);
-    return numA - numB;
-  });
+  return sortImagenesBySuffixNumber(result);
 }
 
 /**
@@ -252,6 +293,7 @@ export function adaptProductoPadreToGroupedProduct(
     skuBase: productoPadre.nombre,
     skuBaseSlug: productoPadre.slug || undefined,
     productoPadreId: productoPadre.id,
+    destacado: productoPadre.destacado,
     displayProduct,
     variants,
     totalVariants: variants.length,

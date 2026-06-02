@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from './hooks/useCart';
@@ -16,6 +16,8 @@ import { CartDrawerOverlay } from './cart-drawer/CartDrawerOverlay';
 import { CartDrawerHeader } from './cart-drawer/CartDrawerHeader';
 import { CartDrawerContent } from './cart-drawer/CartDrawerContent';
 import { CartDrawerFooter } from './cart-drawer/CartDrawerFooter';
+import { BordadoProgress } from './bordado/BordadoProgress';
+import { cn } from '@/lib/utils';
 
 interface CartDrawerProps {
     isOpen: boolean;
@@ -51,6 +53,16 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
     useCartBordadoAutoDisable();
     const sortedItems = useSortedCartItems();
 
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [isOpen]);
 
     const drawerContent = (
         <AnimatePresence>
@@ -69,8 +81,13 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                     >
                         <CartDrawerHeader itemCount={itemCount} onClose={onClose} />
 
-                        {/* Content */}
-                        <div className="flex-1 overflow-y-auto p-3 bg-gray-50 min-h-0">
+                        {/* Content — solo ítems; scroll cuando desbordan */}
+                        <div
+                            className={cn(
+                                'flex-1 min-h-0 p-3 bg-gray-50',
+                                isEmpty ? 'overflow-hidden' : 'overflow-y-auto',
+                            )}
+                        >
                             <CartDrawerContent
                                 isEmpty={isEmpty}
                                 sortedItems={sortedItems}
@@ -84,6 +101,15 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                             />
                         </div>
 
+                        {!isEmpty && (
+                            <div className="shrink-0 border-t border-gray-200 px-3 pt-2.5 pb-2 bg-white">
+                                <BordadoProgress
+                                    current={itemCount}
+                                    minItems={config.BORDADO_MIN_ITEMS}
+                                />
+                            </div>
+                        )}
+
                         <CartDrawerFooter
                             isEmpty={isEmpty}
                             items={sortedItems}
@@ -92,7 +118,6 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                             subtotalTransfer={subtotalTransfer}
                             isInCheckout={isInCheckout}
                             isWholesaleLimitReached={isWholesaleLimitReached}
-                            bordadoMinItems={config.BORDADO_MIN_ITEMS}
                             config={config}
                             handleGoToCart={handleGoToCart}
                             handleClearCart={handleClearCart}

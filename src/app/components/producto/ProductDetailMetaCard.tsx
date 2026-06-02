@@ -23,8 +23,6 @@ interface ProductDetailMetaCardProps {
   displayProduct: ProductWithImage;
   onOpenImageModal: (images: string[], index?: number, label?: string) => void;
   className?: string;
-  /** Ancla para alinear el piso de las miniaturas de la galería (desktop). */
-  showroomFloorRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 function formatRubro(rubro: string | null | undefined): string | null {
@@ -125,7 +123,6 @@ export default function ProductDetailMetaCard({
   displayProduct,
   onOpenImageModal,
   className,
-  showroomFloorRef,
 }: ProductDetailMetaCardProps) {
   const bordadosImageUrl = getProductBordadosImage(product);
 
@@ -224,11 +221,7 @@ export default function ProductDetailMetaCard({
       )}
 
       <MetaSection>
-        <div
-          ref={showroomFloorRef}
-          data-product-showroom-floor
-          className="flex flex-col sm:flex-row sm:items-center gap-4"
-        >
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <MapPin className="w-6 h-6 sm:w-7 sm:h-7 text-neutral-400 shrink-0 self-center" aria-hidden />
           <div className="min-w-0 flex-1 text-center sm:text-left">
             <h2 className="text-sm font-semibold text-neutral-900 mb-1">

@@ -11,14 +11,14 @@ const NEWSLETTER_FLAG = 'newsletter_subscribed';
 export default function NewsletterPopup() {
   const pathname = usePathname();
   const eligible = useNewsletterEligible();
-
-  if (pathname?.startsWith('/maintenance')) {
-    return null;
-  }
   const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [email, setEmail] = useState('');
   const { subscribe, state, error } = useNewsletterSubscribe();
+
+  if (pathname?.startsWith('/maintenance')) {
+    return null;
+  }
 
   useEffect(() => {
     setMounted(true);

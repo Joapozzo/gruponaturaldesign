@@ -1,6 +1,7 @@
 import type { AdminPedidoDetalle } from '@/app/types/adminPedidoDetalle.types';
 import type { EstadoPedido } from '@/app/types/pedido.types';
 import { isRetiroEnTiendaPedido } from '@/app/utils/pedidoEntregaDisplay';
+import { resolvePedidoShippingTracking } from '@/app/utils/pedidoShippingTracking';
 
 const TERMINAL: EstadoPedido[] = ['cancelado', 'vencido', 'entregado'];
 
@@ -15,6 +16,8 @@ export interface WebPedidoActions {
   paymentPendingMessage: string | null;
   canEnviarListoRetiro: boolean;
   canMarcarRetirado: boolean;
+  canCrearEnvioPostal: boolean;
+  crearEnvioPostalLabel: string;
 }
 
 /** Estados SFactory ERP que admiten aprobar desde admin (cotización / en curso). */
@@ -46,6 +49,12 @@ export function getWebPedidoActions(pedido: AdminPedidoDetalle): WebPedidoAction
   const canEnviarListoRetiro = isRetiro && pickupActivo;
   const canMarcarRetirado = isRetiro && pickupActivo;
 
+  const tracking = resolvePedidoShippingTracking(pedido);
+  const canCrearEnvioPostal = !isRetiro && pickupActivo;
+  const crearEnvioPostalLabel = tracking.trackingNumber
+    ? 'Reintentar alta en carrier'
+    : 'Generar envío en carrier';
+
   let confirmLabel = 'Confirmar y enviar a SFactory';
   if (canAprobarEnSfactory && !canConfirmWeb) {
     confirmLabel = 'Aprobar en SFactory (confirmar venta)';
@@ -72,5 +81,7 @@ export function getWebPedidoActions(pedido: AdminPedidoDetalle): WebPedidoAction
     paymentPendingMessage,
     canEnviarListoRetiro,
     canMarcarRetirado,
+    canCrearEnvioPostal,
+    crearEnvioPostalLabel,
   };
 }

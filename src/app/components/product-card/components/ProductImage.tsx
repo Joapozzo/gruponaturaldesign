@@ -81,6 +81,9 @@ export const ProductImage: React.FC<ProductImageProps> = ({
   }
 
   const isDataUrl = typeof imgSrc === 'string' && imgSrc.startsWith('data:');
+  const isRemoteUrl =
+    typeof imgSrc === 'string' &&
+    (imgSrc.startsWith('http://') || imgSrc.startsWith('https://'));
 
   return (
     <div className={`relative overflow-hidden ${className}`}>
@@ -89,7 +92,7 @@ export const ProductImage: React.FC<ProductImageProps> = ({
         alt={alt}
         {...imageProps}
         priority={priority}
-        unoptimized={isDataUrl}
+        unoptimized={isDataUrl || isRemoteUrl}
         onError={handleError}
         className="transition-opacity duration-300"
       />

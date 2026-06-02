@@ -1,15 +1,46 @@
 /**
  * Hook para manejo de imágenes del producto
  * Responsabilidad única: gestión de la galería de imágenes
- * Si el color seleccionado no tiene imagen, usa la de otra variante del mismo producto.
+ * Si el color seleccionado no tiene imagen, usa imagenPrincipal u otra variante.
  */
 
 import { useMemo } from 'react';
 import { useImageNavigation } from './useImageNavigation';
 import type { VariantePublicada } from '@/app/types/producto-publicado.types';
+import { normalizeImageUrl } from '@/app/utils/normalizeImageUrl';
+
+const PLACEHOLDER_IMAGE = '/imgs/producto-placeholder.png';
+
+function isPlaceholderImage(url: string): boolean {
+  return url.includes('producto-placeholder');
+}
 
 function isValidImageUrl(url: string | null | undefined): boolean {
-  return Boolean(url && typeof url === 'string' && url.trim() !== '');
+  if (!url || typeof url !== 'string') return false;
+  const trimmed = url.trim();
+  return trimmed !== '' && !isPlaceholderImage(trimmed);
+}
+
+function resolveProductCardImage(
+  selectedVariant: VariantePublicada | null,
+  imagenPrincipal: string | null,
+  variantes: VariantePublicada[],
+): string | null {
+  const candidates: (string | null | undefined)[] = [
+    selectedVariant?.imagen,
+    imagenPrincipal,
+    ...variantes.map((v) => v.imagen),
+  ];
+
+  for (const raw of candidates) {
+    if (!isValidImageUrl(raw)) continue;
+    const normalized = normalizeImageUrl(raw);
+    if (normalized && !isPlaceholderImage(normalized)) {
+      return normalized;
+    }
+  }
+
+  return null;
 }
 
 interface UseProductCardImagesProps {
@@ -34,31 +65,23 @@ export function useProductCardImages({
   imagenPrincipal,
   variantes = [],
 }: UseProductCardImagesProps): UseProductCardImagesReturn {
-  // Preparar imágenes: 1) imagen del color seleccionado 2) imagenPrincipal 3) primera variante con imagen 4) placeholder
   const images = useMemo(() => {
-    if (isValidImageUrl(selectedVariant?.imagen)) {
-      return [selectedVariant!.imagen!];
-    }
-    if (isValidImageUrl(imagenPrincipal)) {
-      return [imagenPrincipal!];
-    }
-    const otraVarianteConImagen = variantes.find((v) => isValidImageUrl(v.imagen));
-    if (otraVarianteConImagen?.imagen) {
-      return [otraVarianteConImagen.imagen];
-    }
-    return ['/imgs/producto-placeholder.png'];
+    const resolved = resolveProductCardImage(
+      selectedVariant,
+      imagenPrincipal,
+      variantes,
+    );
+    return resolved ? [resolved] : [PLACEHOLDER_IMAGE];
   }, [selectedVariant, imagenPrincipal, variantes]);
 
-  // Asegurar que images siempre sea un array válido
-  const safeImages = Array.isArray(images) && images.length > 0 
-    ? images 
-    : ['/imgs/producto-placeholder.png'];
+  const safeImages =
+    Array.isArray(images) && images.length > 0 ? images : [PLACEHOLDER_IMAGE];
 
-  // Hook de navegación de imágenes
-  const { currentImageIndex, nextImage, prevImage, setImageIndex } = useImageNavigation(safeImages);
+  const { currentImageIndex, nextImage, prevImage, setImageIndex } =
+    useImageNavigation(safeImages);
 
-  // Imagen actual
-  const currentImage = safeImages[currentImageIndex] || safeImages[0] || '/imgs/producto-placeholder.png';
+  const currentImage =
+    safeImages[currentImageIndex] || safeImages[0] || PLACEHOLDER_IMAGE;
 
   return {
     images: safeImages,
@@ -70,4 +93,3 @@ export function useProductCardImages({
     hasMultipleImages: safeImages.length > 1,
   };
 }
-

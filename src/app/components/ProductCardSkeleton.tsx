@@ -25,14 +25,13 @@ const ProductCardSkeleton: React.FC<ProductCardSkeletonProps> = ({ index = 0 }) 
         {/* Badge destacado skeleton (opcional, para variedad visual) */}
         {showBadge && (
           <div className="absolute top-2 right-2 z-10">
-            <div className="w-6 h-6 bg-gray-300 rounded-full animate-pulse" />
+            <div className="h-5 w-20 bg-neutral-800/40 rounded-none animate-pulse" />
           </div>
         )}
-        
-        {/* Badges inferiores skeleton (pueden aparecer opcionalmente) */}
+
         {index === 1 && (
           <div className="absolute bottom-2 left-2 z-10 flex flex-col gap-1">
-            <div className="h-5 w-16 bg-gray-300 rounded animate-pulse" />
+            <div className="h-5 w-14 bg-neutral-800/40 rounded-none animate-pulse" />
           </div>
         )}
       </div>

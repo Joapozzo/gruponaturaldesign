@@ -24,7 +24,7 @@ export default function AnnouncementBanner({
   return (
     <Link
       href="/mayorista"
-      className={`block w-full bg-gradient-to-r from-[#Ed3237] to-red-700 text-white text-center py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 text-xs sm:text-sm md:text-base font-semibold shadow-md underline underline-offset-2 decoration-2 hover:from-red-700 hover:to-[#Ed3237] transition-all ${className}`}
+      className={`block w-full bg-black text-white text-center py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 text-xs sm:text-sm md:text-base font-semibold shadow-md underline underline-offset-2 decoration-white/80 hover:bg-neutral-900 transition-colors ${className}`}
       role="banner"
     >
       {children ?? DEFAULT_MAYORISTA_TEXT}

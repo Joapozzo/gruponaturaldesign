@@ -13,7 +13,6 @@ import ColorSelector from './product-card/components/ColorSelector';
 import SizeSelector from './product-card/components/SizeSelector';
 import VariantSelector from './product-card/components/VariantSelector';
 import QuantityControls from './product-card/components/QuantityControls';
-import BordadoSwitch from './product-card/components/BordadoSwitch';
 import { canAddQuantity, getStockMessage } from '@/app/services/stockService';
 import { usePrecioConfigPublic } from '@/app/hooks/usePrecioConfigPublic';
 import { useConfirmModal } from './hooks/useModal';
@@ -35,15 +34,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
     compact = false,
 }) => {
     const router = useRouter();
-    const { addToCart, updateQuantity, getProductQuantity, canAddToCart, updateBordado, items, itemCount } = useCart();
-    
-    // Validar si se puede activar bordado (mínimo 5 prendas)
-    const canActivateBordado = itemCount >= 5;
-    const itemsNeeded = Math.max(0, 5 - itemCount);
-    
-    // Estado para bordado (por defecto false)
-    const [bordado, setBordado] = React.useState(false);
-
+    const { addToCart, updateQuantity, getProductQuantity, canAddToCart, items } = useCart();
     // Hook para modal de confirmación mayorista
     const { 
         isOpen: isWholesaleModalOpen, 
@@ -124,26 +115,6 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
         );
     }, [items, selectedVariantId, currentSpecs]);
     const isExactVariantInCart = !!cartItem;
-    
-    // Sincronizar estado de bordado con el carrito si el item ya existe
-    React.useEffect(() => {
-        if (cartItem) {
-            setBordado(cartItem.bordado || false);
-        } else {
-            setBordado(false);
-        }
-    }, [cartItem]);
-
-    // Desactivar bordado automáticamente si el carrito baja de 5 prendas
-    React.useEffect(() => {
-        if (itemCount < 5 && bordado) {
-            setBordado(false);
-            // Si el item ya está en el carrito, actualizar el bordado
-            if (cartItem && cartItem.especificaciones === currentSpecs) {
-                updateBordado(selectedVariantId, false);
-            }
-        }
-    }, [itemCount, bordado, cartItem, currentSpecs, selectedVariantId, updateBordado]);
     
     // Obtener cantidad actual del producto en el carrito
     // Si tiene especificaciones, solo contar la variante exacta
@@ -288,7 +259,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                 },
                 1,
                 specs,
-                bordado
+                false
             );
 
             // Animación de feedback - NO cerrar el producto, mantenerlo abierto
@@ -422,41 +393,12 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
 
                                             {/* Selector de Talles */}
                                             {selectedColor && availableSizes.length > 0 && (
-                                                <>
-                                                    <SizeSelector
-                                                        sizes={availableSizes}
-                                                        selectedSize={selectedSize}
-                                                        isMobile={isMobile}
-                                                        onSizeSelect={handleSizeSelect}
-                                                    />
-                                                    {/* Switch de Bordado - Solo cuando se despliegan los talles */}
-                                                    <div className="mt-1">
-                                                        <div className="flex flex-col gap-0.5">
-                                                            <BordadoSwitch
-                                                                value={bordado}
-                                                                onChange={(value) => {
-                                                                    if (canActivateBordado) {
-                                                                        setBordado(value);
-                                                                        // Si el item ya está en el carrito, actualizar el bordado
-                                                                        if (cartItem && cartItem.especificaciones === currentSpecs) {
-                                                                            updateBordado(selectedVariantId, value);
-                                                                        }
-                                                                    }
-                                                                }}
-                                                                isMobile={isMobile}
-                                                                disabled={!canActivateBordado}
-                                                            />
-                                                            {!canActivateBordado && (
-                                                                <p className={`text-[9px] text-red-600 font-medium ${isMobile ? 'text-[8px]' : ''}`}>
-                                                                    {itemsNeeded > 0 
-                                                                        ? `${itemsNeeded} ${itemsNeeded === 1 ? 'prenda más' : 'prendas más'} para bordado (${itemCount}/5)`
-                                                                        : `Mínimo 5 prendas (${itemCount}/5)`
-                                                                    }
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </>
+                                                <SizeSelector
+                                                    sizes={availableSizes}
+                                                    selectedSize={selectedSize}
+                                                    isMobile={isMobile}
+                                                    onSizeSelect={handleSizeSelect}
+                                                />
                                             )}
                                         </motion.div>
                                     )}

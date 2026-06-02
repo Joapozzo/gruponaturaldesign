@@ -10,6 +10,9 @@ interface PedidoShippingTrackingFieldProps {
   trackingNumber: string | null;
   trackingUrl: string | null;
   onOpenTracking: () => void;
+  /** Si true, muestra la fila aunque falte el nº (envío postal pendiente). */
+  showWhenPending?: boolean;
+  pendingLabel?: string;
 }
 
 export function PedidoShippingTrackingField({
@@ -17,18 +20,24 @@ export function PedidoShippingTrackingField({
   trackingNumber,
   trackingUrl,
   onOpenTracking,
+  showWhenPending = false,
+  pendingLabel = 'Pendiente — se generará al confirmar el pedido o al crear el envío en el carrier.',
 }: PedidoShippingTrackingFieldProps) {
-  if (!trackingNumber && !trackingUrl) return null;
+  if (!showWhenPending && !trackingNumber && !trackingUrl) return null;
 
   return (
     <div className="sm:col-span-2">
-      <dt className="text-neutral-500">Seguimiento de envío</dt>
+      <dt className="text-neutral-500">Número de envío</dt>
       <dd className="space-y-1">
         {shippingProvider ? (
           <p className="text-xs text-neutral-500">{shippingProviderLabel(shippingProvider)}</p>
         ) : null}
         {trackingNumber ? (
           <ShippingTrackingNumberButton trackingNumber={trackingNumber} onClick={onOpenTracking} />
+        ) : showWhenPending ? (
+          <p className="text-sm text-amber-800 bg-amber-50 border border-amber-100 rounded px-2 py-1.5">
+            {pendingLabel}
+          </p>
         ) : null}
         {trackingUrl ? (
           <a

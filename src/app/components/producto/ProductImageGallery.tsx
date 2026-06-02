@@ -1,14 +1,12 @@
 "use client";
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Package, Maximize2 } from 'lucide-react';
 import Image from 'next/image';
 import DriveImageGallery from '@/app/components/DriveImageGallery';
+import { ProductCardBadges } from '@/app/components/product-card/components/ProductCardBadges';
 import { getStockMessage } from '@/app/services/stockService';
 import { ProductWithImage } from '@/app/types/producto';
-
-/** Offset superior de la columna de miniaturas en desktop (top-14). */
-const DESKTOP_THUMB_TOP_PX = 56;
 
 interface ProductImageGalleryProps {
     product: ProductWithImage;
@@ -21,8 +19,8 @@ interface ProductImageGalleryProps {
     onOpenModal: (validImages?: string[], validIndex?: number) => void;
     isOutOfStock?: boolean;
     stock?: number | null;
-    /** Ref al bloque showroom (piso) para alinear miniaturas en desktop. */
-    showroomAlignRef?: React.RefObject<HTMLDivElement | null>;
+    destacado?: boolean;
+    descuento?: number | null;
 }
 
 export default function ProductImageGallery({
@@ -34,29 +32,41 @@ export default function ProductImageGallery({
     onOpenModal,
     isOutOfStock = false,
     stock,
-    showroomAlignRef,
+    destacado = false,
+    descuento = null,
 }: ProductImageGalleryProps) {
     const showLowStockBadge = getStockMessage(stock) === 'ÚLTIMAS UNIDADES';
+
+    const effectiveImages = useMemo(() => {
+        if (images.length > 0) return images;
+        const fromProduct =
+            product.imagenes?.filter(
+                (img) => img?.trim() && !img.includes('producto-placeholder'),
+            ) ?? [];
+        if (fromProduct.length > 0) return fromProduct;
+        const single = product.imagen?.trim();
+        if (single && !single.includes('producto-placeholder')) return [single];
+        return [];
+    }, [images, product.imagenes, product.imagen]);
+
     const [validImages, setValidImages] = useState<string[]>([]);
     const [imageLoadStatus, setImageLoadStatus] = useState<{ [key: string]: 'loading' | 'loaded' | 'error' | 'pending' }>({});
     const [imagesKey, setImagesKey] = useState<string>('');
-    const [desktopThumbHeight, setDesktopThumbHeight] = useState<number | null>(null);
     const imageRef = useRef<HTMLDivElement>(null);
-    const galleryWrapperRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const newImagesKey = images.join('|');
+        const newImagesKey = effectiveImages.join('|');
         if (newImagesKey === imagesKey) return;
 
         setImagesKey(newImagesKey);
-        setValidImages(images);
+        setValidImages(effectiveImages);
 
         const status: { [key: string]: 'loading' | 'loaded' | 'error' | 'pending' } = {};
-        images.forEach((img) => {
+        effectiveImages.forEach((img) => {
             status[img] = 'loading';
         });
         setImageLoadStatus(status);
-    }, [images, imagesKey]);
+    }, [effectiveImages, imagesKey]);
 
     const validImagesRef = useRef<string[]>([]);
     validImagesRef.current = validImages;
@@ -127,39 +137,6 @@ export default function ProductImageGallery({
         setZoomLens(null);
     }, [adjustedIndex, displayImages[adjustedIndex]]);
 
-    useEffect(() => {
-        const showroomEl = showroomAlignRef?.current;
-        const wrapperEl = galleryWrapperRef.current;
-        if (!showroomEl || !wrapperEl || !hasMultiple) {
-            setDesktopThumbHeight(null);
-            return;
-        }
-
-        const updateHeight = () => {
-            if (window.matchMedia('(max-width: 1023px)').matches) {
-                setDesktopThumbHeight(null);
-                return;
-            }
-            const showroomBottom = showroomEl.getBoundingClientRect().bottom;
-            const startTop = wrapperEl.getBoundingClientRect().top + DESKTOP_THUMB_TOP_PX;
-            const height = showroomBottom - startTop;
-            setDesktopThumbHeight(height > 80 ? height : null);
-        };
-
-        updateHeight();
-        const observer = new ResizeObserver(updateHeight);
-        observer.observe(showroomEl);
-        observer.observe(wrapperEl);
-        window.addEventListener('resize', updateHeight);
-        window.addEventListener('scroll', updateHeight, { passive: true });
-
-        return () => {
-            observer.disconnect();
-            window.removeEventListener('resize', updateHeight);
-            window.removeEventListener('scroll', updateHeight);
-        };
-    }, [showroomAlignRef, hasMultiple, displayImages.length]);
-
     const handleImageMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         if (typeof window !== 'undefined' && window.innerWidth < 1024) return;
         const rect = e.currentTarget.getBoundingClientRect();
@@ -196,14 +173,16 @@ export default function ProductImageGallery({
                 onClick={(e) => selectImage(img, index, e)}
                 className={`relative overflow-hidden ring-2 transition-all duration-200 cursor-pointer ${
                     isDesktop
-                        ? 'flex-1 min-w-0 aspect-[3/4] rounded-lg'
+                        ? 'w-full shrink-0 aspect-[3/4] rounded-lg'
                         : 'flex-1 aspect-[4/5] min-h-[80px] sm:min-h-[96px] rounded-lg'
                 } ${
                     isActive
-                        ? 'ring-white scale-[1.02] shadow-lg'
+                        ? isDesktop
+                          ? 'ring-white scale-[1.02] shadow-lg'
+                          : 'ring-neutral-400'
                         : isDesktop
                           ? 'ring-white/70 hover:ring-white'
-                          : 'ring-white/40 opacity-85 hover:opacity-100 hover:ring-white/70'
+                          : 'ring-neutral-200 hover:ring-neutral-300'
                 }`}
                 whileTap={{ scale: 0.98 }}
                 aria-label={`Ver imagen ${index + 1}`}
@@ -244,10 +223,19 @@ export default function ProductImageGallery({
                     stock={stock}
                 />
             ) : (
-                <div ref={galleryWrapperRef} className="relative w-full lg:w-auto lg:overflow-visible">
+                <div className="w-full lg:w-auto lg:flex lg:flex-row lg:items-start lg:gap-2">
+                    {/* Desktop: columna al costado de la principal (misma fila, sin superponer) */}
+                    {hasMultiple && (
+                        <div className="hidden lg:flex flex-col gap-2 shrink-0 w-[100px] pt-0">
+                            {thumbnailImages.map((img, index) =>
+                                renderThumbnail(img, index, 'desktop'),
+                            )}
+                        </div>
+                    )}
+                    <div className="flex w-full flex-col gap-2 lg:w-auto">
                     <div
                         ref={imageRef}
-                        className="relative w-full aspect-[3/4] max-h-[calc(100vh-12rem)] lg:h-[calc(100vh-12rem)] lg:w-[calc((100vh-12rem)*3/4)] lg:max-h-[calc(100vh-12rem)] rounded-2xl overflow-hidden cursor-zoom-in lg:cursor-none"
+                        className="relative w-full shrink-0 aspect-[3/4] max-h-[calc(100vh-12rem)] lg:h-[calc(100vh-12rem)] lg:w-[calc((100vh-12rem)*3/4)] lg:max-h-[calc(100vh-12rem)] rounded-2xl overflow-hidden cursor-zoom-in lg:cursor-none"
                         onClick={() => onOpenModal(displayImages, adjustedIndex)}
                         onMouseMove={handleImageMouseMove}
                         onMouseLeave={handleImageMouseLeave}
@@ -321,18 +309,29 @@ export default function ProductImageGallery({
                                     </div>
                                 )}
 
-                                {/* Expandir */}
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onOpenModal(displayImages, adjustedIndex);
-                                    }}
-                                    className={`absolute ${topOverlayOffset} right-3 z-30 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full p-1.5 sm:p-2 transition-all duration-300 pointer-events-auto`}
-                                    aria-label="Ampliar imagen"
+                                {/* Expandir + badges (debajo del botón, sobre la imagen) */}
+                                <div
+                                    className={`absolute ${topOverlayOffset} right-3 z-30 flex flex-col items-end gap-2`}
                                 >
-                                    <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                                </button>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onOpenModal(displayImages, adjustedIndex);
+                                        }}
+                                        className="bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full p-1.5 sm:p-2 transition-all duration-300 pointer-events-auto"
+                                        aria-label="Ampliar imagen"
+                                    >
+                                        <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                                    </button>
+                                    {!isOutOfStock && (
+                                        <ProductCardBadges
+                                            layout="stack"
+                                            destacado={destacado}
+                                            descuento={descuento}
+                                        />
+                                    )}
+                                </div>
 
                                 {/* Badge stock bajo */}
                                 {showLowStockBadge && (
@@ -342,18 +341,6 @@ export default function ProductImageGallery({
                                     >
                                         ÚLTIMAS UNIDADES
                                     </div>
-                                )}
-
-                                {/* Miniaturas — mobile: fila abajo dentro de la imagen */}
-                                {hasMultiple && (
-                                    <>
-                                        <div className="absolute inset-x-0 bottom-0 h-36 sm:h-44 bg-gradient-to-t from-black/50 via-black/20 to-transparent pointer-events-none z-20 lg:hidden" />
-                                        <div className="absolute bottom-3 left-3 right-3 z-30 flex gap-2 pointer-events-auto lg:hidden">
-                                            {thumbnailImages.map((img, index) =>
-                                                renderThumbnail(img, index, 'mobile'),
-                                            )}
-                                        </div>
-                                    </>
                                 )}
 
                                 {/* Agotado — sobre la imagen */}
@@ -375,17 +362,15 @@ export default function ProductImageGallery({
                         )}
                     </div>
 
-                    {/* Desktop: fila de miniaturas alineada al piso del showroom (sin cambiar tamaño de la principal) */}
-                    {hasMultiple && desktopThumbHeight != null && (
-                        <div
-                            className="absolute inset-x-0 z-30 hidden lg:flex flex-row items-end gap-2 px-3 pointer-events-auto"
-                            style={{ top: DESKTOP_THUMB_TOP_PX, height: desktopThumbHeight }}
-                        >
+                    {/* Mobile: fila debajo de la principal (sin superponer) */}
+                    {hasMultiple && (
+                        <div className="flex w-full gap-2 lg:hidden">
                             {thumbnailImages.map((img, index) =>
-                                renderThumbnail(img, index, 'desktop'),
+                                renderThumbnail(img, index, 'mobile'),
                             )}
                         </div>
                     )}
+                    </div>
                 </div>
             )}
         </motion.div>
