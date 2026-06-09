@@ -734,7 +734,7 @@ class ProductsService {
         nombre = nombre.replace(/\bH\b/g, 'HOMBRE');
         
         // Remover colores comunes al final
-        const colores = ['NEGRO', 'BLANCO', 'AZUL', 'GRIS', 'ROJO', 'VERDE', 'AMARILLO', 'NARANJA', 'ROSA', 'VIOLETA', 'BEIGE', 'MARRON', 'AZUL MARINO', 'CELESTE', 'CEMENTO', 'GRIS TOPO', 'GRISTOPO', 'GRIS MELANGE', 'GRIS PERLA', 'TOSTADO'];
+        const colores = ['NEGRO', 'BLANCO', 'AZUL', 'GRIS', 'ROJO', 'VERDE', 'AMARILLO', 'NARANJA', 'ROSA', 'VIOLETA', 'BEIGE', 'MARRON', 'AZUL MARINO', 'CELESTE', 'CEMENTO', 'GRIS TOPO', 'GRISTOPO', 'GRIS MELANGE CLARO', 'GRIS MELANGE OSCURO', 'GRIS MELANGE', 'GRIS PERLA', 'TOSTADO'];
         colores.forEach(color => {
             const regex = new RegExp(`\\s*${color}\\s*$`, 'i');
             nombre = nombre.replace(regex, '');
@@ -1131,7 +1131,8 @@ class ProductsService {
         // Colores compuestos primero (deben ir antes que los simples para que coincidan correctamente)
         const coloresCompuestos = [
             'LAVADO OSCURO', 'LAVADO CLARO', 'LAVADO MEDIO',
-            'AZUL MARINO', 'GRIS PERLA', 'GRIS MELANGE', 'GRIS TOPO', 'GRISTOPO',
+            'AZUL MARINO', 'GRIS MELANGE CLARO', 'GRIS MELANGE OSCURO', 'GRIS PERLA', 'GRIS MELANGE', 'GRIS TOPO', 'GRISTOPO',
+            'RAYA COMBINADA', 'RAYA AZUL', 'RAYAS 1: COMBINADAS', 'RAYAS 2: FINA AZUL',
             'CELESTE', 'CEMENTO', 'TOSTADO', // Agregar CELESTE, CEMENTO y TOSTADO
             'NEGRO', 'BLANCO', 'AZUL', 'GRIS', 'ROJO', 'VERDE', 
             'AMARILLO', 'NARANJA', 'ROSA', 'VIOLETA', 'BEIGE', 'MARRON'

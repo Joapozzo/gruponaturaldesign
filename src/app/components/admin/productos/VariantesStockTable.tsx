@@ -5,12 +5,13 @@ import { useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import Button from '@/components/ui/Button';
 import Select from '@/app/components/ui/Select';
+import BaseModal from '@/app/components/modal/BaseModal';
 import { useVariantesStock } from '@/app/hooks/useVariantesStock';
 import { useBulkSelection } from '@/app/hooks/useBulkSelection';
 import { useEmpresaPrecioConfig, calcularPreciosDerivados } from '@/app/hooks/useEmpresaPrecioConfig';
 import type { ProductoPadreConVariantes, ProductoWebResponse } from '@/app/types/producto.types';
 import { formatNombreConGenero } from './columns';
-import { Search, Save, Loader2, Settings } from 'lucide-react';
+import { Search, Save, Loader2, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { productosKeys } from '@/app/utils/productosKeys';
 
@@ -77,6 +78,7 @@ export function VariantesStockTable({
   const lastProductIdRef = useRef<number | null>(null);
   const selectionInitializedRef = useRef(false);
   const [syncVersion, setSyncVersion] = useState(0);
+  const [showCacheInfo, setShowCacheInfo] = useState(false);
 
   // Sincronizar variantes solo cuando cambia el producto (abrir modal u otro producto)
   useEffect(() => {
@@ -298,21 +300,21 @@ export function VariantesStockTable({
 
   return (
     <div className="flex flex-col h-full min-h-0 overflow-hidden">
-      <div className="rounded-lg border border-blue-200 bg-blue-50/80 px-4 py-3 text-sm text-blue-900 shrink-0">
-        <p className="font-medium text-blue-950">Caché ecommerce (por producto padre)</p>
-        <p className="mt-1 text-blue-800/95 leading-relaxed">
-          Los valores de <strong>precio</strong> y <strong>stock</strong> que guardás acá actualizan la base de la tienda para las variantes seleccionadas (misma idea que las imágenes: todo el producto desde un solo lugar). En{' '}
-          <strong>S-Factory</strong> cada SKU es un ítem distinto; para alinear precio/stock con el ERP usá la edición/sync correspondiente.
-        </p>
-      </div>
-
-      {/* Precio y stock en la misma línea; aplican a seleccionadas al guardar */}
-      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-4 shrink-0">
-        <div className="flex flex-wrap items-end gap-6">
+      {/* Precio, stock y precios derivados en una sola fila */}
+      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 shrink-0">
+        <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Precio
-            </label>
+            <div className="flex items-center gap-1 mb-1">
+              <label className="text-sm font-medium text-gray-700">Precio</label>
+              <button
+                type="button"
+                onClick={() => setShowCacheInfo(true)}
+                className="p-0.5 rounded-full hover:bg-gray-200 text-gray-500"
+                aria-label="Información sobre caché ecommerce"
+              >
+                <Info className="w-3.5 h-3.5" />
+              </button>
+            </div>
             <div className="flex items-center gap-2">
               <input
                 type="number"
@@ -333,9 +335,7 @@ export function VariantesStockTable({
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Stock
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
             <input
               type="number"
               min="0"
@@ -347,35 +347,49 @@ export function VariantesStockTable({
               placeholder={bulkSelection.selectedCount === 0 ? '—' : '0'}
             />
           </div>
+          {precioGeneral != null && precioGeneral > 0 && (
+            <>
+              <div className="hidden sm:block w-px h-10 bg-gray-200 self-center" aria-hidden />
+              <div>
+                <span className="text-gray-500 block text-xs">
+                  Transferencia ({config ? (config.descuentoTransferencia * 100).toFixed(0) : 15}% desc.)
+                </span>
+                <span className="font-medium text-gray-800 text-sm">
+                  ${preciosDerivados.precioTransfer != null ? formatPrecio(preciosDerivados.precioTransfer) : '–'}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-500 block text-xs">
+                  Financiado ({preciosDerivados.cuotas} cuota{preciosDerivados.cuotas !== 1 ? 's' : ''})
+                </span>
+                <span className="font-medium text-gray-800 text-sm">
+                  ${preciosDerivados.precioFinanciado != null ? formatPrecio(preciosDerivados.precioFinanciado) : '–'}
+                  <span className="text-gray-500 font-normal">/cuota</span>
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-500 block text-xs">Precio sin imp.</span>
+                <span className="font-medium text-gray-800 text-sm">
+                  ${preciosDerivados.precioSinImp != null ? formatPrecio(preciosDerivados.precioSinImp) : '–'}
+                </span>
+              </div>
+            </>
+          )}
         </div>
-        {precioGeneral != null && precioGeneral > 0 && (
-          <div className="pt-3 border-t border-gray-200 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-            <div>
-              <span className="text-gray-500 block">
-                Transferencia ({config ? (config.descuentoTransferencia * 100).toFixed(0) : 15}% desc.)
-              </span>
-              <span className="font-medium text-gray-800">
-                ${preciosDerivados.precioTransfer != null ? formatPrecio(preciosDerivados.precioTransfer) : '–'}
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-500 block">
-                Financiado ({preciosDerivados.cuotas} cuota{preciosDerivados.cuotas !== 1 ? 's' : ''})
-              </span>
-              <span className="font-medium text-gray-800">
-                ${preciosDerivados.precioFinanciado != null ? formatPrecio(preciosDerivados.precioFinanciado) : '–'}
-                <span className="text-gray-500 font-normal">/cuota</span>
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-500 block">Precio sin imp.</span>
-              <span className="font-medium text-gray-800">
-                ${preciosDerivados.precioSinImp != null ? formatPrecio(preciosDerivados.precioSinImp) : '–'}
-              </span>
-            </div>
-          </div>
-        )}
       </div>
+
+      <BaseModal
+        isOpen={showCacheInfo}
+        onClose={() => setShowCacheInfo(false)}
+        title="Caché ecommerce (por producto padre)"
+        size="sm"
+        zIndex={1000001}
+      >
+        <p className="text-sm text-gray-600 leading-relaxed">
+          Los valores de <strong>precio</strong> y <strong>stock</strong> que guardás acá actualizan la base de la tienda para las variantes seleccionadas (misma idea que las imágenes: todo el producto desde un solo lugar). En{' '}
+          <strong>S-Factory</strong> cada SKU es un ítem distinto; para alinear precio/stock con el ERP usá la edición/sync correspondiente.
+        </p>
+      </BaseModal>
 
       {/* Selección bulk */}
       <div className="flex flex-wrap items-center gap-2 py-2 border-b border-gray-100 shrink-0">

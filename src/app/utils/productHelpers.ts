@@ -123,11 +123,16 @@ const COLOR_MAPPING: { [key: string]: string[] } = {
     'azul marino': ['azulmarino', 'marino'],
     'azul-marino': ['azulmarino', 'marino'],
     'azul mar': ['azulmarino', 'marino'],
-    'gris melange': ['grismelange', 'melange'], // Buscar tanto "grismelange" como "melange"
+    'gris melange claro': ['grismelangeclaro', 'grismelclaro', 'melangeclaro'],
+    'gris-melange-claro': ['grismelangeclaro', 'grismelclaro', 'melangeclaro'],
+    'gris melange oscuro': ['grismelangeoscuro', 'grismeloscuro', 'melangeoscuro'],
+    'gris-melange-oscuro': ['grismelangeoscuro', 'grismeloscuro', 'melangeoscuro'],
+    'gris melange': ['grismelange', 'melange'],
     'gris-melange': ['grismelange', 'melange'],
     'gris mel': ['grismelange', 'melange'],
     'gris-mel': ['grismelange', 'melange'],
-    'gris mel cl': ['grismelange', 'melange'],
+    'gris mel cl': ['grismelclaro', 'grismelangeclaro', 'melangeclaro'],
+    'gris mel os': ['grismeloscuro', 'grismelangeoscuro', 'melangeoscuro'],
     'gris topo': ['gristopo'],
     'gris-topo': ['gristopo'],
     'gristopo': ['gristopo'],
@@ -148,6 +153,10 @@ const COLOR_MAPPING: { [key: string]: string[] } = {
     'cemento': ['cemento'],
     'tostado': ['tostado'],
     'gris': ['gris'], // Para camisas drill que solo dicen "Gris"
+    'raya combinada': ['rayacombinada', 'raycombinada', 'rayascombinadas'],
+    'raya-combinada': ['rayacombinada', 'raycombinada', 'rayascombinadas'],
+    'raya azul': ['rayaazul', 'rayazul'],
+    'raya-azul': ['rayaazul', 'rayazul'],
 };
 
 function sortImagesByNumber(images: string[]): string[] {
