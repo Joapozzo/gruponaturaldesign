@@ -12,17 +12,28 @@ export const SHIPPING_TRACKING_PROVIDERS: ShippingTrackingProviderOption[] = [
     id: 'andreani',
     name: 'Andreani',
     description: 'Seguimiento de envíos Andreani',
-    logoSrc: '/logos/andreani.svg',
+    logoSrc: '/logos/andreani.png',
   },
   {
     id: 'correo',
     name: 'Correo Argentino',
     description: 'MiCorreo / PaqAr',
+    logoSrc: '/logos/correo.png',
   },
 ];
 
+export function getShippingTrackingProvider(
+  id: ShippingProviderId
+): ShippingTrackingProviderOption | undefined {
+  return SHIPPING_TRACKING_PROVIDERS.find((p) => p.id === id);
+}
+
 export function shippingProviderLabel(id: ShippingProviderId): string {
-  return SHIPPING_TRACKING_PROVIDERS.find((p) => p.id === id)?.name ?? id;
+  return getShippingTrackingProvider(id)?.name ?? id;
+}
+
+export function shippingProviderLogo(id: ShippingProviderId): string | undefined {
+  return getShippingTrackingProvider(id)?.logoSrc;
 }
 
 const DEFAULT_ANDREANI_TRACKING_URL =

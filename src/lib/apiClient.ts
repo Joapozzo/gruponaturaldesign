@@ -350,6 +350,62 @@ export class ApiClient {
   ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { ...options, method: 'DELETE' });
   }
+
+  /**
+   * GET binario (PDF, etc.) con auth. No parsea JSON.
+   */
+  async getBlob(
+    endpoint: string,
+    options?: Omit<RequestInit, 'method' | 'body'> & {
+      customHeaders?: Record<string, string>;
+      skipAuth?: boolean;
+    }
+  ): Promise<{ blob: Blob; fileName?: string; contentType?: string }> {
+    const url = `${this.baseURL}${endpoint}`;
+    const { skipAuth, customHeaders, ...fetchOptions } = options || {};
+    const headers = skipAuth
+      ? customHeaders || {}
+      : await this.getHeaders(customHeaders, true);
+
+    const response = await fetch(url, {
+      ...fetchOptions,
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      const responseData = await response.json().catch(() => ({
+        success: false,
+        message: 'Error al descargar el archivo',
+      }));
+      if (response.status === 401 && !skipAuth && typeof window !== 'undefined') {
+        window.location.href = '/auth/login?reason=session_expired';
+      }
+      throw this.normalizeError(responseData, response.status);
+    }
+
+    const blob = await response.blob();
+    const fileName = parseBlobFileName(response.headers.get('Content-Disposition'));
+    return {
+      blob,
+      fileName,
+      contentType: response.headers.get('Content-Type') ?? undefined,
+    };
+  }
+}
+
+function parseBlobFileName(contentDisposition: string | null): string | undefined {
+  if (!contentDisposition) return undefined;
+  const utf8 = /filename\*=UTF-8''([^;]+)/i.exec(contentDisposition);
+  if (utf8?.[1]) {
+    try {
+      return decodeURIComponent(utf8[1].trim());
+    } catch {
+      return utf8[1].trim();
+    }
+  }
+  const plain = /filename="?([^";]+)"?/i.exec(contentDisposition);
+  return plain?.[1]?.trim();
 }
 
 // Instancia singleton exportada

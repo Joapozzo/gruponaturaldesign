@@ -5,11 +5,11 @@ import { Loader2, ExternalLink } from 'lucide-react';
 import BaseModal from '@/app/components/modal/BaseModal';
 import Button from '@/components/ui/Button';
 import { ShippingProviderOptionCard } from '@/app/components/shipping/ShippingProviderOptionCard';
+import { ShippingProviderLogo } from '@/app/components/shipping/ShippingProviderLogo';
 import { ShippingTrackingTimeline } from '@/app/components/shipping/ShippingTrackingTimeline';
 import {
   SHIPPING_TRACKING_PROVIDERS,
   buildClientShippingTrackingUrl,
-  shippingProviderLabel,
 } from '@/app/components/shipping/shippingTracking.constants';
 import { useShippingTrackingQuery } from '@/app/hooks/useShippingTrackingQuery';
 import type { ShippingProviderId } from '@/app/validation/shippingTracking.schema';
@@ -90,10 +90,10 @@ export function ShippingTrackingModal({ isOpen, onClose, initial }: ShippingTrac
         ) : (
           <>
             <div className="flex items-center justify-between gap-2 text-sm">
-              <span className="text-neutral-600">
-                Proveedor:{' '}
-                <span className="font-semibold text-neutral-900">{shippingProviderLabel(provider)}</span>
-              </span>
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-neutral-600 shrink-0">Proveedor:</span>
+                <ShippingProviderLogo provider={provider} size="sm" showName />
+              </div>
               {!initial?.provider ? (
                 <button
                   type="button"

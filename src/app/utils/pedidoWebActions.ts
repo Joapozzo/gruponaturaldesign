@@ -18,6 +18,7 @@ export interface WebPedidoActions {
   canMarcarRetirado: boolean;
   canCrearEnvioPostal: boolean;
   crearEnvioPostalLabel: string;
+  canShowShippingLabel: boolean;
 }
 
 /** Estados SFactory ERP que admiten aprobar desde admin (cotización / en curso). */
@@ -51,6 +52,7 @@ export function getWebPedidoActions(pedido: AdminPedidoDetalle): WebPedidoAction
 
   const tracking = resolvePedidoShippingTracking(pedido);
   const canCrearEnvioPostal = !isRetiro && pickupActivo;
+  const canShowShippingLabel = !isRetiro && pickupActivo;
   const crearEnvioPostalLabel = tracking.trackingNumber
     ? 'Reintentar alta en carrier'
     : 'Generar envío en carrier';
@@ -83,5 +85,6 @@ export function getWebPedidoActions(pedido: AdminPedidoDetalle): WebPedidoAction
     canMarcarRetirado,
     canCrearEnvioPostal,
     crearEnvioPostalLabel,
+    canShowShippingLabel,
   };
 }

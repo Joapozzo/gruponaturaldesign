@@ -1,4 +1,5 @@
 import type { EstadoPedido, PedidoItem, PedidoSyncStatus } from '@/app/types/pedido.types';
+import type { PedidoLabelAvailability } from '@/app/validation/pedidoShippingLabel.schema';
 
 /** Respuesta de GET /admin/pedidos/:id (serialización JSON de Prisma). */
 export interface AdminPedidoClienteDetalle {
@@ -45,6 +46,8 @@ export interface AdminPedidoDetalle {
   checkoutEnvioSnapshot?: unknown;
   observaciones?: string | null;
   trackingUrl?: string | null;
+  /** Calculado en GET /admin/pedidos/:id */
+  shippingLabel?: PedidoLabelAvailability | null;
   cuponCodigoSnapshot?: string | null;
   cuponDescuentoTotal?: string | number;
   fechaPedido: string;
