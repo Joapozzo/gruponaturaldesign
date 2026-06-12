@@ -4,10 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useCart } from '@/app/components/hooks/useCart';
 import { useSales } from '@/app/contexts/SalesContext';
 import { useCheckoutShippingForm } from '@/app/hooks/useCheckoutShippingForm';
-import { buildCheckoutParcel } from '@/app/config/checkout-shipping.defaults';
 import {
   quoteCheckoutShipping,
   fetchCheckoutShippingAgencies,
+  mapCartItemsToShippingQuoteItems,
+  type CheckoutShippingParcelDto,
   type ShippingAgencyDto,
 } from '@/app/services/checkoutShipping.service';
 import { validateCheckoutShippingOnly } from '@/app/components/checkout/checkoutStep2.validation';
@@ -48,6 +49,11 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
   const [agencyPick, setAgencyPick] = useState<{ id: string; label: string } | null>(null);
   const [agencies, setAgencies] = useState<ShippingAgencyDto[]>([]);
   const [agenciesLoading, setAgenciesLoading] = useState(false);
+  const [quotedParcel, setQuotedParcel] = useState<CheckoutShippingParcelDto | null>(null);
+
+  const resolveActiveParcel = useCallback((): CheckoutShippingParcelDto | null => {
+    return quotedParcel ?? shipping.checkoutEnvio?.parcel ?? null;
+  }, [quotedParcel, shipping.checkoutEnvio?.parcel]);
 
   const applySelection = useCallback(
     (
@@ -55,13 +61,19 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
       quotes: Partial<Record<ShippingQuoteOptionId, QuoteResult>>,
       agency: { id: string; label: string } | null,
       cpDestino: string,
+      parcel: {
+        weightGrams: number;
+        height: number;
+        width: number;
+        depth: number;
+        declaredValue: number;
+      },
       rateOverrides?: Partial<Record<ShippingQuoteOptionId, string>>
     ) => {
       const opt = QUOTE_OPTIONS.find((o) => o.id === optionId);
       const q = quotes[optionId];
       if (!opt || !q || 'error' in q) return;
 
-      const parcel = buildCheckoutParcel(total);
       const mergePick = { ...correoRatePick, ...rateOverrides };
       let clientQuotedAmount = q.precio;
       let correoProductType: string | undefined;
@@ -89,11 +101,21 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
         },
       });
     },
-    [patchShipping, total, correoRatePick]
+    [patchShipping, correoRatePick]
   );
 
   const pickCheapestAndApply = useCallback(
-    (quotes: Partial<Record<ShippingQuoteOptionId, QuoteResult>>, cpDestino: string) => {
+    (
+      quotes: Partial<Record<ShippingQuoteOptionId, QuoteResult>>,
+      cpDestino: string,
+      parcel: {
+        weightGrams: number;
+        height: number;
+        width: number;
+        depth: number;
+        declaredValue: number;
+      }
+    ) => {
       let bestId: ShippingQuoteOptionId | null = null;
       let bestPrecio = Infinity;
       for (const id of Object.keys(quotes) as ShippingQuoteOptionId[]) {
@@ -106,7 +128,7 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
       if (bestId == null) return;
       setSelectedOptionId(bestId);
       setAgencyPick(null);
-      applySelection(bestId, quotes, null, cpDestino);
+      applySelection(bestId, quotes, null, cpDestino, parcel);
     },
     [applySelection]
   );
@@ -114,7 +136,8 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
   const runQuotes = useCallback(async () => {
     if (!canTriggerQuote(shipping)) return;
     const cp = shipping.codigo_postal!.trim();
-    const parcel = buildCheckoutParcel(total);
+    const shippingItems = mapCartItemsToShippingQuoteItems(items);
+    if (shippingItems.length === 0) return;
 
     setQuoteLoading(true);
     setQuoteByOption({});
@@ -122,15 +145,27 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
     setSelectedOptionId(null);
     patchShipping({ checkoutEnvio: undefined });
 
+    let sharedParcel:
+      | {
+          weightGrams: number;
+          height: number;
+          width: number;
+          depth: number;
+          declaredValue: number;
+        }
+      | null = null;
+
     const results = await Promise.all(
       QUOTE_OPTIONS.map(async (opt) => {
         try {
           const data = await quoteCheckoutShipping({
             provider: opt.provider,
             deliveryType: opt.deliveryType,
-            parcel,
+            items: shippingItems,
+            declaredValueSubtotal: subtotal,
             cpDestino: cp,
           });
+          if (!sharedParcel) sharedParcel = data.parcel;
           const correoOpciones =
             opt.provider === 'correo' && data.correoOpciones?.length
               ? data.correoOpciones.map((c) => ({
@@ -156,8 +191,11 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
     });
     setQuoteByOption(next);
     setQuoteLoading(false);
-    pickCheapestAndApply(next, cp);
-  }, [shipping, total, patchShipping, pickCheapestAndApply]);
+    if (sharedParcel) {
+      setQuotedParcel(sharedParcel);
+      pickCheapestAndApply(next, cp, sharedParcel);
+    }
+  }, [shipping, items, subtotal, patchShipping, pickCheapestAndApply]);
 
   const onCodigoPostalBlur = useCallback(() => {
     handleBlur('codigo_postal');
@@ -193,6 +231,9 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
     }));
     if (ce.deliveryType === 'agency' && ce.agencyId && ce.agencyLabel) {
       setAgencyPick({ id: ce.agencyId, label: ce.agencyLabel });
+    }
+    if (ce.parcel) {
+      setQuotedParcel(ce.parcel);
     }
   }, [shippingData]);
 
@@ -239,6 +280,7 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
       setSelectedOptionId(null);
       setAgencyPick(null);
       setAgencies([]);
+      setQuotedParcel(null);
       if (tipo === 'retiro') {
         patchShipping({
           tipo: 'retiro',
@@ -259,35 +301,38 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
   const handleOptionCardClick = useCallback(
     (optionId: ShippingQuoteOptionId) => {
       const q = quoteByOption[optionId];
-      if (!q || 'error' in q) return;
+      const parcel = resolveActiveParcel();
+      if (!q || 'error' in q || !parcel) return;
       const cp = shipping.codigo_postal?.trim() ?? '';
       setSelectedOptionId(optionId);
       setAgencyPick(null);
-      applySelection(optionId, quoteByOption, null, cp);
+      applySelection(optionId, quoteByOption, null, cp, parcel);
     },
-    [quoteByOption, applySelection, shipping.codigo_postal]
+    [quoteByOption, applySelection, shipping.codigo_postal, resolveActiveParcel]
   );
 
   const handleCorreoRateSelect = useCallback(
     (optionId: ShippingQuoteOptionId, serviceCode: string) => {
       const q = quoteByOption[optionId];
-      if (!q || 'error' in q) return;
+      const parcel = resolveActiveParcel();
+      if (!q || 'error' in q || !parcel) return;
       setCorreoRatePick((prev) => ({ ...prev, [optionId]: serviceCode }));
       const cp = shipping.codigo_postal?.trim() ?? '';
       if (selectedOptionId !== optionId) {
         setSelectedOptionId(optionId);
         setAgencyPick(null);
       }
-      applySelection(optionId, quoteByOption, null, cp, { [optionId]: serviceCode });
+      applySelection(optionId, quoteByOption, null, cp, parcel, { [optionId]: serviceCode });
     },
-    [selectedOptionId, applySelection, quoteByOption, shipping.codigo_postal]
+    [selectedOptionId, applySelection, quoteByOption, shipping.codigo_postal, resolveActiveParcel]
   );
 
   const onAgencySelect = useCallback(
     (agencyId: string) => {
       if (!selectedOptionId?.endsWith('-agency')) return;
       const q = quoteByOption[selectedOptionId];
-      if (!q || 'error' in q) return;
+      const parcel = resolveActiveParcel();
+      if (!q || 'error' in q || !parcel) return;
       const cp = shipping.codigo_postal?.trim() ?? '';
       const a = agencies.find((x) => x.agencyId === agencyId);
       const label = a ? `${a.name} — ${a.address}` : agencyId;
@@ -296,10 +341,11 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
         selectedOptionId,
         quoteByOption,
         agencyId ? { id: agencyId, label } : null,
-        cp
+        cp,
+        parcel
       );
     },
-    [selectedOptionId, quoteByOption, agencies, applySelection, shipping.codigo_postal]
+    [selectedOptionId, quoteByOption, agencies, applySelection, shipping.codigo_postal, resolveActiveParcel]
   );
 
   const canContinue = useMemo(() => {

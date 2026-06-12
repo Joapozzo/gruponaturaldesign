@@ -1,19 +1,28 @@
 import { apiClient } from '@/lib/apiClient';
+import type { CartItem } from '@/app/types/cart';
 
 export type CheckoutShippingProvider = 'correo' | 'andreani';
 export type CheckoutShippingDeliveryType = 'homeDelivery' | 'agency';
 
+export interface CheckoutShippingQuoteItem {
+  productoWebId: number;
+  cantidad: number;
+}
+
 export interface CheckoutShippingQuoteBody {
   provider: CheckoutShippingProvider;
   deliveryType: CheckoutShippingDeliveryType;
-  parcel: {
-    weightGrams: number;
-    height: number;
-    width: number;
-    depth: number;
-    declaredValue: number;
-  };
+  items: CheckoutShippingQuoteItem[];
+  declaredValueSubtotal: number;
   cpDestino: string;
+}
+
+export interface CheckoutShippingParcelDto {
+  weightGrams: number;
+  height: number;
+  width: number;
+  depth: number;
+  declaredValue: number;
 }
 
 export interface CheckoutCorreoOpcionQuote {
@@ -27,6 +36,7 @@ export interface CheckoutShippingQuoteResponse {
   precio: number;
   moneda: string;
   provider: CheckoutShippingProvider;
+  parcel: CheckoutShippingParcelDto;
   correoOpciones?: CheckoutCorreoOpcionQuote[];
   raw?: unknown;
 }
@@ -41,6 +51,13 @@ export interface ShippingAgencyDto {
   schedule: string;
   phone?: string;
   email?: string;
+}
+
+export function mapCartItemsToShippingQuoteItems(items: CartItem[]): CheckoutShippingQuoteItem[] {
+  return items.map((line) => ({
+    productoWebId: line.product.productoWebId ?? line.product.id,
+    cantidad: line.quantity,
+  }));
 }
 
 export async function quoteCheckoutShipping(

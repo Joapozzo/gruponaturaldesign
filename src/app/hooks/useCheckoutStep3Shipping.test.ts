@@ -39,7 +39,13 @@ vi.mock('@/app/components/hooks/useCart', () => ({
     shippingData: null,
     setShippingData: vi.fn(),
     itemCount: 2,
-    items: [],
+    items: [
+      {
+        product: { id: 1, productoWebId: 1, nombre: 'Test', descripcion: '', categoria: '', precio: 50, precioLista: 50, imagen: '' },
+        quantity: 2,
+        subtotal: 100,
+      },
+    ],
     subtotal: 100,
     total: 121,
   }),
@@ -51,10 +57,14 @@ vi.mock('@/app/contexts/SalesContext', () => ({
   useSales: () => ({ isWholesaleLimitReached: isWholesaleLimitReachedRef.current }),
 }));
 
-vi.mock('@/app/services/checkoutShipping.service', () => ({
-  quoteCheckoutShipping: vi.fn(),
-  fetchCheckoutShippingAgencies: vi.fn().mockResolvedValue([]),
-}));
+vi.mock('@/app/services/checkoutShipping.service', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/app/services/checkoutShipping.service')>();
+  return {
+    ...actual,
+    quoteCheckoutShipping: vi.fn(),
+    fetchCheckoutShippingAgencies: vi.fn().mockResolvedValue([]),
+  };
+});
 
 describe('useCheckoutStep3Shipping', () => {
   const onNext = vi.fn();
@@ -69,7 +79,18 @@ describe('useCheckoutStep3Shipping', () => {
       provincia: 'Buenos Aires',
       codigo_postal: '1406',
     };
-    vi.mocked(quoteCheckoutShipping).mockResolvedValue({ precio: 2500 });
+    vi.mocked(quoteCheckoutShipping).mockResolvedValue({
+      precio: 2500,
+      moneda: 'ARS',
+      provider: 'correo',
+      parcel: {
+        weightGrams: 612,
+        height: 8,
+        width: 50,
+        depth: 80,
+        declaredValue: 100,
+      },
+    });
   });
 
   it('canCalculateShipping true con dirección completa', () => {
@@ -106,10 +127,31 @@ describe('useCheckoutStep3Shipping', () => {
 
   it('calculateShipping cotiza 4 opciones y aplica la más barata', async () => {
     vi.mocked(quoteCheckoutShipping)
-      .mockResolvedValueOnce({ precio: 5000 })
-      .mockResolvedValueOnce({ precio: 1200, correoOpciones: [{ price: 1200, serviceCode: 'STD' }] })
-      .mockResolvedValueOnce({ precio: 3000 })
-      .mockResolvedValueOnce({ precio: 4000 });
+      .mockResolvedValueOnce({
+        precio: 5000,
+        moneda: 'ARS',
+        provider: 'andreani',
+        parcel: { weightGrams: 612, height: 8, width: 50, depth: 80, declaredValue: 100 },
+      })
+      .mockResolvedValueOnce({
+        precio: 1200,
+        moneda: 'ARS',
+        provider: 'correo',
+        parcel: { weightGrams: 612, height: 8, width: 50, depth: 80, declaredValue: 100 },
+        correoOpciones: [{ price: 1200, serviceCode: 'STD' }],
+      })
+      .mockResolvedValueOnce({
+        precio: 3000,
+        moneda: 'ARS',
+        provider: 'andreani',
+        parcel: { weightGrams: 612, height: 8, width: 50, depth: 80, declaredValue: 100 },
+      })
+      .mockResolvedValueOnce({
+        precio: 4000,
+        moneda: 'ARS',
+        provider: 'correo',
+        parcel: { weightGrams: 612, height: 8, width: 50, depth: 80, declaredValue: 100 },
+      });
 
     const { result } = renderHook(() => useCheckoutStep3Shipping({ onNext }));
 
