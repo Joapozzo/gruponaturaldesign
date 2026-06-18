@@ -21,11 +21,14 @@ import {
   updateEnvioConfig,
   type EnvioConfigInput,
 } from '@/app/services/envioConfig.service';
+import ConfirmModal from '@/app/components/modal/ConfirmModal';
 
 export function EnvioTab() {
   const queryClient = useQueryClient();
   const { data: config, isPending, isFetching } = useEnvioConfigQuery();
   const [form, setForm] = useState(() => envioConfigToForm(null));
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [showUnsavedSyncModal, setShowUnsavedSyncModal] = useState(false);
 
   useEffect(() => {
     if (config) setForm(envioConfigToForm(config));
@@ -90,7 +93,16 @@ export function EnvioTab() {
 
   const status = config?.correoAccountStatus ?? 'not_configured';
 
+  const handleVincularClick = () => {
+    if (hasChanges) {
+      setShowUnsavedSyncModal(true);
+      return;
+    }
+    syncMutation.mutate();
+  };
+
   return (
+    <>
     <Card>
       <CardHeader className="flex flex-wrap items-center justify-between gap-2">
         <span>Envíos — MiCorreo</span>
@@ -262,16 +274,7 @@ export function EnvioTab() {
         <div className="flex flex-wrap gap-2 justify-end pt-2 border-t border-gray-100">
           <Button
             variant="blackOutline"
-            onClick={() => {
-              if (
-                !window.confirm(
-                  '¿Crear cuenta nueva en MiCorreo con los datos de la empresa? Solo si no tenés cuenta existente.'
-                )
-              ) {
-                return;
-              }
-              registerMutation.mutate();
-            }}
+            onClick={() => setShowRegisterModal(true)}
             disabled={disabled}
           >
             {registerMutation.isPending ? (
@@ -283,7 +286,7 @@ export function EnvioTab() {
           </Button>
           <Button
             variant="blackOutline"
-            onClick={() => syncMutation.mutate()}
+            onClick={handleVincularClick}
             disabled={disabled}
           >
             {syncMutation.isPending ? (
@@ -308,5 +311,32 @@ export function EnvioTab() {
         </div>
       </CardBody>
     </Card>
+
+    <ConfirmModal
+      isOpen={showRegisterModal}
+      onClose={() => setShowRegisterModal(false)}
+      onConfirm={() => {
+        setShowRegisterModal(false);
+        registerMutation.mutate();
+      }}
+      title="¿Crear cuenta nueva en MiCorreo?"
+      message="Se registrará una cuenta con los datos de la empresa. Usá esto solo si no tenés cuenta existente en MiCorreo."
+      type="warning"
+      confirmText="Crear cuenta"
+      cancelText="Cancelar"
+      loading={registerMutation.isPending}
+    />
+
+    <ConfirmModal
+      isOpen={showUnsavedSyncModal}
+      onClose={() => setShowUnsavedSyncModal(false)}
+      onConfirm={() => setShowUnsavedSyncModal(false)}
+      title="Guardá los cambios primero"
+      message="Hay cambios sin guardar. Guardá la configuración antes de vincular la cuenta MiCorreo."
+      type="warning"
+      confirmText="Entendido"
+      showCancel={false}
+    />
+    </>
   );
 }
