@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation";
 import AdminClientLayout from "./AdminClientLayout";
 import { getCurrentSession } from "@/lib/auth";
+import { AUTH_CALLBACK_PARAM } from "@/lib/auth-callback-url";
+
+const ADMIN_LOGIN_CALLBACK = "/admin/dashboard";
 
 /**
  * Layout estricto para panel admin. Solo rol ADMIN puede estar aquí.
@@ -15,7 +18,9 @@ export default async function AdminLayout({
   const session = await getCurrentSession();
 
   if (!session) {
-    redirect("/auth/login");
+    redirect(
+      `/auth/login?${AUTH_CALLBACK_PARAM}=${encodeURIComponent(ADMIN_LOGIN_CALLBACK)}`,
+    );
   }
 
   const isAdmin =

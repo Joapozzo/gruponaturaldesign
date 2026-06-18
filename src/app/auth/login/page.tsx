@@ -57,11 +57,61 @@ function LoginForm() {
     sessionState,
     firebaseUser,
     isLoading: authLoading,
+    refreshSessionState,
+    logout,
   } = useAuth();
   const { email, setEmail, password, setPassword, error, setError } = useAuthForm();
   const [isLoading, setIsLoading] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isClearingStaleAuth, setIsClearingStaleAuth] = useState(false);
   const redirectingRef = useRef(false);
+  const staleAuthHandledRef = useRef(false);
+  const sessionExpiredToastRef = useRef(false);
+
+  useEffect(() => {
+    const reason = searchParams.get('reason');
+    if (reason === 'session_expired' && !sessionExpiredToastRef.current) {
+      sessionExpiredToastRef.current = true;
+      toast.error('Tu sesión expiró. Volvé a iniciar sesión.');
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (authLoading || !firebaseUser || sessionState || redirectingRef.current) return;
+    if (staleAuthHandledRef.current) return;
+
+    let cancelled = false;
+    staleAuthHandledRef.current = true;
+    setIsClearingStaleAuth(true);
+
+    async function resolveStaleSession() {
+      const state = await refreshSessionState();
+      if (cancelled) return;
+      if (state) {
+        setIsClearingStaleAuth(false);
+        staleAuthHandledRef.current = false;
+        return;
+      }
+
+      try {
+        await logout();
+      } catch {
+        // Mostrar formulario aunque falle el logout remoto
+      }
+      if (cancelled) return;
+      setIsClearingStaleAuth(false);
+      if (!sessionExpiredToastRef.current) {
+        sessionExpiredToastRef.current = true;
+        toast.error('Tu sesión expiró. Volvé a iniciar sesión.');
+      }
+    }
+
+    void resolveStaleSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, firebaseUser, sessionState, refreshSessionState, logout]);
 
   useEffect(() => {
     if (authLoading || !firebaseUser || !sessionState || redirectingRef.current) return;
@@ -131,7 +181,7 @@ function LoginForm() {
     }
   };
 
-  if (authLoading || (firebaseUser && !sessionState) || isRedirecting) {
+  if (authLoading || isRedirecting || isClearingStaleAuth) {
     return (
       <AuthShell title="Entrar" subtitle="Iniciá sesión con tu cuenta">
         <div className="animate-pulse space-y-4">
