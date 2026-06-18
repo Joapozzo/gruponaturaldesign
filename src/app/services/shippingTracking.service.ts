@@ -16,13 +16,13 @@ export async function fetchShippingTracking(params: {
       provider: params.provider,
       numbers: tn,
     });
-    const res = await apiClient.get<ShippingTrackingResponse['results']>(
+    const res = await apiClient.get<ShippingTrackingResponse>(
       `/shipping/orders/${params.pedidoId}/tracking?${sp.toString()}`
     );
     if (!res.success || !res.data) {
       throw new Error(res.message || res.error || 'No se pudo consultar el seguimiento');
     }
-    const parsed = shippingTrackingResponseSchema.safeParse({ results: res.data });
+    const parsed = shippingTrackingResponseSchema.safeParse(res.data);
     if (!parsed.success) {
       throw new Error('Respuesta de seguimiento inválida');
     }

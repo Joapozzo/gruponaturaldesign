@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Table } from '@/components/ui/Table';
 import { TableSkeleton } from '@/components/ui/TableSkeleton';
 import { Card } from '@/components/ui/Card';
 import { useAuditoriaTable } from '@/app/hooks/useAuditoriaTable';
 import { useTableSearchParams } from '@/app/hooks/useTableSearchParams';
 import { useAuditoriaFiltersWithParams } from '@/app/filters/hooks/useAuditoriaFiltersWithParams';
+import type { AuditLogItem } from '@/app/types/audit.types';
 import { AuditoriaFilters } from './AuditoriaFilters';
+import { AuditoriaDetailModal } from './AuditoriaDetailModal';
 import { getAuditoriaColumns } from './columns';
 
 interface AuditoriaTableClientProps {
@@ -17,6 +19,7 @@ interface AuditoriaTableClientProps {
 export function AuditoriaTableClient({ empresaId }: AuditoriaTableClientProps) {
   const { page, limit, setPage, setLimit } = useTableSearchParams({ defaultLimit: 20 });
   const filters = useAuditoriaFiltersWithParams();
+  const [detailLog, setDetailLog] = useState<AuditLogItem | null>(null);
 
   const { auditLogs, pagination, isLoading, isError, error } = useAuditoriaTable({
     empresaId,
@@ -25,7 +28,10 @@ export function AuditoriaTableClient({ empresaId }: AuditoriaTableClientProps) {
     filters: filters.filters,
   });
 
-  const columns = useMemo(() => getAuditoriaColumns(), []);
+  const columns = useMemo(
+    () => getAuditoriaColumns({ onViewDetail: setDetailLog }),
+    []
+  );
 
   return (
     <div className="mt-8 space-y-4">
@@ -57,6 +63,8 @@ export function AuditoriaTableClient({ empresaId }: AuditoriaTableClientProps) {
           />
         )}
       </Card>
+
+      <AuditoriaDetailModal log={detailLog} onClose={() => setDetailLog(null)} />
     </div>
   );
 }

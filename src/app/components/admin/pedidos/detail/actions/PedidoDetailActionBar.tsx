@@ -92,43 +92,27 @@ export function PedidoDetailActionBar({ actions, busy, handlers }: PedidoDetailA
     },
   ];
 
-  const visiblePrimary = primaryActions.filter((a) => a.show);
-  const visibleSecondary = secondaryActions.filter((a) => a.show);
+  const visibleActions = [
+    ...primaryActions.filter((a) => a.show),
+    ...secondaryActions.filter((a) => a.show),
+  ];
 
-  if (visiblePrimary.length === 0 && visibleSecondary.length === 0) {
+  if (visibleActions.length === 0) {
     return null;
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      {visiblePrimary.length > 0 ? (
-        <div className="flex flex-wrap gap-2">
-          {visiblePrimary.map((action) => (
-            <Button
-              key={action.id}
-              variant={action.variant}
-              disabled={busy}
-              onClick={action.onClick}
-            >
-              {busy && action.busyLabel ? action.busyLabel : action.label}
-            </Button>
-          ))}
-        </div>
-      ) : null}
-      {visibleSecondary.length > 0 ? (
-        <div className="flex flex-wrap gap-2 pt-1 border-t border-neutral-100">
-          {visibleSecondary.map((action) => (
-            <Button
-              key={action.id}
-              variant={action.variant}
-              disabled={busy}
-              onClick={action.onClick}
-            >
-              {action.label}
-            </Button>
-          ))}
-        </div>
-      ) : null}
+    <div className="flex flex-wrap items-center gap-2">
+      {visibleActions.map((action) => (
+        <Button
+          key={action.id}
+          variant={action.variant}
+          disabled={busy}
+          onClick={action.onClick}
+        >
+          {busy && action.busyLabel ? action.busyLabel : action.label}
+        </Button>
+      ))}
     </div>
   );
 }

@@ -38,16 +38,16 @@ export function shippingProviderLogo(id: ShippingProviderId): string | undefined
 
 const DEFAULT_ANDREANI_TRACKING_URL =
   'https://www.andreani.com/#!/informacionEnvio/{trackingNumber}';
-const DEFAULT_CORREO_TRACKING_URL =
-  'https://www.correoargentino.com.ar/formularios/ccu/consulta-envio?id={trackingNumber}';
+const DEFAULT_CORREO_TRACKING_URL = 'https://www.correoargentino.com.ar/MiCorreo';
 
 /** URL pública del carrier (misma lógica que API; sin depender de env del cliente). */
 export function buildClientShippingTrackingUrl(
   provider: ShippingProviderId,
   trackingNumber: string
 ): string {
-  const tn = encodeURIComponent(trackingNumber.trim());
-  const template =
-    provider === 'andreani' ? DEFAULT_ANDREANI_TRACKING_URL : DEFAULT_CORREO_TRACKING_URL;
-  return template.replace('{trackingNumber}', tn);
+  if (provider === 'andreani') {
+    const tn = encodeURIComponent(trackingNumber.trim());
+    return DEFAULT_ANDREANI_TRACKING_URL.replace('{trackingNumber}', tn);
+  }
+  return DEFAULT_CORREO_TRACKING_URL;
 }

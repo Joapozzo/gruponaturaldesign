@@ -1,54 +1,33 @@
 'use client';
 
 import React from 'react';
+import { Eye } from 'lucide-react';
 import { TableColumn } from '@/components/ui/Table';
 import type { AuditLogItem } from '@/app/types/audit.types';
+import {
+  ENTITY_LABELS,
+  ACTION_LABELS,
+  formatAuditDate,
+  getAuditSummaryPreview,
+  hasAuditDetail,
+} from './auditDisplayUtils';
 
-const ENTITY_LABELS: Record<string, string> = {
-  producto_padre: 'Producto padre',
-  producto_web: 'Producto web',
-  producto_precio: 'Precio',
-  producto_imagen: 'Imagen',
-  cliente: 'Cliente',
-  pedido: 'Pedido',
-  pedido_item: 'Item pedido',
-  usuario: 'Usuario',
-  sesion: 'Sesión',
-  rubro: 'Rubro',
-  subrubro: 'Subrubro',
-  empresa: 'Empresa',
-  regla_parseo: 'Regla parseo',
-  campo_personalizado: 'Campo personalizado',
-  sync: 'Sync',
-  otro: 'Otro',
-};
-
-const ACTION_LABELS: Record<string, string> = {
-  CREATE: 'Crear',
-  UPDATE: 'Actualizar',
-  DELETE: 'Eliminar',
-};
-
-function formatDate(iso: string) {
-  try {
-    const d = new Date(iso);
-    return d.toLocaleString('es-AR', {
-      dateStyle: 'short',
-      timeStyle: 'medium',
-    });
-  } catch {
-    return iso;
-  }
+interface AuditoriaColumnsOptions {
+  onViewDetail?: (item: AuditLogItem) => void;
 }
 
-export function getAuditoriaColumns(): TableColumn<AuditLogItem>[] {
+export function getAuditoriaColumns(
+  options?: AuditoriaColumnsOptions
+): TableColumn<AuditLogItem>[] {
+  const { onViewDetail } = options ?? {};
+
   return [
     {
       accessorKey: 'createdAt',
       header: 'Fecha',
       cell: ({ row }) => (
         <span className="text-sm text-neutral-600 whitespace-nowrap">
-          {formatDate(row.original.createdAt)}
+          {formatAuditDate(row.original.createdAt)}
         </span>
       ),
       enableSorting: false,
@@ -87,25 +66,30 @@ export function getAuditoriaColumns(): TableColumn<AuditLogItem>[] {
       accessorKey: 'summary',
       header: 'Qué cambió',
       cell: ({ row }) => {
-        const summary = row.original.summary;
-        if (summary) {
-          return (
-            <span className="text-sm text-neutral-700 max-w-[280px] block" title={summary}>
-              {summary}
+        const item = row.original;
+        const preview = getAuditSummaryPreview(item);
+        const showDetail = hasAuditDetail(item);
+
+        return (
+          <div className="flex items-start gap-1.5 max-w-[300px]">
+            <span
+              className="text-sm text-neutral-700 flex-1 line-clamp-2"
+              title={preview !== '—' ? preview : undefined}
+            >
+              {preview}
             </span>
-          );
-        }
-        const oldV = row.original.oldValues;
-        const newV = row.original.newValues;
-        if (row.original.action === 'DELETE' && oldV) return <span className="text-sm text-neutral-500">Registro eliminado</span>;
-        if (newV && typeof newV === 'object' && !Array.isArray(newV)) {
-          const parts = Object.entries(newV as Record<string, unknown>)
-            .filter(([k]) => !['createdAt', 'updatedAt', 'empresaId'].includes(k))
-            .slice(0, 3)
-            .map(([k, v]) => `${k}: ${String(v)}`);
-          return <span className="text-sm text-neutral-500">{parts.join('; ') || '—'}</span>;
-        }
-        return <span className="text-sm text-neutral-400">—</span>;
+            {showDetail && onViewDetail && (
+              <button
+                type="button"
+                onClick={() => onViewDetail(item)}
+                className="shrink-0 p-1 rounded text-neutral-500 hover:text-neutral-800 hover:bg-neutral-100"
+                aria-label="Ver detalle completo"
+              >
+                <Eye className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        );
       },
       enableSorting: false,
     },

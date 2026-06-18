@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import Button from '@/components/ui/Button';
 import BaseModal from '@/app/components/modal/BaseModal';
@@ -10,10 +10,11 @@ import { useUsuarioModal } from './useUsuarioModal';
 import type {
   CrearUsuarioInput,
   ActualizarUsuarioInput,
-  Empresa,
   Usuario,
   UsuarioRol,
 } from '@/app/types/usuario.types';
+
+type UsuarioFormData = Omit<CrearUsuarioInput, 'empresaId'>;
 
 const inputClassName =
   'w-full px-3 py-2 border border-neutral-300 rounded-lg bg-white text-neutral-900 placeholder:text-neutral-400 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none disabled:bg-neutral-100 disabled:text-neutral-600';
@@ -33,20 +34,13 @@ function normalizeUsuarioRol(usuario: Usuario): UsuarioRol {
 
 export function UsuarioModal() {
   const { isOpen, mode, usuario, close } = useUsuarioModal();
-  const [formData, setFormData] = useState<CrearUsuarioInput>({
+  const [formData, setFormData] = useState<UsuarioFormData>({
     email: '',
     password: '',
     nombre: '',
     apellido: '',
     telefono: '',
     rol: 'cliente',
-    empresaId: undefined,
-  });
-
-  const { data: empresas } = useQuery({
-    queryKey: ['empresas'],
-    queryFn: () => usuarioService.listarEmpresas(),
-    enabled: isOpen,
   });
 
   const createMutation = useMutation({
@@ -82,7 +76,6 @@ export function UsuarioModal() {
         apellido: usuario.apellido ?? '',
         telefono: usuario.telefono ?? '',
         rol: normalizeUsuarioRol(usuario),
-        empresaId: usuario.empresaId ?? undefined,
       });
       return;
     }
@@ -94,7 +87,6 @@ export function UsuarioModal() {
         apellido: '',
         telefono: '',
         rol: 'cliente',
-        empresaId: undefined,
       });
     }
   }, [isOpen, mode, usuario]);
@@ -109,7 +101,6 @@ export function UsuarioModal() {
         apellido: formData.apellido || undefined,
         telefono: formData.telefono || undefined,
         rol: formData.rol,
-        empresaId: formData.empresaId || null,
       };
       updateMutation.mutate({ id: usuario.id, data });
     }
@@ -193,27 +184,6 @@ export function UsuarioModal() {
             <option value="admin">Admin</option>
             <option value="vendedor">Vendedor</option>
             <option value="cliente">Cliente</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1 text-neutral-800">Empresa</label>
-          <select
-            value={formData.empresaId != null ? String(formData.empresaId) : ''}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                empresaId: e.target.value ? parseInt(e.target.value, 10) : undefined,
-              })
-            }
-            className={inputClassName}
-          >
-            <option value="">Sin empresa</option>
-            {empresas?.map((emp: Empresa) => (
-              <option key={emp.id} value={emp.id}>
-                {emp.nombre}
-              </option>
-            ))}
           </select>
         </div>
 

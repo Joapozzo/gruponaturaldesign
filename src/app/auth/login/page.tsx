@@ -22,8 +22,10 @@ import {
   withAuthCallback,
 } from '@/lib/auth-callback-url';
 import type { SessionUserState } from '@/types/auth.types';
+import { AuthLoadingScreen } from '@/app/components/AuthLoadingScreen';
 import toast from 'react-hot-toast';
-import { Loader2 } from 'lucide-react';
+
+const LOGIN_LOADING_MESSAGE = 'Iniciando sesión...';
 
 const fieldVariants = {
   hidden: { opacity: 0, y: 10 },
@@ -181,16 +183,11 @@ function LoginForm() {
     }
   };
 
-  if (authLoading || isRedirecting || isClearingStaleAuth) {
-    return (
-      <AuthShell title="Entrar" subtitle="Iniciá sesión con tu cuenta">
-        <div className="animate-pulse space-y-4">
-          <div className="h-10 bg-gray-200 rounded-lg" />
-          <div className="h-10 bg-gray-200 rounded-lg" />
-          <div className="h-10 bg-gray-200 rounded-lg" />
-        </div>
-      </AuthShell>
-    );
+  const isAuthenticating =
+    authLoading || isLoading || isRedirecting || isClearingStaleAuth;
+
+  if (isAuthenticating) {
+    return <AuthLoadingScreen message={LOGIN_LOADING_MESSAGE} />;
   }
 
   return (
@@ -229,7 +226,7 @@ function LoginForm() {
             fullWidth
             disabled={isLoading}
           >
-            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Entrar'}
+            Entrar
           </Button>
         </motion.div>
       </AuthForm>
@@ -264,17 +261,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense
-      fallback={
-        <AuthShell>
-          <div className="animate-pulse space-y-4">
-            <div className="h-10 bg-gray-200 rounded-lg" />
-            <div className="h-10 bg-gray-200 rounded-lg" />
-            <div className="h-10 bg-gray-200 rounded-lg" />
-          </div>
-        </AuthShell>
-      }
-    >
+    <Suspense fallback={<AuthLoadingScreen message={LOGIN_LOADING_MESSAGE} />}>
       <LoginForm />
     </Suspense>
   );

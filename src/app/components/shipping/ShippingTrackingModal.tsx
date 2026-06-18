@@ -14,6 +14,16 @@ import {
 import { useShippingTrackingQuery } from '@/app/hooks/useShippingTrackingQuery';
 import type { ShippingProviderId } from '@/app/validation/shippingTracking.schema';
 
+function getQueryErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message.trim()) return error.message;
+  if (error && typeof error === 'object') {
+    const o = error as { message?: unknown; error?: unknown };
+    if (typeof o.message === 'string' && o.message.trim()) return o.message;
+    if (typeof o.error === 'string' && o.error.trim()) return o.error;
+  }
+  return 'Error al consultar';
+}
+
 export type ShippingTrackingModalInitial = {
   pedidoId?: number;
   provider?: ShippingProviderId;
@@ -52,10 +62,9 @@ export function ShippingTrackingModal({ isOpen, onClose, initial }: ShippingTrac
   });
 
   const externalUrl =
-    initial?.trackingUrl?.trim() ||
-    (provider && trackingNumber.trim()
+    provider && trackingNumber.trim()
       ? buildClientShippingTrackingUrl(provider, trackingNumber)
-      : null);
+      : initial?.trackingUrl?.trim() || null;
 
   const primaryResult = query.data?.results[0];
   const displayUrl = query.data?.trackingUrl ?? externalUrl;
@@ -147,8 +156,13 @@ export function ShippingTrackingModal({ isOpen, onClose, initial }: ShippingTrac
             </Button>
 
             {query.isError ? (
-              <p className="text-sm text-[var(--red)]">
-                {query.error instanceof Error ? query.error.message : 'Error al consultar'}
+              <p className="text-sm text-[var(--red)]">{getQueryErrorMessage(query.error)}</p>
+            ) : null}
+
+            {submitted && query.isSuccess && primaryResult && primaryResult.events.length === 0 ? (
+              <p className="text-sm text-neutral-600">
+                No hay eventos de seguimiento disponibles. Podés consultar el envío en el sitio del
+                transportista.
               </p>
             ) : null}
 
