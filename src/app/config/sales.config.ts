@@ -21,5 +21,11 @@ export const SALES_CONFIG = {
   SHOP_ROUTE: '/shoponline',
 } as const;
 
+export const PAYMENT_BENEFITS_COPY = {
+  installmentsLabel: 'Hasta 3 cuotas',
+  transferDiscountLabel: '15% off con transferencia',
+  paymentMethodDescription: 'Hasta 3 cuotas - 15% off con transferencia',
+} as const;
+
 export type SalesMode = 'retail' | 'wholesale';
 

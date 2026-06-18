@@ -1,15 +1,20 @@
 "use client";
 import React from 'react';
 import { motion } from 'framer-motion';
+import { usePrecioConfigPublic } from '@/app/hooks/usePrecioConfigPublic';
+import { buildPromoCuotasLabel } from '@/app/utils/precioDisplay';
 
 const PromoBanner = () => {
+  const { data: precioConfig } = usePrecioConfigPublic();
+  const cuotas = precioConfig?.cuotasFinanciado ?? 3;
+  const descuentoPct = Math.round((precioConfig?.descuentoTransferencia ?? 0.15) * 100);
+
   const promoItems = [
-    "3 CUOTAS SIN INTERÉS",
-    "15% OFF CON TRANSFERENCIA",
+    buildPromoCuotasLabel(cuotas, true),
+    `${descuentoPct}% OFF CON TRANSFERENCIA`,
     "ENVÍO GRATIS A SUCURSAL EN COMPRAS SUPERIORES A $200.000"
   ];
   
-  // Repetimos los items varias veces para el efecto infinito, con más separación
   const repeatedText = Array(4).fill(promoItems.join("        •        ")).join("        •        ");
 
   return (

@@ -4,8 +4,29 @@
 
 import type { ProductoPadreConVariantes } from '../types/producto-detail.types';
 import type { GroupedProduct, ProductWithImage, ProductVariant } from '../types/producto';
+import { buildPrecioPublicoFromLegacy, type InstallmentQuote } from '../types/precio.types';
 import { normalizeImageUrl } from './normalizeImageUrl';
 import { filterImagesByColor } from './productHelpers';
+
+function cuotasFromPrecioRow(
+  precio:
+    | {
+        precioFinanciado?: number | null;
+        cuotasFinanciado?: number | null;
+        cuotasSnapshot?: unknown;
+        precioLista?: number | null;
+      }
+    | undefined,
+  precioListaFallback?: number
+): InstallmentQuote | null {
+  if (!precio) return null;
+  return buildPrecioPublicoFromLegacy({
+    precioLista: precio.precioLista ?? precioListaFallback ?? null,
+    precio3cuotas: precio.precioFinanciado ?? undefined,
+    cuotasFinanciado: precio.cuotasFinanciado ?? undefined,
+    cuotas: (precio.cuotasSnapshot as InstallmentQuote | null) ?? null,
+  }).cuotas;
+}
 
 function collectPadreImagenes(productoPadre: ProductoPadreConVariantes): string[] {
   const urls: string[] = [];
@@ -219,6 +240,10 @@ export function adaptProductoPadreToGroupedProduct(
     precio3cuotas: primeraVariante?.precios?.find(p => p.tipoCliente === 'minorista')?.precioFinanciado
       ? Number(primeraVariante.precios.find(p => p.tipoCliente === 'minorista')!.precioFinanciado)
       : undefined,
+    cuotas: cuotasFromPrecioRow(
+      primeraVariante?.precios?.find(p => p.tipoCliente === 'minorista'),
+      precioVenta ?? undefined
+    ),
     descripcionCompleta: productoPadre.descripcionMarketing ?? productoPadre.descripcion ?? undefined,
     textiles: undefined,
   };
@@ -246,6 +271,7 @@ export function adaptProductoPadreToGroupedProduct(
       precioTransfer: precioVariante?.precioTransfer ? Number(precioVariante.precioTransfer) : displayProduct.precioTransfer,
       precioSImp: precioVariante?.precioSinImp ? Number(precioVariante.precioSinImp) : displayProduct.precioSImp,
       precio3cuotas: precioVariante?.precioFinanciado ? Number(precioVariante.precioFinanciado) : displayProduct.precio3cuotas,
+      cuotas: cuotasFromPrecioRow(precioVariante, precio ?? undefined) ?? displayProduct.cuotas ?? null,
     };
 
     return {

@@ -2,6 +2,7 @@
 
 import type { CartItem, CustomerData, ShippingData } from '@/app/types/cart';
 import type { CuponAplicado } from '@/app/types/cupones';
+import type { InstallmentQuotePublic } from '@/app/services/checkoutManual.service';
 import { formatPrice } from '@/app/utils/productHelpers';
 import { cn } from '@/lib/utils';
 
@@ -16,6 +17,47 @@ export interface OrderSummarySectionProps {
   shippingExtra?: number;
   cuponAplicado?: CuponAplicado | null;
   variant?: 'sidebar' | 'payment-footer';
+  /** Cotización MP para el total a pagar (paso 4). */
+  installmentPreview?: {
+    quote: InstallmentQuotePublic | null;
+    loading: boolean;
+  } | null;
+}
+
+function InstallmentPreviewLine({
+  preview,
+  compact = false,
+}: {
+  preview: NonNullable<OrderSummarySectionProps['installmentPreview']>;
+  compact?: boolean;
+}) {
+  if (preview.loading) {
+    return (
+      <p className={cn('text-gray-500', compact ? 'text-[10px]' : 'text-[10px] sm:text-xs')}>
+        Cotizando cuotas con Mercado Pago…
+      </p>
+    );
+  }
+  const q = preview.quote;
+  if (!q) return null;
+  const cuotaLabel = q.cuotas === 1 ? 'cuota' : 'cuotas';
+  return (
+    <div
+      className={cn(
+        'rounded-md bg-white border border-gray-200 px-2 py-1.5 space-y-0.5',
+        compact ? 'text-[10px]' : 'text-[10px] sm:text-xs'
+      )}
+    >
+      <p className="font-medium text-gray-800">
+        {q.cuotas} {cuotaLabel} de {formatPrice(q.montoCuota)} con Mercado Pago
+      </p>
+      <p className="text-gray-500">
+        Total financiado {formatPrice(q.totalFinanciado)}
+        {q.cft ? ` · CFT ${q.cft}` : ''}
+        {q.estimado ? ' · referencia sin tarjeta' : ''}
+      </p>
+    </div>
+  );
 }
 
 function SummaryTotals({
@@ -24,6 +66,7 @@ function SummaryTotals({
   payTotal,
   shippingExtra,
   cuponAplicado,
+  installmentPreview,
   compact = false,
 }: {
   itemCount: number;
@@ -31,6 +74,7 @@ function SummaryTotals({
   payTotal: number;
   shippingExtra: number;
   cuponAplicado?: CuponAplicado | null;
+  installmentPreview?: OrderSummarySectionProps['installmentPreview'];
   compact?: boolean;
 }) {
   const rowClass = compact
@@ -46,7 +90,7 @@ function SummaryTotals({
       </div>
       {shippingExtra > 0 ? (
         <div className={rowClass}>
-          <span>+ Envío postal</span>
+          <span>+ Envío</span>
           <span className={valueClass}>{formatPrice(shippingExtra)}</span>
         </div>
       ) : null}
@@ -62,11 +106,12 @@ function SummaryTotals({
           compact ? 'pt-2 text-sm' : 'pt-1.5 sm:pt-2 mt-1.5 sm:mt-2 text-sm sm:text-base',
         )}
       >
-        <span className="font-medium text-gray-600">
-          Total{shippingExtra > 0 ? ' (productos + envío)' : ''}
-        </span>
+        <span className="font-medium text-gray-600">Total</span>
         <span className="font-semibold text-gray-900 tabular-nums">{formatPrice(payTotal)}</span>
       </div>
+      {installmentPreview ? (
+        <InstallmentPreviewLine preview={installmentPreview} compact={compact} />
+      ) : null}
     </div>
   );
 }
@@ -195,12 +240,14 @@ function PaymentFooterSummary({
   payTotal,
   shippingExtra,
   cuponAplicado,
+  installmentPreview,
 }: {
   items: CartItem[];
   subtotal: number;
   payTotal: number;
   shippingExtra: number;
   cuponAplicado?: CuponAplicado | null;
+  installmentPreview?: OrderSummarySectionProps['installmentPreview'];
 }) {
   const manyProducts = items.length > 3;
 
@@ -229,7 +276,7 @@ function PaymentFooterSummary({
         </div>
         {shippingExtra > 0 ? (
           <div className="flex justify-between text-[11px] text-gray-500">
-            <span>+ Envío postal</span>
+            <span>+ Envío</span>
             <span className="tabular-nums text-gray-700">{formatPrice(shippingExtra)}</span>
           </div>
         ) : null}
@@ -240,9 +287,14 @@ function PaymentFooterSummary({
           </div>
         ) : null}
         <div className="flex justify-between text-sm font-semibold text-gray-900 pt-1 border-t border-gray-200">
-          <span>TOTAL{shippingExtra > 0 ? ' (productos + envío)' : ''}</span>
+          <span>TOTAL</span>
           <span className="tabular-nums">{formatPrice(payTotal)}</span>
         </div>
+        {installmentPreview ? (
+          <div className="pt-1">
+            <InstallmentPreviewLine preview={installmentPreview} compact />
+          </div>
+        ) : null}
         <p className="text-[10px] text-gray-400 pt-1">
           Al pagar con Mercado Pago, el total de productos se confirma con S-Factory; el envío se suma aparte.
         </p>
@@ -261,6 +313,7 @@ export default function OrderSummarySection({
   shippingExtra = 0,
   cuponAplicado,
   variant = 'sidebar',
+  installmentPreview = null,
 }: OrderSummarySectionProps) {
   const payTotal = total + shippingExtra - (cuponAplicado?.descuentoTotal ?? 0);
   const isFooter = variant === 'payment-footer';
@@ -273,6 +326,7 @@ export default function OrderSummarySection({
         payTotal={payTotal}
         shippingExtra={shippingExtra}
         cuponAplicado={cuponAplicado}
+        installmentPreview={installmentPreview}
       />
     );
   }
@@ -303,6 +357,7 @@ export default function OrderSummarySection({
             payTotal={payTotal}
             shippingExtra={shippingExtra}
             cuponAplicado={cuponAplicado}
+            installmentPreview={installmentPreview}
           />
         </div>
       </div>

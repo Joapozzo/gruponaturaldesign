@@ -2,8 +2,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ProductWithImage, ProductVariant } from '@/app/types/producto';
-import { formatPrice } from '../../utils/productHelpers';
-import { usePrecioConfigPublic } from '@/app/hooks/usePrecioConfigPublic';
+import { ProductPriceBlock } from '@/app/components/precio/ProductPriceBlock';
+import { usePrecioPublico } from '@/app/hooks/usePrecioPublico';
 import { cn } from '@/lib/utils';
 import BordadoSwitch from '@/app/components/product-card/components/BordadoSwitch';
 
@@ -30,18 +30,14 @@ export default function ProductInfo({
     onBordadoChange,
     canActivateBordado = false,
 }: ProductInfoProps) {
-    const formattedPrice = formatPrice(price);
-    const { data: precioConfig } = usePrecioConfigPublic();
-    const cuotas = precioConfig?.cuotasFinanciado ?? 3;
-    const descuentoTransferPct = Math.round((precioConfig?.descuentoTransferencia ?? 0.15) * 100);
-
-    const precioTransfer = selectedVariant?.producto?.precioTransfer || displayProduct.precioTransfer;
-    const precio3cuotas = selectedVariant?.producto?.precio3cuotas || displayProduct.precio3cuotas;
-    const precioSImp = selectedVariant?.producto?.precioSImp || displayProduct.precioSImp;
-
-    const formattedTransfer = precioTransfer != null ? formatPrice(precioTransfer) : null;
-    const formatted3Cuotas = precio3cuotas != null ? formatPrice(precio3cuotas) : null;
-    const formattedSImp = precioSImp != null ? formatPrice(precioSImp) : null;
+    const variantProduct = selectedVariant?.producto;
+    const { precio, descuentoTransferPct } = usePrecioPublico({
+        precioLista: price ?? displayProduct.precioLista ?? null,
+        precioTransfer: variantProduct?.precioTransfer ?? displayProduct.precioTransfer,
+        precioSinImp: variantProduct?.precioSImp ?? displayProduct.precioSImp,
+        precio3cuotas: variantProduct?.precio3cuotas ?? displayProduct.precio3cuotas,
+        cuotas: variantProduct?.cuotas ?? displayProduct.cuotas ?? null,
+    });
 
     return (
         <motion.div
@@ -56,36 +52,11 @@ export default function ProductInfo({
                 </h1>
             )}
 
-            <div className="space-y-1.5">
-                <div className="flex flex-col gap-1 sm:gap-1.5">
-                    <span className="text-2xl sm:text-3xl font-bold tabular-nums text-neutral-900">
-                        {formattedPrice}
-                    </span>
-
-                    {formattedTransfer && (
-                        <div className="flex flex-col gap-0.5 min-w-0">
-                            <span className="text-xl sm:text-2xl font-bold tabular-nums text-[var(--red)]">
-                                {formattedTransfer}
-                            </span>
-                            <span className="text-[10px] sm:text-xs text-neutral-500 leading-snug">
-                                Ahorrá un {descuentoTransferPct}% con transferencia
-                            </span>
-                        </div>
-                    )}
-                </div>
-
-                {formatted3Cuotas && (
-                    <p className="text-sm text-neutral-600">
-                        o hacelo en {cuotas} {cuotas === 1 ? 'cuota de' : 'cuotas de'} {formatted3Cuotas}
-                    </p>
-                )}
-
-                {formattedSImp && (
-                    <p className="text-[10px] leading-snug text-neutral-400">
-                        Sin impuestos nacionales: {formattedSImp}.
-                    </p>
-                )}
-            </div>
+            <ProductPriceBlock
+                precio={precio}
+                descuentoTransferPct={descuentoTransferPct}
+                variant="detail"
+            />
 
             {onBordadoChange && (
                 <div className="mt-3 pt-3 border-t border-neutral-100">

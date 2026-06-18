@@ -7,8 +7,7 @@ import type {
 export type ShippingQuoteOptionId =
   | 'correo-home'
   | 'correo-agency'
-  | 'andreani-home'
-  | 'andreani-agency';
+  | 'andreani-home';
 
 export const QUOTE_OPTIONS: {
   id: ShippingQuoteOptionId;
@@ -37,13 +36,6 @@ export const QUOTE_OPTIONS: {
     deliveryType: 'homeDelivery',
     carrierLabel: 'Andreani',
     modalityLabel: 'A domicilio',
-  },
-  {
-    id: 'andreani-agency',
-    provider: 'andreani',
-    deliveryType: 'agency',
-    carrierLabel: 'Andreani',
-    modalityLabel: 'Retiro en sucursal',
   },
 ];
 

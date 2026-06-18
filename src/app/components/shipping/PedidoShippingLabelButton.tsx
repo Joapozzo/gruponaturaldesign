@@ -30,12 +30,26 @@ export function PedidoShippingLabelButton({
   className,
 }: PedidoShippingLabelButtonProps) {
   const canDownload = availability?.canDownload === true;
+  const showCorreoLink = availability?.reason === 'correo_portal_only';
   const message =
     availability?.message ??
-    (isLoadingAvailability ? 'Consultando disponibilidad…' : 'Etiqueta no disponible');
-  const showCorreoLink = availability?.reason === 'correo_portal_only';
+    (isLoadingAvailability ? 'Consultando…' : 'Etiqueta no disponible');
   const buttonDisabled =
     disabled || isDownloading || isLoadingAvailability || !canDownload;
+
+  if (showCorreoLink) {
+    return (
+      <a
+        href={MICORREO_PORTAL_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`inline-flex items-center gap-1.5 text-sm font-medium text-neutral-900 hover:underline ${className ?? ''}`}
+      >
+        Abrir MiCorreo
+        <ExternalLink className="w-3.5 h-3.5" aria-hidden />
+      </a>
+    );
+  }
 
   return (
     <div className={className}>
@@ -45,26 +59,15 @@ export function PedidoShippingLabelButton({
         variant={variant}
         disabled={buttonDisabled}
         loading={isDownloading}
-        title={buttonDisabled ? message : 'Descargar PDF para imprimir manualmente'}
+        title={buttonDisabled ? message : 'Descargar PDF para imprimir'}
         aria-label={`Descargar etiqueta pedido ${pedidoId}`}
         leftIcon={!isDownloading ? <Download className="w-3.5 h-3.5" aria-hidden /> : undefined}
         onClick={onDownload}
       >
         {isDownloading ? 'Descargando…' : 'Descargar etiqueta'}
       </Button>
-      {!canDownload && availability ? (
-        <p className="mt-1.5 text-xs text-neutral-600">{message}</p>
-      ) : null}
-      {showCorreoLink ? (
-        <a
-          href={MICORREO_PORTAL_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-1 inline-flex items-center gap-1 text-xs text-neutral-700 hover:text-neutral-900 hover:underline"
-        >
-          Abrir portal MiCorreo
-          <ExternalLink className="w-3 h-3" aria-hidden />
-        </a>
+      {!canDownload && availability && !isLoadingAvailability ? (
+        <p className="mt-1.5 text-xs text-neutral-500">{message}</p>
       ) : null}
     </div>
   );

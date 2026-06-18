@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import type { ShippingData } from '@/app/types/cart';
 import { useCheckoutStep3Shipping } from './useCheckoutStep3Shipping';
@@ -93,7 +93,7 @@ describe('useCheckoutStep3Shipping', () => {
     });
   });
 
-  it('canCalculateShipping true con dirección completa', () => {
+  it('canCalculateShipping true con direcciÃ³n completa', () => {
     const { result } = renderHook(() => useCheckoutStep3Shipping({ onNext }));
     expect(result.current.canCalculateShipping).toBe(true);
   });
@@ -125,7 +125,7 @@ describe('useCheckoutStep3Shipping', () => {
     );
   });
 
-  it('calculateShipping cotiza 4 opciones y aplica la más barata', async () => {
+  it('calculateShipping cotiza opciones validas y aplica la mas barata', async () => {
     vi.mocked(quoteCheckoutShipping)
       .mockResolvedValueOnce({
         precio: 5000,
@@ -139,12 +139,6 @@ describe('useCheckoutStep3Shipping', () => {
         provider: 'correo',
         parcel: { weightGrams: 612, height: 8, width: 50, depth: 80, declaredValue: 100 },
         correoOpciones: [{ price: 1200, serviceCode: 'STD' }],
-      })
-      .mockResolvedValueOnce({
-        precio: 3000,
-        moneda: 'ARS',
-        provider: 'andreani',
-        parcel: { weightGrams: 612, height: 8, width: 50, depth: 80, declaredValue: 100 },
       })
       .mockResolvedValueOnce({
         precio: 4000,
@@ -161,7 +155,13 @@ describe('useCheckoutStep3Shipping', () => {
 
     await waitFor(() => expect(result.current.quoteLoading).toBe(false));
 
-    expect(quoteCheckoutShipping).toHaveBeenCalledTimes(4);
+    expect(quoteCheckoutShipping).toHaveBeenCalledTimes(3);
+    expect(quoteCheckoutShipping).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: 'andreani',
+        deliveryType: 'agency',
+      })
+    );
     expect(patchShipping).toHaveBeenCalledWith(
       expect.objectContaining({
         checkoutEnvio: expect.objectContaining({
@@ -173,3 +173,4 @@ describe('useCheckoutStep3Shipping', () => {
     expect(result.current.selectedOptionId).toBe('correo-agency');
   });
 });
+

@@ -124,6 +124,7 @@ export function groupedProductToProductoPublicado(group: GroupedProduct): Produc
     precioTransfer,
     precio3Cuotas,
     precioSinImp,
+    cuotas: group.displayProduct.cuotas ?? null,
 
     // Variantes simplificadas
     variantes,

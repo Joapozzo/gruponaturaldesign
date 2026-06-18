@@ -34,13 +34,6 @@ export function PedidoDetailActionHints({ pedido, actions }: PedidoDetailActionH
           en cualquier momento (con o sin haber enviado el aviso).
         </p>
       ) : null}
-      {actions.canCrearEnvioPostal ? (
-        <p className="text-xs text-neutral-600">
-          Envío postal: al confirmar el pedido se intenta crear la orden en Andreani/Correo. Si
-          falló o quedó pendiente, usá el botón de abajo. La etiqueta Andreani se descarga arriba
-          (PDF para imprimir manualmente); Correo solo desde MiCorreo.
-        </p>
-      ) : null}
     </>
   );
 }

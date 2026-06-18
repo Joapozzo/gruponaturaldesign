@@ -4,8 +4,10 @@ import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { getPrecioConfig } from '@/app/services/empresaConfig.service';
 import { getDatosBancarios } from '@/app/services/empresaDatosBancarios.service';
+import { getIntegrationsStatus } from '@/app/services/integrations.service';
 import { configuracionKeys } from './configuracionQueryKeys';
 import { CONFIGURACION_GC_MS, CONFIGURACION_STALE_MS } from './usePrecioConfigQuery';
+import { INTEGRACIONES_GC_MS, INTEGRACIONES_STALE_MS } from './useIntegrationsStatusQuery';
 
 export function usePrefetchConfiguracion() {
   const queryClient = useQueryClient();
@@ -21,6 +23,12 @@ export function usePrefetchConfiguracion() {
       queryKey: configuracionKeys.datosBancarios,
       queryFn: getDatosBancarios,
       ...opts,
+    });
+    void queryClient.prefetchQuery({
+      queryKey: configuracionKeys.integraciones,
+      queryFn: getIntegrationsStatus,
+      staleTime: INTEGRACIONES_STALE_MS,
+      gcTime: INTEGRACIONES_GC_MS,
     });
   }, [queryClient]);
 }

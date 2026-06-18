@@ -26,6 +26,7 @@ import { useSales } from '../../contexts/SalesContext';
 import OrderSummarySection from '@/app/components/checkout/OrderSummarySection';
 import NewsletterCheckoutOptIn from '@/app/components/newsletter/NewsletterCheckoutOptIn';
 import { useNewsletterSubscribe } from '@/app/hooks/useNewsletterSubscribe';
+import { useCheckoutInstallmentPreview } from '@/app/hooks/useCheckoutInstallmentPreview';
 import toast from 'react-hot-toast';
 
 interface CheckoutStep4Props {
@@ -120,6 +121,8 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
     shippingData?.tipo === 'envio' ? shippingData.checkoutEnvio?.clientQuotedAmount ?? 0 : 0;
   const cuponDescuento = cuponAplicado?.descuentoTotal ?? cuponHook.cuponAplicado?.descuentoTotal ?? 0;
   const totalConEnvio = total + shippingExtra - cuponDescuento;
+  const mpSelected = payment.metodo === 'mercado_pago';
+  const installmentPreview = useCheckoutInstallmentPreview(totalConEnvio, mpSelected);
 
   const handlePaymentSelect = (metodo: PaymentMethodId) => {
     clearError();
@@ -275,6 +278,7 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
     total,
     shippingExtra,
     cuponAplicado: cuponAplicado || cuponHook.cuponAplicado,
+    installmentPreview: mpSelected ? installmentPreview : null,
   };
 
   const mobileFooterRef = useRef<HTMLDivElement>(null);
@@ -357,7 +361,14 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs sm:text-sm text-gray-600 mt-0.5">{method.description}</p>
+                  <p className="text-xs sm:text-sm text-gray-600 mt-0.5">
+                    {method.id === 'mercado_pago' &&
+                    mpSelected &&
+                    installmentPreview.quote &&
+                    !installmentPreview.loading
+                      ? `${installmentPreview.quote.cuotas} cuotas de ${formatPrice(installmentPreview.quote.montoCuota)} (referencia MP)`
+                      : method.description}
+                  </p>
                 </div>
                 {payment.metodo === method.id && (
                   <div className="w-5 h-5 sm:w-6 sm:h-6 bg-black rounded-full flex items-center justify-center flex-shrink-0">

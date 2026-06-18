@@ -1,5 +1,6 @@
 'use client';
 
+import { Fragment } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Store, Truck } from 'lucide-react';
 import Button from '@/components/ui/Button';
@@ -128,28 +129,31 @@ export default function CheckoutStep3Shipping({ onNext, onBack }: CheckoutStep3S
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                     {QUOTE_OPTIONS.map((opt) => (
-                      <CheckoutShippingQuoteOptionCard
-                        key={opt.id}
-                        opt={opt}
-                        q={quoteByOption[opt.id]}
-                        selected={selectedOptionId === opt.id}
-                        quoteLoading={quoteLoading}
-                        correoRatePick={correoRatePick[opt.id]}
-                        onOptionClick={handleOptionCardClick}
-                        onCorreoRateSelect={handleCorreoRateSelect}
-                      />
+                      <Fragment key={opt.id}>
+                        <CheckoutShippingQuoteOptionCard
+                          opt={opt}
+                          q={quoteByOption[opt.id]}
+                          selected={selectedOptionId === opt.id}
+                          quoteLoading={quoteLoading}
+                          correoRatePick={correoRatePick[opt.id]}
+                          onOptionClick={handleOptionCardClick}
+                          onCorreoRateSelect={handleCorreoRateSelect}
+                        />
+                        {selectedOptionId === opt.id && opt.id.endsWith('-agency') ? (
+                          <div className="col-span-1 sm:col-span-2">
+                            <CheckoutShippingAgencySelect
+                              providerLabel={opt.carrierLabel}
+                              agencies={agencies}
+                              agenciesLoading={agenciesLoading}
+                              value={agencyPick?.id ?? ''}
+                              onChange={onAgencySelect}
+                              error={errors.envio}
+                            />
+                          </div>
+                        ) : null}
+                      </Fragment>
                     ))}
                   </div>
-
-                  {selectedOptionId?.endsWith('-agency') ? (
-                    <CheckoutShippingAgencySelect
-                      agencies={agencies}
-                      agenciesLoading={agenciesLoading}
-                      value={agencyPick?.id ?? ''}
-                      onChange={onAgencySelect}
-                      error={errors.envio}
-                    />
-                  ) : null}
                 </div>
 
                 <CheckoutStep2FormField label="Notas adicionales">

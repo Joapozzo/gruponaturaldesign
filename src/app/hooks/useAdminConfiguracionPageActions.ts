@@ -16,6 +16,7 @@ export function useAdminConfiguracionPageActions() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: configuracionKeys.precios }),
         queryClient.invalidateQueries({ queryKey: configuracionKeys.datosBancarios }),
+        queryClient.invalidateQueries({ queryKey: configuracionKeys.integraciones }),
       ]);
       router.refresh();
     } finally {

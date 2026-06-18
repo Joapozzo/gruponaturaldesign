@@ -1,29 +1,31 @@
 "use client";
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { RotateCcw, CreditCard, Store, Truck } from 'lucide-react';
+import { PAYMENT_BENEFITS_COPY } from '@/app/config/sales.config';
 
 const FeaturesBanner = () => {
   const features = [
     {
       icon: RotateCcw,
       title: "Cambios y devoluciones",
-      description: "Tenes 30 días para cambiar tu pedido"
+      description: "Tenes 30 dias para cambiar tu pedido"
     },
     {
       icon: CreditCard,
       title: "Medio de pago",
-      description: "3 cuotas sin interés • 15% off con transferencia"
+      description: PAYMENT_BENEFITS_COPY.paymentMethodDescription
     },
     {
       icon: Store,
       title: "Pick up store",
-      description: "Coordiná para retirar tu pedido"
+      description: "Coordina para retirar tu pedido"
     },
     {
       icon: Truck,
-      title: "Envío gratis",
-      description: "Envío gratis a sucursal en compras superiores a $200.000"
+      title: "Envio gratis",
+      description: "Envio gratis a sucursal en compras superiores a $200.000"
     }
   ];
 
@@ -43,8 +45,8 @@ const FeaturesBanner = () => {
                 className="flex flex-col items-center text-center md:items-start md:text-left w-full max-w-xs md:max-w-none"
               >
                 <div className="mb-3">
-                  <IconComponent 
-                    className="w-10 h-10 lg:w-12 lg:h-12 text-gray-600" 
+                  <IconComponent
+                    className="w-10 h-10 lg:w-12 lg:h-12 text-gray-600"
                     strokeWidth={1.5}
                   />
                 </div>
@@ -64,4 +66,3 @@ const FeaturesBanner = () => {
 };
 
 export default FeaturesBanner;
-

@@ -1,8 +1,9 @@
 'use client';
 
-export type ConfiguracionTabId = 'precios' | 'datos-bancarios';
+export type ConfiguracionTabId = 'integraciones' | 'precios' | 'datos-bancarios';
 
 const tabs: Array<{ id: ConfiguracionTabId; label: string }> = [
+  { id: 'integraciones', label: 'Integraciones' },
   { id: 'precios', label: 'Precios' },
   { id: 'datos-bancarios', label: 'Datos bancarios' },
 ];

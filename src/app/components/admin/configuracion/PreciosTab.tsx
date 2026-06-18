@@ -215,7 +215,7 @@ export function PreciosTab() {
               <span className="font-medium">Sin impuestos:</span> precio transferencia ÷ (1 + IVA)
             </li>
             <li>
-              <span className="font-medium">Financiado:</span> precio lista ÷ cuotas
+              <span className="font-medium">Financiado:</span> cotizado vía proveedor configurado (Mercado Pago) o división estimada
             </li>
           </ul>
           <p className="text-xs text-gray-500">

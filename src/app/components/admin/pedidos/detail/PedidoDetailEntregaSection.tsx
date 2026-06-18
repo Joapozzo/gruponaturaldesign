@@ -31,6 +31,10 @@ export function PedidoDetailEntregaSection({
   const entrega = formatPedidoEntregaDisplay(pedido);
   const postalShipping = !isRetiroEnTiendaPedido(pedido);
   const shippingTracking = resolvePedidoShippingTracking(pedido);
+  const pendingShippingLabel =
+    pedido.estadoInterno === 'pendiente_confirmacion'
+      ? 'Se genera al confirmar el pedido'
+      : 'Sin número de envío';
 
   return (
     <section>
@@ -57,27 +61,35 @@ export function PedidoDetailEntregaSection({
             <dd>{pedido.entregaNotas}</dd>
           </div>
         ) : null}
-        <PedidoShippingTrackingField
-          shippingProvider={shippingTracking.shippingProvider}
-          trackingNumber={shippingTracking.trackingNumber}
-          trackingUrl={shippingTracking.trackingUrl}
-          onOpenTracking={onOpenTracking}
-          showWhenPending={postalShipping}
-          pendingLabel={
-            pedido.estadoInterno === 'pendiente_confirmacion'
-              ? 'Pendiente — se generará al confirmar el pedido (transferencia/efectivo) o tras el pago (Mercado Pago).'
-              : 'Pendiente — usá «Generar envío en carrier» o esperá el reintento automático.'
-          }
-        />
-        <PedidoShippingLabelField
-          pedidoId={pedido.id}
-          availability={pedido.shippingLabel ?? undefined}
-          isDownloading={isDownloadingLabel}
-          disabled={busy}
-          onDownload={onDownloadLabel}
-          show={actions.canShowShippingLabel}
-        />
       </dl>
+
+      {postalShipping ? (
+        <div className="mt-4 pt-4 border-t border-neutral-200">
+          <h4 className="text-sm font-semibold text-neutral-900 mb-3">Envío</h4>
+          <div className="space-y-4">
+            <PedidoShippingTrackingField
+              shippingProvider={shippingTracking.shippingProvider}
+              trackingNumber={shippingTracking.trackingNumber}
+              trackingUrl={shippingTracking.trackingUrl}
+              onOpenTracking={onOpenTracking}
+              showWhenPending
+              pendingLabel={pendingShippingLabel}
+            />
+            {actions.canShowShippingLabel ? (
+              <div>
+                <p className="text-xs text-neutral-500 mb-1.5">Etiqueta</p>
+                <PedidoShippingLabelField
+                  pedidoId={pedido.id}
+                  availability={pedido.shippingLabel ?? undefined}
+                  isDownloading={isDownloadingLabel}
+                  disabled={busy}
+                  onDownload={onDownloadLabel}
+                />
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

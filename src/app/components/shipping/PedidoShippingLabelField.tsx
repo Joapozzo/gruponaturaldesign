@@ -26,21 +26,15 @@ export function PedidoShippingLabelField({
   if (!show) return null;
 
   return (
-    <div className="sm:col-span-2">
-      <dt className="text-neutral-500">Etiqueta de envío</dt>
-      <dd>
-        <PedidoShippingLabelButton
-          pedidoId={pedidoId}
-          availability={availability}
-          isLoadingAvailability={isLoadingAvailability}
-          isDownloading={isDownloading}
-          disabled={disabled}
-          onDownload={onDownload}
-          size="xs"
-          variant="grayOutline"
-          className="mt-0.5"
-        />
-      </dd>
-    </div>
+    <PedidoShippingLabelButton
+      pedidoId={pedidoId}
+      availability={availability}
+      isLoadingAvailability={isLoadingAvailability}
+      isDownloading={isDownloading}
+      disabled={disabled}
+      onDownload={onDownload}
+      size="xs"
+      variant="grayOutline"
+    />
   );
 }

@@ -21,36 +21,35 @@ export function PedidoShippingTrackingField({
   trackingUrl,
   onOpenTracking,
   showWhenPending = false,
-  pendingLabel = 'Pendiente — se generará al confirmar el pedido o al crear el envío en el carrier.',
+  pendingLabel = 'Sin número de envío',
 }: PedidoShippingTrackingFieldProps) {
   if (!showWhenPending && !trackingNumber && !trackingUrl) return null;
 
   return (
-    <div className="sm:col-span-2">
-      <dt className="text-neutral-500">Número de envío</dt>
-      <dd className="space-y-1">
-        {shippingProvider ? (
-          <p className="text-xs text-neutral-500">{shippingProviderLabel(shippingProvider)}</p>
-        ) : null}
+    <div>
+      {shippingProvider ? (
+        <p className="text-sm font-medium text-neutral-900">
+          {shippingProviderLabel(shippingProvider)}
+        </p>
+      ) : null}
+      <div className={shippingProvider ? 'mt-1.5' : undefined}>
         {trackingNumber ? (
           <ShippingTrackingNumberButton trackingNumber={trackingNumber} onClick={onOpenTracking} />
         ) : showWhenPending ? (
-          <p className="text-sm text-amber-800 bg-amber-50 border border-amber-100 rounded px-2 py-1.5">
-            {pendingLabel}
-          </p>
+          <p className="text-sm text-neutral-600">{pendingLabel}</p>
         ) : null}
         {trackingUrl ? (
           <a
             href={trackingUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-neutral-600 hover:text-neutral-900 hover:underline"
+            className="mt-1.5 inline-flex items-center gap-1 text-xs text-neutral-600 hover:text-neutral-900 hover:underline"
           >
-            Abrir en sitio del transportista
+            Seguir en sitio del transportista
             <ExternalLink className="w-3 h-3" aria-hidden />
           </a>
         ) : null}
-      </dd>
+      </div>
     </div>
   );
 }
