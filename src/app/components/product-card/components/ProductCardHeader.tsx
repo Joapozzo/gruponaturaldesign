@@ -7,15 +7,12 @@
 import React from 'react';
 import { ProductPriceBlock } from '@/app/components/precio/ProductPriceBlock';
 import { usePrecioPublico } from '@/app/hooks/usePrecioPublico';
-import type { InstallmentQuote } from '@/app/types/precio.types';
 
 interface ProductCardHeaderProps {
   nombre: string;
   precioLista: number | null;
   precioTransfer?: number | null;
   precioSinImp?: number | null;
-  precio3Cuotas?: number | null;
-  cuotas?: InstallmentQuote | null;
   onClick?: () => void;
 }
 
@@ -24,16 +21,12 @@ export const ProductCardHeader: React.FC<ProductCardHeaderProps> = ({
   precioLista,
   precioTransfer,
   precioSinImp,
-  precio3Cuotas,
-  cuotas,
   onClick,
 }) => {
   const { precio, descuentoTransferPct } = usePrecioPublico({
     precioLista,
     precioTransfer,
     precioSinImp,
-    precio3Cuotas,
-    cuotas,
   });
 
   return (

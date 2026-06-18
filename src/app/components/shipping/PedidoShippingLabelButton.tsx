@@ -39,15 +39,26 @@ export function PedidoShippingLabelButton({
 
   if (showCorreoLink) {
     return (
-      <a
-        href={MICORREO_PORTAL_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`inline-flex items-center gap-1.5 text-sm font-medium text-neutral-900 hover:underline ${className ?? ''}`}
-      >
-        Abrir MiCorreo
-        <ExternalLink className="w-3.5 h-3.5" aria-hidden />
-      </a>
+      <div className={className}>
+        <a
+          href={MICORREO_PORTAL_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-900 hover:underline"
+        >
+          Abrir MiCorreo
+          <ExternalLink className="w-3.5 h-3.5" aria-hidden />
+        </a>
+        <p className="mt-1.5 text-xs text-neutral-500">
+          {message}
+          {availability?.trackingNumber ? (
+            <>
+              {' '}
+              Nro: <span className="font-mono">{availability.trackingNumber}</span>
+            </>
+          ) : null}
+        </p>
+      </div>
     );
   }
 

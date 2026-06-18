@@ -33,10 +33,8 @@ export interface ProductoPrecioDetail {
   precio: number;
   precioLista: number;
   precioTransfer: number | null;
-  precioFinanciado: number | null;
   cuotasFinanciado: number | null;
   precioSinImp: number | null;
-  cuotasSnapshot?: unknown;
   minimoUnidades: number | null;
 }
 

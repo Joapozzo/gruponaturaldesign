@@ -81,9 +81,7 @@ export interface ProductWithImage extends ProductSFactory {
     // Nuevos campos de precios
     precioTransfer?: number;
     precioSImp?: number;
-    precio3cuotas?: number;
     precioLista?: number;
-    cuotas?: import('./precio.types').InstallmentQuote | null;
     // Descripción y textiles
     descripcionCompleta?: string; // Descripción completa del producto
     textiles?: string; // Composición de textiles

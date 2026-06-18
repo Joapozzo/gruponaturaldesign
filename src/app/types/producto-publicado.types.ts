@@ -4,8 +4,6 @@
  * Sincronizado con api/src/types/producto.types.ts
  */
 
-import type { InstallmentQuote } from '@/app/types/precio.types';
-
 // ============================================
 // Variante Publicada
 // ============================================
@@ -60,9 +58,7 @@ export interface ProductoPublicado {
   // Precios calculados
   precioLista: number | null;
   precioTransfer: number | null;
-  precio3Cuotas: number | null;
   precioSinImp: number | null;
-  cuotas: InstallmentQuote | null;
   
   // Variantes simplificadas
   variantes: VariantePublicada[];

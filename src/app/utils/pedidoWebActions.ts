@@ -51,10 +51,13 @@ export function getWebPedidoActions(pedido: AdminPedidoDetalle): WebPedidoAction
   const canMarcarRetirado = isRetiro && pickupActivo;
 
   const tracking = resolvePedidoShippingTracking(pedido);
-  const canCrearEnvioPostal = !isRetiro && pickupActivo;
+  const canCrearEnvioPostal = !isRetiro && pickupActivo && !tracking.trackingNumber;
   const canShowShippingLabel = !isRetiro && pickupActivo;
-  const crearEnvioPostalLabel = tracking.trackingNumber
-    ? 'Reintentar alta en carrier'
+  const hasFailedShippingAttempt =
+    pedido.envioLogs?.some((log) => log.operacion === 'create_order_after' && !log.exitoso) ??
+    false;
+  const crearEnvioPostalLabel = hasFailedShippingAttempt
+    ? 'Reintentar generación de envío'
     : 'Generar envío en carrier';
 
   let confirmLabel = 'Confirmar y enviar a SFactory';

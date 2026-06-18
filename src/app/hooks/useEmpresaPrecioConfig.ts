@@ -26,7 +26,6 @@ export function calcularPreciosDerivados(
   if (precioLista == null || precioLista <= 0) {
     return {
       precioTransfer: null,
-      precioFinanciado: null,
       precioSinImp: null,
       cuotas: config?.cuotasFinanciado ?? 3,
     };
@@ -37,12 +36,10 @@ export function calcularPreciosDerivados(
   const cuotas = config?.cuotasFinanciado ?? 3;
 
   const precioTransfer = Number((precioLista * (1 - descuento)).toFixed(2));
-  const precioFinanciado = Number((precioLista / cuotas).toFixed(2));
   const precioSinImp = Number((precioTransfer / (1 + iva)).toFixed(2));
 
   return {
     precioTransfer,
-    precioFinanciado,
     precioSinImp,
     cuotas,
   };

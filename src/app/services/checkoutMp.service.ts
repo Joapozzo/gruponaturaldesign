@@ -1,6 +1,10 @@
 import { apiClient } from '@/lib/apiClient';
 import type { CartItem, CheckoutEnvioSelection, ShippingData } from '@/app/types/cart';
 import { parseProductSpecs } from '@/app/utils/productHelpers';
+import {
+  type CheckoutPriceMode,
+  resolveCheckoutUnitPrice,
+} from '@/app/utils/checkoutPricing';
 
 export const CHECKOUT_MP_SNAPSHOT_KEY = 'checkout_mp_snapshot';
 
@@ -39,6 +43,8 @@ export interface IniciarPagoMpBody {
   items: CrearPedidoMpItemPayload[];
   checkoutEnvio?: CheckoutEnvioMpPayload;
   cuponCodigo?: string;
+  /** transfer = precio transfer; financiado = precio lista + cuotas MP. */
+  mpPricingMode: 'transfer' | 'financiado';
 }
 
 /** Arma el payload de envío para MP; `undefined` si no aplica (retiro o falta cotización). */
@@ -83,11 +89,14 @@ export interface CheckoutMpSnapshot {
   itemCount?: number;
 }
 
-export function mapCartItemsToMpPayload(items: CartItem[]): CrearPedidoMpItemPayload[] {
+export function mapCartItemsToMpPayload(
+  items: CartItem[],
+  priceMode: CheckoutPriceMode = 'lista'
+): CrearPedidoMpItemPayload[] {
   return items.map((line) => {
     const p = line.product;
     const id = p.id;
-    const precioUnitario = p.precioLista ?? p.precio ?? 0;
+    const precioUnitario = resolveCheckoutUnitPrice(p, priceMode);
     const { color, talle } = parseProductSpecs(line.especificaciones);
     return {
       productoWebId: p.productoWebId ?? id,

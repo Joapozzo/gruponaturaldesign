@@ -88,36 +88,6 @@ export interface PrecioConfigPublic {
   descuentoTransferencia: number;
   iva: number;
   cuotasFinanciado: number;
-  installmentProvider?: string;
-}
-
-export interface InstallmentQuotePublic {
-  provider: string;
-  cuotas: number;
-  montoCuota: number;
-  totalFinanciado: number;
-  sinInteres: boolean;
-  moneda: 'ARS';
-  cft?: string | null;
-  tea?: string | null;
-  referencia?: string | null;
-  estimado?: boolean;
-}
-
-export async function fetchCuotasQuote(
-  amount: number,
-  cuotas?: number
-): Promise<InstallmentQuotePublic | null> {
-  const params = new URLSearchParams({ amount: String(amount) });
-  if (cuotas != null) params.set('cuotas', String(cuotas));
-  const res = await apiClient.get<InstallmentQuotePublic | null>(
-    `/checkout/cuotas?${params.toString()}`,
-    { skipAuth: true }
-  );
-  if (!res.success) {
-    throw new Error(res.message || 'Error al cotizar cuotas');
-  }
-  return res.data ?? null;
 }
 
 export async function fetchPrecioConfigPublic(): Promise<PrecioConfigPublic> {

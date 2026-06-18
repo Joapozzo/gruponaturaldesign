@@ -16,7 +16,7 @@ import {
   iniciarPagoManual,
 } from '@/app/services/checkoutMp.service';
 import { saveCheckoutManualSnapshot } from '@/app/services/checkoutManual.service';
-import { PaymentData } from '@/app/types/cart';
+import { PaymentData, type MpCheckoutModo } from '@/app/types/cart';
 import { RiBankLine } from 'react-icons/ri';
 import { BsCashStack } from 'react-icons/bs';
 import { formatPrice } from '@/app/utils/productHelpers';
@@ -26,7 +26,9 @@ import { useSales } from '../../contexts/SalesContext';
 import OrderSummarySection from '@/app/components/checkout/OrderSummarySection';
 import NewsletterCheckoutOptIn from '@/app/components/newsletter/NewsletterCheckoutOptIn';
 import { useNewsletterSubscribe } from '@/app/hooks/useNewsletterSubscribe';
-import { useCheckoutInstallmentPreview } from '@/app/hooks/useCheckoutInstallmentPreview';
+import { usePrecioConfigPublic } from '@/app/hooks/usePrecioConfigPublic';
+import { buildHastaCuotasConMpLabel } from '@/app/utils/precioDisplay';
+import { resolveCheckoutPriceMode } from '@/app/utils/checkoutPricing';
 import toast from 'react-hot-toast';
 
 interface CheckoutStep4Props {
@@ -94,7 +96,8 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
     setPaymentData,
     itemCount,
     subtotal,
-    total,
+    totalLista,
+    totalTransfer,
     cuponAplicado,
   } = useCart();
   const cuponHook = useCheckoutCupon({
@@ -109,6 +112,9 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
 
   const [payment, setPayment] = useState<PaymentData>(() => ({
     metodo: normalizeStoredMetodo(paymentData?.metodo),
+    mpModo:
+      paymentData?.mpModo ??
+      (normalizeStoredMetodo(paymentData?.metodo) === 'mercado_pago' ? 'financiado' : undefined),
     notas: paymentData?.notas || '',
   }));
 
@@ -120,14 +126,27 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
   const shippingExtra =
     shippingData?.tipo === 'envio' ? shippingData.checkoutEnvio?.clientQuotedAmount ?? 0 : 0;
   const cuponDescuento = cuponAplicado?.descuentoTotal ?? cuponHook.cuponAplicado?.descuentoTotal ?? 0;
-  const totalConEnvio = total + shippingExtra - cuponDescuento;
+  const priceMode = resolveCheckoutPriceMode(payment.metodo, payment.mpModo);
+  const productsTotal = priceMode === 'lista' ? totalLista : totalTransfer;
+  const payTotal = productsTotal + shippingExtra - cuponDescuento;
   const mpSelected = payment.metodo === 'mercado_pago';
-  const installmentPreview = useCheckoutInstallmentPreview(totalConEnvio, mpSelected);
+  const mpFinanciado = mpSelected && payment.mpModo === 'financiado';
+  const { data: precioConfig } = usePrecioConfigPublic();
+  const cuotasLabel = buildHastaCuotasConMpLabel(precioConfig?.cuotasFinanciado ?? 3);
 
   const handlePaymentSelect = (metodo: PaymentMethodId) => {
     clearError();
     setManualError(null);
-    setPayment({ ...payment, metodo });
+    setPayment((prev) => ({
+      ...prev,
+      metodo,
+      mpModo: metodo === 'mercado_pago' ? (prev.mpModo ?? 'financiado') : undefined,
+    }));
+  };
+
+  const handleMpModoSelect = (mpModo: MpCheckoutModo) => {
+    clearError();
+    setPayment((prev) => ({ ...prev, mpModo }));
   };
 
   const subscribeNewsletterIfNeeded = (email?: string) => {
@@ -154,6 +173,10 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
         toast.error('Faltan datos del cliente.');
         return;
       }
+      if (!payment.mpModo) {
+        toast.error('Elegí cómo pagar con Mercado Pago.');
+        return;
+      }
       if (!firebaseUser) {
         toast.error('Iniciá sesión para pagar con Mercado Pago.', { duration: 5000 });
         return;
@@ -175,6 +198,8 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
       const checkoutEnvio = shippingData ? buildCheckoutEnvioForMp(shippingData) : undefined;
       const observaciones = [payment.notas, shippingData?.notas].filter(Boolean).join(' | ') || undefined;
 
+      const mpPriceMode = payment.mpModo === 'transfer' ? 'transfer' : 'lista';
+
       await startPayment({
         body: {
           clienteNombre: clienteNombre || customerData.email,
@@ -182,11 +207,12 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
           clienteTelefono: customerData.telefono,
           clienteDireccion,
           observaciones,
-          items: mapCartItemsToMpPayload(items),
+          items: mapCartItemsToMpPayload(items, mpPriceMode),
+          mpPricingMode: payment.mpModo,
           ...(checkoutEnvio ? { checkoutEnvio } : {}),
         },
         snapshot: {
-          totalLabel: formatPrice(totalConEnvio),
+          totalLabel: formatPrice(payTotal),
           itemCount,
           clienteEmail: customerData.email,
         },
@@ -230,7 +256,7 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
         clienteTelefono: customerData.telefono,
         clienteDireccion,
         observaciones,
-        items: mapCartItemsToMpPayload(items),
+        items: mapCartItemsToMpPayload(items, 'transfer'),
         formaPago: payment.metodo as 'efectivo' | 'transferencia',
         ...(checkoutEnvio ? { checkoutEnvio } : {}),
         cuponCodigo,
@@ -240,7 +266,7 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
         pedidoId: pedidoData.pedidoId,
         externalOrderId: pedidoData.externalOrderId,
         formaPago: pedidoData.formaPago,
-        totalLabel: formatPrice(totalConEnvio),
+        totalLabel: formatPrice(payTotal),
         customerEmail: customerData.email,
       });
 
@@ -275,10 +301,11 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
     items,
     itemCount,
     subtotal,
-    total,
+    productsTotal,
+    payTotal,
+    priceMode,
     shippingExtra,
     cuponAplicado: cuponAplicado || cuponHook.cuponAplicado,
-    installmentPreview: mpSelected ? installmentPreview : null,
   };
 
   const mobileFooterRef = useRef<HTMLDivElement>(null);
@@ -306,7 +333,7 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
       ro.disconnect();
       lgQuery.removeEventListener('change', update);
     };
-  }, [items.length, itemCount, shippingExtra, cuponDescuento, payment.metodo]);
+  }, [items.length, itemCount, shippingExtra, cuponDescuento, payment.metodo, payment.mpModo, productsTotal, payTotal]);
 
   return (
     <div
@@ -362,12 +389,11 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
                     )}
                   </div>
                   <p className="text-xs sm:text-sm text-gray-600 mt-0.5">
-                    {method.id === 'mercado_pago' &&
-                    mpSelected &&
-                    installmentPreview.quote &&
-                    !installmentPreview.loading
-                      ? `${installmentPreview.quote.cuotas} cuotas de ${formatPrice(installmentPreview.quote.montoCuota)} (referencia MP)`
-                      : method.description}
+                    {method.id === 'mercado_pago' && mpSelected && mpFinanciado
+                      ? cuotasLabel
+                      : method.id === 'mercado_pago' && mpSelected && payment.mpModo === 'transfer'
+                        ? 'Transferencia o dinero en cuenta — precio con 15% OFF'
+                        : method.description}
                   </p>
                 </div>
                 {payment.metodo === method.id && (
@@ -386,6 +412,50 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
             </motion.button>
           ))}
         </div>
+
+        {mpSelected && (
+          <div className="space-y-2 rounded-xl border border-gray-200 bg-gray-50 p-3 sm:p-4">
+            <p className="text-xs sm:text-sm font-bold text-black">Opción en Mercado Pago</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+              {(
+                [
+                  {
+                    id: 'transfer' as const,
+                    title: 'Transfer / 1 pago',
+                    description: 'Precio con 15% OFF — sin tarjeta',
+                    badge: '-15% OFF',
+                  },
+                  {
+                    id: 'financiado' as const,
+                    title: 'Financiar en cuotas',
+                    description: 'Precio de lista — consultá cuotas en Mercado Pago',
+                  },
+                ] as const
+              ).map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => handleMpModoSelect(opt.id)}
+                  className={`rounded-lg border-2 p-3 sm:p-4 text-left transition-all ${
+                    payment.mpModo === opt.id
+                      ? 'border-black bg-white shadow-sm'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-sm text-black">{opt.title}</span>
+                    {'badge' in opt && opt.badge ? (
+                      <span className="text-[10px] bg-red-600 text-white px-1.5 py-0.5 rounded font-bold">
+                        {opt.badge}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="text-xs text-gray-600 mt-1">{opt.description}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div>
           <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-1.5">

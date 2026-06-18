@@ -359,15 +359,6 @@ export function VariantesStockTable({
                 </span>
               </div>
               <div>
-                <span className="text-gray-500 block text-xs">
-                  Financiado ({preciosDerivados.cuotas} cuota{preciosDerivados.cuotas !== 1 ? 's' : ''})
-                </span>
-                <span className="font-medium text-gray-800 text-sm">
-                  ${preciosDerivados.precioFinanciado != null ? formatPrecio(preciosDerivados.precioFinanciado) : '–'}
-                  <span className="text-gray-500 font-normal">/cuota</span>
-                </span>
-              </div>
-              <div>
                 <span className="text-gray-500 block text-xs">Precio sin imp.</span>
                 <span className="font-medium text-gray-800 text-sm">
                   ${preciosDerivados.precioSinImp != null ? formatPrecio(preciosDerivados.precioSinImp) : '–'}

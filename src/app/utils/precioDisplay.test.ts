@@ -1,28 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { formatCuotasLine } from './precioDisplay';
-import type { InstallmentQuote } from '@/app/types/precio.types';
+import { buildHastaCuotasConMpLabel, buildPromoCuotasLabel } from './precioDisplay';
 
-const baseQuote: InstallmentQuote = {
-  provider: 'mercado_pago',
-  cuotas: 3,
-  montoCuota: 40333.33,
-  totalFinanciado: 121000,
-  sinInteres: true,
-  moneda: 'ARS',
-};
-
-describe('formatCuotasLine', () => {
-  it('formatea N cuotas sin prometer interes cero', () => {
-    expect(formatCuotasLine(baseQuote)).toBe('hacelo en 3 cuotas de $40.333,33');
+describe('buildHastaCuotasConMpLabel', () => {
+  it('formatea plural', () => {
+    expect(buildHastaCuotasConMpLabel(3)).toBe('Hasta 3 cuotas con Mercado Pago');
   });
 
-  it('formatea cuotas igual aunque el flag venga en false', () => {
-    const q: InstallmentQuote = { ...baseQuote, sinInteres: false };
-    expect(formatCuotasLine(q)).toBe('hacelo en 3 cuotas de $40.333,33');
+  it('formatea singular', () => {
+    expect(buildHastaCuotasConMpLabel(1)).toBe('Hasta 1 cuota con Mercado Pago');
   });
+});
 
-  it('singular para 1 cuota', () => {
-    const q: InstallmentQuote = { ...baseQuote, cuotas: 1, montoCuota: 121000 };
-    expect(formatCuotasLine(q)).toBe('hacelo en 1 cuota de $121.000,00');
+describe('buildPromoCuotasLabel', () => {
+  it('formatea banner en mayúsculas', () => {
+    expect(buildPromoCuotasLabel(3)).toBe('HASTA 3 CUOTAS');
   });
 });

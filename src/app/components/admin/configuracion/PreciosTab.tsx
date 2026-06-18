@@ -214,9 +214,6 @@ export function PreciosTab() {
             <li>
               <span className="font-medium">Sin impuestos:</span> precio transferencia ÷ (1 + IVA)
             </li>
-            <li>
-              <span className="font-medium">Financiado:</span> cotizado vía proveedor configurado (Mercado Pago) o división estimada
-            </li>
           </ul>
           <p className="text-xs text-gray-500">
             Si un producto tiene configuración personalizada, se usan esos valores en lugar de los
@@ -233,7 +230,7 @@ export function PreciosTab() {
           recalcularMutation.mutate();
         }}
         title="¿Recalcular precios?"
-        message="Se recalcularán todos los precios derivados (transferencia, sin impuestos, financiado) usando la configuración actual. Esta acción puede tardar unos segundos."
+        message="Se recalcularán todos los precios derivados (transferencia y sin impuestos) usando la configuración actual. Esta acción puede tardar unos segundos."
         type="warning"
         confirmText="Recalcular"
         cancelText="Cancelar"

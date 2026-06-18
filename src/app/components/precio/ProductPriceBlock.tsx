@@ -2,11 +2,8 @@
 
 import React from 'react';
 import { formatPrice } from '@/app/utils/productHelpers';
-import {
-  formatCuotasLine,
-  formatFinancingLegalFooter,
-  formatCuotasEstimadoHint,
-} from '@/app/utils/precioDisplay';
+import { buildHastaCuotasConMpLabel } from '@/app/utils/precioDisplay';
+import { usePrecioConfigPublic } from '@/app/hooks/usePrecioConfigPublic';
 import type { PrecioPublico } from '@/app/types/precio.types';
 import { cn } from '@/lib/utils';
 
@@ -29,6 +26,9 @@ export function ProductPriceBlock({
 }: ProductPriceBlockProps) {
   const isCard = variant === 'card';
   const isCompact = variant === 'compact';
+  const isDetail = variant === 'detail';
+  const { data: precioConfig } = usePrecioConfigPublic();
+  const cuotasFinanciado = precioConfig?.cuotasFinanciado ?? 3;
 
   const listaSize = isCompact
     ? 'text-sm font-bold'
@@ -42,15 +42,12 @@ export function ProductPriceBlock({
       ? 'text-sm font-bold'
       : 'text-xl sm:text-2xl font-bold';
 
-  const cuotasSize = isCompact ? 'text-[10px]' : isCard ? 'text-[10px]' : 'text-sm';
   const sinImpSize = isCompact ? 'text-[9px]' : isCard ? 'text-[9px]' : 'text-[10px]';
 
   const formattedLista =
     precio.precioLista != null ? formatPrice(precio.precioLista) : null;
   const formattedTransfer =
     precio.precioTransfer != null ? formatPrice(precio.precioTransfer) : null;
-  const legalFooter = precio.cuotas ? formatFinancingLegalFooter(precio.cuotas) : null;
-  const estimadoHint = precio.cuotas ? formatCuotasEstimadoHint(precio.cuotas) : null;
 
   return (
     <div className={cn('flex flex-col', isCard ? 'gap-0.5' : 'gap-1 sm:gap-1.5', className)}>
@@ -73,30 +70,10 @@ export function ProductPriceBlock({
         </div>
       )}
 
-      {precio.cuotas && (
-        <p className={cn('text-neutral-600 leading-snug', cuotasSize)}>
-          {isCompact ? (
-            <>
-              {precio.cuotas.cuotas}{' '}
-              {precio.cuotas.cuotas === 1 ? 'cuota' : 'cuotas'} de{' '}
-              {formatPrice(precio.cuotas.montoCuota)}
-              {estimadoHint ? (
-                <span className="text-neutral-400"> · {estimadoHint}</span>
-              ) : null}
-            </>
-          ) : (
-            <>
-              o {formatCuotasLine(precio.cuotas)}
-              {estimadoHint ? (
-                <span className="text-neutral-400"> ({estimadoHint.toLowerCase()})</span>
-              ) : null}
-            </>
-          )}
+      {isDetail && (
+        <p className="text-sm text-neutral-600 leading-snug">
+          {buildHastaCuotasConMpLabel(cuotasFinanciado)}
         </p>
-      )}
-
-      {legalFooter && (variant === 'detail' || variant === 'card') && (
-        <p className="text-[9px] sm:text-[10px] text-neutral-400 leading-snug">{legalFooter}</p>
       )}
 
       {showSinImp && precio.precioSinImp != null && (

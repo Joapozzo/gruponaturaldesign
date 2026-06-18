@@ -14,7 +14,6 @@ import SizeSelector from './product-card/components/SizeSelector';
 import VariantSelector from './product-card/components/VariantSelector';
 import QuantityControls from './product-card/components/QuantityControls';
 import { canAddQuantity, getStockMessage } from '@/app/services/stockService';
-import { usePrecioConfigPublic } from '@/app/hooks/usePrecioConfigPublic';
 import { useConfirmModal } from './hooks/useModal';
 import ConfirmModal from './modal/ConfirmModal';
 
@@ -65,11 +64,6 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
         handleMouseLeave,
     } = useProductCardState({ group, expandedSku, onExpandChange });
 
-    const { data: precioConfig } = usePrecioConfigPublic();
-    const cuotas = precioConfig?.cuotasFinanciado ?? 3;
-    const cuotasLabel = `${cuotas} ${cuotas === 1 ? 'cuota de' : 'cuotas de'}`;
-
-    // Usar la variante seleccionada para mostrar
     const product = selectedVariant.producto;
     const productName = product.NOMBRE || group.skuBase || product.Descripcion || '';
     
@@ -287,17 +281,12 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
     
     // Obtener precios desde la variante o el producto display (fallback como en ProductInfo)
     const precioTransfer = selectedVariant?.producto?.precioTransfer || group.displayProduct?.precioTransfer;
-    const precio3cuotas = selectedVariant?.producto?.precio3cuotas || group.displayProduct?.precio3cuotas;
     const precioSImp = selectedVariant?.producto?.precioSImp || group.displayProduct?.precioSImp;
 
     const formattedTransfer = precioTransfer
         ? `$${precioTransfer.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`
         : null;
-    
-    const formatted3Cuotas = precio3cuotas
-        ? `$${precio3cuotas.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`
-        : null;
-    
+
     const formattedSImp = precioSImp
         ? `$${precioSImp.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`
         : null;
@@ -429,12 +418,6 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                         {formattedTransfer && (
                             <span className={`text-gray-700 mt-0.5 ${isMobile ? 'text-[10px]' : compact ? 'text-[9px]' : 'text-[10px]'}`}>
                                 Transfer: {formattedTransfer}
-                            </span>
-                        )}
-                        {/* Precio cuotas - abajo */}
-                        {formatted3Cuotas && (
-                            <span className={`text-gray-700 mt-0.5 ${isMobile ? 'text-[10px]' : compact ? 'text-[9px]' : 'text-[10px]'}`}>
-                                {cuotasLabel} {formatted3Cuotas}
                             </span>
                         )}
                     </div>

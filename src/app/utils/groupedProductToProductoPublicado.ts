@@ -66,7 +66,6 @@ export function groupedProductToProductoPublicado(group: GroupedProduct): Produc
   );
   const precioLista = group.displayProduct.PrecioVenta || null;
   const precioTransfer = group.displayProduct.precioTransfer || null;
-  const precio3Cuotas = group.displayProduct.precio3cuotas || null;
   const precioSinImp = group.displayProduct.precioSImp || null;
 
   // Calcular stock total
@@ -122,9 +121,7 @@ export function groupedProductToProductoPublicado(group: GroupedProduct): Produc
     // Precios calculados
     precioLista,
     precioTransfer,
-    precio3Cuotas,
     precioSinImp,
-    cuotas: group.displayProduct.cuotas ?? null,
 
     // Variantes simplificadas
     variantes,

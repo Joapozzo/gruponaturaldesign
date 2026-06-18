@@ -7,7 +7,6 @@ export interface ProductoPrecio {
   precio: number; // Compatibilidad
   precioLista: number;
   precioTransfer: number | null;
-  precioFinanciado: number | null;
   cuotasFinanciado: number | null;
   precioSinImp: number | null;
   minimoUnidades: number | null;

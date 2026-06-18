@@ -11,6 +11,7 @@ vi.mock('@/app/services/checkoutMp.service', () => ({
 const mpBody = {
   clienteNombre: 'Juan',
   clienteEmail: 'test@gmail.com',
+  mpPricingMode: 'financiado' as const,
   items: [{ productoWebId: 1, cantidad: 1, precioUnitario: 100 }],
 };
 

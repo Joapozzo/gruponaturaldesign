@@ -131,8 +131,6 @@ const ProductCardPublicado: React.FC<ProductCardPublicadoProps> = ({
             precioLista={producto.precioLista || null}
             precioTransfer={producto.precioTransfer}
             precioSinImp={producto.precioSinImp}
-            precio3Cuotas={producto.precio3Cuotas}
-            cuotas={producto.cuotas}
             onClick={handlers.handleProductClick}
           />
 

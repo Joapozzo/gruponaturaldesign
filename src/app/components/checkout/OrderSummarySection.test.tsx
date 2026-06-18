@@ -89,7 +89,7 @@ describe('OrderSummarySection', () => {
       />
     );
     expect(screen.getByText(/2x Remera/)).toBeTruthy();
-    expect(screen.getByText(/Subtotal sin impuestos/)).toBeTruthy();
+    expect(screen.getByText(/Subtotal productos/)).toBeTruthy();
     expect(screen.getByText(/^TOTAL$/)).toBeTruthy();
     expect(screen.queryByText(/^Cliente$/)).toBeNull();
     expect(screen.queryByText(/^Entrega$/)).toBeNull();

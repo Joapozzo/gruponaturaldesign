@@ -607,7 +607,6 @@ class ProductsService {
             COLORES: this.sanitizeString(apiProduct.COLORES) || undefined,
             // Campos de precios adicionales del CSV
             precioTransfer: this.parsePrecio(apiProduct.precioTransfer),
-            precio3cuotas: this.parsePrecio(apiProduct.precio3cuotas),
             precioSImp: this.parsePrecio(apiProduct.precioSImp),
         };
     }

@@ -35,8 +35,6 @@ export default function ProductInfo({
         precioLista: price ?? displayProduct.precioLista ?? null,
         precioTransfer: variantProduct?.precioTransfer ?? displayProduct.precioTransfer,
         precioSinImp: variantProduct?.precioSImp ?? displayProduct.precioSImp,
-        precio3cuotas: variantProduct?.precio3cuotas ?? displayProduct.precio3cuotas,
-        cuotas: variantProduct?.cuotas ?? displayProduct.cuotas ?? null,
     });
 
     return (

@@ -8,6 +8,16 @@ export interface AdminPedidoClienteDetalle {
   sfactoryId?: number | null;
 }
 
+export interface AdminPedidoEnvioLogDetalle {
+  id: number;
+  operacion: string;
+  provider: string;
+  exitoso: boolean;
+  error?: string | null;
+  httpStatus?: number | null;
+  creadoAt: string;
+}
+
 export interface AdminPedidoDetalle {
   id: number;
   empresaId: number;
@@ -53,4 +63,5 @@ export interface AdminPedidoDetalle {
   fechaPedido: string;
   items: PedidoItem[];
   cliente?: AdminPedidoClienteDetalle | null;
+  envioLogs?: AdminPedidoEnvioLogDetalle[];
 }

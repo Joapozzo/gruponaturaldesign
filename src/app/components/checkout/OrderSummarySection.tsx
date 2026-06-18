@@ -2,8 +2,11 @@
 
 import type { CartItem, CustomerData, ShippingData } from '@/app/types/cart';
 import type { CuponAplicado } from '@/app/types/cupones';
-import type { InstallmentQuotePublic } from '@/app/services/checkoutManual.service';
 import { formatPrice } from '@/app/utils/productHelpers';
+import {
+  type CheckoutPriceMode,
+  resolveCartLineSubtotal,
+} from '@/app/utils/checkoutPricing';
 import { cn } from '@/lib/utils';
 
 export interface OrderSummarySectionProps {
@@ -12,69 +15,31 @@ export interface OrderSummarySectionProps {
   items: CartItem[];
   itemCount: number;
   subtotal: number;
-  total: number;
+  /** @deprecated Preferir `productsTotal` + `payTotal`. */
+  total?: number;
+  /** Subtotal productos según forma de pago (lista o transfer). */
+  productsTotal?: number;
+  /** Total a pagar (productos + envío − cupón). */
+  payTotal?: number;
+  /** Precio por línea en el resumen (default lista). */
+  priceMode?: CheckoutPriceMode;
   /** Suma envío cotizado en checkout (solo envío a domicilio/sucursal). */
   shippingExtra?: number;
   cuponAplicado?: CuponAplicado | null;
   variant?: 'sidebar' | 'payment-footer';
-  /** Cotización MP para el total a pagar (paso 4). */
-  installmentPreview?: {
-    quote: InstallmentQuotePublic | null;
-    loading: boolean;
-  } | null;
-}
-
-function InstallmentPreviewLine({
-  preview,
-  compact = false,
-}: {
-  preview: NonNullable<OrderSummarySectionProps['installmentPreview']>;
-  compact?: boolean;
-}) {
-  if (preview.loading) {
-    return (
-      <p className={cn('text-gray-500', compact ? 'text-[10px]' : 'text-[10px] sm:text-xs')}>
-        Cotizando cuotas con Mercado Pago…
-      </p>
-    );
-  }
-  const q = preview.quote;
-  if (!q) return null;
-  const cuotaLabel = q.cuotas === 1 ? 'cuota' : 'cuotas';
-  return (
-    <div
-      className={cn(
-        'rounded-md bg-white border border-gray-200 px-2 py-1.5 space-y-0.5',
-        compact ? 'text-[10px]' : 'text-[10px] sm:text-xs'
-      )}
-    >
-      <p className="font-medium text-gray-800">
-        {q.cuotas} {cuotaLabel} de {formatPrice(q.montoCuota)} con Mercado Pago
-      </p>
-      <p className="text-gray-500">
-        Total financiado {formatPrice(q.totalFinanciado)}
-        {q.cft ? ` · CFT ${q.cft}` : ''}
-        {q.estimado ? ' · referencia sin tarjeta' : ''}
-      </p>
-    </div>
-  );
 }
 
 function SummaryTotals({
-  itemCount,
-  subtotal,
+  productsTotal,
   payTotal,
   shippingExtra,
   cuponAplicado,
-  installmentPreview,
   compact = false,
 }: {
-  itemCount: number;
-  subtotal: number;
+  productsTotal: number;
   payTotal: number;
   shippingExtra: number;
   cuponAplicado?: CuponAplicado | null;
-  installmentPreview?: OrderSummarySectionProps['installmentPreview'];
   compact?: boolean;
 }) {
   const rowClass = compact
@@ -85,8 +50,8 @@ function SummaryTotals({
   return (
     <div className={cn('space-y-1', compact ? 'pt-2' : 'pt-2 sm:pt-3 border-t border-gray-200')}>
       <div className={rowClass}>
-        <span>{itemCount} producto{itemCount !== 1 ? 's' : ''}</span>
-        <span className={valueClass}>{formatPrice(subtotal)} sin imp.</span>
+        <span>Subtotal productos</span>
+        <span className={valueClass}>{formatPrice(productsTotal)}</span>
       </div>
       {shippingExtra > 0 ? (
         <div className={rowClass}>
@@ -109,14 +74,19 @@ function SummaryTotals({
         <span className="font-medium text-gray-600">Total</span>
         <span className="font-semibold text-gray-900 tabular-nums">{formatPrice(payTotal)}</span>
       </div>
-      {installmentPreview ? (
-        <InstallmentPreviewLine preview={installmentPreview} compact={compact} />
-      ) : null}
     </div>
   );
 }
 
-function ProductsBlock({ items, compact }: { items: CartItem[]; compact?: boolean }) {
+function ProductsBlock({
+  items,
+  compact,
+  priceMode = 'lista',
+}: {
+  items: CartItem[];
+  compact?: boolean;
+  priceMode?: CheckoutPriceMode;
+}) {
   return (
     <div className={cn('space-y-1.5', compact ? '' : 'sm:space-y-2')}>
       <h3
@@ -146,7 +116,7 @@ function ProductsBlock({ items, compact }: { items: CartItem[]; compact?: boolea
               <p className="text-gray-500 mt-0.5 text-[9px] sm:text-[10px]">Bordado</p>
             ) : null}
             <p className="text-gray-500 mt-0.5">
-              {item.quantity} u. · {formatPrice(item.subtotal)}
+              {item.quantity} u. · {formatPrice(resolveCartLineSubtotal(item, priceMode))}
             </p>
           </div>
         ))}
@@ -236,18 +206,18 @@ function ShippingBlock({
 
 function PaymentFooterSummary({
   items,
-  subtotal,
+  productsTotal,
   payTotal,
   shippingExtra,
   cuponAplicado,
-  installmentPreview,
+  priceMode = 'lista',
 }: {
   items: CartItem[];
-  subtotal: number;
+  productsTotal: number;
   payTotal: number;
   shippingExtra: number;
   cuponAplicado?: CuponAplicado | null;
-  installmentPreview?: OrderSummarySectionProps['installmentPreview'];
+  priceMode?: CheckoutPriceMode;
 }) {
   const manyProducts = items.length > 3;
 
@@ -263,7 +233,9 @@ function PaymentFooterSummary({
               <span className="truncate">
                 {item.quantity}x {item.product.nombre}
               </span>
-              <span className="shrink-0 tabular-nums text-gray-700">{formatPrice(item.subtotal)}</span>
+              <span className="shrink-0 tabular-nums text-gray-700">
+                {formatPrice(resolveCartLineSubtotal(item, priceMode))}
+              </span>
             </div>
           ))}
         </div>
@@ -271,8 +243,8 @@ function PaymentFooterSummary({
 
       <div className="mt-2 pt-2 border-t border-gray-200 space-y-1">
         <div className="flex justify-between text-[11px] text-gray-500">
-          <span>Subtotal sin impuestos</span>
-          <span className="tabular-nums text-gray-700">{formatPrice(subtotal)}</span>
+          <span>Subtotal productos</span>
+          <span className="tabular-nums text-gray-700">{formatPrice(productsTotal)}</span>
         </div>
         {shippingExtra > 0 ? (
           <div className="flex justify-between text-[11px] text-gray-500">
@@ -290,14 +262,6 @@ function PaymentFooterSummary({
           <span>TOTAL</span>
           <span className="tabular-nums">{formatPrice(payTotal)}</span>
         </div>
-        {installmentPreview ? (
-          <div className="pt-1">
-            <InstallmentPreviewLine preview={installmentPreview} compact />
-          </div>
-        ) : null}
-        <p className="text-[10px] text-gray-400 pt-1">
-          Al pagar con Mercado Pago, el total de productos se confirma con S-Factory; el envío se suma aparte.
-        </p>
       </div>
     </div>
   );
@@ -307,26 +271,28 @@ export default function OrderSummarySection({
   customerData,
   shippingData,
   items,
-  itemCount,
-  subtotal,
   total,
+  productsTotal: productsTotalProp,
+  payTotal: payTotalProp,
+  priceMode = 'lista',
   shippingExtra = 0,
   cuponAplicado,
   variant = 'sidebar',
-  installmentPreview = null,
 }: OrderSummarySectionProps) {
-  const payTotal = total + shippingExtra - (cuponAplicado?.descuentoTotal ?? 0);
+  const productsTotal = productsTotalProp ?? total ?? 0;
+  const payTotal =
+    payTotalProp ?? productsTotal + shippingExtra - (cuponAplicado?.descuentoTotal ?? 0);
   const isFooter = variant === 'payment-footer';
 
   if (isFooter) {
     return (
       <PaymentFooterSummary
         items={items}
-        subtotal={subtotal}
+        productsTotal={productsTotal}
         payTotal={payTotal}
         shippingExtra={shippingExtra}
         cuponAplicado={cuponAplicado}
-        installmentPreview={installmentPreview}
+        priceMode={priceMode}
       />
     );
   }
@@ -339,7 +305,7 @@ export default function OrderSummarySection({
 
       <div className="max-h-[60vh] lg:max-h-[70vh] overflow-y-auto pr-2 space-y-2 sm:space-y-3 lg:min-w-0">
         <div className="bg-gray-50/80 border border-gray-200 p-3 sm:p-4 rounded-lg space-y-2 sm:space-y-3">
-          <ProductsBlock items={items} />
+          <ProductsBlock items={items} priceMode={priceMode} />
         </div>
 
         <div className="bg-gray-50/80 border border-gray-200 p-3 sm:p-4 rounded-lg">
@@ -352,12 +318,10 @@ export default function OrderSummarySection({
 
         <div className="bg-gray-50 border border-gray-200 p-3 sm:p-4 rounded-lg">
           <SummaryTotals
-            itemCount={itemCount}
-            subtotal={subtotal}
+            productsTotal={productsTotal}
             payTotal={payTotal}
             shippingExtra={shippingExtra}
             cuponAplicado={cuponAplicado}
-            installmentPreview={installmentPreview}
           />
         </div>
       </div>

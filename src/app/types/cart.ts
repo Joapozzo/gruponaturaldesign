@@ -82,8 +82,12 @@ export interface ShippingData {
 }
 
 // Datos de pago
+export type MpCheckoutModo = 'transfer' | 'financiado';
+
 export interface PaymentData {
     metodo: 'whatsapp' | 'transferencia' | 'efectivo' | 'tarjeta' | 'mercado_pago';
+    /** Solo cuando metodo === mercado_pago: transfer (precio transfer) o financiado (lista + cuotas). */
+    mpModo?: MpCheckoutModo;
     notas?: string;
 }
 
