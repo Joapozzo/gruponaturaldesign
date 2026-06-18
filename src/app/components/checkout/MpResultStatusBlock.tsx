@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { CheckCircle2, Clock3, HelpCircle, XCircle } from 'lucide-react';
+import { CheckCircle2, Clock3, HelpCircle, LogOut, XCircle } from 'lucide-react';
 import type { MpReturnUiStatus } from '@/app/services/mpResultQuery';
 import Button from '@/components/ui/Button';
 
@@ -56,6 +56,15 @@ const STATUS_CONFIG: Record<
     ringClass: 'ring-red-100',
     Icon: XCircle,
     iconClass: 'text-[#Ed3237]',
+  },
+  abandoned: {
+    title: 'Checkout sin completar',
+    description: 'Volviste sin finalizar el pago. Te redirigimos al checkout para que puedas continuar.',
+    badge: 'Sin completar',
+    badgeClass: 'bg-gray-50 text-gray-800 border-gray-200',
+    ringClass: 'ring-gray-100',
+    Icon: LogOut,
+    iconClass: 'text-gray-600',
   },
   unknown: {
     title: 'Resultado del pago',

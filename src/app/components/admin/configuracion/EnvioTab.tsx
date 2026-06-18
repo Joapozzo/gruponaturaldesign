@@ -261,7 +261,7 @@ export function EnvioTab() {
 
         <div className="flex flex-wrap gap-2 justify-end pt-2 border-t border-gray-100">
           <Button
-            variant="outline"
+            variant="blackOutline"
             onClick={() => {
               if (
                 !window.confirm(
@@ -282,7 +282,7 @@ export function EnvioTab() {
             Crear cuenta nueva
           </Button>
           <Button
-            variant="outline"
+            variant="blackOutline"
             onClick={() => syncMutation.mutate()}
             disabled={disabled}
           >
