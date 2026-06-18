@@ -129,6 +129,8 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
   const priceMode = resolveCheckoutPriceMode(payment.metodo, payment.mpModo);
   const productsTotal = priceMode === 'lista' ? totalLista : totalTransfer;
   const payTotal = productsTotal + shippingExtra - cuponDescuento;
+  const payTotalOff = totalTransfer + shippingExtra - cuponDescuento;
+  const payTotalLista = totalLista + shippingExtra - cuponDescuento;
   const mpSelected = payment.metodo === 'mercado_pago';
   const mpFinanciado = mpSelected && payment.mpModo === 'financiado';
   const { data: precioConfig } = usePrecioConfigPublic();
@@ -392,7 +394,7 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
                     {method.id === 'mercado_pago' && mpSelected && mpFinanciado
                       ? cuotasLabel
                       : method.id === 'mercado_pago' && mpSelected && payment.mpModo === 'transfer'
-                        ? 'Transferencia o dinero en cuenta — precio con 15% OFF'
+                        ? 'Precio OFF'
                         : method.description}
                   </p>
                 </div>
@@ -415,20 +417,23 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
 
         {mpSelected && (
           <div className="space-y-2 rounded-xl border border-gray-200 bg-gray-50 p-3 sm:p-4">
-            <p className="text-xs sm:text-sm font-bold text-black">Opción en Mercado Pago</p>
+            <p className="text-xs sm:text-sm font-bold text-black">Elegí cómo pagar</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
               {(
                 [
                   {
                     id: 'transfer' as const,
                     title: 'Transfer / 1 pago',
-                    description: 'Precio con 15% OFF — sin tarjeta',
-                    badge: '-15% OFF',
+                    priceLabel: 'Precio OFF',
+                    price: payTotalOff,
+                    highlightClass: 'font-bold text-red-600',
                   },
                   {
                     id: 'financiado' as const,
                     title: 'Financiar en cuotas',
-                    description: 'Precio de lista — consultá cuotas en Mercado Pago',
+                    priceLabel: 'Precio lista',
+                    price: payTotalLista,
+                    highlightClass: 'font-bold text-black',
                   },
                 ] as const
               ).map((opt) => (
@@ -442,15 +447,11 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
                       : 'border-gray-200 bg-white hover:border-gray-300'
                   }`}
                 >
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-sm text-black">{opt.title}</span>
-                    {'badge' in opt && opt.badge ? (
-                      <span className="text-[10px] bg-red-600 text-white px-1.5 py-0.5 rounded font-bold">
-                        {opt.badge}
-                      </span>
-                    ) : null}
-                  </div>
-                  <p className="text-xs text-gray-600 mt-1">{opt.description}</p>
+                  <span className="font-bold text-sm text-black">{opt.title}</span>
+                  <p className="text-xs mt-1">
+                    <span className={opt.highlightClass}>{opt.priceLabel}</span>{' '}
+                    <span className="font-semibold text-gray-900">{formatPrice(opt.price)}</span>
+                  </p>
                 </button>
               ))}
             </div>
@@ -468,25 +469,6 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
             className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg text-sm text-black focus:outline-none focus:border-red-600 resize-none"
             placeholder="Ej: Prefiero pagar en efectivo..."
           />
-        </div>
-
-        <NewsletterCheckoutOptIn checked={newsletterOptIn} onChange={setNewsletterOptIn} />
-
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4 text-xs sm:text-sm text-gray-700">
-          <p className="font-bold text-black mb-2 text-sm sm:text-base">¿QUÉ SUCEDE DESPUÉS?</p>
-          {payment.metodo === 'mercado_pago' ? (
-            <ul className="space-y-0.5 sm:space-y-1">
-              <li>• Serás redirigido a Mercado Pago para abonar</li>
-              <li>• Al volver verás el resultado del pago en esta tienda</li>
-              <li>• Necesitás tener sesión iniciada</li>
-            </ul>
-          ) : (
-            <ul className="space-y-0.5 sm:space-y-1">
-              <li>• Verás los datos para transferir o las instrucciones de efectivo</li>
-              <li>• Recibirás un email con el detalle y datos de pago</li>
-              <li>• El pedido queda pendiente hasta confirmar el pago</li>
-            </ul>
-          )}
         </div>
 
         {mpError && (
@@ -518,6 +500,25 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
             continueDisabled={busy}
             fixedOnMobile={false}
           />
+        </div>
+
+        <NewsletterCheckoutOptIn checked={newsletterOptIn} onChange={setNewsletterOptIn} />
+
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4 text-xs sm:text-sm text-gray-700">
+          <p className="font-bold text-black mb-2 text-sm sm:text-base">¿QUÉ SUCEDE DESPUÉS?</p>
+          {payment.metodo === 'mercado_pago' ? (
+            <ul className="space-y-0.5 sm:space-y-1">
+              <li>• Serás redirigido a Mercado Pago para abonar</li>
+              <li>• Al volver verás el resultado del pago en esta tienda</li>
+              <li>• Necesitás tener sesión iniciada</li>
+            </ul>
+          ) : (
+            <ul className="space-y-0.5 sm:space-y-1">
+              <li>• Verás los datos para transferir o las instrucciones de efectivo</li>
+              <li>• Recibirás un email con el detalle y datos de pago</li>
+              <li>• El pedido queda pendiente hasta confirmar el pago</li>
+            </ul>
+          )}
         </div>
       </section>
 

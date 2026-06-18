@@ -137,7 +137,11 @@ export function clearCheckoutMpSnapshot(): void {
 
 /** Cancela en el servidor un checkout MP abandonado (sin pago acreditado). */
 export async function abandonarCheckoutMp(pedidoId: number): Promise<void> {
-  const res = await apiClient.post<unknown>(`/cuenta/pedidos/${pedidoId}/abandonar-checkout`, {});
+  const res = await apiClient.post<unknown>(
+    `/cuenta/pedidos/${pedidoId}/abandonar-checkout`,
+    {},
+    { suppressAuthRedirect: true }
+  );
   if (!res.success) {
     const msg =
       (res as { message?: string }).message ??

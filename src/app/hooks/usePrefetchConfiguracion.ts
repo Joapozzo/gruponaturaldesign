@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { getPrecioConfig } from '@/app/services/empresaConfig.service';
 import { getDatosBancarios } from '@/app/services/empresaDatosBancarios.service';
+import { getEnvioConfig } from '@/app/services/envioConfig.service';
 import { getIntegrationsStatus } from '@/app/services/integrations.service';
 import { configuracionKeys } from './configuracionQueryKeys';
 import { CONFIGURACION_GC_MS, CONFIGURACION_STALE_MS } from './usePrecioConfigQuery';
@@ -22,6 +23,11 @@ export function usePrefetchConfiguracion() {
     void queryClient.prefetchQuery({
       queryKey: configuracionKeys.datosBancarios,
       queryFn: getDatosBancarios,
+      ...opts,
+    });
+    void queryClient.prefetchQuery({
+      queryKey: configuracionKeys.envio,
+      queryFn: getEnvioConfig,
       ...opts,
     });
     void queryClient.prefetchQuery({

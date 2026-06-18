@@ -108,6 +108,8 @@ export class ApiClient {
       customHeaders?: Record<string, string>;
       skipAuth?: boolean; // Para endpoints que no requieren autenticación
       skipContentType?: boolean; // Para FormData y otros casos especiales
+      /** No redirigir a login en 401 (p. ej. abandonar checkout con sesión vencida). */
+      suppressAuthRedirect?: boolean;
       _retry503?: boolean; // interno: ya hicimos retry
     }
   ): Promise<ApiResponse<T>> {
@@ -117,6 +119,7 @@ export class ApiClient {
       customHeaders,
       skipAuth,
       skipContentType,
+      suppressAuthRedirect,
       _retry503,
       ...fetchOptions
     } = options || {};
@@ -146,7 +149,12 @@ export class ApiClient {
           throw this.normalizeError(responseData, 503);
         }
         // 401 en peticiones que requieren auth: redirigir a login (token faltante/vencido)
-        if (response.status === 401 && !skipAuth && typeof window !== 'undefined') {
+        if (
+          response.status === 401 &&
+          !skipAuth &&
+          !suppressAuthRedirect &&
+          typeof window !== 'undefined'
+        ) {
           window.location.href = '/auth/login?reason=session_expired';
         }
         // 503: un reintento automático solo para GET (evitar reenviar POST/PUT)
@@ -282,6 +290,7 @@ export class ApiClient {
       customHeaders?: Record<string, string>;
       skipAuth?: boolean;
       skipContentType?: boolean;
+      suppressAuthRedirect?: boolean;
     }
   ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {

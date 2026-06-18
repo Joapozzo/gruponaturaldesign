@@ -1,20 +1,31 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import toast from 'react-hot-toast';
 import { useCart } from '@/app/components/hooks/useCart';
 import { useCartPersistHydrated } from '@/app/hooks/useCartPersistHydrated';
 import CheckoutStep4 from '@/app/components/checkout/CheckoutStep4';
-import { CHECKOUT_ROUTES } from '@/app/components/checkout/checkoutRoutes';
+import {
+  CHECKOUT_INCOMPLETO_QUERY,
+  CHECKOUT_ROUTES,
+} from '@/app/components/checkout/checkoutRoutes';
 import {
   isCheckoutDataCompleteForPayment,
   isCustomerStepCompleteForCheckout,
 } from '@/app/components/checkout/checkoutStep2.validation';
 
-export default function CheckoutPagoPage() {
+function CheckoutPagoContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { customerData, shippingData } = useCart();
   const hydrated = useCartPersistHydrated();
+
+  useEffect(() => {
+    if (searchParams.get(CHECKOUT_INCOMPLETO_QUERY) !== '1') return;
+    toast('Checkout sin completar. No se realizó ningún cargo.');
+    router.replace(CHECKOUT_ROUTES.pago);
+  }, [searchParams, router]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -40,4 +51,12 @@ export default function CheckoutPagoPage() {
   }
 
   return <CheckoutStep4 onBack={() => router.push(CHECKOUT_ROUTES.envio)} />;
+}
+
+export default function CheckoutPagoPage() {
+  return (
+    <Suspense fallback={null}>
+      <CheckoutPagoContent />
+    </Suspense>
+  );
 }

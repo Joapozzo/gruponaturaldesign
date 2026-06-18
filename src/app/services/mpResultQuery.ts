@@ -1,7 +1,7 @@
 /**
  * Parámetros típicos al volver de Mercado Pago (redirect success/failure/pending).
  */
-export type MpReturnUiStatus = 'approved' | 'pending' | 'failure' | 'unknown';
+export type MpReturnUiStatus = 'approved' | 'pending' | 'failure' | 'abandoned' | 'unknown';
 
 export interface MercadoPagoReturnParsed {
   uiStatus: MpReturnUiStatus;
@@ -29,15 +29,17 @@ export function parseMercadoPagoReturnParams(
     uiStatus = 'approved';
   } else if (mpReturn === 'pending' || s === 'pending' || s === 'in_process' || s === 'in process') {
     uiStatus = 'pending';
+  } else if (s === 'rejected') {
+    uiStatus = 'failure';
   } else if (
     mpReturn === 'failure' ||
     s === 'failure' ||
-    s === 'rejected' ||
     s === 'cancelled' ||
     s === 'canceled' ||
     s === 'null'
   ) {
-    uiStatus = 'failure';
+    // Sin payment_id: volvió atrás / cerró MP sin intento de cobro
+    uiStatus = paymentId ? 'failure' : 'abandoned';
   }
 
   return {

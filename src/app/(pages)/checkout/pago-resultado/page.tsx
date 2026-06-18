@@ -15,6 +15,10 @@ import {
 import type { MpReturnUiStatus } from '@/app/services/mpResultQuery';
 import { useCart } from '@/app/components/hooks/useCart';
 import MpResultStatusBlock from '@/app/components/checkout/MpResultStatusBlock';
+import {
+  CHECKOUT_INCOMPLETO_QUERY,
+  CHECKOUT_ROUTES,
+} from '@/app/components/checkout/checkoutRoutes';
 import NewsletterConfirmationBanner from '@/app/components/newsletter/NewsletterConfirmationBanner';
 import Button from '@/components/ui/Button';
 
@@ -30,6 +34,7 @@ function mergeMpUiFromPoll(
   urlStatus: MpReturnUiStatus,
   live: PaymentStatusMpResponse | null
 ): MpReturnUiStatus {
+  if (urlStatus === 'abandoned') return 'abandoned';
   if (!live) return urlStatus;
   const e = live.estadoInterno;
   const mp = (live.mpLiveStatus ?? '').toLowerCase();
@@ -52,7 +57,8 @@ function PagoResultadoInner() {
   const { clearCart } = useCart();
   const router = useRouter();
   const clearedRef = useRef(false);
-  const abandonRef = useRef(false);
+  const failureAbandonRef = useRef(false);
+  const abandonedRedirectRef = useRef(false);
 
   const snap = typeof window !== 'undefined' ? readCheckoutMpSnapshot() : null;
   const pedidoId =
@@ -74,8 +80,24 @@ function PagoResultadoInner() {
   }, [effectiveUi, clearCart]);
 
   useEffect(() => {
-    if (effectiveUi !== 'failure' || pedidoId == null || abandonRef.current) return;
-    abandonRef.current = true;
+    if (effectiveUi !== 'abandoned' || abandonedRedirectRef.current) return;
+    abandonedRedirectRef.current = true;
+    void (async () => {
+      if (pedidoId != null) {
+        try {
+          await abandonarCheckoutMp(pedidoId);
+        } catch {
+          /* pago acreditado o ya cancelado — no bloquear la redirección */
+        }
+      }
+      clearCheckoutMpSnapshot();
+      router.replace(`${CHECKOUT_ROUTES.pago}?${CHECKOUT_INCOMPLETO_QUERY}=1`);
+    })();
+  }, [effectiveUi, pedidoId, router]);
+
+  useEffect(() => {
+    if (effectiveUi !== 'failure' || pedidoId == null || failureAbandonRef.current) return;
+    failureAbandonRef.current = true;
     void (async () => {
       try {
         await abandonarCheckoutMp(pedidoId);
@@ -108,8 +130,16 @@ function PagoResultadoInner() {
   }, [pedidoId, uiStatus]);
 
   const onRetry = useCallback(() => {
-    router.push('/checkout/pago');
+    router.push(CHECKOUT_ROUTES.pago);
   }, [router]);
+
+  if (effectiveUi === 'abandoned') {
+    return (
+      <div className="min-h-[40vh] flex items-center justify-center text-gray-600 text-sm">
+        Checkout sin completar…
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col">

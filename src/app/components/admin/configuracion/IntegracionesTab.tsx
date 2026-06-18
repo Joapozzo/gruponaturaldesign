@@ -88,7 +88,7 @@ function IntegrationRow({
   );
 }
 
-export function IntegracionesTab() {
+export function IntegracionesTab({ onOpenEnvios }: { onOpenEnvios?: () => void }) {
   const { data, isPending, isFetching, isError, error, refetch } = useIntegrationsStatusQuery();
 
   if (isPending && !data) {
@@ -154,7 +154,22 @@ export function IntegracionesTab() {
 
       <div className="space-y-3">
         {entries.map(([key, item]) => (
-          <IntegrationRow key={key} name={INTEGRATION_LABELS[key]} item={item} />
+          <div key={key}>
+            <IntegrationRow name={INTEGRATION_LABELS[key]} item={item} />
+            {key === 'correo' &&
+            (item.status === 'misconfigured' || item.status === 'error') &&
+            onOpenEnvios ? (
+              <p className="mt-2 text-sm">
+                <button
+                  type="button"
+                  className="text-red-700 underline font-medium"
+                  onClick={onOpenEnvios}
+                >
+                  Configurar MiCorreo en Envíos
+                </button>
+              </p>
+            ) : null}
+          </div>
         ))}
       </div>
     </div>

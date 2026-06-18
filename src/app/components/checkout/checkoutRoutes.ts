@@ -5,6 +5,9 @@ export const CHECKOUT_ROUTES = {
   pago: '/checkout/pago',
 } as const;
 
+/** Query al volver de MP sin completar el pago (toast en step 4). */
+export const CHECKOUT_INCOMPLETO_QUERY = 'checkout_incompleto';
+
 /** Pasos del funnel donde aplica cupón y datos de checkout (no incluye resultado/instrucciones). */
 export const CHECKOUT_STEP_PATHS: readonly string[] = [
   CHECKOUT_ROUTES.pedido,

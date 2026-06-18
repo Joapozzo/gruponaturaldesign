@@ -6,6 +6,7 @@ import { ConfiguracionTabBar, type ConfiguracionTabId } from '@/app/components/a
 import { PreciosTab } from '@/app/components/admin/configuracion/PreciosTab';
 import { DatosBancariosTab } from '@/app/components/admin/configuracion/DatosBancariosTab';
 import { IntegracionesTab } from '@/app/components/admin/configuracion/IntegracionesTab';
+import { EnvioTab } from '@/app/components/admin/configuracion/EnvioTab';
 import { ConfiguracionPageActions } from '@/app/components/admin/configuracion/ConfiguracionPageActions';
 import { useAdminConfiguracionPageActions } from '@/app/hooks/useAdminConfiguracionPageActions';
 import { usePrefetchConfiguracion } from '@/app/hooks/usePrefetchConfiguracion';
@@ -19,7 +20,7 @@ export default function ConfiguracionPage() {
     <>
       <PageHeader
         title="Configuración"
-        description="Integraciones, parámetros de precios y datos para transferencia / efectivo"
+        description="Integraciones, envíos MiCorreo, precios y datos para transferencia / efectivo"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Configuración' },
@@ -32,9 +33,12 @@ export default function ConfiguracionPage() {
       <div className="mt-8 space-y-6">
         <ConfiguracionTabBar activeTab={activeTab} onChange={setActiveTab} />
 
-        <div className="max-w-2xl">
+        <div className="max-w-4xl">
           <div hidden={activeTab !== 'integraciones'}>
-            <IntegracionesTab />
+            <IntegracionesTab onOpenEnvios={() => setActiveTab('envios')} />
+          </div>
+          <div hidden={activeTab !== 'envios'}>
+            <EnvioTab />
           </div>
           <div hidden={activeTab !== 'precios'}>
             <PreciosTab />

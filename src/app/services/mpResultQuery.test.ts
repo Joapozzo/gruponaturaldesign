@@ -25,10 +25,15 @@ describe('parseMercadoPagoReturnParams', () => {
     );
   });
 
-  it('mapea failure y rejected', () => {
+  it('mapea failure con payment_id y rejected', () => {
     expect(parseMercadoPagoReturnParams(new URLSearchParams('mp_return=failure')).uiStatus).toBe(
-      'failure'
+      'abandoned'
     );
+    expect(
+      parseMercadoPagoReturnParams(
+        new URLSearchParams('mp_return=failure&payment_id=123')
+      ).uiStatus
+    ).toBe('failure');
     expect(parseMercadoPagoReturnParams(new URLSearchParams('status=rejected')).uiStatus).toBe(
       'failure'
     );
