@@ -37,10 +37,14 @@ function mapStatusBadge(status: IntegrationCheckStatus): {
   }
 }
 
-function formatModeLabel(modeRaw: IntegrationsStatusPayload['modeRaw'], mode: string): string {
-  if (modeRaw === 'prod') return 'Producción';
-  if (mode === 'test' || modeRaw === 'test') return 'Test / Sandbox';
-  return mode;
+/** Normaliza mode del API (production, prod, sandbox, test, …) a etiqueta única. */
+function formatIntegrationModeLabel(mode: string | null | undefined): string | null {
+  if (!mode?.trim()) return null;
+  const v = mode.trim().toLowerCase();
+  if (v === 'prod' || v === 'production' || v === 'live') return 'Producción';
+  if (v === 'test' || v === 'sandbox' || v === 'qa') return 'Test / Sandbox';
+  if (v === 'mock') return 'Mock';
+  return mode.trim();
 }
 
 function formatCheckedAt(iso: string): string {
@@ -62,6 +66,7 @@ function IntegrationRow({
   item: IntegrationStatusItem;
 }) {
   const badge = mapStatusBadge(item.status);
+  const modeLabel = formatIntegrationModeLabel(item.mode);
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4">
@@ -70,8 +75,8 @@ function IntegrationRow({
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-sm font-semibold text-gray-900">{name}</h3>
             <Badge variant={badge.variant}>{badge.label}</Badge>
-            {item.mode ? (
-              <Badge variant="info">{item.mode}</Badge>
+            {modeLabel ? (
+              <Badge variant="info">{modeLabel}</Badge>
             ) : null}
           </div>
           <p className="mt-2 text-sm text-gray-600 wrap-break-word">{item.detail}</p>
@@ -134,7 +139,9 @@ export function IntegracionesTab({ onOpenEnvios }: { onOpenEnvios?: () => void }
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant={data.modeRaw === 'prod' ? 'success' : 'warning'}>
-              {formatModeLabel(data.modeRaw, data.mode)}
+              {formatIntegrationModeLabel(data.modeRaw) ??
+                formatIntegrationModeLabel(data.mode) ??
+                data.mode}
             </Badge>
             {isFetching ? (
               <Loader2 className="h-4 w-4 animate-spin text-gray-400" aria-label="Actualizando" />

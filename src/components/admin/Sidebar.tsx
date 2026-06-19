@@ -151,7 +151,7 @@ export default function Sidebar() {
                 transition={{ duration: 0.2 }}
                 className="flex items-center gap-3 flex-1"
               >
-                <Link href="/admin" className="flex items-center gap-3">
+                <Link href="/admin/dashboard" className="flex items-center gap-3">
                   <Image
                     src="/logos/logo-1.svg"
                     alt={`${BRAND_NAME} Logo`}
@@ -172,7 +172,7 @@ export default function Sidebar() {
                 transition={{ duration: 0.2 }}
                 className="flex items-center justify-center w-full"
               >
-                <Link href="/admin">
+                <Link href="/admin/dashboard">
                   <Image
                     src="/logos/logo-1.svg"
                     alt="NTDS Logo"

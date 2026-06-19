@@ -45,7 +45,6 @@ export function ClientesPageActions() {
           variant="primary"
           size="sm"
           onClick={handleCreate}
-          disabled={true}
         >
           <Plus className="w-4 h-4 mr-2 inline" />
           Crear Cliente

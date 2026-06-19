@@ -1,3 +1,4 @@
+import { isIntegrationsLiveClient } from './integrations-env';
 import {
   CONSUMER_EMAIL_DOMAIN_ERROR,
   CONSUMER_EMAIL_DOMAINS,
@@ -16,7 +17,9 @@ export {
   validateConsumerEmail,
 };
 
+/** Bypass solo en test; en `NEXT_PUBLIC_INTEGRATIONS_ENV=production` siempre se exige proveedor habitual. */
 export function skipConsumerEmailDomainCheck(): boolean {
+  if (isIntegrationsLiveClient()) return false;
   return process.env.NEXT_PUBLIC_ALLOW_ANY_EMAIL_DOMAIN === 'true';
 }
 

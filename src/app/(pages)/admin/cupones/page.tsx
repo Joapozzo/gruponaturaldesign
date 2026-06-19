@@ -42,7 +42,7 @@ export default function CuponesPage() {
         title="Cupones"
         description="Gestiona cupones de descuento"
         breadcrumbs={[
-          { label: 'Dashboard', href: '/admin' },
+          { label: 'Dashboard', href: '/admin/dashboard' },
           { label: 'Cupones' },
         ]}
         action={
@@ -108,9 +108,8 @@ export default function CuponesPage() {
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
             <h4 className="font-semibold text-gray-900 mb-2">Alcance</h4>
             <ul className="text-xs space-y-1 mt-2">
-              <li><strong>Carrito completo:</strong> Aplica a todos los productos del carrito.</li>
-              <li><strong>Productos web:</strong> Solo aplica a productos web específicos.</li>
-              <li><strong>Rubros:</strong> Aplica a todos los productos de ciertos rubros.</li>
+              <li><strong>Carrito completo:</strong> Es el alcance disponible en este formulario y aplica a todos los productos del carrito.</li>
+              <li><strong>Productos web, rubros y subrubros:</strong> Están contemplados por el motor de cupones, pero no están habilitados en este formulario de administración.</li>
             </ul>
           </div>
 
