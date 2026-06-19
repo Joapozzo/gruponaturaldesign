@@ -12,6 +12,10 @@ import {
   resolvePostLoginDestination,
   withAuthCallback,
 } from '@/lib/auth-callback-url';
+import toast from 'react-hot-toast';
+
+const NOT_VERIFIED_MESSAGE =
+  'Tu email todavía no está verificado. Abrí el enlace del correo (revisá spam) o reenviá el enlace.';
 
 function LoadingSkeleton() {
   return (
@@ -30,6 +34,7 @@ function VerifyEmailContent() {
   const [resending, setResending] = useState(false);
   const [sent, setSent] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [checkMessage, setCheckMessage] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {
@@ -51,12 +56,21 @@ function VerifyEmailContent() {
     const user = auth.currentUser;
     if (!user) return;
     setChecking(true);
+    setCheckMessage(null);
     try {
       await user.reload();
       await user.getIdToken(true);
-      await refreshSessionState();
+      const state = await refreshSessionState();
+      const stillUnverified =
+        !auth.currentUser?.emailVerified || state?.needsEmailVerification === true;
+      if (stillUnverified) {
+        setCheckMessage(NOT_VERIFIED_MESSAGE);
+        toast.error(NOT_VERIFIED_MESSAGE);
+      }
     } catch {
-      // ignore
+      const msg = 'No pudimos verificar el estado. Intentá de nuevo en unos segundos.';
+      setCheckMessage(msg);
+      toast.error(msg);
     } finally {
       setChecking(false);
     }
@@ -67,8 +81,9 @@ function VerifyEmailContent() {
     try {
       await resendVerificationEmail();
       setSent(true);
+      setCheckMessage(null);
     } catch {
-      // ignore
+      toast.error('No pudimos reenviar el enlace. Intentá de nuevo.');
     } finally {
       setResending(false);
     }
@@ -101,6 +116,14 @@ function VerifyEmailContent() {
           Enviamos un enlace a <strong>{firebaseUser.email}</strong>. Abrí el correo, hacé clic en el enlace y después
           confirmá acá. Si no llega, revisá spam o reenviá el enlace.
         </p>
+        {checkMessage && (
+          <div
+            className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-left text-sm text-amber-900"
+            role="alert"
+          >
+            {checkMessage}
+          </div>
+        )}
         <Button
           type="button"
           variant="brandRed"
