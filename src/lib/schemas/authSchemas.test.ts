@@ -16,9 +16,19 @@ describe('authSchemas', () => {
     delete process.env.NEXT_PUBLIC_ALLOW_ANY_EMAIL_DOMAIN;
   });
 
-  it('loginFormSchema acepta gmail y rechaza password vacío', () => {
+  it('loginFormSchema acepta cualquier dominio válido y rechaza password vacío', () => {
     expect(loginFormSchema.safeParse({ email: 'u@gmail.com', password: 'x' }).success).toBe(true);
+    expect(loginFormSchema.safeParse({ email: 'u@empresa.com', password: 'x' }).success).toBe(true);
     expect(loginFormSchema.safeParse({ email: 'u@gmail.com', password: '' }).success).toBe(false);
+  });
+
+  it('registerFormSchema rechaza dominios que no son de proveedor habitual', () => {
+    const corporate = registerFormSchema.safeParse({
+      email: 'u@empresa.com',
+      password: 'Abcdef1!',
+      confirmPassword: 'Abcdef1!',
+    });
+    expect(corporate.success).toBe(false);
   });
 
   it('registerFormSchema valida contraseña fuerte y coincidencia', () => {
