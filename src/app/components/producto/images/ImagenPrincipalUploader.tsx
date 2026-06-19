@@ -1,5 +1,7 @@
-import React from 'react';
-import { Upload, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { Upload, X, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { compressImage } from '@/app/utils/compressImage';
 
 interface ImagenPrincipalUploaderProps {
   imagenUrl: string;
@@ -12,10 +14,20 @@ export const ImagenPrincipalUploader: React.FC<ImagenPrincipalUploaderProps> = (
   onUpload,
   onRemove,
 }) => {
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [compressing, setCompressing] = useState(false);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      onUpload(file);
+    if (!file) return;
+    setCompressing(true);
+    try {
+      const compressed = await compressImage(file);
+      onUpload(compressed);
+    } catch {
+      toast.error('Error al procesar la imagen');
+    } finally {
+      setCompressing(false);
+      e.target.value = '';
     }
   };
 
@@ -39,14 +51,21 @@ export const ImagenPrincipalUploader: React.FC<ImagenPrincipalUploaderProps> = (
   }
 
   return (
-    <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-      <Upload className="w-12 h-12 text-gray-400 mb-2" />
-      <span className="text-sm text-gray-600">Haz clic para subir imagen principal</span>
+    <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors disabled:opacity-60 disabled:pointer-events-none">
+      {compressing ? (
+        <Loader2 className="w-12 h-12 text-gray-400 mb-2 animate-spin" />
+      ) : (
+        <Upload className="w-12 h-12 text-gray-400 mb-2" />
+      )}
+      <span className="text-sm text-gray-600">
+        {compressing ? 'Comprimiendo...' : 'Haz clic para subir imagen principal'}
+      </span>
       <input
         type="file"
         accept="image/*"
         className="hidden"
         onChange={handleFileChange}
+        disabled={compressing}
       />
     </label>
   );

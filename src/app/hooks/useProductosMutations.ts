@@ -1,7 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { productoService } from '@/app/services/producto.service';
 import { productosKeys } from '@/app/utils/productosKeys';
-import type { ProductoPadreConVariantes } from '@/app/types/producto.types';
+import { productosPublicadosKeys, productosDestacadosKeys } from '@/app/hooks/productosPublicadosKeys';
+import type { ProductoPadreConVariantes, PaginatedResponse } from '@/app/types/producto.types';
 
 interface UseProductosMutationsParams {
   empresaId: number;
@@ -14,26 +16,86 @@ interface UseProductosMutationsParams {
  */
 export function useProductosMutations({ empresaId, onSuccess, onError }: UseProductosMutationsParams) {
   const queryClient = useQueryClient();
+  const [updatingProductoId, setUpdatingProductoId] = useState<number | null>(null);
 
   const invalidateQueries = () => {
     queryClient.invalidateQueries({ queryKey: productosKeys.lists() });
   };
 
-  // Actualizar destacado
+  /** Invalida cache del catálogo público (productos publicados y destacados) */
+  const invalidatePublicadosCache = () => {
+    queryClient.invalidateQueries({ queryKey: productosPublicadosKeys.all });
+    queryClient.invalidateQueries({ queryKey: productosDestacadosKeys.all });
+  };
+
+  // Función helper para actualizar el cache optimistamente
+  const updateProductoInCache = (
+    productoId: number,
+    updates: Partial<ProductoPadreConVariantes>
+  ) => {
+    queryClient.setQueriesData<PaginatedResponse<ProductoPadreConVariantes>>(
+      { queryKey: productosKeys.lists() },
+      (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          data: oldData.data.map((producto) =>
+            producto.id === productoId ? { ...producto, ...updates } : producto
+          ),
+        };
+      }
+    );
+  };
+
+  // Actualizar destacado con actualización optimista
   const updateDestacadoMutation = useMutation({
     mutationFn: ({ id, destacado }: { id: number; destacado: boolean }) =>
       productoService.updateDestacado(id, destacado),
-    onSuccess: () => {
-      invalidateQueries();
+    onMutate: async ({ id, destacado }) => {
+      setUpdatingProductoId(id);
+      await queryClient.cancelQueries({ queryKey: productosKeys.lists() });
+      const previousData = queryClient.getQueriesData({ queryKey: productosKeys.lists() });
+      updateProductoInCache(id, { destacado });
+      return { previousData };
+    },
+    onError: (error, variables, context) => {
+      setUpdatingProductoId(null);
+      if (context?.previousData) {
+        context.previousData.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+      onError?.(error.message || 'Error al actualizar destacado');
+    },
+    onSettled: () => {
+      setUpdatingProductoId(null);
+      invalidatePublicadosCache(); // Lista destacados en web
     },
   });
 
-  // Actualizar publicado
+  // Actualizar publicado con actualización optimista
   const updatePublicadoMutation = useMutation({
     mutationFn: ({ id, publicado }: { id: number; publicado: boolean }) =>
       productoService.updatePublicado(id, publicado),
-    onSuccess: () => {
-      invalidateQueries();
+    onMutate: async ({ id, publicado }) => {
+      setUpdatingProductoId(id);
+      await queryClient.cancelQueries({ queryKey: productosKeys.lists() });
+      const previousData = queryClient.getQueriesData({ queryKey: productosKeys.lists() });
+      updateProductoInCache(id, { publicado });
+      return { previousData };
+    },
+    onError: (error, variables, context) => {
+      setUpdatingProductoId(null);
+      if (context?.previousData) {
+        context.previousData.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+      onError?.(error.message || 'Error al actualizar publicado');
+    },
+    onSettled: () => {
+      setUpdatingProductoId(null);
+      invalidatePublicadosCache(); // Catálogo público puede haber cambiado
     },
   });
 
@@ -42,6 +104,7 @@ export function useProductosMutations({ empresaId, onSuccess, onError }: UseProd
     mutationFn: (id: number) => productoService.delete(id),
     onSuccess: () => {
       invalidateQueries();
+      invalidatePublicadosCache();
       onSuccess?.('Producto eliminado correctamente');
     },
     onError: (error: Error) => {
@@ -54,6 +117,7 @@ export function useProductosMutations({ empresaId, onSuccess, onError }: UseProd
     mutationFn: (ids: number[]) => productoService.bulkUpdatePublicado(ids, true),
     onSuccess: () => {
       invalidateQueries();
+      invalidatePublicadosCache();
       onSuccess?.('Productos publicados correctamente');
     },
     onError: (error: Error) => {
@@ -66,6 +130,7 @@ export function useProductosMutations({ empresaId, onSuccess, onError }: UseProd
     mutationFn: (ids: number[]) => productoService.bulkUpdatePublicado(ids, false),
     onSuccess: () => {
       invalidateQueries();
+      invalidatePublicadosCache();
       onSuccess?.('Productos despublicados correctamente');
     },
     onError: (error: Error) => {
@@ -78,6 +143,7 @@ export function useProductosMutations({ empresaId, onSuccess, onError }: UseProd
     mutationFn: (ids: number[]) => productoService.bulkUpdateDestacado(ids, true),
     onSuccess: () => {
       invalidateQueries();
+      invalidatePublicadosCache();
       onSuccess?.('Productos destacados correctamente');
     },
     onError: (error: Error) => {
@@ -90,6 +156,7 @@ export function useProductosMutations({ empresaId, onSuccess, onError }: UseProd
     mutationFn: (ids: number[]) => productoService.bulkUpdateDestacado(ids, false),
     onSuccess: () => {
       invalidateQueries();
+      invalidatePublicadosCache();
       onSuccess?.('Productos desmarcados como destacados');
     },
     onError: (error: Error) => {
@@ -97,18 +164,76 @@ export function useProductosMutations({ empresaId, onSuccess, onError }: UseProd
     },
   });
 
-  // Crear/Actualizar (placeholder - no implementado aún)
-  const saveProductoMutation = useMutation({
-    mutationFn: async (data: Partial<ProductoPadreConVariantes>) => {
-      // TODO: Implementar servicio de creación/actualización
-      throw new Error('Creación/actualización no implementada aún');
+  // Crear producto en SFactory
+  const crearProductoMutation = useMutation({
+    mutationFn: async (data: import('../services/producto.service').SFactoryItemCreateData) => {
+      return productoService.crearProducto(data);
     },
     onSuccess: () => {
       invalidateQueries();
-      onSuccess?.('Producto guardado correctamente');
+      onSuccess?.('Producto creado correctamente');
     },
     onError: (error: Error) => {
-      onError?.(error.message || 'Error al guardar el producto');
+      onError?.(error.message || 'Error al crear el producto');
+    },
+  });
+
+  // Actualizar producto en SFactory
+  const actualizarProductoEnSFactoryMutation = useMutation({
+    mutationFn: async ({ itemId, data }: { itemId: number; data: import('../services/producto.service').SFactoryItemEditData }) => {
+      return productoService.actualizarProductoEnSFactory(itemId, data);
+    },
+    onSuccess: () => {
+      invalidateQueries();
+      onSuccess?.('Producto actualizado correctamente');
+    },
+    onError: (error: Error) => {
+      onError?.(error.message || 'Error al actualizar el producto');
+    },
+  });
+
+  // Actualizar datos locales
+  const actualizarDatosLocalesMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: {
+      descripcionMarketing?: string;
+      descripcionCorta?: string;
+      destacado?: boolean;
+      nombre?: string;
+      descripcion?: string;
+    }}) => {
+      return productoService.actualizarDatosLocales(id, data);
+    },
+    onSuccess: (_data, variables) => {
+      invalidateQueries();
+      queryClient.invalidateQueries({ queryKey: productosKeys.completo(variables.id) });
+      onSuccess?.('Datos locales actualizados correctamente');
+    },
+    onError: (error: Error) => {
+      onError?.(error.message || 'Error al actualizar datos locales');
+    },
+  });
+
+  // Actualizar datos de variante
+  const actualizarDatosVarianteMutation = useMutation({
+    mutationFn: async ({ productoWebId, data }: { productoWebId: number; data: {
+      talle?: string | null;
+      color?: string | null;
+    }}) => {
+      return productoService.actualizarDatosVariante(productoWebId, data);
+    },
+    onSuccess: () => {
+      invalidateQueries();
+      onSuccess?.('Variante actualizada correctamente');
+    },
+    onError: (error: Error) => {
+      onError?.(error.message || 'Error al actualizar variante');
+    },
+  });
+
+  // Validar código (query, no mutation)
+  const validarCodigoMutation = useMutation({
+    mutationFn: async (codigo: string) => {
+      return productoService.validarCodigo(codigo);
     },
   });
 
@@ -120,16 +245,26 @@ export function useProductosMutations({ empresaId, onSuccess, onError }: UseProd
     bulkDespublicar: bulkDespublicarMutation.mutate,
     bulkDestacar: bulkDestacarMutation.mutate,
     bulkQuitarDestacado: bulkQuitarDestacadoMutation.mutate,
-    saveProducto: saveProductoMutation.mutateAsync,
+    // Nuevas mutaciones
+    crearProducto: crearProductoMutation.mutateAsync,
+    actualizarProductoEnSFactory: actualizarProductoEnSFactoryMutation.mutateAsync,
+    actualizarDatosLocales: actualizarDatosLocalesMutation.mutateAsync,
+    actualizarDatosVariante: actualizarDatosVarianteMutation.mutateAsync,
+    validarCodigo: validarCodigoMutation.mutateAsync,
     // Estados de loading
     isUpdatingDestacado: updateDestacadoMutation.isPending,
     isUpdatingPublicado: updatePublicadoMutation.isPending,
+    updatingProductoId,
     isDeleting: deleteMutation.isPending,
     isBulkPublicando: bulkPublicarMutation.isPending,
     isBulkDespublicando: bulkDespublicarMutation.isPending,
     isBulkDestacando: bulkDestacarMutation.isPending,
     isBulkQuitandoDestacado: bulkQuitarDestacadoMutation.isPending,
-    isSaving: saveProductoMutation.isPending,
+    isCreandoProducto: crearProductoMutation.isPending,
+    isActualizandoSFactory: actualizarProductoEnSFactoryMutation.isPending,
+    isActualizandoLocales: actualizarDatosLocalesMutation.isPending,
+    isActualizandoVariante: actualizarDatosVarianteMutation.isPending,
+    isValidandoCodigo: validarCodigoMutation.isPending,
   };
 }
 

@@ -2,8 +2,10 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CartState, CartProduct, CartItem, CustomerData, ShippingData, PaymentData } from '../types/cart';
 
-import { IVA_RATE, WHATSAPP_PHONE_NUMBER, getWhatsAppNumberForUrl } from '@/app/utils/constants';
+import { WHATSAPP_PHONE_NUMBER, getWhatsAppNumberForUrl } from '@/app/utils/constants';
+import { calculateTotals } from '@/app/stores/cartTotals';
 import { canAddQuantity } from '@/app/services/stockService';
+import { SALES_CONFIG } from '../config/sales.config';
 
 export const useCartStore = create<CartState>()(
     persist(
@@ -14,10 +16,29 @@ export const useCartStore = create<CartState>()(
             paymentData: null,
             itemCount: 0,
             subtotal: 0,
+            subtotalTransfer: 0,
+            totalLista: 0,
+            totalTransfer: 0,
             iva: 0,
             total: 0,
+            cuponAplicado: null,
+            cuponDescuento: 0,
 
             addItem: (product: CartProduct, quantity = 1, especificaciones = '', bordado = false) => {
+                // Validar stock antes de agregar
+                const existingItem = get().items.find(
+                    (item) => item.product.id === product.id && 
+                    item.especificaciones === especificaciones &&
+                    item.bordado === bordado
+                );
+                const currentQuantity = existingItem?.quantity || 0;
+                const stock = product.stock ?? null;
+                
+                if (!canAddQuantity(stock, currentQuantity, quantity)) {
+                    // Stock insuficiente - no agregar
+                    return;
+                }
+
                 set((state) => {
                     const existingIndex = state.items.findIndex(
                         (item) => item.product.id === product.id && 
@@ -27,29 +48,31 @@ export const useCartStore = create<CartState>()(
 
                     let newItems: CartItem[];
 
-                    // Asegurar que el precio sea un número válido
-                    let precio = 0;
-                    if (typeof product.precio === 'number' && product.precio > 0) {
-                        precio = product.precio;
-                    } else {
-                        // Convertir a string y parsear (por si viene como string desde alguna fuente externa)
-                        const precioStr = String(product.precio || '0');
-                        precio = parseFloat(precioStr.replace(/[^0-9.-]+/g, '')) || 0;
-                    }
+                    // Usar precioLista como precio base (si no está, usar precio como fallback)
+                    const precioLista = product.precioLista ?? product.precio ?? 0;
+                    const precioTransfer = product.precioTransfer ?? null;
+                    const precioSinImp = product.precioSinImp ?? null;
                     
                     if (existingIndex > -1) {
                         newItems = [...state.items];
-                        newItems[existingIndex].quantity += quantity;
-                        newItems[existingIndex].subtotal =
-                            newItems[existingIndex].quantity * precio;
+                        const item = newItems[existingIndex];
+                        item.quantity += quantity;
+                        item.subtotal = item.quantity * precioLista;
+                        item.subtotalTransfer = precioTransfer ? item.quantity * precioTransfer : undefined;
+                        item.subtotalSinImp = precioSinImp ? item.quantity * precioSinImp : undefined;
                     } else {
                         const newItem: CartItem = {
                             product: {
                                 ...product,
-                                precio: precio, // Asegurar que el precio en el producto también sea correcto
+                                precio: precioLista, // Mantener compatibilidad
+                                precioLista: precioLista,
+                                precioTransfer: precioTransfer,
+                                precioSinImp: precioSinImp,
                             },
                             quantity,
-                            subtotal: quantity * precio,
+                            subtotal: quantity * precioLista,
+                            subtotalTransfer: precioTransfer ? quantity * precioTransfer : undefined,
+                            subtotalSinImp: precioSinImp ? quantity * precioSinImp : undefined,
                             especificaciones: especificaciones || undefined,
                             bordado: bordado || false,
                         };
@@ -92,20 +115,17 @@ export const useCartStore = create<CartState>()(
                                 return item;
                             }
                             
-                            // Asegurar que el precio sea un número válido
-                            let precio = 0;
-                            if (typeof item.product.precio === 'number' && item.product.precio > 0) {
-                                precio = item.product.precio;
-                            } else {
-                                // Convertir a string y parsear (por si viene como string desde alguna fuente externa)
-                                const precioStr = String(item.product.precio || '0');
-                                precio = parseFloat(precioStr.replace(/[^0-9.-]+/g, '')) || 0;
-                            }
+                            // Usar precioLista como precio base
+                            const precioLista = item.product.precioLista || item.product.precio || 0;
+                            const precioTransfer = item.product.precioTransfer || null;
+                            const precioSinImp = item.product.precioSinImp || null;
                             
                             return {
                                 ...item,
                                 quantity,
-                                subtotal: quantity * precio,
+                                subtotal: quantity * precioLista,
+                                subtotalTransfer: precioTransfer ? quantity * precioTransfer : undefined,
+                                subtotalSinImp: precioSinImp ? quantity * precioSinImp : undefined,
                             };
                         }
                         return item;
@@ -146,14 +166,35 @@ export const useCartStore = create<CartState>()(
                     paymentData: null,
                     itemCount: 0,
                     subtotal: 0,
+                    subtotalTransfer: 0,
+                    totalLista: 0,
+                    totalTransfer: 0,
                     iva: 0,
                     total: 0,
+                    cuponAplicado: null,
+                    cuponDescuento: 0,
                 });
+            },
+
+            clearCheckoutSession: () => {
+                set((state) => ({
+                    customerData: null,
+                    shippingData: null,
+                    paymentData: null,
+                    cuponAplicado: null,
+                    cuponDescuento: 0,
+                    ...calculateTotals(state.items),
+                }));
             },
 
             setCustomerData: (data: CustomerData) => set({ customerData: data }),
             setShippingData: (data: ShippingData) => set({ shippingData: data }),
             setPaymentData: (data: PaymentData) => set({ paymentData: data }),
+
+            setCuponAplicado: (cupon) => set({
+                cuponAplicado: cupon,
+                cuponDescuento: cupon ? cupon.descuentoTotal : 0,
+            }),
 
             generateWhatsAppMessage: () => {
                 const state = get();
@@ -161,7 +202,7 @@ export const useCartStore = create<CartState>()(
 
                 if (!customerData) return '';
 
-                const isWholesale = itemCount >= 20;
+                const isWholesale = itemCount >= SALES_CONFIG.WHOLESALE_MIN_ITEMS;
 
                 let message = `🛍️ *${isWholesale ? 'PEDIDO MAYORISTA' : 'NUEVO PEDIDO'} - NTDS*\n\n`;
                 if (isWholesale) {
@@ -207,7 +248,7 @@ export const useCartStore = create<CartState>()(
                 message += `Total de unidades: ${itemCount}\n`;
                 if (isWholesale) {
                     message += `\n🏢 *⚠️ PEDIDO MAYORISTA - REQUIERE COTIZACIÓN ⚠️*\n`;
-                    message += `Este pedido de ${itemCount} unidades requiere compra mayorista (mínimo 20 prendas).\n`;
+                    message += `Este pedido de ${itemCount} unidades requiere compra mayorista (mínimo ${SALES_CONFIG.WHOLESALE_MIN_ITEMS} prendas).\n`;
                     message += `Un asesor especializado se pondrá en contacto para ofrecer:\n`;
                     message += `• Precios mayoristas personalizados\n`;
                     message += `• Opciones de personalización (bordado/estampa)\n`;
@@ -232,11 +273,15 @@ export const useCartStore = create<CartState>()(
                 paymentData: state.paymentData,
             }),
             onRehydrateStorage: () => (state) => {
-                // Recalcular totales cuando se carga desde localStorage
                 if (state && state.items) {
+                    state.cuponAplicado = null;
+                    state.cuponDescuento = 0;
                     const totals = calculateTotals(state.items);
                     state.itemCount = totals.itemCount;
                     state.subtotal = totals.subtotal;
+                    state.subtotalTransfer = totals.subtotalTransfer;
+                    state.totalLista = totals.totalLista;
+                    state.totalTransfer = totals.totalTransfer;
                     state.iva = totals.iva;
                     state.total = totals.total;
                 }
@@ -245,33 +290,9 @@ export const useCartStore = create<CartState>()(
     )
 );
 
-function calculateTotals(items: CartItem[]) {
-    // Calcular el total (precio ya incluye IVA)
-    // El precio de los productos ya viene con IVA incluido
-    const total = items.reduce((acc, item) => {
-        // Si el subtotal es 0 pero el producto tiene precio, recalcular
-        if (item.subtotal === 0 && item.product.precio && item.product.precio > 0) {
-            const precio = typeof item.product.precio === 'number' 
-                ? item.product.precio 
-                : parseFloat(String(item.product.precio).replace(/[^0-9.-]+/g, '')) || 0;
-            return acc + (item.quantity * precio);
-        }
-        return acc + item.subtotal;
-    }, 0);
-    
-    // El total ya incluye IVA, entonces:
-    // - Subtotal sin impuestos = total / 1.21
-    // - IVA = total - subtotal sin impuestos
-    const subtotalSinImpuestos = total / (1 + IVA_RATE);
-    const iva = total - subtotalSinImpuestos;
-    const itemCount = items.reduce((acc, item) => acc + item.quantity, 0);
-
-    return { 
-        itemCount, 
-        subtotal: subtotalSinImpuestos,  // Subtotal sin impuestos
-        iva, 
-        total  // Total con IVA incluido
-    };
+/** Limpia cupón y datos de checkout sin vaciar productos (p. ej. logout o salir del funnel). */
+export function clearCheckoutSession() {
+    useCartStore.getState().clearCheckoutSession();
 }
 
 export const sendOrderViaWhatsApp = (message: string) => {

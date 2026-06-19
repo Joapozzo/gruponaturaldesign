@@ -1,19 +1,24 @@
 "use client";
 import React from 'react';
 import { motion } from 'framer-motion';
+import { usePrecioConfigPublic } from '@/app/hooks/usePrecioConfigPublic';
+import { buildPromoCuotasLabel } from '@/app/utils/precioDisplay';
 
 const PromoBanner = () => {
+  const { data: precioConfig } = usePrecioConfigPublic();
+  const cuotas = precioConfig?.cuotasFinanciado ?? 3;
+  const descuentoPct = Math.round((precioConfig?.descuentoTransferencia ?? 0.15) * 100);
+
   const promoItems = [
-    "3 CUOTAS SIN INTERÉS",
-    "15% OFF CON TRANSFERENCIA",
+    buildPromoCuotasLabel(cuotas, true),
+    `${descuentoPct}% OFF CON TRANSFERENCIA`,
     "ENVÍO GRATIS A SUCURSAL EN COMPRAS SUPERIORES A $200.000"
   ];
   
-  // Repetimos los items varias veces para el efecto infinito, con más separación
   const repeatedText = Array(4).fill(promoItems.join("        •        ")).join("        •        ");
 
   return (
-    <div className="w-full bg-black text-white py-1.5 overflow-hidden fixed top-0 left-0 right-0 z-[60] h-[24px] md:h-[20px] flex items-center">
+    <div className="w-full bg-black text-white py-2 overflow-hidden fixed top-0 left-0 right-0 z-[60] h-[32px] flex items-center shrink-0">
       <motion.div
         className="flex whitespace-nowrap"
         animate={{
@@ -28,10 +33,10 @@ const PromoBanner = () => {
           },
         }}
       >
-        <span className="text-[10px] md:text-[9px] font-semibold tracking-tight px-2">
+        <span className="text-[11px] md:text-[12px] font-semibold tracking-tight px-2">
           {repeatedText}
         </span>
-        <span className="text-[10px] md:text-[9px] font-semibold tracking-tight px-2">
+        <span className="text-[11px] md:text-[12px] font-semibold tracking-tight px-2">
           {repeatedText}
         </span>
       </motion.div>

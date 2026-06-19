@@ -1,0 +1,93 @@
+import type { AdminPedidoDetalle } from '@/app/types/adminPedidoDetalle.types';
+import type { EstadoPedido } from '@/app/types/pedido.types';
+import { isRetiroEnTiendaPedido } from '@/app/utils/pedidoEntregaDisplay';
+import { resolvePedidoShippingTracking } from '@/app/utils/pedidoShippingTracking';
+
+const TERMINAL: EstadoPedido[] = ['cancelado', 'vencido', 'entregado'];
+
+export interface WebPedidoActions {
+  canConfirmWeb: boolean;
+  canAprobarEnSfactory: boolean;
+  canReintentarSfactory: boolean;
+  canSyncSfactory: boolean;
+  canReject: boolean;
+  confirmLabel: string;
+  awaitingMercadoPago: boolean;
+  paymentPendingMessage: string | null;
+  canEnviarListoRetiro: boolean;
+  canMarcarRetirado: boolean;
+  canCrearEnvioPostal: boolean;
+  crearEnvioPostalLabel: string;
+  canShowShippingLabel: boolean;
+}
+
+/** Estados SFactory ERP que admiten aprobar desde admin (cotización / en curso). */
+const SFACTORY_APROBABLE = new Set(['1', '5']);
+
+const PICKUP_ACTIVE: EstadoPedido[] = ['confirmado', 'procesando', 'despachado'];
+
+export function getWebPedidoActions(pedido: AdminPedidoDetalle): WebPedidoActions {
+  const awaitingMercadoPago =
+    pedido.estadoInterno === 'pendiente_pago' && pedido.formaPago === 'mercado_pago';
+
+  const canConfirmWeb = pedido.estadoInterno === 'pendiente_confirmacion';
+
+  const hasOrden = pedido.sfactoryOrdenId != null;
+  const sfEstado = pedido.sfactoryEstado?.trim() ?? '';
+
+  const canAprobarEnSfactory =
+    hasOrden && SFACTORY_APROBABLE.has(sfEstado) && pedido.estadoInterno !== 'cancelado';
+
+  const canReintentarSfactory =
+    pedido.estadoInterno === 'fallido' && !hasOrden && pedido.syncStatus !== 'synced';
+
+  const canSyncSfactory = hasOrden;
+
+  const canReject = !TERMINAL.includes(pedido.estadoInterno);
+
+  const isRetiro = isRetiroEnTiendaPedido(pedido);
+  const pickupActivo = PICKUP_ACTIVE.includes(pedido.estadoInterno);
+  const canEnviarListoRetiro = isRetiro && pickupActivo;
+  const canMarcarRetirado = isRetiro && pickupActivo;
+
+  const tracking = resolvePedidoShippingTracking(pedido);
+  const canCrearEnvioPostal = !isRetiro && pickupActivo && !tracking.trackingNumber;
+  const canShowShippingLabel = !isRetiro && pickupActivo;
+  const hasFailedShippingAttempt =
+    pedido.envioLogs?.some((log) => log.operacion === 'create_order_after' && !log.exitoso) ??
+    false;
+  const crearEnvioPostalLabel = hasFailedShippingAttempt
+    ? 'Reintentar generación de envío'
+    : 'Generar envío en carrier';
+
+  let confirmLabel = 'Confirmar y enviar a SFactory';
+  if (canAprobarEnSfactory && !canConfirmWeb) {
+    confirmLabel = 'Aprobar en SFactory (confirmar venta)';
+  } else if (canConfirmWeb && hasOrden) {
+    confirmLabel = 'Confirmar pedido';
+  }
+
+  let paymentPendingMessage: string | null = null;
+  if (awaitingMercadoPago) {
+    paymentPendingMessage =
+      'Falta el pago de Mercado Pago. El pedido se confirmará automáticamente cuando el cliente complete el pago.';
+  } else if (pedido.estadoInterno === 'pendiente_pago') {
+    paymentPendingMessage = 'El pedido está pendiente de pago y no puede confirmarse manualmente.';
+  }
+
+  return {
+    canConfirmWeb,
+    canAprobarEnSfactory,
+    canReintentarSfactory,
+    canSyncSfactory,
+    canReject,
+    confirmLabel,
+    awaitingMercadoPago,
+    paymentPendingMessage,
+    canEnviarListoRetiro,
+    canMarcarRetirado,
+    canCrearEnvioPostal,
+    crearEnvioPostalLabel,
+    canShowShippingLabel,
+  };
+}

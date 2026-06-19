@@ -1,3 +1,4 @@
+import { apiClient } from '@/lib/apiClient';
 import type {
   RubroConSubrubros,
   RubroQueryParams,
@@ -6,59 +7,32 @@ import type {
   PaginatedResponse,
 } from '../types/rubro.types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
-
 class RubroService {
-  private async request<T>(
-    endpoint: string,
-    options?: RequestInit
-  ): Promise<T> {
-    const url = `${API_BASE_URL}${endpoint}`;
-    
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
+  /**
+   * Construye query string desde un objeto de parámetros
+   */
+  private buildQueryString(params?: Record<string, unknown>): string {
+    if (!params) return '';
+
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        queryParams.append(key, String(value));
+      }
     });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Error desconocido' }));
-      throw new Error(error.message || error.error || `Error ${response.status}: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data as T;
+    const queryString = queryParams.toString();
+    return queryString ? `?${queryString}` : '';
   }
 
   async getAll(
     params?: RubroQueryParams
   ): Promise<PaginatedResponse<RubroConSubrubros>> {
-    const queryParams = new URLSearchParams();
-    
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          queryParams.append(key, String(value));
-        }
-      });
-    }
+    const queryString = this.buildQueryString(params as Record<string, unknown>);
+    const endpoint = `/rubros${queryString}`;
 
-    const queryString = queryParams.toString();
-    const endpoint = `/rubros${queryString ? `?${queryString}` : ''}`;
-    
-    const response = await this.request<{
-      success: boolean;
-      data: RubroConSubrubros[];
-      pagination?: {
-        page: number;
-        limit: number;
-        total: number;
-        totalPages: number;
-      };
-    }>(endpoint);
-    
+    const response = await apiClient.getPaginated<RubroConSubrubros>(endpoint);
+
     return {
       data: response.data || [],
       pagination: response.pagination || {
@@ -72,56 +46,31 @@ class RubroService {
 }
 
 class SubrubroService {
-  private async request<T>(
-    endpoint: string,
-    options?: RequestInit
-  ): Promise<T> {
-    const url = `${API_BASE_URL}${endpoint}`;
-    
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
+  /**
+   * Construye query string desde un objeto de parámetros
+   */
+  private buildQueryString(params?: Record<string, unknown>): string {
+    if (!params) return '';
+
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        queryParams.append(key, String(value));
+      }
     });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Error desconocido' }));
-      throw new Error(error.message || error.error || `Error ${response.status}: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data as T;
+    const queryString = queryParams.toString();
+    return queryString ? `?${queryString}` : '';
   }
 
   async getAll(
     params?: SubrubroQueryParams
   ): Promise<PaginatedResponse<SubrubroConRubro>> {
-    const queryParams = new URLSearchParams();
-    
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          queryParams.append(key, String(value));
-        }
-      });
-    }
+    const queryString = this.buildQueryString(params as Record<string, unknown>);
+    const endpoint = `/subrubros${queryString}`;
 
-    const queryString = queryParams.toString();
-    const endpoint = `/subrubros${queryString ? `?${queryString}` : ''}`;
-    
-    const response = await this.request<{
-      success: boolean;
-      data: SubrubroConRubro[];
-      pagination?: {
-        page: number;
-        limit: number;
-        total: number;
-        totalPages: number;
-      };
-    }>(endpoint);
-    
+    const response = await apiClient.getPaginated<SubrubroConRubro>(endpoint);
+
     return {
       data: response.data || [],
       pagination: response.pagination || {

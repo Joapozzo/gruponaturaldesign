@@ -1,0 +1,150 @@
+/**
+ * Utilidad para convertir GroupedProduct a ProductoPublicado
+ * Permite usar ProductCardPublicado con datos de GroupedProduct
+ */
+
+import { GroupedProduct } from '@/app/types/producto';
+import type { ProductWithImage } from '@/app/types/producto';
+import { ProductoPublicado, VariantePublicada } from '@/app/types/producto-publicado.types';
+import { deduplicateVariantesPublicadas } from '@/app/utils/variantePublicada.utils';
+
+/**
+ * Extrae la primera URL de imagen de un producto (imagen, imagenes[0] string, o imagenes[0].imagenUrl)
+ */
+function getFirstImageUrl(producto: ProductWithImage): string | null {
+  if (producto.imagen && typeof producto.imagen === 'string' && producto.imagen.trim() !== '') {
+    return producto.imagen;
+  }
+  const first = producto.imagenes?.[0];
+  if (!first) return null;
+  if (typeof first === 'string' && first.trim() !== '') return first;
+  if (typeof first === 'object' && first !== null && 'imagenUrl' in first) {
+    const url = (first as { imagenUrl?: string }).imagenUrl;
+    return url && typeof url === 'string' && url.trim() !== '' ? url : null;
+  }
+  return null;
+}
+
+/**
+ * Convierte un GroupedProduct a ProductoPublicado
+ */
+export function groupedProductToProductoPublicado(group: GroupedProduct): ProductoPublicado {
+  // Convertir variantes (extraer URL de imagen correctamente)
+  const variantesRaw: VariantePublicada[] = group.variants.map((variant, index) => {
+    const imagen = getFirstImageUrl(variant.producto);
+    const productoWebId = variant.productoWebId ?? index + 1;
+    return {
+      id: productoWebId,
+      codigo: variant.codigo,
+      color: variant.color || null,
+      talle: variant.talle || null,
+      stock: variant.stock || 0,
+      precio: variant.producto.PrecioVenta || 0,
+      imagen,
+      tieneImagen: Boolean(imagen),
+      productoPadreId: variant.productoPadreId ?? group.productoPadreId ?? 0,
+      sfactoryId: variant.sfactoryItemId ?? 0,
+    };
+  });
+
+  const variantes = deduplicateVariantesPublicadas(variantesRaw);
+
+  const colores = Array.from(
+    new Set(
+      variantes
+        .map((v) => v.color)
+        .filter((c): c is string => Boolean(c))
+    )
+  );
+
+  const talles = Array.from(
+    new Set(
+      variantes
+        .map((v) => v.talle)
+        .filter((t): t is string => Boolean(t))
+    )
+  );
+  const precioLista = group.displayProduct.PrecioVenta || null;
+  const precioTransfer = group.displayProduct.precioTransfer || null;
+  const precioSinImp = group.displayProduct.precioSImp || null;
+
+  // Calcular stock total
+  const stockTotal = variantes.reduce((sum, v) => sum + v.stock, 0);
+
+  // Calcular precios min/max
+  const precios = variantes.map((v) => v.precio).filter((p) => p > 0);
+  const precioMin = precios.length > 0 ? Math.min(...precios) : null;
+  const precioMax = precios.length > 0 ? Math.max(...precios) : null;
+
+  // Crear ID único desde código de producto
+  const createProductId = (codigo: string): number => {
+    let hash = 0;
+    for (let i = 0; i < codigo.length; i++) {
+      const char = codigo.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash);
+  };
+
+  return {
+    // Datos básicos
+    id: createProductId(group.skuBase),
+    codigoAgrupacion: group.skuBase,
+    slug: group.skuBaseSlug || null,
+    nombre: group.displayProduct.NOMBRE || group.displayProduct.Descripcion || group.skuBase,
+    descripcion: group.displayProduct.descripcionCompleta || group.displayProduct.Descripcion || null,
+    descripcionCorta: group.displayProduct.DescripcionCorta || null,
+
+    // Metadatos
+    destacado: false, // GroupedProduct no tiene este campo, usar false por defecto
+    orden: 0,
+    sexo: extractSexo(group.displayProduct.NOMBRE || group.displayProduct.Descripcion || ''),
+    rubro: group.displayProduct.Rubro
+      ? {
+          id: createProductId(group.displayProduct.Rubro),
+          nombre: group.displayProduct.Rubro,
+          slug: group.displayProduct.Rubro.toLowerCase().replace(/\s+/g, '-'),
+        }
+      : null,
+    subrubro: group.displayProduct.Subrubro
+      ? {
+          id: createProductId(group.displayProduct.Subrubro),
+          nombre: group.displayProduct.Subrubro,
+          slug: group.displayProduct.Subrubro.toLowerCase().replace(/\s+/g, '-'),
+        }
+      : null,
+
+    // Imagen principal (extraer URL correctamente)
+    imagenPrincipal: getFirstImageUrl(group.displayProduct),
+
+    // Precios calculados
+    precioLista,
+    precioTransfer,
+    precioSinImp,
+
+    // Variantes simplificadas
+    variantes,
+
+    // Agregados pre-calculados
+    colores,
+    talles,
+    totalVariantes: variantes.length,
+    tieneStock: stockTotal > 0,
+    stockTotal,
+    precioMin,
+    precioMax,
+  };
+}
+
+/**
+ * Extrae el sexo del nombre del producto
+ */
+function extractSexo(texto: string): string | null {
+  const lower = texto.toLowerCase();
+  if (lower.includes('hombre') || lower.includes('masculino')) return 'hombre';
+  if (lower.includes('dama') || lower.includes('mujer') || lower.includes('femenino')) return 'dama';
+  if (lower.includes('unisex')) return 'unisex';
+  return null;
+}
+

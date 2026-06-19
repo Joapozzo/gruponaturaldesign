@@ -4,13 +4,14 @@ import Image from 'next/image';
 import { WhatsApp } from './logos/WhatsApp';
 import { useWhatsApp } from './hooks/useWhatsApp';
 import { WHATSAPP_PHONE_NUMBER } from '@/app/utils/constants';
+import NewsletterFooterForm from '@/app/components/newsletter/NewsletterFooterForm';
 
 const Footer = () => {
     const { openWhatsApp } = useWhatsApp({ defaultMessage: "¡Hola! Me interesa conocer más sobre los uniformes de NTDS. ¿Te gustaría hablar conmigo?" });
     return (
-        <footer className="bg-[var(--black)] text-white pt-12 pb-6 shadow-sm">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid md:grid-cols-4 gap-8">
+        <footer className="bg-[var(--black)] text-white pt-12 pb-6">
+            <div className="w-full px-4 lg:px-15">
+                <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8">
                     <div className="md:col-span-2">
                         <div className="flex items-center space-x-3 mb-6">
                             <div className="w-25 h-25 flex items-center justify-center">
@@ -20,11 +21,12 @@ const Footer = () => {
                                     className="object-contain"
                                     width={90}
                                     height={30}
+                                    style={{ width: 'auto', height: 'auto' }}
                                 />
                             </div>
                         </div>
                         <p className="text-gray-400 mb-4 leading-relaxed text-xs md:text-sm">
-                            Natural Design. Calidad y diseño en uniformes empresariales. Más
+                            Natural Design. Calidad y diseño en indumentaria para empresas. Más
                             de 25 años vistiendo empresas con profesionalismo y estilo.
                         </p>
                         <div className="flex space-x-4">
@@ -85,6 +87,14 @@ const Footer = () => {
                             </p>
                         </div>
                     </div>
+
+                    <div>
+                        <h4 className="font-bold mb-4 text-sm md:text-base">NEWSLETTER</h4>
+                        <p className="mb-3 text-xs md:text-sm text-gray-400">
+                            Recibí novedades, lanzamientos y ofertas exclusivas.
+                        </p>
+                        <NewsletterFooterForm />
+                    </div>
                 </div>
             </div>
 
@@ -92,7 +102,7 @@ const Footer = () => {
             <div className="w-full border-t border-gray-800 mt-8"></div>
 
             {/* Copyright con contenedor centrado */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+            <div className="w-full px-4 lg:px-15 pt-6">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-3 text-gray-400">
                     <p className="text-[10px] md:text-xs">&copy; 2025 Natural Design. Todos los derechos reservados.</p>
                     <div className="flex flex-wrap justify-center gap-3 text-[10px] md:text-xs">

@@ -1,11 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
-import { ArrowRight, Star, Eye, ShoppingCart, Package } from 'lucide-react';
+import { ArrowRight, Eye, ShoppingCart } from 'lucide-react';
+import { ProductCardBadges } from './product-card/components/ProductCardBadges';
+import { ProductImage } from './product-card/components/ProductImage';
+import { useProductDiscount } from './product-card/hooks/useProductDiscount';
 import { useRouter } from 'next/navigation';
 import { ProductWithImage } from '../types/producto';
-import { getFirstProductImage, nombreToSlug } from '@/app/(pages)/producto/[id]/helpers/productHelpers';
+import { getFirstProductImage } from '@/app/utils/productHelpers';
+import { normalizeImageUrl } from '@/app/utils/normalizeImageUrl';
 import { useCart } from './hooks/useCart';
+
+function resolveLegacyProductImage(product: ProductWithImage): string | null {
+    const imagenPrincipal =
+        'imagenPrincipal' in product
+            ? (product as ProductWithImage & { imagenPrincipal?: string | null }).imagenPrincipal
+            : null;
+
+    const candidates: (string | null | undefined)[] = [
+        Array.isArray(product.imagen) ? product.imagen[0] : product.imagen,
+        product.imagenes?.[0],
+        imagenPrincipal,
+        product.NOMBRE ? getFirstProductImage(product.NOMBRE) : null,
+        product.Descripcion ? getFirstProductImage(product.Descripcion) : null,
+    ];
+
+    for (const raw of candidates) {
+        if (!raw || typeof raw !== 'string' || raw.trim() === '') continue;
+        if (raw.includes('producto-placeholder')) continue;
+        const normalized = normalizeImageUrl(raw);
+        if (normalized && !normalized.includes('producto-placeholder')) {
+            return normalized;
+        }
+    }
+
+    return null;
+}
 
 interface ProductProps {
     product: ProductWithImage;
@@ -16,10 +45,19 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [isAdding, setIsAdding] = useState(false);
-    const [imageError, setImageError] = useState(false);
     const router = useRouter();
+    const imageSrc = useMemo(() => resolveLegacyProductImage(product), [product]);
     const { addToCart, isInCart } = useCart();
-    
+
+    const precioLista = product.PrecioVenta != null ? Number(product.PrecioVenta) : null;
+    const { descuento } = useProductDiscount({
+        precioLista,
+        precioTransfer: product.precioTransfer ?? null,
+    });
+    const isDestacado = Boolean(
+        'destacado' in product && (product as { destacado?: boolean }).destacado,
+    );
+
     // Detectar si es mobile
     useEffect(() => {
         const checkIsMobile = () => {
@@ -52,13 +90,17 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
         setIsAdding(true);
 
         const numericId = getNumericId(product.Codigo);
+        const precio = parseFloat((product.PrecioVenta?.toString() || '0').replace(/[^0-9.-]+/g, ''));
 
         addToCart({
             id: numericId,
             nombre: product.Descripcion || product.NOMBRE || product.Codigo || '',
             descripcion: product.Descripcion || product.NOMBRE || product.Codigo || '',
             imagen: (Array.isArray(product.imagen) ? product.imagen[0] : product.imagen) || product.imagenes?.[0] || '',
-            precio: parseFloat((product.PrecioVenta?.toString() || '0').replace(/[^0-9.-]+/g, '')),
+            precio: precio, // Mantener por compatibilidad
+            precioLista: precio, // Precio base (lista)
+            precioTransfer: product.precioTransfer || null,
+            precioSinImp: product.precioSImp || null,
             categoria: product.Rubro || product.Subrubro || '',
         }, 1);
 
@@ -91,23 +133,9 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
             onMouseLeave={handleMouseLeave}
             onClick={handleProductClick}
         >
-            {/* Badge de destacado */}
-            {(product as any).destacado && (
-                <motion.div
-                    className="absolute top-6 left-4 z-10 text-white px-2 py-1 text-xs font-semibold flex items-center space-x-1 rounded-lg"
-                    animate={{
-                        scale: isHovered ? 1.1 : 1,
-                        backgroundColor: isHovered ? "#1f2937" : "#374151"
-                    }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <Star size={10} fill="currentColor" />
-                    <span>DESTACADO</span>
-                </motion.div>
-            )}
-
             {/* Imagen del producto */}
             <div className="relative h-100 overflow-hidden rounded-t-lg">
+                <ProductCardBadges destacado={isDestacado} descuento={descuento} />
                 <motion.div
                     className="relative w-full h-full"
                     animate={!isMobile ? {
@@ -116,35 +144,13 @@ const Product: React.FC<ProductProps> = ({ product, index }) => {
                     } : {}}
                     transition={{ duration: 0.5, ease: "easeOut" }}
                 >
-                    {(() => {
-                        const imageSrc = (Array.isArray(product.imagen) ? product.imagen[0] : product.imagen) || 
-                            product.imagenes?.[0] || 
-                            (product.NOMBRE ? getFirstProductImage(product.NOMBRE) : '') ||
-                            (product.Descripcion ? getFirstProductImage(product.Descripcion) : '') ||
-                            '/imgs/producto-placeholder.png';
-                        
-                        const hasNoImage = imageError || !imageSrc || imageSrc.includes('producto-placeholder') || imageSrc.includes('.png');
-                        
-                        return hasNoImage ? (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                                <Package className="w-24 h-24 text-gray-400" />
-                            </div>
-                        ) : (
-                            <Image
-                                src={imageSrc}
-                                alt={product.Descripcion || product.NOMBRE || product.Codigo || 'Producto'}
-                                fill
-                                className="object-cover"
-                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                loading="lazy"
-                                quality={85}
-                                onError={() => {
-                                    // Si la imagen no existe, mostrar Package icon
-                                    setImageError(true);
-                                }}
-                            />
-                        );
-                    })()}
+                    <ProductImage
+                        src={imageSrc}
+                        alt={product.Descripcion || product.NOMBRE || product.Codigo || 'Producto'}
+                        fill
+                        className="object-cover w-full h-full"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
                 </motion.div>
 
                 {/* Overlay gradient */}

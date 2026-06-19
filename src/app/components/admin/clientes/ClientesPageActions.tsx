@@ -6,9 +6,9 @@ import { useClientesPageActions } from '@/app/hooks/useClientesPageActions';
 import { ClienteFormModal } from './ClienteFormModal';
 import { Plus, RefreshCw, RotateCw } from 'lucide-react';
 
-interface ClientesPageActionsProps {}
+// interface ClientesPageActionsProps {}
 
-export function ClientesPageActions({}: ClientesPageActionsProps) {
+export function ClientesPageActions() {
   const {
     handleSync,
     handleRefresh,
@@ -47,7 +47,7 @@ export function ClientesPageActions({}: ClientesPageActionsProps) {
           onClick={handleCreate}
         >
           <Plus className="w-4 h-4 mr-2 inline" />
-          Nuevo Cliente
+          Crear Cliente
         </Button>
       </div>
 

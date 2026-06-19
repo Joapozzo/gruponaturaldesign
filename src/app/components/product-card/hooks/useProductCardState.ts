@@ -17,17 +17,15 @@ export function useProductCardState({
     const getInitialVariant = useCallback((): ProductVariant => {
         // Función helper para verificar si una variante tiene imágenes válidas
         const hasValidImages = (variant: ProductVariant): boolean => {
-            if (!variant.producto.imagenes || variant.producto.imagenes.length === 0) {
-                return false;
+            const imagen = variant.producto.imagen?.trim();
+            if (imagen && !imagen.includes('producto-placeholder')) {
+                return true;
             }
-            if (!variant.producto.imagen) {
-                return false;
-            }
-            const imagen = variant.producto.imagen.trim();
-            if (imagen === '' || imagen.includes('producto-placeholder')) {
-                return false;
-            }
-            return true;
+            const imagenes =
+                variant.producto.imagenes?.filter(
+                    (img) => img?.trim() && !img.includes('producto-placeholder'),
+                ) ?? [];
+            return imagenes.length > 0;
         };
         
         // Usar el orden de availableColors que ya está ordenado por prioridad

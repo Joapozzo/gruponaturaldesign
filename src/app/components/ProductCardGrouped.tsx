@@ -8,12 +8,11 @@ import { GroupedProduct } from '../types/producto';
 import { useCart } from './hooks/useCart';
 import { useProductCardState } from './product-card/hooks/useProductCardState';
 import { useProductCardImage } from './product-card/hooks/useProductCardImage';
-import ProductCardImage from './product-card/components/ProductCardImage';
+import { ProductCardImage } from './product-card/components/ProductCardImage';
 import ColorSelector from './product-card/components/ColorSelector';
 import SizeSelector from './product-card/components/SizeSelector';
 import VariantSelector from './product-card/components/VariantSelector';
 import QuantityControls from './product-card/components/QuantityControls';
-import BordadoSwitch from './product-card/components/BordadoSwitch';
 import { canAddQuantity, getStockMessage } from '@/app/services/stockService';
 import { useConfirmModal } from './hooks/useModal';
 import ConfirmModal from './modal/ConfirmModal';
@@ -34,15 +33,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
     compact = false,
 }) => {
     const router = useRouter();
-    const { addToCart, updateQuantity, getProductQuantity, canAddToCart, updateBordado, items, itemCount } = useCart();
-    
-    // Validar si se puede activar bordado (mínimo 5 prendas)
-    const canActivateBordado = itemCount >= 5;
-    const itemsNeeded = Math.max(0, 5 - itemCount);
-    
-    // Estado para bordado (por defecto false)
-    const [bordado, setBordado] = React.useState(false);
-
+    const { addToCart, updateQuantity, getProductQuantity, canAddToCart, items } = useCart();
     // Hook para modal de confirmación mayorista
     const { 
         isOpen: isWholesaleModalOpen, 
@@ -73,7 +64,6 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
         handleMouseLeave,
     } = useProductCardState({ group, expandedSku, onExpandChange });
 
-    // Usar la variante seleccionada para mostrar
     const product = selectedVariant.producto;
     const productName = product.NOMBRE || group.skuBase || product.Descripcion || '';
     
@@ -119,26 +109,6 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
         );
     }, [items, selectedVariantId, currentSpecs]);
     const isExactVariantInCart = !!cartItem;
-    
-    // Sincronizar estado de bordado con el carrito si el item ya existe
-    React.useEffect(() => {
-        if (cartItem) {
-            setBordado(cartItem.bordado || false);
-        } else {
-            setBordado(false);
-        }
-    }, [cartItem]);
-
-    // Desactivar bordado automáticamente si el carrito baja de 5 prendas
-    React.useEffect(() => {
-        if (itemCount < 5 && bordado) {
-            setBordado(false);
-            // Si el item ya está en el carrito, actualizar el bordado
-            if (cartItem && cartItem.especificaciones === currentSpecs) {
-                updateBordado(selectedVariantId, false);
-            }
-        }
-    }, [itemCount, bordado, cartItem, currentSpecs, selectedVariantId, updateBordado]);
     
     // Obtener cantidad actual del producto en el carrito
     // Si tiene especificaciones, solo contar la variante exacta
@@ -266,17 +236,24 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
             addToCart(
                 {
                     id: selectedVariantId,
+                    productoWebId: selectedVariant.productoWebId,
+                    productoPadreId: selectedVariant.productoPadreId,
+                    sfactoryItemId: selectedVariant.sfactoryItemId,
+                    codigo: selectedVariant.codigo,
                     nombre: group.skuBase || product.Descripcion || product.NOMBRE || 'Sin descripción',
                     descripcion: product.DescripcionCorta || product.Descripcion || '',
                     imagen: mainImage || '',
-                    precio: precio,
+                    precio: precio, // Mantener por compatibilidad
+                    precioLista: precio, // Precio base (lista)
+                    precioTransfer: product.precioTransfer || null,
+                    precioSinImp: product.precioSImp || null,
                     categoria: product.Rubro || 'Sin categoría',
                     stock: stock, // Pasar stock al carrito para validaciones
                     skuBaseSlug: group.skuBaseSlug || nombreToSlug(group.skuBase),
                 },
                 1,
                 specs,
-                bordado
+                false
             );
 
             // Animación de feedback - NO cerrar el producto, mantenerlo abierto
@@ -304,17 +281,12 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
     
     // Obtener precios desde la variante o el producto display (fallback como en ProductInfo)
     const precioTransfer = selectedVariant?.producto?.precioTransfer || group.displayProduct?.precioTransfer;
-    const precio3cuotas = selectedVariant?.producto?.precio3cuotas || group.displayProduct?.precio3cuotas;
     const precioSImp = selectedVariant?.producto?.precioSImp || group.displayProduct?.precioSImp;
 
     const formattedTransfer = precioTransfer
         ? `$${precioTransfer.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`
         : null;
-    
-    const formatted3Cuotas = precio3cuotas
-        ? `$${precio3cuotas.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`
-        : null;
-    
+
     const formattedSImp = precioSImp
         ? `$${precioSImp.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`
         : null;
@@ -345,7 +317,7 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                     onImageLoad={() => setHasValidImage(true)}
                     onClick={handleProductClick}
                     onQuickView={handleQuickView}
-                    stockMessage={stockMessage}
+                    stockMessage={stockMessage || undefined}
                 />
             </div>
 
@@ -393,47 +365,29 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                                                     variants={group.variants}
                                                     selectedColor={selectedColor}
                                                     isMobile={isMobile}
-                                                    onColorSelect={handleColorSelect}
+                                                    onColorSelect={(color, e) => {
+                                                        if (e) {
+                                                            handleColorSelect(color, e);
+                                                        } else {
+                                                            // Crear un evento sintético si no se proporciona
+                                                            const syntheticEvent = {
+                                                                stopPropagation: () => {},
+                                                                preventDefault: () => {},
+                                                            } as React.MouseEvent;
+                                                            handleColorSelect(color, syntheticEvent);
+                                                        }
+                                                    }}
                                                 />
                                             )}
 
                                             {/* Selector de Talles */}
                                             {selectedColor && availableSizes.length > 0 && (
-                                                <>
-                                                    <SizeSelector
-                                                        sizes={availableSizes}
-                                                        selectedSize={selectedSize}
-                                                        isMobile={isMobile}
-                                                        onSizeSelect={handleSizeSelect}
-                                                    />
-                                                    {/* Switch de Bordado - Solo cuando se despliegan los talles */}
-                                                    <div className="mt-1">
-                                                        <div className="flex flex-col gap-0.5">
-                                                            <BordadoSwitch
-                                                                value={bordado}
-                                                                onChange={(value) => {
-                                                                    if (canActivateBordado) {
-                                                                        setBordado(value);
-                                                                        // Si el item ya está en el carrito, actualizar el bordado
-                                                                        if (cartItem && cartItem.especificaciones === currentSpecs) {
-                                                                            updateBordado(selectedVariantId, value);
-                                                                        }
-                                                                    }
-                                                                }}
-                                                                isMobile={isMobile}
-                                                                disabled={!canActivateBordado}
-                                                            />
-                                                            {!canActivateBordado && (
-                                                                <p className={`text-[9px] text-red-600 font-medium ${isMobile ? 'text-[8px]' : ''}`}>
-                                                                    {itemsNeeded > 0 
-                                                                        ? `${itemsNeeded} ${itemsNeeded === 1 ? 'prenda más' : 'prendas más'} para bordado (${itemCount}/5)`
-                                                                        : `Mínimo 5 prendas (${itemCount}/5)`
-                                                                    }
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </>
+                                                <SizeSelector
+                                                    sizes={availableSizes}
+                                                    selectedSize={selectedSize}
+                                                    isMobile={isMobile}
+                                                    onSizeSelect={handleSizeSelect}
+                                                />
                                             )}
                                         </motion.div>
                                     )}
@@ -464,12 +418,6 @@ const ProductCardGrouped: React.FC<ProductCardGroupedProps> = ({
                         {formattedTransfer && (
                             <span className={`text-gray-700 mt-0.5 ${isMobile ? 'text-[10px]' : compact ? 'text-[9px]' : 'text-[10px]'}`}>
                                 Transfer: {formattedTransfer}
-                            </span>
-                        )}
-                        {/* Precio cuotas - abajo */}
-                        {formatted3Cuotas && (
-                            <span className={`text-gray-700 mt-0.5 ${isMobile ? 'text-[10px]' : compact ? 'text-[9px]' : 'text-[10px]'}`}>
-                                3 cuotas: {formatted3Cuotas}
                             </span>
                         )}
                     </div>

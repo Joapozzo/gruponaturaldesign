@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { clienteService } from '@/app/services/cliente.service';
 import { useQueryClient } from '@tanstack/react-query';
 import { clientesKeys } from '@/app/utils/clientesKeys';
@@ -19,10 +20,12 @@ export function useClientesSync({ onSuccess, onError }: UseClientesSyncParams = 
     setIsSyncing(true);
     try {
       const result = await clienteService.sync();
-      
-      // Invalidar queries para refrescar los datos
+
       await queryClient.invalidateQueries({ queryKey: clientesKeys.all });
-      
+
+      const msg = `Clientes: ${result.exitosos} sincronizados · ${result.omitidos} omitidos · ${result.fallidos} fallidos`;
+      toast.success(msg, { duration: 6000 });
+
       onSuccess?.();
       
       return result;

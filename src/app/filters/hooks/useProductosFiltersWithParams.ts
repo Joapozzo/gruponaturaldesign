@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useProductosFilters, type ProductosFilters } from './useProductosFilters';
 
@@ -12,6 +12,7 @@ export function useProductosFiltersWithParams() {
   const filters = useProductosFilters();
   const isInitialMount = useRef(true);
   const isUpdatingFromUrl = useRef(false);
+  const skipNextSyncRef = useRef(false);
 
   // Leer filtros de URL al montar
   useEffect(() => {
@@ -29,17 +30,9 @@ export function useProductosFiltersWithParams() {
     const sexo = searchParams.get('sexo');
     if (sexo) urlFilters.sexo = sexo;
 
-    const color = searchParams.get('color');
-    if (color) urlFilters.color = color;
-
-    const talle = searchParams.get('talle');
-    if (talle) urlFilters.talle = talle;
-
-    const stockMin = searchParams.get('stockMin');
-    if (stockMin) urlFilters.stockMin = parseInt(stockMin, 10);
-
-    const stockMax = searchParams.get('stockMax');
-    if (stockMax) urlFilters.stockMax = parseInt(stockMax, 10);
+    const publicado = searchParams.get('publicado');
+    if (publicado === 'true') urlFilters.publicado = true;
+    if (publicado === 'false') urlFilters.publicado = false;
 
     const orderBy = searchParams.get('orderBy');
     if (orderBy && (orderBy === 'name' || orderBy === 'price')) {
@@ -56,11 +49,7 @@ export function useProductosFiltersWithParams() {
     if (urlFilters.rubroId !== undefined) filters.setRubroId(urlFilters.rubroId);
     if (urlFilters.subrubroId !== undefined) filters.setSubrubroId(urlFilters.subrubroId);
     if (urlFilters.sexo) filters.setSexo(urlFilters.sexo);
-    if (urlFilters.color) filters.setColor(urlFilters.color);
-    if (urlFilters.talle) filters.setTalle(urlFilters.talle);
-    if (urlFilters.stockMin !== undefined || urlFilters.stockMax !== undefined) {
-      filters.setStockRange(urlFilters.stockMin, urlFilters.stockMax);
-    }
+    if (urlFilters.publicado !== undefined) filters.setPublicado(urlFilters.publicado);
     if (urlFilters.orderBy) filters.setOrderBy(urlFilters.orderBy);
     if (urlFilters.orderDirection) filters.setOrderDirection(urlFilters.orderDirection);
     isUpdatingFromUrl.current = false;
@@ -69,7 +58,17 @@ export function useProductosFiltersWithParams() {
 
   // Sincronizar cambios de filtros con URL (solo cuando cambian desde el componente, no desde URL)
   useEffect(() => {
-    if (isInitialMount.current || isUpdatingFromUrl.current) return;
+    if (isInitialMount.current) return;
+
+    if (isUpdatingFromUrl.current) {
+      isUpdatingFromUrl.current = false;
+      return;
+    }
+
+    if (skipNextSyncRef.current) {
+      skipNextSyncRef.current = false;
+      return;
+    }
 
     const params = new URLSearchParams(searchParams.toString());
 
@@ -92,28 +91,10 @@ export function useProductosFiltersWithParams() {
       params.delete('sexo');
     }
 
-    if (filters.filters.color) {
-      params.set('color', filters.filters.color);
+    if (filters.filters.publicado !== undefined) {
+      params.set('publicado', String(filters.filters.publicado));
     } else {
-      params.delete('color');
-    }
-
-    if (filters.filters.talle) {
-      params.set('talle', filters.filters.talle);
-    } else {
-      params.delete('talle');
-    }
-
-    if (filters.filters.stockMin !== undefined) {
-      params.set('stockMin', String(filters.filters.stockMin));
-    } else {
-      params.delete('stockMin');
-    }
-
-    if (filters.filters.stockMax !== undefined) {
-      params.set('stockMax', String(filters.filters.stockMax));
-    } else {
-      params.delete('stockMax');
+      params.delete('publicado');
     }
 
     if (filters.filters.orderBy) {
@@ -130,10 +111,32 @@ export function useProductosFiltersWithParams() {
 
     // Resetear página cuando cambian los filtros
     params.set('page', '1');
+    // No pisar limit: preservar el de la URL o dejar default para no borrarlo (evita race con useTableSearchParams)
+    if (!params.has('limit')) {
+      params.set('limit', searchParams.get('limit') || '20');
+    }
 
     router.replace(`?${params.toString()}`, { scroll: false });
-  }, [filters.filters, router, searchParams]);
+    // No incluir searchParams: si no, al cambiar page o limit se dispara este efecto y se resetea page a 1
+  }, [filters.filters, router]);
 
-  return filters;
+  /** Limpia filtros, búsqueda y URL en un solo replace (evita races con useTableSearchParams). */
+  const clearFiltersToUrl = useCallback(() => {
+    skipNextSyncRef.current = true;
+    isUpdatingFromUrl.current = true;
+    filters.clearFilters();
+
+    const params = new URLSearchParams();
+    params.set('page', '1');
+    params.set('limit', searchParams.get('limit') || '20');
+    params.set('orderBy', 'name');
+    params.set('orderDirection', 'asc');
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [filters.clearFilters, router, searchParams]);
+
+  return {
+    ...filters,
+    clearFiltersToUrl,
+  };
 }
 

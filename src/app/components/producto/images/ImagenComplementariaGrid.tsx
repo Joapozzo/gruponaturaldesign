@@ -1,5 +1,7 @@
-import React from 'react';
-import { Image as ImageIcon, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { Image as ImageIcon, X, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { compressImage } from '@/app/utils/compressImage';
 
 interface ImagenComplementariaGridProps {
   imagenes: string[];
@@ -14,10 +16,20 @@ export const ImagenComplementariaGrid: React.FC<ImagenComplementariaGridProps> =
   onRemove,
   maxImagenes,
 }) => {
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [compressing, setCompressing] = useState(false);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      onUpload(file);
+    if (!file) return;
+    setCompressing(true);
+    try {
+      const compressed = await compressImage(file);
+      onUpload(compressed);
+    } catch {
+      toast.error('Error al procesar la imagen');
+    } finally {
+      setCompressing(false);
+      e.target.value = '';
     }
   };
 
@@ -46,14 +58,19 @@ export const ImagenComplementariaGrid: React.FC<ImagenComplementariaGridProps> =
           </div>
         ))}
         {canAddMore && (
-          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-            <ImageIcon className="w-8 h-8 text-gray-400 mb-1" />
-            <span className="text-xs text-gray-600">Agregar</span>
+          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors disabled:opacity-60 disabled:pointer-events-none">
+            {compressing ? (
+              <Loader2 className="w-8 h-8 text-gray-400 mb-1 animate-spin" />
+            ) : (
+              <ImageIcon className="w-8 h-8 text-gray-400 mb-1" />
+            )}
+            <span className="text-xs text-gray-600">{compressing ? 'Comprimiendo...' : 'Agregar'}</span>
             <input
               type="file"
               accept="image/*"
               className="hidden"
               onChange={handleFileChange}
+              disabled={compressing}
             />
           </label>
         )}

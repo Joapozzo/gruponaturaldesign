@@ -25,6 +25,7 @@ export function useProductosTable({ empresaId, page, limit, search, filters }: U
     search: search || undefined,
     rubroId: filters?.rubroId,
     subrubroId: filters?.subrubroId,
+    publicado: filters?.publicado,
     sortBy: filters?.orderBy,
     sortOrder: filters?.orderDirection,
   };
@@ -40,6 +41,7 @@ export function useProductosTable({ empresaId, page, limit, search, filters }: U
     filters?.sexo,
     filters?.color,
     filters?.talle,
+    filters?.publicado,
     filters?.stockMin,
     filters?.stockMax,
     filters?.orderBy,
@@ -56,70 +58,90 @@ export function useProductosTable({ empresaId, page, limit, search, filters }: U
     refetchOnReconnect: false, // No refetch al reconectar
   });
 
-  // Aplanar productos con sus variantes y aplicar filtros frontend (temporal)
+  // Calcular datos agregados para cada ProductoPadre (NO flatten)
   const productosConVariantes = React.useMemo(() => {
     if (!query.data?.data) return [];
     
-    type ProductoConVariante = ProductoPadreConVariantes & { 
-      variante?: ProductoWebResponse;
+    type ProductoConDatosAgregados = ProductoPadreConVariantes & {
+      variantesCount: number;
+      precioPromedio: number | null;
+      precioRango: { min: number; max: number } | null;
+      stockTotal: number;
+      stockBajo: number; // Cantidad de variantes con stock bajo (< 10)
     };
     
-    const flattened: ProductoConVariante[] = [];
-    
-    query.data.data.forEach((producto) => {
-      if (producto.productosWeb && producto.productosWeb.length > 0) {
-        // Si tiene variantes, crear una fila por cada variante
-        producto.productosWeb.forEach((variante) => {
-          flattened.push({
-            ...producto,
-            variante,
-          });
-        });
-      } else {
-        // Si no tiene variantes, mostrar solo el producto padre
-        flattened.push(producto);
-      }
+    const productos: ProductoConDatosAgregados[] = query.data.data.map((producto) => {
+      const variantes = producto.productosWeb || [];
+      const variantesCount = variantes.length;
+      
+      // Calcular precios
+      const precios = variantes
+        .map(v => v.precioCache)
+        .filter((p): p is number => p !== null && p !== undefined);
+      
+      const precioPromedio = precios.length > 0 
+        ? precios.reduce((sum, p) => sum + p, 0) / precios.length 
+        : null;
+      
+      const precioRango = precios.length > 0
+        ? { min: Math.min(...precios), max: Math.max(...precios) }
+        : null;
+      
+      // Calcular stock
+      const stockTotal = variantes.reduce((sum, v) => sum + (v.stockCache ?? 0), 0);
+      const stockBajo = variantes.filter(v => (v.stockCache ?? 0) < 10).length;
+      
+      return {
+        ...producto,
+        variantesCount,
+        precioPromedio,
+        precioRango,
+        stockTotal,
+        stockBajo,
+      };
     });
     
-    // Aplicar filtros frontend (temporal - hasta que backend soporte filtros)
-    let filtered = flattened;
+    // Aplicar filtros frontend (filtrar ProductoPadre basado en sus variantes)
+    let filtered = productos;
     
     if (filters?.sexo) {
-      filtered = filtered.filter((item) => {
-        const variante = item.variante;
-        if (!variante) return false;
-        return variante.sexo === filters.sexo || variante.sexo === 'unisex';
+      const sexoLower = filters.sexo.toLowerCase();
+      filtered = filtered.filter((producto) => {
+        // Comparar case-insensitive: API devuelve "Masculino"/"Femenino"/"Unisex"
+        return producto.productosWeb?.some(v => {
+          const vSexo = v.sexo?.toLowerCase() ?? '';
+          return vSexo === sexoLower || vSexo === 'unisex';
+        });
       });
     }
     
     if (filters?.color) {
-      filtered = filtered.filter((item) => {
-        const variante = item.variante;
-        if (!variante) return false;
-        return variante.color?.toLowerCase() === filters.color?.toLowerCase();
+      filtered = filtered.filter((producto) => {
+        return producto.productosWeb?.some(v => 
+          v.color?.toLowerCase() === filters.color?.toLowerCase()
+        );
       });
     }
     
     if (filters?.talle) {
-      filtered = filtered.filter((item) => {
-        const variante = item.variante;
-        if (!variante) return false;
-        return variante.talle === filters.talle;
+      filtered = filtered.filter((producto) => {
+        return producto.productosWeb?.some(v => v.talle === filters.talle);
       });
     }
     
     if (filters?.stockMin !== undefined || filters?.stockMax !== undefined) {
-      filtered = filtered.filter((item) => {
-        const variante = item.variante;
-        if (!variante) return false;
-        const stock = variante.stockCache ?? 0;
-        if (filters.stockMin !== undefined && stock < filters.stockMin) return false;
-        if (filters.stockMax !== undefined && stock > filters.stockMax) return false;
-        return true;
+      filtered = filtered.filter((producto) => {
+        const tieneVarianteConStock = producto.productosWeb?.some(v => {
+          const stock = v.stockCache ?? 0;
+          if (filters.stockMin !== undefined && stock < filters.stockMin) return false;
+          if (filters.stockMax !== undefined && stock > filters.stockMax) return false;
+          return true;
+        });
+        return tieneVarianteConStock;
       });
     }
     
-    // Ordenamiento frontend (temporal)
+    // Ordenamiento frontend
     if (filters?.orderBy) {
       filtered.sort((a, b) => {
         let aValue: string | number = '';
@@ -129,10 +151,8 @@ export function useProductosTable({ empresaId, page, limit, search, filters }: U
           aValue = a.nombre.toLowerCase();
           bValue = b.nombre.toLowerCase();
         } else if (filters.orderBy === 'price') {
-          const aVariante = a.variante || a.productosWeb?.[0];
-          const bVariante = b.variante || b.productosWeb?.[0];
-          aValue = aVariante?.precioCache ?? 0;
-          bValue = bVariante?.precioCache ?? 0;
+          aValue = a.precioPromedio ?? 0;
+          bValue = b.precioPromedio ?? 0;
         }
         
         if (aValue < bValue) return filters.orderDirection === 'asc' ? -1 : 1;

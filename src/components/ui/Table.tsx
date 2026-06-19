@@ -79,10 +79,8 @@ export function Table<T>({
   const handleLimitChange = (newLimit: number) => {
     if (onLimitChange) {
       onLimitChange(newLimit);
-      // Resetear a página 1 cuando cambia el límite
-      if (onPageChange) {
-        onPageChange(1);
-      }
+      // No llamar onPageChange(1) aquí: el hook (ej. useTableSearchParams) ya resetea la página en setLimit.
+      // Llamar ambos provocaba que setPage(1) usara un limit obsoleto del closure y pisara el nuevo limit en la URL.
     }
   };
 

@@ -1,27 +1,25 @@
 "use client";
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-    CheckCircle2, 
-    ArrowLeft, 
-    MapPin, 
-    Users, 
-    Shirt, 
-    CreditCard, 
-    User, 
-    Mail, 
+import {
+    CheckCircle2,
+    MapPin,
+    Users,
+    Shirt,
+    CreditCard,
+    User,
+    Mail,
     Phone,
     Briefcase
 } from 'lucide-react';
 import Section from '@/app/components/Section';
 import ErrorBoundary from '@/app/components/ErrorBoundary';
-import { useRouter } from 'next/navigation';
-import WholesaleBanner from '@/app/components/WholesaleBanner';
+import HeroMayorista from '@/app/components/HeroMayorista';
 import { useWhatsApp } from '@/app/components/hooks/useWhatsApp';
-import Button from '@/app/components/ui/Button';
+import Button from '@/components/ui/Button';
+import Input, { TextArea } from '@/app/components/ui/Input';
 
 export default function MayoristaPage() {
-    const router = useRouter();
     const { openWhatsApp } = useWhatsApp({
         defaultMessage: ""
     });
@@ -125,69 +123,58 @@ export default function MayoristaPage() {
     return (
         <ErrorBoundary>
             <div className="min-h-screen bg-white">
-            {/* Hero Banner Full Screen */}
-            <div className="relative">
-                <WholesaleBanner fullScreen={true} />
-                {/* Botón volver flotante */}
-                <motion.button
-                    onClick={() => router.back()}
-                    className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 flex items-center gap-1.5 bg-white/90 hover:bg-white text-[#Ed3237] px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors shadow-lg backdrop-blur-sm"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.6, delay: 0.3 }}
+                <HeroMayorista />
+
+                {/* Contenido principal: row — beneficios izquierda, form derecha */}
+                <Section
+                    id="wholesale-content"
+                    className="py-6 sm:py-8 lg:py-10"
+                    contentClassName="w-full px-4 lg:px-15"
                 >
-                    <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    <span>Volver</span>
-                </motion.button>
-            </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
+                        {/* Beneficios — izquierda */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6 }}
+                            className="lg:col-span-5 flex flex-col"
+                        >
+                            <div className="bg-gray-100 p-5 sm:p-6 rounded-xl border border-gray-200 shadow-inner">
+                                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 tracking-tight mb-3 sm:mb-4">
+                                    ✔ Beneficios para compras mayoristas
+                                </h2>
+                                <div className="flex flex-col gap-2 sm:gap-3">
+                                    {beneficios.map((beneficio, index) => (
+                                        <motion.div
+                                            key={index}
+                                            initial={{ opacity: 0, x: -20 }}
+                                            whileInView={{ opacity: 1, x: 0 }}
+                                            viewport={{ once: true }}
+                                            transition={{ duration: 0.5, delay: index * 0.1 }}
+                                            className="flex items-start gap-2"
+                                        >
+                                            <CheckCircle2 className="w-4 h-4 text-[#Ed3237] flex-shrink-0 mt-0.5" />
+                                            <span className="text-gray-700 text-xs sm:text-sm">{beneficio}</span>
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            </div>
+                        </motion.div>
 
-            {/* Contenido principal */}
-            <Section
-                id="wholesale-content"
-                className="py-4 sm:py-6 lg:py-8"
-                contentClassName="max-w-4xl mx-auto"
-            >
-                <div className="space-y-4 sm:space-y-6">
-                    {/* Beneficios */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
-                        className="bg-white p-4 sm:p-6 rounded-lg border border-gray-200"
-                    >
-                        <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">
-                            ✔ Beneficios para compras mayoristas:
-                        </h2>
-                        <div className="grid sm:grid-cols-2 gap-2 sm:gap-3">
-                            {beneficios.map((beneficio, index) => (
-                                <motion.div
-                                    key={index}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    whileInView={{ opacity: 1, x: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                                    className="flex items-start gap-2"
-                                >
-                                    <CheckCircle2 className="w-4 h-4 sm:w-4 sm:h-4 text-[#Ed3237] flex-shrink-0 mt-0.5" />
-                                    <span className="text-gray-700 text-xs sm:text-sm">{beneficio}</span>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </motion.div>
-
-                    {/* Formulario de contacto mayorista */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                        className="bg-gray-50 p-4 sm:p-6 rounded-lg border border-gray-200"
-                    >
-                        <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-2 sm:mb-4 flex items-center gap-1.5 sm:gap-2">
-                            <Briefcase className="w-4 h-4 sm:w-5 sm:h-5 text-[#Ed3237]" />
-                            <span>¡Hola! Quiero uniformar a mi equipo</span>
-                        </h2>
+                        {/* Formulario — derecha */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6, delay: 0.2 }}
+                            className="lg:col-span-7 flex flex-col"
+                        >
+                            <div className="bg-white p-5 sm:p-6 rounded-xl border border-gray-200 shadow-md h-full">
+                                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 tracking-tight mb-2 sm:mb-4 flex items-center gap-1.5 sm:gap-2">
+                                    <Briefcase className="w-4 h-4 sm:w-5 sm:h-5 text-[#Ed3237]" />
+                                    <span>¡Hola! Quiero uniformar a mi equipo</span>
+                                </h2>
                         <p className="text-gray-700 text-sm sm:text-sm mb-4 sm:mb-4">
                             Completá los siguientes datos:
                         </p>
@@ -200,16 +187,14 @@ export default function MayoristaPage() {
                                         <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#Ed3237]" />
                                         <span>Nombre: *</span>
                                     </label>
-                                    <input
+                                    <Input
                                         type="text"
                                         id="nombre"
                                         name="nombre"
                                         value={formData.nombre}
                                         onChange={handleInputChange}
-                                        className={`w-full px-3 py-1.5 sm:px-4 sm:py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
-                                            errors.nombre ? 'border-red-500' : 'border-gray-300'
-                                        }`}
-                                        placeholder="Ej: Juan"
+                                        variant={errors.nombre ? 'error' : 'default'}
+                                        placeholder="Nombre"
                                     />
                                     {errors.nombre && (
                                         <p className="text-red-500 text-xs mt-1">{errors.nombre}</p>
@@ -220,16 +205,14 @@ export default function MayoristaPage() {
                                         <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#Ed3237]" />
                                         <span>Apellido: *</span>
                                     </label>
-                                    <input
+                                    <Input
                                         type="text"
                                         id="apellido"
                                         name="apellido"
                                         value={formData.apellido}
                                         onChange={handleInputChange}
-                                        className={`w-full px-3 py-1.5 sm:px-4 sm:py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
-                                            errors.apellido ? 'border-red-500' : 'border-gray-300'
-                                        }`}
-                                        placeholder="Ej: Pérez"
+                                        variant={errors.apellido ? 'error' : 'default'}
+                                        placeholder="Apellido"
                                     />
                                     {errors.apellido && (
                                         <p className="text-red-500 text-xs mt-1">{errors.apellido}</p>
@@ -244,16 +227,14 @@ export default function MayoristaPage() {
                                         <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#Ed3237]" />
                                         <span>Email: *</span>
                                     </label>
-                                    <input
+                                    <Input
                                         type="email"
                                         id="mail"
                                         name="mail"
                                         value={formData.mail}
                                         onChange={handleInputChange}
-                                        className={`w-full px-3 py-1.5 sm:px-4 sm:py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
-                                            errors.mail ? 'border-red-500' : 'border-gray-300'
-                                        }`}
-                                        placeholder="Ej: juan@empresa.com"
+                                        variant={errors.mail ? 'error' : 'default'}
+                                        placeholder="Ej: email@empresa.com"
                                     />
                                     {errors.mail && (
                                         <p className="text-red-500 text-xs mt-1">{errors.mail}</p>
@@ -264,15 +245,13 @@ export default function MayoristaPage() {
                                         <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#Ed3237]" />
                                         <span>Teléfono: *</span>
                                     </label>
-                                    <input
+                                    <Input
                                         type="tel"
                                         id="telefono"
                                         name="telefono"
                                         value={formData.telefono}
                                         onChange={handleInputChange}
-                                        className={`w-full px-3 py-1.5 sm:px-4 sm:py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
-                                            errors.telefono ? 'border-red-500' : 'border-gray-300'
-                                        }`}
+                                        variant={errors.telefono ? 'error' : 'default'}
                                         placeholder="Ej: +54 9 351 123-4567"
                                     />
                                     {errors.telefono && (
@@ -288,15 +267,13 @@ export default function MayoristaPage() {
                                         <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#Ed3237]" />
                                         <span>Provincia: *</span>
                                     </label>
-                                    <input
+                                    <Input
                                         type="text"
                                         id="provincia"
                                         name="provincia"
                                         value={formData.provincia}
                                         onChange={handleInputChange}
-                                        className={`w-full px-3 py-1.5 sm:px-4 sm:py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
-                                            errors.provincia ? 'border-red-500' : 'border-gray-300'
-                                        }`}
+                                        variant={errors.provincia ? 'error' : 'default'}
                                         placeholder="Ej: Córdoba"
                                     />
                                     {errors.provincia && (
@@ -308,15 +285,13 @@ export default function MayoristaPage() {
                                         <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#Ed3237]" />
                                         <span>Ciudad: *</span>
                                     </label>
-                                    <input
+                                    <Input
                                         type="text"
                                         id="ciudad"
                                         name="ciudad"
                                         value={formData.ciudad}
                                         onChange={handleInputChange}
-                                        className={`w-full px-3 py-1.5 sm:px-4 sm:py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
-                                            errors.ciudad ? 'border-red-500' : 'border-gray-300'
-                                        }`}
+                                        variant={errors.ciudad ? 'error' : 'default'}
                                         placeholder="Ej: Córdoba Capital"
                                     />
                                     {errors.ciudad && (
@@ -331,15 +306,13 @@ export default function MayoristaPage() {
                                     <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#Ed3237]" />
                                     <span>Cantidad de prendas aproximadas: *</span>
                                 </label>
-                                <input
+                                <Input
                                     type="text"
                                     id="cantidad"
                                     name="cantidad"
                                     value={formData.cantidad}
                                     onChange={handleInputChange}
-                                    className={`w-full px-3 py-1.5 sm:px-4 sm:py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
-                                        errors.cantidad ? 'border-red-500' : 'border-gray-300'
-                                    }`}
+                                    variant={errors.cantidad ? 'error' : 'default'}
                                     placeholder="Ej: 50 prendas"
                                 />
                                 {errors.cantidad && (
@@ -353,15 +326,13 @@ export default function MayoristaPage() {
                                     <Shirt className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#Ed3237]" />
                                     <span>Tipo de prendas que buscan: *</span>
                                 </label>
-                                <textarea
+                                <TextArea
                                     id="tipoPrendas"
                                     name="tipoPrendas"
                                     value={formData.tipoPrendas}
                                     onChange={handleInputChange}
                                     rows={3}
-                                    className={`w-full px-3 py-1.5 sm:px-4 sm:py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600 ${
-                                        errors.tipoPrendas ? 'border-red-500' : 'border-gray-300'
-                                    }`}
+                                    variant={errors.tipoPrendas ? 'error' : 'default'}
                                     placeholder="Ej: Uniformes, remeras, pantalones..."
                                 />
                                 {errors.tipoPrendas && (
@@ -375,13 +346,12 @@ export default function MayoristaPage() {
                                     <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#Ed3237]" />
                                     <span>CUIT (opcional):</span>
                                 </label>
-                                <input
+                                <Input
                                     type="text"
                                     id="cuit"
                                     name="cuit"
                                     value={formData.cuit}
                                     onChange={handleInputChange}
-                                    className="w-full px-3 py-1.5 sm:px-4 sm:py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#Ed3237] placeholder:text-gray-600"
                                     placeholder="Ej: 20-12345678-9"
                                 />
                             </div>
@@ -400,9 +370,10 @@ export default function MayoristaPage() {
                                 </Button>
                             </div>
                         </form>
-                    </motion.div>
-                </div>
-            </Section>
+                            </div>
+                        </motion.div>
+                    </div>
+                </Section>
             </div>
         </ErrorBoundary>
     );

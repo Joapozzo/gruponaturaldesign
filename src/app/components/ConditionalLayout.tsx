@@ -11,39 +11,53 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
   const pathname = usePathname();
   const isInCheckout = pathname?.startsWith('/checkout');
   const isInAdmin = pathname?.startsWith('/admin');
+  const isAuth = pathname?.startsWith('/auth');
+  const isMaintenance = pathname?.startsWith('/maintenance');
   const isWholesalePage = pathname === '/mayorista';
+
+  if (isMaintenance) {
+    return <>{children}</>;
+  }
+
+  if (isAuth) {
+    return <>{children}</>;
+  }
 
   // Si estamos en checkout o admin, no renderizar Navbar, Footer, etc.
   if (isInCheckout || isInAdmin) {
-    return <>{children}</>;
+    return (
+      <>
+        {children}
+      </>
+    );
   }
 
   // Si estamos en página mayorista, mostrar PromoBanner y solo WhatsApp comercial
   if (isWholesalePage) {
     return (
-      <>
+      <div className="flex min-h-screen flex-col">
         <PromoBanner />
         <Navbar />
-        <div className="pt-[54px] lg:pt-[104px]">
+        <main className="flex-1 pt-[var(--site-header-offset)]" role="main">
           {children}
-        </div>
+        </main>
         <Footer />
         <WhatsAppCommercialButton />
-      </>
+      </div>
     );
   }
 
-  // Renderizar layout normal
+  // Renderizar layout normal: flex para que el footer nunca tape el contenido
   return (
-    <>
+    <div className="flex min-h-screen flex-col">
       <PromoBanner />
       <Navbar />
-      <div className="pt-[54px] lg:pt-[104px]">
+      <main className="flex-1 pt-[var(--site-header-offset)]" role="main">
         {children}
-      </div>
+      </main>
       <Footer />
       <WhatsAppButton />
-    </>
+    </div>
   );
 }
 

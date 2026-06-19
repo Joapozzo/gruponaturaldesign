@@ -4,16 +4,21 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight, Loader2, ImageIcon } from 'lucide-react';
 import Image from 'next/image';
+import { getStockMessage } from '@/app/services/stockService';
 
 interface DriveImageGalleryProps {
     driveFolderUrl: string | null;
     productName?: string;
+    /** Si true, muestra overlay "Agotado" solo sobre la imagen principal */
+    isOutOfStock?: boolean;
+    stock?: number | null;
 }
 
 /**
  * Componente que muestra imágenes desde una carpeta pública de Google Drive
  */
-const DriveImageGallery: React.FC<DriveImageGalleryProps> = ({ driveFolderUrl, productName = 'Producto' }) => {
+const DriveImageGallery: React.FC<DriveImageGalleryProps> = ({ driveFolderUrl, productName = 'Producto', isOutOfStock = false, stock }) => {
+    const showLowStockBadge = getStockMessage(stock) === 'ÚLTIMAS UNIDADES';
     const [images, setImages] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -181,6 +186,25 @@ const DriveImageGallery: React.FC<DriveImageGalleryProps> = ({ driveFolderUrl, p
                     >
                         <ImageIcon size={20} />
                     </button>
+                    {showLowStockBadge && (
+                        <div
+                            className="absolute top-2 left-2 sm:top-3 sm:left-3 z-20 pointer-events-none rounded bg-[var(--red)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-md sm:text-xs"
+                            aria-label="Últimas unidades disponibles"
+                        >
+                            ÚLTIMAS UNIDADES
+                        </div>
+                    )}
+                    {/* Overlay Agotado solo sobre la imagen principal */}
+                    {isOutOfStock && (
+                        <div
+                            className="absolute inset-0 bg-black/50 flex items-center justify-center pointer-events-none z-10"
+                            aria-hidden
+                        >
+                            <span className="text-white font-bold text-2xl uppercase tracking-wider drop-shadow-md">
+                                Agotado
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Miniaturas */}

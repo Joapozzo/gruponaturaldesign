@@ -1,10 +1,10 @@
+'use client';
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Plus } from 'lucide-react';
 import Section from './Section';
 import { useRouter } from 'next/navigation';
-import FeaturesBanner from './FeaturesBanner';
-import CallToAction from './CallToAction';
 
 const Categorias = () => {
     const router = useRouter();
@@ -33,12 +33,11 @@ const Categorias = () => {
 
     return (
         <>
-            <Section id="categorias" className="w-full bg-white" title='Categorías' subtitle='Uniformes profesionales diseñados específicamente para cada sector, combinando funcionalidad, comodidad y diseño.'>
+            <Section id="categorias" padding="none" className="w-full bg-white h-screen overflow-hidden">
 
-                {/* Categorías Grid - Rectangulares y más altas */}
-                <div className="w-full px-4 lg:px-15 pb-10">
-                    {/* Dos columnas grandes y rectangulares */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                {/* Categorías Grid - 100vh, mismo gap que DesignHero */}
+                <div className="w-full px-4 lg:px-15 h-screen">
+                    <div className="grid grid-cols-1 grid-rows-2 lg:grid-cols-2 lg:grid-rows-1 gap-2 h-full min-h-0">
                         {categorias.map((categoria, index) => (
                             <motion.div
                                 key={categoria.id}
@@ -46,13 +45,13 @@ const Categorias = () => {
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 transition={{ duration: 0.8, delay: index * 0.2 }}
                                 viewport={{ once: true }}
-                                className="group relative overflow-hidden cursor-pointer"
+                                className="group relative h-full min-h-0 overflow-hidden cursor-pointer"
                                 onMouseEnter={() => setHoveredCategory(categoria.id)}
                                 onMouseLeave={() => setHoveredCategory(null)}
                                 onClick={() => handleCategoryClick(categoria.route)}
                             >
                                 {/* Imagen de fondo - Más alta/rectangular */}
-                                <div className="relative h-[95vh] w-full overflow-hidden">
+                                <div className="relative h-full w-full overflow-hidden">
                                     <motion.img
                                         src={categoria.imagen}
                                         alt={categoria.nombre}
@@ -84,7 +83,7 @@ const Categorias = () => {
                                         }}
                                         transition={{ duration: 0.3 }}
                                     >
-                                        <h3 className="text-xl lg:text-2xl font-bold mb-3 font-display">
+                                        <h3 className="text-xl lg:text-2xl font-bold mb-3">
                                             {categoria.nombre}
                                         </h3>
                                         <p className="md:text-sm text-xs opacity-90 mb-4 max-w-md leading-relaxed">
@@ -122,7 +121,6 @@ const Categorias = () => {
                         ))}
                     </div>
                 </div>
-                <FeaturesBanner />
             </Section>
         </>
     );

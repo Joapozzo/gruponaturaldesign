@@ -1,3 +1,4 @@
+import { apiClient } from '@/lib/apiClient';
 import type {
   ClienteResponse,
   ClienteQueryParams,
@@ -5,58 +6,31 @@ import type {
   PaginatedResponse,
 } from '../types/cliente.types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
-
 class ClienteService {
-  private async request<T>(
-    endpoint: string,
-    options?: RequestInit
-  ): Promise<T> {
-    const url = `${API_BASE_URL}${endpoint}`;
+  /**
+   * Construye query string desde un objeto de parámetros
+   */
+  private buildQueryString(params?: Record<string, unknown>): string {
+    if (!params) return '';
 
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        queryParams.append(key, String(value));
+      }
     });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Error desconocido' }));
-      throw new Error(error.message || error.error || `Error ${response.status}: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data as T;
+    const queryString = queryParams.toString();
+    return queryString ? `?${queryString}` : '';
   }
 
   async getAll(
     params?: ClienteQueryParams
   ): Promise<PaginatedResponse<ClienteResponse>> {
-    const queryParams = new URLSearchParams();
+    const queryString = this.buildQueryString(params as Record<string, unknown>);
+    const endpoint = `/clientes${queryString}`;
 
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          queryParams.append(key, String(value));
-        }
-      });
-    }
-
-    const queryString = queryParams.toString();
-    const endpoint = `/clientes${queryString ? `?${queryString}` : ''}`;
-
-    const response = await this.request<{
-      success: boolean;
-      data: ClienteResponse[];
-      pagination?: {
-        page: number;
-        limit: number;
-        total: number;
-        totalPages: number;
-      };
-    }>(endpoint);
+    const response = await apiClient.getPaginated<ClienteResponse>(endpoint);
 
     return {
       data: response.data || [],
@@ -71,33 +45,42 @@ class ClienteService {
 
   async getById(id: number): Promise<ClienteResponse> {
     const endpoint = `/clientes/${id}`;
-    const response = await this.request<{
-      success: boolean;
-      data: ClienteResponse;
-    }>(endpoint);
+    const response = await apiClient.get<ClienteResponse>(endpoint);
+    if (!response.data) {
+      throw new Error('Cliente no encontrado');
+    }
     return response.data;
   }
 
   async create(data: ClienteCreateParams): Promise<ClienteResponse> {
     const endpoint = `/clientes`;
-    const response = await this.request<{
-      success: boolean;
-      data: ClienteResponse;
-    }>(endpoint, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+    const response = await apiClient.post<ClienteResponse>(endpoint, data);
+    if (!response.data) {
+      throw new Error('Error al crear cliente');
+    }
     return response.data;
   }
 
-  async sync(): Promise<{ exitosos: number; fallidos: number; errores: string[] }> {
+  async sync(): Promise<{
+    exitosos: number;
+    actualizados: number;
+    insertados: number;
+    omitidos: number;
+    fallidos: number;
+    errores: string[];
+  }> {
     const endpoint = `/clientes/sync`;
-    const response = await this.request<{
-      success: boolean;
-      data: { exitosos: number; fallidos: number; errores: string[] };
-    }>(endpoint, {
-      method: 'POST',
-    });
+    const response = await apiClient.post<{
+      exitosos: number;
+      actualizados: number;
+      insertados: number;
+      omitidos: number;
+      fallidos: number;
+      errores: string[];
+    }>(endpoint);
+    if (!response.data) {
+      throw new Error('Error al sincronizar clientes');
+    }
     return response.data;
   }
 }

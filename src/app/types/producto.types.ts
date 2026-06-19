@@ -1,5 +1,17 @@
 // Tipos basados en el backend gnd-back/src/types/producto.types.ts
 
+export interface ProductoPrecio {
+  id: number;
+  productoWebId: number;
+  tipoCliente: 'minorista' | 'mayorista';
+  precio: number; // Compatibilidad
+  precioLista: number;
+  precioTransfer: number | null;
+  cuotasFinanciado: number | null;
+  precioSinImp: number | null;
+  minimoUnidades: number | null;
+}
+
 export interface ProductoWebResponse {
   id: number;
   empresaId: number;
@@ -19,6 +31,7 @@ export interface ProductoWebResponse {
   imagenVariante: string | null;
   createdAt: string; // ISO date string
   updatedAt: string; // ISO date string
+  precios?: ProductoPrecio[];
 }
 
 export interface ProductoPadreResponse {
@@ -40,6 +53,7 @@ export interface ProductoPadreResponse {
   descripcionMarketing: string | null;
   descripcionCorta: string | null;
   slug: string | null;
+  genero: string | null;
   metaTitle: string | null;
   metaDescription: string | null;
   imagenes: any | null;

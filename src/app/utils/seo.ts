@@ -1,21 +1,21 @@
-import { WHATSAPP_PHONE_NUMBER, WHATSAPP_PHONE_NUMBER_FORMATTED } from './constants';
+import { BRAND_NAME, BRAND_SHORT, WHATSAPP_PHONE_NUMBER_FORMATTED } from './constants';
 
 export const seoConfig = {
-    defaultTitle: 'NTDS - Uniformes Empresariales y Escolares de Diseño | Natural Design',
-    titleTemplate: '%s | NTDS Natural Design',
-    defaultDescription: 'NTDS Natural Design: Uniformes empresariales, ropa de trabajo y merchandising de diseño en Córdoba. +25 años de experiencia, +500 clientes satisfechos.',
+    defaultTitle: `${BRAND_NAME} - Indumentaria para empresas y Escolares de Diseño`,
+    titleTemplate: `%s | ${BRAND_NAME}`,
+    defaultDescription: `${BRAND_NAME}: Uniformes empresariales, ropa de trabajo y merchandising de diseño en Córdoba. +25 años de experiencia, +500 clientes satisfechos.`,
     siteUrl: 'https://naturalonline.com.ar',
-    siteName: 'NTDS Natural Design',
+    siteName: BRAND_NAME,
 
     // Structured data templates
     organizationSchema: {
         '@context': 'https://schema.org',
         '@type': 'Organization',
-        name: 'NTDS Natural Design',
-        alternateName: 'Natural Design',
+        name: BRAND_NAME,
+        alternateName: BRAND_SHORT,
         url: 'https://naturalonline.com.ar',
         logo: 'https://naturalonline.com.ar/logo.png',
-        description: 'Empresa especializada en uniformes empresariales, ropa de trabajo y merchandising de diseño con más de 25 años de experiencia en Córdoba, Argentina.',
+        description: 'Empresa especializada en indumentaria para empresas, ropa de trabajo y merchandising de diseño con más de 25 años de experiencia en Córdoba, Argentina.',
         address: {
             '@type': 'PostalAddress',
             streetAddress: 'Rivera Indarte 2143',
@@ -46,7 +46,7 @@ export const seoConfig = {
         '@context': 'https://schema.org',
         '@type': 'LocalBusiness',
         '@id': 'https://naturalonline.com.ar',
-        name: 'NTDS Natural Design',
+        name: BRAND_NAME,
         image: 'https://naturalonline.com.ar/og-image.jpg',
         telephone: WHATSAPP_PHONE_NUMBER_FORMATTED,
         email: 'ventas@naturalonline.com.ar',

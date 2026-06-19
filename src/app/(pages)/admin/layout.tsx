@@ -1,49 +1,39 @@
-'use client';
+import { redirect } from "next/navigation";
+import AdminClientLayout from "./AdminClientLayout";
+import { getCurrentSession } from "@/lib/auth";
+import { AUTH_CALLBACK_PARAM } from "@/lib/auth-callback-url";
 
-import Sidebar from '@/components/admin/Sidebar';
-import Header from '@/components/admin/Header';
-import { SidebarProvider, useSidebar } from '@/components/admin/SidebarContext';
-import { SyncProvider } from '@/components/admin/SyncContext';
-import { cn } from '@/lib/utils';
+const ADMIN_LOGIN_CALLBACK = "/admin/dashboard";
 
-function AdminLayoutContent({
+/**
+ * Layout estricto para panel admin. Solo rol ADMIN puede estar aquí.
+ * Usuarios sin sesión (invitados) → login. Usuarios con sesión pero sin rol ADMIN → acceso denegado.
+ * Las rutas públicas y las de auth para USER/invitados no deben renderar este layout.
+ */
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isCollapsed } = useSidebar();
+  const session = await getCurrentSession();
+
+  if (!session) {
+    redirect(
+      `/auth/login?${AUTH_CALLBACK_PARAM}=${encodeURIComponent(ADMIN_LOGIN_CALLBACK)}`,
+    );
+  }
+
+  const isAdmin =
+    session.role === "ADMIN" ||
+    (Array.isArray(session.role) && session.role.includes("ADMIN"));
+
+  if (!isAdmin) {
+    redirect("/auth/error?error=AccessDenied");
+  }
 
   return (
-    <div className="min-h-screen bg-neutral-50">
-      <Sidebar />
-      <Header />
-      {/* Main Content */}
-      <main 
-        className={cn(
-          "pt-16 transition-all duration-300",
-          isCollapsed ? "lg:pl-20" : "lg:pl-64"
-        )}
-      >
-        <div className="p-4 lg:p-8">
-          {children}
-        </div>
-      </main>
-    </div>
-  );
-}
-
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <SyncProvider>
-      <SidebarProvider>
-        <AdminLayoutContent>
-          {children}
-        </AdminLayoutContent>
-      </SidebarProvider>
-    </SyncProvider>
+    <AdminClientLayout>
+      {children}
+    </AdminClientLayout>
   );
 }

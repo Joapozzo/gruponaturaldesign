@@ -1,36 +1,38 @@
 "use client";
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { RotateCcw, CreditCard, Store, Truck } from 'lucide-react';
+import { PAYMENT_BENEFITS_COPY } from '@/app/config/sales.config';
 
 const FeaturesBanner = () => {
   const features = [
     {
       icon: RotateCcw,
       title: "Cambios y devoluciones",
-      description: "Tenes 30 días para cambiar tu pedido"
+      description: "Tenes 30 dias para cambiar tu pedido"
     },
     {
       icon: CreditCard,
       title: "Medio de pago",
-      description: "3 cuotas sin interés • 15% off con transferencia"
+      description: PAYMENT_BENEFITS_COPY.paymentMethodDescription
     },
     {
       icon: Store,
       title: "Pick up store",
-      description: "Coordiná para retirar tu pedido"
+      description: "Coordina para retirar tu pedido"
     },
     {
       icon: Truck,
-      title: "Envío gratis",
-      description: "Envío gratis a sucursal en compras superiores a $200.000"
+      title: "Envio gratis",
+      description: "Envio gratis a sucursal en compras superiores a $200.000"
     }
   ];
 
   return (
     <div className="w-full bg-gray-100 py-6 lg:py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+      <div className="w-full px-4 lg:px-15">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 w-full items-center md:items-start justify-items-center md:justify-items-start">
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
             return (
@@ -40,11 +42,11 @@ const FeaturesBanner = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="flex flex-col items-center text-center"
+                className="flex flex-col items-center text-center md:items-start md:text-left w-full max-w-xs md:max-w-none"
               >
                 <div className="mb-3">
-                  <IconComponent 
-                    className="w-10 h-10 lg:w-12 lg:h-12 text-gray-600" 
+                  <IconComponent
+                    className="w-10 h-10 lg:w-12 lg:h-12 text-gray-600"
                     strokeWidth={1.5}
                   />
                 </div>
@@ -64,4 +66,3 @@ const FeaturesBanner = () => {
 };
 
 export default FeaturesBanner;
-

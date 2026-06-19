@@ -3,10 +3,10 @@ import { useState, useCallback, useMemo } from 'react';
 /**
  * Hook reutilizable para manejar selección bulk en tablas
  */
-export function useBulkSelection<T extends { id: number }>(items: T[]) {
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+export function useBulkSelection<T extends { id: string | number }>(items: T[]) {
+  const [selectedIds, setSelectedIds] = useState<Set<T['id']>>(new Set());
 
-  const toggleSelect = useCallback((id: number) => {
+  const toggleSelect = useCallback((id: T['id']) => {
     setSelectedIds((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) {
@@ -27,6 +27,12 @@ export function useBulkSelection<T extends { id: number }>(items: T[]) {
     }
   }, [selectedIds.size, items]);
 
+  /** Selecciona todas las filas (sin alternar). */
+  const selectAll = useCallback(() => {
+    if (items.length === 0) return;
+    setSelectedIds(new Set(items.map((item) => item.id)));
+  }, [items]);
+
   const clearSelection = useCallback(() => {
     setSelectedIds(new Set());
   }, []);
@@ -38,7 +44,7 @@ export function useBulkSelection<T extends { id: number }>(items: T[]) {
     selectedCount,
     toggleSelect,
     toggleSelectAll,
+    selectAll,
     clearSelection,
   };
 }
-

@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { motion } from 'framer-motion';
 
@@ -26,6 +28,8 @@ interface SectionProps {
     animated?: boolean;
     animationDelay?: number;
     noPadding?: boolean;
+    /** En desktop la sección ocupa 100vh y el contenido rellena el alto (flex) */
+    fullHeight?: boolean;
 }
 
 const Section: React.FC<SectionProps> = ({
@@ -41,6 +45,7 @@ const Section: React.FC<SectionProps> = ({
     contentClassName = '',
     animated = true,
     animationDelay = 0,
+    fullHeight = false,
 }) => {
     // Variantes de fondo
     const backgroundVariants: Record<BackgroundVariant, string> = {
@@ -83,6 +88,7 @@ const Section: React.FC<SectionProps> = ({
     w-full overflow-hidden
     ${backgroundVariants[background]}
     ${paddingVariants[padding]}
+    ${fullHeight ? 'h-screen flex flex-col' : ''}
     ${className}
   `.trim().replace(/\s+/g, ' ');
 
@@ -95,7 +101,7 @@ const Section: React.FC<SectionProps> = ({
     // Clases del contenido
     const contentClasses = `
     w-full
-
+    ${fullHeight ? 'flex-1 flex flex-col min-h-0' : ''}
     ${contentClassName}
   `.trim().replace(/\s+/g, ' ');
 
@@ -115,7 +121,7 @@ const Section: React.FC<SectionProps> = ({
                 {(title || subtitle) && (
                     <motion.div className={headerClasses} {...animationProps}>
                         {title && (
-                            <h2 className="text-xl sm:text-xl md:text-2xl lg:text-2xl font-semibold text-gray-900 mb-3 sm:mb-4 font-display leading-tight">
+                            <h2 className="text-xl sm:text-xl md:text-2xl lg:text-2xl font-semibold text-gray-900 mb-3 sm:mb-4 leading-tight">
                                 {title}
                             </h2>
                         )}
@@ -135,7 +141,7 @@ const Section: React.FC<SectionProps> = ({
                         transition: { duration: 0.8, delay: animationDelay + 0.2 },
                         viewport: { once: true },
                     })}
-                    className='w-full'
+                    className={fullHeight ? 'flex-1 flex flex-col min-h-0 w-full' : 'w-full'}
                 >
                     {children}
                 </motion.div>

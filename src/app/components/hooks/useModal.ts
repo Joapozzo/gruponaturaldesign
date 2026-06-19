@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 type ModalType = 'success' | 'error' | 'warning' | 'info' | 'confirm';
 
-interface UseConfirmModalOptions {
+export interface UseConfirmModalOptions {
     title: string;
     message: string;
     type?: ModalType;

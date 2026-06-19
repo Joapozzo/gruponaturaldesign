@@ -3,7 +3,8 @@ import { Poppins, Montserrat } from "next/font/google";
 import "./globals.css";
 import ConditionalLayout from "./components/ConditionalLayout";
 import { Providers } from "./components/Providers";
-import { WHATSAPP_PHONE_NUMBER, WHATSAPP_PHONE_NUMBER_FORMATTED } from "./utils/constants";
+import NewsletterPopup from "./components/newsletter/NewsletterPopup";
+import { BRAND_NAME, BRAND_SHORT, WHATSAPP_PHONE_NUMBER, WHATSAPP_PHONE_NUMBER_FORMATTED } from "./utils/constants";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -25,11 +26,11 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://naturalonline.com.ar'),
 
   title: {
-    default: "NTDS - Uniformes Empresariales de diseño | Natural Design",
-    template: "%s | NTDS Natural Design"
+    default: `${BRAND_NAME} - Indumentaria para empresas de diseño`,
+    template: `%s | ${BRAND_NAME}`
   },
 
-  description: "NTDS Natural Design: Uniformes empresariales, ropa de trabajo y merchandising de diseño en Córdoba. +25 años de experiencia, +500 clientes satisfechos. Calidad y diseño en uniformes profesionales.",
+  description: `${BRAND_NAME}: Indumentaria para empresas, ropa de trabajo y merchandising de diseño en Córdoba. +25 años de experiencia, +500 clientes satisfechos. Calidad y diseño en uniformes profesionales.`,
 
   keywords: [
     "uniformes empresariales",
@@ -50,10 +51,10 @@ export const metadata: Metadata = {
     "textil empresarial"
   ],
 
-  applicationName: "NTDS Natural Design",
-  authors: [{ name: "Natural Design", url: "https://naturalonline.com.ar" }],
-  creator: "Natural Design",
-  publisher: "NTDS Natural Design",
+  applicationName: BRAND_NAME,
+  authors: [{ name: BRAND_NAME, url: "https://naturalonline.com.ar" }],
+  creator: BRAND_NAME,
+  publisher: BRAND_NAME,
 
   alternates: {
     canonical: "https://naturalonline.com.ar",
@@ -67,25 +68,25 @@ export const metadata: Metadata = {
     type: "website",
     locale: "es_AR",
     url: "https://naturalonline.com.ar",
-    title: "NTDS - Uniformes Empresariales de Diseño",
-    description: "Uniformes empresariales, ropa de trabajo y merchandising de diseño en Córdoba. +25 años de experiencia vistiendo empresas con calidad y estilo.",
-    siteName: "NTDS Natural Design",
+    title: `${BRAND_NAME} - Indumentaria para empresas de Diseño`,
+    description: "Indumentaria para empresas, ropa de trabajo y merchandising de diseño en Córdoba. +25 años de experiencia vistiendo empresas con calidad y estilo.",
+    siteName: BRAND_NAME,
     images: [
       {
         url: "/og-image.jpg", // ⬅️ CAMBIO PRINCIPAL: archivo local
         width: 1200,
         height: 630,
-        alt: "NTDS Natural Design - Uniformes Empresariales",
-        type: "image/jpeg"
+        alt: `${BRAND_NAME} - Indumentaria para empresas`,
+        type: "image/jpeg",
       },
     ],
   },
 
   twitter: {
     card: "summary_large_image",
-    title: "NTDS - Uniformes Empresariales de Diseño",
-    description: "Uniformes empresariales y ropa de trabajo de calidad en Córdoba. +25 años de experiencia, +500 clientes satisfechos.",
-    images: ["/og-image.jpg"], // ⬅️ MISMO ARCHIVO
+    title: `${BRAND_NAME} - Indumentaria para empresas de Diseño`,
+    description: "Indumentaria para empresas y ropa de trabajo de calidad en Córdoba. +25 años de experiencia, +500 clientes satisfechos.",
+    images: ["/og-image.jpg"],
     creator: "@naturaldesign_ntds",
   },
 
@@ -116,7 +117,7 @@ export const metadata: Metadata = {
   },
 
   category: "Business",
-  classification: "Uniformes Empresariales, Ropa de Trabajo, Textil",
+  classification: "Indumentaria para empresas, Ropa de Trabajo, Textil",
 
   generator: "Next.js",
   referrer: "origin-when-cross-origin",
@@ -169,8 +170,8 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              "name": "NTDS Natural Design",
-              "alternateName": "Natural Design",
+              "name": BRAND_NAME,
+              "alternateName": BRAND_SHORT,
               "url": "https://naturalonline.com.ar",
               "logo": "https://naturalonline.com.ar/logo-square.png",
               "image": "https://naturalonline.com.ar/og-image.jpg",
@@ -200,7 +201,7 @@ export default function RootLayout({
                 "name": "Argentina"
               },
               "serviceType": [
-                "Uniformes empresariales",
+                "Indumentaria para empresas",
                 "Ropa de trabajo",
                 "Merchandising textil",
                 "Uniformes escolares",
@@ -224,6 +225,7 @@ export default function RootLayout({
         <link rel="icon" href="/icon-512.png" type="image/png" sizes="512x512" />
 
         <link rel="apple-touch-icon" href="/apple-icon-180.png" sizes="180x180" />
+        <meta name="apple-mobile-web-app-title" content="NTDS" />
 
         <link rel="dns-prefetch" href="//images.unsplash.com" />
         <link rel="dns-prefetch" href="//api.placeholder.com" />
@@ -238,11 +240,13 @@ export default function RootLayout({
         style={{
           fontFamily: "var(--font-poppins), 'Franklin Gothic Heavy', 'Arial Black', sans-serif"
         }}
+        suppressHydrationWarning
       >
         <Providers>
           <ConditionalLayout>
             {children}
           </ConditionalLayout>
+          <NewsletterPopup />
         </Providers>
       </body>
     </html>

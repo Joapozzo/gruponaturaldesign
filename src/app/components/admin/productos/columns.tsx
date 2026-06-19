@@ -1,7 +1,14 @@
 import React from 'react';
 import { TableColumn } from '@/components/ui/Table';
 import type { ProductoPadreConVariantes } from '@/app/types/producto.types';
-import { CheckSquare, Square, Edit, Eye, EyeOff, Star, StarOff, Loader2 } from 'lucide-react';
+import { CheckSquare, Square, Edit, Star, StarOff, Loader2 } from 'lucide-react';
+
+/** Nombre para mostrar: "Camisa Drill Hombre" / "Camisa Drill Mujer" / "Camisa Drill Unisex". Exportado para uso en modales/tablas. */
+export function formatNombreConGenero(nombre: string, genero?: string | null): string {
+  if (!genero) return nombre;
+  const label = genero === 'Masculino' ? 'Hombre' : genero === 'Femenino' ? 'Mujer' : genero;
+  return `${nombre} ${label}`;
+}
 
 interface GetProductosColumnsParams {
   selectedIds: Set<number>;
@@ -10,8 +17,8 @@ interface GetProductosColumnsParams {
   onEdit: (producto: ProductoPadreConVariantes) => void;
   onTogglePublicado: (producto: ProductoPadreConVariantes) => void;
   onToggleDestacado: (producto: ProductoPadreConVariantes) => void;
-  isUpdatingDestacado: boolean;
-  isUpdatingPublicado: boolean;
+  onManageVariantes: (producto: ProductoPadreConVariantes) => void;
+  updatingProductoId: number | null;
   productosCount: number;
 }
 
@@ -25,10 +32,16 @@ export function getProductosColumns({
   onEdit,
   onTogglePublicado,
   onToggleDestacado,
-  isUpdatingDestacado,
-  isUpdatingPublicado,
+  onManageVariantes,
+  updatingProductoId,
   productosCount,
-}: GetProductosColumnsParams): TableColumn<ProductoPadreConVariantes & { variante?: import('@/app/types/producto.types').ProductoWebResponse }>[] {
+}: GetProductosColumnsParams): TableColumn<ProductoPadreConVariantes & { 
+  variantesCount?: number;
+  precioPromedio?: number | null;
+  precioRango?: { min: number; max: number } | null;
+  stockTotal?: number;
+  stockBajo?: number;
+}>[] {
   return [
     {
       id: 'select',
@@ -67,19 +80,21 @@ export function getProductosColumns({
       enableSorting: false,
     },
     {
-      accessorKey: 'sfactoryCodigo',
-      header: 'Código SKU',
+      accessorKey: 'id',
+      header: 'ID',
       cell: ({ row }) => (
-        <div>
-          <span className="font-mono text-sm font-semibold">
-            {row.original.variante?.sfactoryCodigo || row.original.codigoAgrupacion}
-          </span>
-          {row.original.variante && (
-            <div className="text-xs text-neutral-500 mt-0.5">
-              Agrupación: {row.original.codigoAgrupacion}
-            </div>
-          )}
-        </div>
+        <span className="text-sm text-neutral-600 font-medium">
+          {row.original.id}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'codigoAgrupacion',
+      header: 'SKU',
+      cell: ({ row }) => (
+        <span className="font-mono text-sm font-semibold">
+          {row.original.codigoAgrupacion}
+        </span>
       ),
     },
     {
@@ -87,7 +102,9 @@ export function getProductosColumns({
       header: 'Nombre',
       cell: ({ row }) => (
         <div>
-          <div className="font-medium">{row.original.nombre}</div>
+          <div className="font-medium">
+            {formatNombreConGenero(row.original.nombre, row.original.genero)}
+          </div>
           {row.original.descripcionCorta && (
             <div className="text-xs text-neutral-500 mt-1">
               {row.original.descripcionCorta}
@@ -98,99 +115,142 @@ export function getProductosColumns({
     },
     {
       accessorKey: 'rubro',
-      header: 'Rubro',
+      header: 'Rubro / Subrubro',
       cell: ({ row }) => (
-        <span className="text-sm">
-          {row.original.rubro?.nombre || '-'}
-        </span>
+        <div className="text-xs">
+          <div className="font-medium">{row.original.rubro?.nombre || '-'}</div>
+          {row.original.subrubro?.nombre && (
+            <div className="text-neutral-500 mt-0.5">
+              {row.original.subrubro.nombre}
+            </div>
+          )}
+        </div>
       ),
     },
     {
-      accessorKey: 'subrubro',
-      header: 'Subrubro',
-      cell: ({ row }) => (
-        <span className="text-sm">
-          {row.original.subrubro?.nombre || '-'}
-        </span>
-      ),
-    },
-    {
-      accessorKey: 'sexo',
-      header: 'Sexo',
-      cell: ({ row }) => (
-        <span className="text-sm">
-          {row.original.variante?.sexo || '-'}
-        </span>
-      ),
-    },
-    {
-      accessorKey: 'color',
-      header: 'Color',
-      cell: ({ row }) => (
-        <span className="text-sm">
-          {row.original.variante?.color || '-'}
-        </span>
-      ),
-    },
-    {
-      accessorKey: 'talle',
-      header: 'Talle',
-      cell: ({ row }) => (
-        <span className="text-sm">
-          {row.original.variante?.talle || '-'}
-        </span>
-      ),
-    },
-    {
-      accessorKey: 'stock',
-      header: 'Stock',
+      accessorKey: 'genero',
+      header: 'Género',
       cell: ({ row }) => {
-        const stock = row.original.variante?.stockCache;
+        const g = row.original.genero;
+        if (!g) return <span className="text-sm text-neutral-400">-</span>;
+        const label = g === 'Masculino' ? 'Hombre' : g === 'Femenino' ? 'Mujer' : g;
+        return <span className="text-sm">{label}</span>;
+      },
+    },
+    {
+      accessorKey: 'descripcion',
+      header: 'Descripción',
+      cell: ({ row }) => (
+        <div className="max-w-xs">
+          <div className="text-sm">{row.original.descripcionCorta || row.original.descripcion || '-'}</div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'variantes',
+      header: 'Variantes',
+      cell: ({ row }) => {
+        const producto = row.original as ProductoPadreConVariantes & { variantesCount?: number };
+        const count = producto.variantesCount ?? producto.productosWeb?.length ?? 0;
         return (
-          <span
-            className={`text-sm font-medium ${
-              stock === null || stock === undefined
-                ? 'text-neutral-400'
-                : stock > 0
-                ? 'text-green-600'
-                : 'text-red-600'
-            }`}
-          >
-            {stock !== null && stock !== undefined ? stock : '-'}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-1 bg-neutral-100 rounded text-xs font-medium">
+              {count}
+            </span>
+            {count > 0 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onManageVariantes(producto);
+                }}
+                className="text-xs text-blue-600 hover:text-blue-700 hover:underline font-medium transition-colors"
+              >
+                Gestionar
+              </button>
+            )}
+          </div>
         );
+      },
+    },
+    {
+      accessorKey: 'precio',
+      header: 'Precio',
+      cell: ({ row }) => {
+        const producto = row.original as ProductoPadreConVariantes & { 
+          precioRango?: { min: number; max: number } | null;
+          precioPromedio?: number | null;
+        };
+        
+        if (producto.precioRango) {
+          const { min, max } = producto.precioRango;
+          if (min === max) {
+            return <span className="text-sm font-medium">${min.toLocaleString()}</span>;
+          }
+          return (
+            <span className="text-sm font-medium">
+              ${min.toLocaleString()} - ${max.toLocaleString()}
+            </span>
+          );
+        }
+        
+        if (producto.precioPromedio) {
+          return <span className="text-sm font-medium">${Math.round(producto.precioPromedio).toLocaleString()}</span>;
+        }
+        
+        return <span className="text-sm text-neutral-400">-</span>;
       },
     },
     {
       accessorKey: 'publicado',
       header: 'Estado',
-      cell: ({ row }) => (
-        <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-            row.original.publicado
-              ? 'bg-green-100 text-green-800'
-              : 'bg-red-100 text-red-800'
-          }`}
-        >
-          {row.original.publicado ? 'Publicado' : 'No publicado'}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const productoPadre = row.original as ProductoPadreConVariantes;
+        const isUpdating = updatingProductoId === productoPadre.id;
+        return (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onTogglePublicado(productoPadre);
+            }}
+            disabled={isUpdating}
+            className="flex items-center justify-center"
+            title={productoPadre.publicado ? 'Despublicar' : 'Publicar'}
+          >
+            <div
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                productoPadre.publicado ? 'bg-green-500' : 'bg-gray-300'
+              } ${isUpdating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+            >
+              {isUpdating ? (
+                <Loader2 className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-white" />
+              ) : (
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    productoPadre.publicado ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              )}
+            </div>
+          </button>
+        );
+      },
     },
     {
       accessorKey: 'destacado',
       header: 'Destacado',
       cell: ({ row }) => {
         const productoPadre = row.original as ProductoPadreConVariantes;
+        const isUpdating = updatingProductoId === productoPadre.id;
         return (
           <button
             onClick={(e) => {
               e.stopPropagation();
               onToggleDestacado(productoPadre);
             }}
-            disabled={isUpdatingDestacado}
+            disabled={isUpdating}
             className="flex items-center justify-center"
           >
-            {isUpdatingDestacado ? (
+            {isUpdating ? (
               <Loader2 className="w-4 h-4 animate-spin text-neutral-400" />
             ) : productoPadre.destacado ? (
               <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
@@ -217,27 +277,6 @@ export function getProductosColumns({
               title="Editar"
             >
               <Edit className="w-4 h-4" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onTogglePublicado(productoPadre);
-              }}
-              disabled={isUpdatingPublicado}
-              className={`p-1.5 rounded transition-colors disabled:opacity-50 ${
-                productoPadre.publicado
-                  ? 'text-neutral-600 hover:text-orange-600 hover:bg-orange-50'
-                  : 'text-neutral-600 hover:text-green-600 hover:bg-green-50'
-              }`}
-              title={productoPadre.publicado ? 'Despublicar' : 'Publicar'}
-            >
-              {isUpdatingPublicado ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : productoPadre.publicado ? (
-                <EyeOff className="w-4 h-4" />
-              ) : (
-                <Eye className="w-4 h-4" />
-              )}
             </button>
           </div>
         );

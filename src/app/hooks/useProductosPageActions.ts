@@ -2,6 +2,7 @@ import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState, useCallback } from 'react';
 import { useProductosSync } from './useProductosSync';
+import { useStockSync } from './useStockSync';
 import { productoService } from '@/app/services/producto.service';
 import { productosKeys } from '@/app/utils/productosKeys';
 
@@ -18,16 +19,37 @@ export function useProductosPageActions({ empresaId }: UseProductosPageActionsPa
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
-  const { sync, isSyncing } = useProductosSync({
-    empresaId,
+  const { sync, isSyncing, cooldownRemainingSeconds } = useProductosSync({
+    onSuccess: () => {
+      router.refresh();
+    },
+  });
+
+  const { syncStock, isStockSyncing } = useStockSync({
     onSuccess: () => {
       router.refresh();
     },
   });
 
   const handleSync = useCallback(async () => {
-    await sync();
+    try {
+      await sync();
+    } catch {
+      // Error ya mostrado en toast por useProductosSync
+    }
   }, [sync]);
+
+  const handleSyncStock = useCallback(async () => {
+    try {
+      await syncStock();
+    } catch {
+      // Error ya mostrado en toast por useStockSync
+    }
+  }, [syncStock]);
+
+  const isSyncDisabled =
+    isSyncing || isStockSyncing || cooldownRemainingSeconds > 0;
+  const isStockDisabled = isSyncing || isStockSyncing || cooldownRemainingSeconds > 0;
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -64,10 +86,15 @@ export function useProductosPageActions({ empresaId }: UseProductosPageActionsPa
 
   return {
     handleSync,
+    handleSyncStock,
     handleRefresh,
     handleExport,
     handleCreate,
     isSyncing,
+    isStockSyncing,
+    isSyncDisabled,
+    isStockDisabled,
+    cooldownRemainingSeconds,
     isRefreshing,
     isExporting,
   };

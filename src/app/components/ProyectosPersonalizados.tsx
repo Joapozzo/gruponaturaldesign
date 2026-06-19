@@ -14,53 +14,51 @@ const ProyectosPersonalizados = () => {
     };
 
     const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { 
-            opacity: 1, 
+        hidden: { opacity: 0, y: 12 },
+        visible: {
+            opacity: 1,
             y: 0,
-            transition: {
-                duration: 0.4
-            }
+            transition: { duration: 0.35 }
         }
     };
 
     return (
-        <section className="py-16 px-4 bg-gray-50" id="marcas">
-            <div className="max-w-7xl mx-auto">
+        <section className="py-10 bg-gray-50" id="marcas">
+            <div className="w-full px-4 lg:px-15">
                 {/* Título */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 16 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="text-center mb-12"
+                    className="text-center mb-8"
                 >
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight mb-2">
                         Empresas que confían en nosotros
                     </h2>
-                    <p className="text-gray-600">
+                    <p className="text-sm text-gray-600">
                         Más de 500 empresas líderes eligen nuestros uniformes personalizados
                     </p>
                 </motion.div>
 
-                {/* Grid de todas las marcas - Más compacto */}
+                {/* Grid de todas las marcas */}
                 <motion.div
                     initial="hidden"
                     whileInView="visible"
-                    viewport={{ once: true, margin: "-50px" }}
+                    viewport={{ once: true, margin: "-30px" }}
                     variants={containerVariants}
-                    className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4"
+                    className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 md:gap-3"
                 >
                     {logosClientes.map((cliente) => (
                         <motion.div
                             key={cliente.nombre}
                             variants={itemVariants}
-                            whileHover={{ 
-                                y: -3,
+                            whileHover={{
+                                y: -2,
                                 transition: { duration: 0.2 }
                             }}
-                            className="bg-gray-200 rounded-md shadow-sm hover:shadow-md transition-all duration-300 p-3 md:p-4 flex items-center justify-center aspect-square group cursor-pointer"
+                            className="bg-gray-200 rounded-md shadow-sm hover:shadow-md transition-all duration-300 p-2 md:p-3 flex items-center justify-center aspect-square group cursor-pointer overflow-hidden"
                         >
-                            <div className="w-full h-full flex items-center justify-center opacity-60 group-hover:opacity-100 transition-opacity duration-300">
+                            <div className="w-[70%] h-[70%] max-w-full max-h-full flex items-center justify-center opacity-60 group-hover:opacity-100 transition-opacity duration-300 [&_img]:object-contain [&_img]:w-full [&_img]:h-full">
                                 {cliente.logo}
                             </div>
                         </motion.div>

@@ -8,11 +8,13 @@ interface BaseModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
-  title?: string;
+  title?: string | React.ReactNode;
   showCloseButton?: boolean;
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   closeOnOverlayClick?: boolean;
   className?: string;
+  /** Clases del área bajo el header (por defecto incluye scroll vertical). */
+  contentClassName?: string;
   zIndex?: number;
 }
 
@@ -33,6 +35,7 @@ const BaseModal: React.FC<BaseModalProps> = ({
   size = 'md',
   closeOnOverlayClick = true,
   className = '',
+  contentClassName = 'p-6 overflow-y-auto overflow-x-hidden flex-1 min-h-0 overscroll-contain',
   zIndex = 999999,
 }) => {
   const [mounted, setMounted] = useState(false);
@@ -73,10 +76,12 @@ const BaseModal: React.FC<BaseModalProps> = ({
 
           {/* Modal Container - Full screen container */}
           <div
-            className="fixed inset-0 p-4 pointer-events-none flex items-center justify-center"
+            className="fixed inset-0 p-4 pointer-events-none flex items-center justify-center overflow-x-hidden overflow-y-auto"
             style={{ zIndex }}
           >
-            <div className={`pointer-events-auto w-full ${sizeClasses[size]} ${className}`}>
+            <div
+              className={`pointer-events-auto my-auto w-full shrink-0 ${sizeClasses[size]} ${className}`}
+            >
               <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -86,16 +91,25 @@ const BaseModal: React.FC<BaseModalProps> = ({
                   damping: 25,
                   stiffness: 300,
                 }}
-                className="bg-white rounded-lg shadow-2xl w-full overflow-hidden flex flex-col max-h-[90vh]"
+                className="relative bg-white rounded-lg shadow-2xl w-full h-full min-h-0 flex flex-col max-h-[90vh] overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Header */}
-                {(title || showCloseButton) && (
-                  <div className="relative p-6 pb-4 border-b border-gray-200 flex-shrink-0">
+                {/* Header con título: cruz alineada en la misma fila */}
+                {title && (
+                  <div className="flex items-center justify-between gap-4 px-6 py-5 border-b border-gray-200 shrink-0">
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                      className="min-w-0 flex-1 text-2xl font-bold text-black leading-tight"
+                    >
+                      {typeof title === 'string' ? <h3>{title}</h3> : title}
+                    </motion.div>
                     {showCloseButton && (
                       <motion.button
+                        type="button"
                         onClick={onClose}
-                        className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors"
+                        className="shrink-0 w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors"
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.95 }}
                         aria-label="Cerrar modal"
@@ -103,21 +117,25 @@ const BaseModal: React.FC<BaseModalProps> = ({
                         <X className="w-5 h-5 text-gray-400" />
                       </motion.button>
                     )}
-                    {title && (
-                      <motion.h3
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="text-2xl font-bold text-black pr-10"
-                      >
-                        {title}
-                      </motion.h3>
-                    )}
                   </div>
                 )}
 
-                {/* Content - Scrollable */}
-                <div className="p-6 overflow-y-auto flex-1">{children}</div>
+                {/* Sin título: cruz alineada al padding del contenido */}
+                {showCloseButton && !title && (
+                  <motion.button
+                    type="button"
+                    onClick={onClose}
+                    className="absolute top-6 right-6 z-10 w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    aria-label="Cerrar modal"
+                  >
+                    <X className="w-5 h-5 text-gray-400" />
+                  </motion.button>
+                )}
+
+                {/* Content - por defecto scroll aquí; override con contentClassName si el hijo maneja scroll */}
+                <div className={contentClassName}>{children}</div>
               </motion.div>
             </div>
           </div>

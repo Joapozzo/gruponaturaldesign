@@ -1,30 +1,31 @@
     import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
-import Button from './ui/Button';
+import Button from '@/components/ui/Button';
 import Link from 'next/link';
 
 const HeroPersonalizados = () => {
     return (
         <section
             id="catalog-header"
-            className="relative overflow-hidden flex items-center w-full"
+            className="relative overflow-hidden flex items-center w-full left-1/2 -translate-x-1/2"
             style={{ 
                 height: '70vh',
-                minHeight: '600px'
+                minHeight: '600px',
+                width: '100vw'
             }}
         >
-            {/* Imagen de fondo */}
-            <div className="absolute inset-0 w-full h-full">
+            {/* Imagen de fondo - ocupa todo el ancho del contenedor */}
+            <div className="absolute inset-0 w-full h-full min-w-full">
                 <div
-                    className="absolute inset-0 w-full h-full bg-top bg-center bg-no-repeat"
+                    className="absolute inset-0 w-full h-full bg-cover bg-top bg-no-repeat"
                     style={{ backgroundImage: "url('/imgs/personalizados-hero.png')" }}
                 />
                 <div className="absolute inset-0 bg-black/50"></div>
             </div>
 
             <div className="py-12 relative z-10 w-full">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="w-full px-4 lg:px-15">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -53,7 +54,7 @@ const HeroPersonalizados = () => {
 
                         {/* Título y Descripción */}
                         <div className="flex flex-col gap-3">
-                            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white font-display leading-tight">
+                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight">
                                 Uniformes personalizados
                             </h1>
                             <p className="text-lg sm:text-xl lg:text-2xl text-gray-200 max-w-3xl">

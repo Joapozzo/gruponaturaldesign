@@ -1,395 +1,201 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
-import type { Swiper as SwiperType } from 'swiper';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import Section from './Section';
-import Button from './ui/Button';
-import { useRouter } from 'next/navigation';
-import { useProductsV2 } from '../hooks/useProductsV2';
-import ProductCardGrouped from './ProductCardGrouped';
-import { GroupedProduct, ProductVariant, ProductWithImage } from '../types/producto';
-import { GroupedProductV2 } from '../types/producto-v2';
+import Button from '@/components/ui/Button';
+import { useProductosDestacadosLogic } from '../hooks/useProductosDestacadosLogic';
+import ProductCardPublicado from './ProductCardPublicado';
 
 const ProductosDestacados = () => {
-    const router = useRouter();
-    const [expandedSku, setExpandedSku] = useState<string | null>(null);
-    const swiperRef = useRef<SwiperType | null>(null);
-    const currentSlideIndexRef = useRef<number>(0);
-    const prevButtonRef = useRef<HTMLButtonElement>(null);
-    const nextButtonRef = useRef<HTMLButtonElement>(null);
-    
-    // Usar la misma fuente de datos que ProductsGrid (productos V2 del CSV)
-    const { products: productsV2, isLoading } = useProductsV2();
-    
-    /**
-     * Adapta GroupedProductV2 a GroupedProduct para compatibilidad con ProductCardGrouped
-     * Misma lógica que ProductsGrid
-     */
-    const adaptGroupedProductV2ToGroupedProduct = (groupV2: GroupedProductV2): GroupedProduct => {
-        // Adaptar displayProduct
-        const displayProduct: ProductWithImage = {
-            Codigo: groupV2.displayProduct.codigo,
-            Tipo: null,
-            Descripcion: groupV2.displayProduct.item,
-            UM: null,
-            Rubro: groupV2.displayProduct.rubro,
-            Subrubro: groupV2.displayProduct.subrubro,
-            Activo: true,
-            Moneda: null,
-            PrecioCosto: null,
-            UltActualizacion: null,
-            CostoXLM: null,
-            ListaMaterial: null,
-            PrecioUMCompra: null,
-            UMCompra: null,
-            PrecioVenta: groupV2.displayProduct.precioLista,
-            UtilidadP: null,
-            UtilidadR: null,
-            Base: null,
-            Barcode: null,
-            EqCodigoContable: null,
-            EqCodigoExterno: null,
-            ItemDeCompra: null,
-            ItemDeVenta: true,
-            ItemDeAlquiler: null,
-            Fabricar: null,
-            APedido: null,
-            GrupoGasto: null,
-            CTACompras: null,
-            CTAVentas: null,
-            StockMin: null,
-            StockMax: null,
-            PesoBruto: null,
-            DescripcionCorta: groupV2.displayProduct.nombreBase,
-            Observaciones: null,
-            ProveedorPorDefecto: null,
-            DepositoConsumo: null,
-            Ubicacion: null,
-            ItemLote: null,
-            ItemSerie: null,
-            Clase: null,
-            Linea: null,
-            Material: null,
-            ActPrecioXOC: null,
-            FlowintSincroEnabled: null,
-            Usuario: null,
-            FechaAlta: null,
-            // Campos extendidos - IMPORTANTE: usar las imágenes del V2
-            imagen: groupV2.displayProduct.imagen || null,
-            imagenes: groupV2.displayProduct.imagenes || [],
-            tablaTallesImage: groupV2.displayProduct.tablaTallesImage || null,
-            indicacionesBordadosUrl: groupV2.displayProduct.indicacionesBordadosImage || null,
-            NOMBRE: groupV2.displayProduct.nombreBase,
-            // Campos de precios adicionales del CSV
-            precioTransfer: groupV2.displayProduct.precioTransfer,
-            precio3cuotas: groupV2.displayProduct.precio3cuotas,
-            precioSImp: groupV2.displayProduct.precioSImp,
-            descripcionCompleta: groupV2.displayProduct.descripcion,
-            textiles: groupV2.displayProduct.textiles,
-        };
 
-        // Adaptar variantes - cada variante tiene su propio producto con su descripción
-        const variants: ProductVariant[] = groupV2.variants.map(v => {
-            // Crear un ProductWithImage específico para esta variante con su descripción
-            const variantProduct: ProductWithImage = {
-                ...displayProduct,
-                // Usar la descripción del producto de la variante (v.producto.item)
-                Descripcion: v.producto.item || displayProduct.Descripcion,
-                // Usar el precio de la variante
-                PrecioVenta: v.precioLista || displayProduct.PrecioVenta,
-                // Usar las imágenes específicas de esta variante si las tiene
-                imagenes: v.producto.imagenes || displayProduct.imagenes,
-                imagen: v.producto.imagen || displayProduct.imagen,
-                // Mantener los nuevos campos de precios y descripción (con fallback al displayProduct)
-                precioTransfer: v.producto.precioTransfer || displayProduct.precioTransfer,
-                precio3cuotas: v.producto.precio3cuotas || displayProduct.precio3cuotas,
-                precioSImp: v.producto.precioSImp || displayProduct.precioSImp,
-                descripcionCompleta: v.producto.descripcion || displayProduct.descripcionCompleta,
-                textiles: v.producto.textiles || displayProduct.textiles,
-            };
-            
-            return {
-                codigo: v.codigo,
-                variantNumber: 0, // No tenemos número de variante en V2
-                talle: v.talle,
-                color: v.color,
-                stock: v.stock,
-                producto: variantProduct,
-            };
-        });
+  const {
+    productos,
+    isError,
+    error,
+    expandedSku,
+    setExpandedSku,
+    prevButtonRef,
+    nextButtonRef,
+    handleGoToPage,
+    handleSwiperInit,
+    handleSlideChange,
+    handlePrevSlide,
+    handleNextSlide,
+  } = useProductosDestacadosLogic({
+    limit: 20,
+  });
+  // console.log('productos', productos);
 
-        return {
-            skuBase: groupV2.skuBase,
-            skuBaseSlug: groupV2.skuBaseSlug,
-            displayProduct,
-            variants,
-            totalVariants: groupV2.totalVariants,
-            availableColors: groupV2.availableColors,
-            availableSizes: groupV2.availableSizes,
-        };
-    };
-
-    // Adaptar productos V2 a formato compatible (misma lógica que ProductsGrid)
-    const groupedProducts = productsV2.map(adaptGroupedProductV2ToGroupedProduct);
-
-    // Mostrar todos los productos en el slider
-    const productDestacados = groupedProducts;
-
-
-    // Pausar/reanudar autoplay cuando un producto está expandido
-    useEffect(() => {
-        if (swiperRef.current) {
-            if (expandedSku) {
-                // Guardar el índice del slide actual
-                currentSlideIndexRef.current = swiperRef.current.activeIndex;
-                
-                // Detener el autoplay de manera agresiva
-                if (swiperRef.current.autoplay) {
-                    swiperRef.current.autoplay.stop();
-                    // Limpiar el timer del autoplay
-                    if (swiperRef.current.autoplay.running) {
-                        swiperRef.current.autoplay.stop();
-                    }
-                }
-                
-                // Bloquear completamente el movimiento táctil, pero mantener las flechas funcionales
-                swiperRef.current.allowTouchMove = false;
-                
-                // Forzar que se mantenga en el slide actual
-                swiperRef.current.slideTo(currentSlideIndexRef.current, 0);
-            } else {
-                // Si no hay productos expandidos, reanudar el autoplay
-                if (swiperRef.current.autoplay) {
-                    swiperRef.current.autoplay.start();
-                }
-                // Permitir el movimiento del slider
-                swiperRef.current.allowTouchMove = true;
-            }
-        }
-        
-        // Actualizar estado visual de los botones de navegación
-        if (prevButtonRef.current && nextButtonRef.current) {
-            if (expandedSku) {
-                prevButtonRef.current.disabled = true;
-                nextButtonRef.current.disabled = true;
-            } else {
-                prevButtonRef.current.disabled = false;
-                nextButtonRef.current.disabled = false;
-            }
-        }
-    }, [expandedSku]);
-
-
-    const goToPage = () => {
-        router.push(`/shoponline`);
-    };
-
-    // Mostrar loading o estado vacío
-    if (isLoading) {
-        return (
-            <Section
-                id="productos"
-                className="bg-gray-50 pb-10"
-                title='Productos destacados'
-                subtitle='Lo mejor de nuestro shop online en diseño, calidad y funcionalidad.'
-                contentClassName='max-w-7xl mx-auto px-10'
-            >
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {[...Array(6)].map((_, i) => (
-                        <div key={i} className="animate-pulse">
-                            <div className="bg-gray-200 rounded-lg h-[550px] w-full"></div>
-                        </div>
-                    ))}
-                </div>
-                {/* Call to Action */}
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.3 }}
-                    viewport={{ once: true }}
-                    className="text-center mt-10"
-                >
-                    <Button
-                        variant="black"
-                        size="sm"
-                        className="tracking-wide inline-flex items-center space-x-2 text-xs"
-                        onClick={goToPage}
-                    >
-                        <span>VER SHOP COMPLETO</span>
-                        <ArrowRight className="w-4 h-4" />
-                    </Button>
-                </motion.div>
-            </Section>
-        );
-    }
-
-    if (productDestacados.length === 0) {
-        return (
-            <Section
-                id="productos"
-                className="bg-gray-50 pb-10"
-                title='Productos destacados'
-                subtitle='Lo mejor de nuestro shop online en diseño, calidad y funcionalidad.'
-                contentClassName='max-w-7xl mx-auto px-10'
-            >
-                <div className="text-center py-20 text-gray-500">
-                    No hay productos disponibles
-                </div>
-                {/* Call to Action */}
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.3 }}
-                    viewport={{ once: true }}
-                    className="text-center mt-10"
-                >
-                    <Button
-                        variant="black"
-                        size="sm"
-                        className="tracking-wide inline-flex items-center space-x-2 text-xs"
-                        onClick={goToPage}
-                    >
-                        <span>VER SHOP COMPLETO</span>
-                        <ArrowRight className="w-4 h-4" />
-                    </Button>
-                </motion.div>
-            </Section>
-        );
-    }
-
+  if (isError) {
     return (
-        <Section
-            id="productos"
-            className="bg-gray-50 pb-10"
-            title='Productos destacados'
-            subtitle='Lo mejor de nuestro shop online en diseño, calidad y funcionalidad.'
-            contentClassName='max-w-8xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20'
-        >
-            {/* Slider de productos */}
-            <div className="w-full max-w-8xl mx-auto overflow-hidden">
-                <Swiper
-                    modules={[Navigation, Pagination, Autoplay]}
-                    spaceBetween={16}
-                    slidesPerView={4}
-                    centeredSlides={false}
-                    initialSlide={0}
-                    onSwiper={(swiper) => {
-                        swiperRef.current = swiper;
-                        currentSlideIndexRef.current = swiper.activeIndex;
-                        // Asegurar que comience desde el primer slide
-                        if (swiper.activeIndex !== 0) {
-                            swiper.slideTo(0, 0);
-                        }
-                    }}
-                    onSlideChange={(swiper) => {
-                        if (!expandedSku) {
-                            currentSlideIndexRef.current = swiper.activeIndex;
-                        }
-                    }}
-                    allowTouchMove={!expandedSku}
-                    navigation={{
-                        nextEl: '#swiper-button-next-destacados',
-                        prevEl: '#swiper-button-prev-destacados',
-                    }}
-                    pagination={{
-                        clickable: true,
-                        dynamicBullets: true,
-                    }}
-                    autoplay={expandedSku ? false : {
-                        delay: 4000,
-                        disableOnInteraction: false,
-                        pauseOnMouseEnter: true,
-                    }}
-                    loop={productDestacados.length > 4}
-                    loopAdditionalSlides={productDestacados.length > 4 ? 2 : 0}
-                    breakpoints={{
-                        320: {
-                            slidesPerView: 1.5,
-                            spaceBetween: 12,
-                            centeredSlides: false,
-                        },
-                        480: {
-                            slidesPerView: 2,
-                            spaceBetween: 12,
-                            centeredSlides: false,
-                        },
-                        640: {
-                            slidesPerView: 3,
-                            spaceBetween: 16,
-                            centeredSlides: false,
-                        },
-                        1024: {
-                            slidesPerView: 4,
-                            spaceBetween: 16,
-                            centeredSlides: false,
-                        },
-                    }}
-                    className="pb-12"
-                >
-                    {productDestacados.map((group, index) => (
-                        <SwiperSlide key={group.skuBase} className="mb-5 !flex">
-                            <div className="w-full h-full flex-shrink-0">
-                                <ProductCardGrouped 
-                                    group={group} 
-                                    index={index}
-                                    expandedSku={expandedSku}
-                                    onExpandChange={setExpandedSku}
-                                />
-                            </div>
-                        </SwiperSlide>
-                    ))}
-                </Swiper>
-
-                {/* Navegación personalizada - debajo del Swiper */}
-                <div className="flex justify-center items-center space-x-3 mt-4">
-                    <button 
-                        ref={prevButtonRef}
-                        id="swiper-button-prev-destacados"
-                        onClick={() => swiperRef.current?.slidePrev()}
-                        className="swiper-button-prev-custom w-8 h-8 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-all duration-300 group disabled:opacity-50 disabled:cursor-not-allowed"
-                        aria-label="Anterior"
-                    >
-                        <ArrowRight className="w-3.5 h-3.5 text-gray-700 rotate-180 group-hover:text-gray-900" />
-                    </button>
-                    <button 
-                        ref={nextButtonRef}
-                        id="swiper-button-next-destacados"
-                        onClick={() => swiperRef.current?.slideNext()}
-                        className="swiper-button-next-custom w-8 h-8 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-all duration-300 group disabled:opacity-50 disabled:cursor-not-allowed"
-                        aria-label="Siguiente"
-                    >
-                        <ArrowRight className="w-3.5 h-3.5 text-gray-700 group-hover:text-gray-900" />
-                    </button>
-                </div>
-
-                {/* Call to Action */}
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.3 }}
-                    viewport={{ once: true }}
-                    className="text-center mt-10"
-                >
-                    <Button
-                        variant="black"
-                        size="sm"
-                        className="tracking-wide inline-flex items-center space-x-2 text-xs"
-                        onClick={goToPage}
-                    >
-                        <span>VER SHOP COMPLETO</span>
-                        <ArrowRight className="w-4 h-4" />
-                    </Button>
-                </motion.div>
-            </div>
-        </Section>
+      <Section
+        id="productos"
+        className="bg-gray-50 pb-10"
+        title="Productos destacados"
+        subtitle="Lo mejor de nuestro shop online en diseño, calidad y funcionalidad."
+        contentClassName="w-full px-4 lg:px-15"
+      >
+        <div className="text-center py-20 text-red-600">
+          {error instanceof Error ? error.message : 'Error al cargar productos'}
+        </div>
+        <CTAButton onClick={handleGoToPage} />
+      </Section>
     );
+  }
+
+  if (productos.length === 0) {
+    return (
+      <Section
+        id="productos"
+        className="bg-gray-50 pb-10"
+        title="Productos destacados"
+        subtitle="Lo mejor de nuestro shop online en diseño, calidad y funcionalidad."
+        contentClassName="w-full px-4 lg:px-15"
+      >
+        <div className="text-center py-20 text-gray-500">
+          No hay productos disponibles
+        </div>
+        <CTAButton onClick={handleGoToPage} />
+      </Section>
+    );
+  }
+
+  const count = productos.length;
+  const maxSlides = { 320: 1.5, 480: 2, 640: 3, 1024: 5 };
+  const slidesPerViewBase = Math.max(1, Math.min(5, count));
+  const allFitOnDesktop = count <= 5;
+  const showNav = count > 1;
+
+  const breakpoints = {
+    320: {
+      slidesPerView: Math.max(1, Math.min(maxSlides[320], count)),
+      spaceBetween: 12,
+      centeredSlides: count <= maxSlides[320],
+    },
+    480: {
+      slidesPerView: Math.max(1, Math.min(maxSlides[480], count)),
+      spaceBetween: 12,
+      centeredSlides: count <= maxSlides[480],
+    },
+    640: {
+      slidesPerView: Math.max(1, Math.min(maxSlides[640], count)),
+      spaceBetween: 16,
+      centeredSlides: count <= maxSlides[640],
+    },
+    1024: {
+      slidesPerView: Math.max(1, Math.min(maxSlides[1024], count)),
+      spaceBetween: 16,
+      centeredSlides: count <= maxSlides[1024],
+    },
+  };
+
+  return (
+    <Section
+      id="productos"
+      className="bg-gray-50 pb-10"
+      title="Productos destacados"
+      subtitle="Lo mejor de nuestro shop online en diseño, calidad y funcionalidad."
+      contentClassName="w-full px-4 lg:px-15"
+    >
+      <div className="w-full overflow-hidden border-0 [border:0]">
+        <Swiper
+          modules={[Navigation, Pagination, Autoplay]}
+          spaceBetween={16}
+          slidesPerView={slidesPerViewBase}
+          centeredSlides={allFitOnDesktop}
+          initialSlide={0}
+          onSwiper={handleSwiperInit}
+          onSlideChange={handleSlideChange}
+          allowTouchMove={!expandedSku}
+          navigation={showNav ? {
+            nextEl: '#swiper-button-next-destacados',
+            prevEl: '#swiper-button-prev-destacados',
+          } : false}
+          autoplay={
+            expandedSku
+              ? false
+              : {
+                  delay: 4000,
+                  disableOnInteraction: false,
+                  pauseOnMouseEnter: true,
+                }
+          }
+          loop={count > 5 && !expandedSku}
+          loopAdditionalSlides={count > 5 && !expandedSku ? 2 : 0}
+          breakpoints={breakpoints}
+          className="pb-12"
+        >
+          {productos.map((producto, index) => (
+            <SwiperSlide key={`${producto.id}-${index}`} className="mb-5 !flex !items-start !border-0 [border:0]">
+              <div className="w-full flex-shrink-0 border-0 [border:0]">
+                <ProductCardPublicado
+                  producto={producto}
+                  index={index}
+                  expandedSku={expandedSku}
+                  onExpandChange={setExpandedSku}
+                />
+              </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+
+        {/* Navegación: solo si hay más de un producto */}
+        {showNav && (
+          <div className="flex justify-center items-center space-x-3 mt-4">
+            <button
+              ref={prevButtonRef}
+              id="swiper-button-prev-destacados"
+              onClick={handlePrevSlide}
+              className="swiper-button-prev-custom w-8 h-8 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-all duration-300 group disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Anterior"
+            >
+              <ArrowRight className="w-3.5 h-3.5 text-gray-700 rotate-180 group-hover:text-gray-900" />
+            </button>
+            <button
+              ref={nextButtonRef}
+              id="swiper-button-next-destacados"
+              onClick={handleNextSlide}
+              className="swiper-button-next-custom w-8 h-8 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-all duration-300 group disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Siguiente"
+            >
+              <ArrowRight className="w-3.5 h-3.5 text-gray-700 group-hover:text-gray-900" />
+            </button>
+          </div>
+        )}
+
+        {/* Call to Action */}
+        <CTAButton onClick={handleGoToPage} />
+      </div>
+    </Section>
+  );
 };
+
+// Componente auxiliar para CTA Button
+const CTAButton = ({ onClick }: { onClick: () => void }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 30 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.8, delay: 0.3 }}
+    viewport={{ once: true }}
+    className="text-center my-8"
+  >
+    <Button
+      variant="black"
+      size="sm"
+      className="tracking-wide inline-flex items-center space-x-2 text-xs p-4"
+      onClick={onClick}
+    >
+      VER SHOP COMPLETO
+      <ArrowRight className="w-4 h-4" />
+    </Button>
+  </motion.div>
+);
 
 export default ProductosDestacados;

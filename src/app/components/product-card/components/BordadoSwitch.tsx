@@ -9,6 +9,7 @@ interface BordadoSwitchProps {
     isMobile?: boolean;
     disabled?: boolean;
     size?: 'small' | 'medium' | 'large';
+    hideLabels?: boolean;
 }
 
 const BordadoSwitch: React.FC<BordadoSwitchProps> = ({
@@ -17,8 +18,8 @@ const BordadoSwitch: React.FC<BordadoSwitchProps> = ({
     isMobile = false,
     disabled = false,
     size = 'medium',
+    hideLabels = false,
 }) => {
-    // Determinar tamaños según el prop size
     const sizeClasses = {
         small: {
             container: 'text-[10px] gap-1',
@@ -51,9 +52,11 @@ const BordadoSwitch: React.FC<BordadoSwitchProps> = ({
 
     return (
         <div className={`flex items-center ${actualSizes.container}`}>
-            <span className={`font-medium text-gray-700 ${actualSizes.label}`}>
-                Bordado:
-            </span>
+            {!hideLabels && (
+                <span className={`font-medium text-gray-700 ${actualSizes.label}`}>
+                    Bordado:
+                </span>
+            )}
             <button
                 type="button"
                 onClick={() => !disabled && onChange(!value)}
@@ -82,12 +85,13 @@ const BordadoSwitch: React.FC<BordadoSwitchProps> = ({
                     }}
                 />
             </button>
-            <span className={`font-semibold ${value ? 'text-red-600' : 'text-gray-500'} ${actualSizes.text}`}>
-                {value ? 'SÍ' : 'NO'}
-            </span>
+            {!hideLabels && (
+                <span className={`font-semibold ${value ? 'text-red-600' : 'text-gray-500'} ${actualSizes.text}`}>
+                    {value ? 'SÍ' : 'NO'}
+                </span>
+            )}
         </div>
     );
 };
 
 export default BordadoSwitch;
-

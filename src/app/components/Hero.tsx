@@ -1,83 +1,155 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import Image from 'next/image';
-import Button from './ui/Button';
-import { useNavigation } from '../hooks/useNavigation';
 
-const Hero = () => {
-    const [heroImage, setHeroImage] = useState('/imgs/hero.jpg');
-    const { scrollToSection } = useNavigation();
+const DEFAULT_DESKTOP_SLIDES = [
+  '/imgs/hero/hero-desktop.jpg',
+  '/imgs/hero/hero2-desktop.jpg',
+];
+const DEFAULT_MOBILE_SLIDES = [
+  '/imgs/hero/hero-mobile.jpg',
+  '/imgs/hero/hero2-mobile.jpg',
+];
+const AUTO_PLAY_MS = 5000;
 
-    useEffect(() => {
-        const updateImage = () => {
-            if (window.innerWidth < 640) {
-                setHeroImage('/imgs/hero.jpg');
-            } else {
-                setHeroImage('/imgs/hero.jpg');
-            }
-        };
+export type HeroProps = {
+  id?: string;
+  desktopSlides?: string[];
+  mobileSlides?: string[];
+  alt?: string;
+  /** Por defecto: true si hay más de un slide en desktop */
+  carousel?: boolean;
+  showScrollHint?: boolean;
+  children?: React.ReactNode;
+};
 
-        updateImage();
-        window.addEventListener('resize', updateImage);
-        return () => window.removeEventListener('resize', updateImage);
-    }, []);
+type HeroPanelProps = {
+  slides: string[];
+  aspectClass: string;
+  visibilityClass: string;
+  index: number;
+  carousel: boolean;
+  alt: string;
+  showScrollHint: boolean;
+};
 
+function HeroSlideImage({
+  src,
+  alt,
+  priority,
+}: {
+  src: string;
+  alt: string;
+  priority?: boolean;
+}) {
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      priority={priority}
+      quality={90}
+      sizes="100vw"
+      className="object-cover object-center"
+    />
+  );
+}
 
-    return (
-      <section
-        id="inicio"
-        className="relative w-full h-screen flex items-center justify-center overflow-hidden"
-      >
-        <div className="absolute inset-0 w-full h-full">
-          <Image
-            src={heroImage}
-            alt="Hero NTDS"
-            fill
-            priority
-            quality={90}
-            sizes="100vw"
-            className="object-cover object-top"
-          />
-          <div className="absolute inset-0 bg-black/30"></div>
-        </div>
-
-        <div className="relative z-10 text-center text-white px-4 max-w-5xl mx-auto pt-20">
-          <motion.h1
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1 }}
-            className="text-4xl md:text-5xl font-light mb-4 2xl:text-6xl"
-          >
-            <span className="font-bold">Vestí</span> a tu equipo con<br />Grupo Natural Design
-          </motion.h1>
+function HeroPanel({
+  slides,
+  aspectClass,
+  visibilityClass,
+  index,
+  carousel,
+  alt,
+  showScrollHint,
+}: HeroPanelProps) {
+  return (
+    <div className={`relative w-full ${aspectClass} ${visibilityClass}`}>
+      {carousel ? (
+        <AnimatePresence mode="wait" initial={false}>
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.3 }}
-            className="mb-6"
+            key={index}
+            className="absolute inset-0 w-full h-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
           >
-            <Button
-              variant="lightWhiteOutline"
-              onClick={() => scrollToSection("categorias")}
-              size="lg"
-              className="font-light tracking-wide mx-auto"
-            >
-              Comenzá ya
-            </Button>
+            <HeroSlideImage
+              src={slides[index]}
+              alt={`${alt} ${index + 1}`}
+              priority={index === 0}
+            />
           </motion.div>
+        </AnimatePresence>
+      ) : (
+        <div className="absolute inset-0 w-full h-full">
+          <HeroSlideImage src={slides[0]} alt={alt} priority />
         </div>
-
+      )}
+      {showScrollHint && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1.5 }}
-          className="absolute bottom-32 md:bottom-36 left-1/2 transform -translate-x-1/2"
+          transition={{ delay: 1 }}
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10"
         >
-          <ChevronDown className="text-white animate-bounce" size={30} />
+          <ChevronDown className="text-white animate-bounce" size={24} />
         </motion.div>
-      </section>
-    );
+      )}
+    </div>
+  );
 }
+
+const Hero = ({
+  id = 'inicio',
+  desktopSlides = DEFAULT_DESKTOP_SLIDES,
+  mobileSlides = DEFAULT_MOBILE_SLIDES,
+  alt = 'Hero',
+  carousel = desktopSlides.length > 1,
+  showScrollHint = carousel,
+  children,
+}: HeroProps) => {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (!carousel) return;
+    const t = setInterval(() => {
+      setIndex((i) => (i + 1) % desktopSlides.length);
+    }, AUTO_PLAY_MS);
+    return () => clearInterval(t);
+  }, [carousel, desktopSlides.length]);
+
+  return (
+    <section
+      id={id}
+      className="relative w-full flex flex-col overflow-hidden"
+    >
+      <HeroPanel
+        slides={mobileSlides}
+        aspectClass="aspect-[9/16]"
+        visibilityClass="md:hidden"
+        index={index}
+        carousel={carousel}
+        alt={alt}
+        showScrollHint={showScrollHint}
+      />
+      <HeroPanel
+        slides={desktopSlides}
+        aspectClass="aspect-[2/1]"
+        visibilityClass="hidden md:block"
+        index={index}
+        carousel={carousel}
+        alt={alt}
+        showScrollHint={showScrollHint}
+      />
+      {children}
+    </section>
+  );
+};
 
 export default Hero;

@@ -1,9 +1,11 @@
+import { BRAND_NAME, BRAND_SHORT } from '@/app/utils/constants';
+
 import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
     return {
-        name: 'NTDS Natural Design - Uniformes Empresariales',
-        short_name: 'NTDS',
+        name: `${BRAND_NAME} - Uniformes Empresariales`,
+        short_name: BRAND_SHORT,
         description: 'Uniformes empresariales, ropa de trabajo y merchandising de diseño en Córdoba. +25 años de experiencia vistiendo empresas.',
         start_url: '/',
         display: 'standalone',
@@ -13,13 +15,13 @@ export default function manifest(): MetadataRoute.Manifest {
         scope: '/',
         icons: [
             {
-                src: '/android-chrome-192x192.png',
+                src: '/icon-192.png',
                 sizes: '192x192',
                 type: 'image/png',
                 purpose: 'maskable',
             },
             {
-                src: '/android-chrome-512x512.png',
+                src: '/icon-512.png',
                 sizes: '512x512',
                 type: 'image/png',
                 purpose: 'maskable',

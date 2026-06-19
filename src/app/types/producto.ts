@@ -79,9 +79,9 @@ export interface ProductWithImage extends ProductSFactory {
     // Flag para variantes virtuales (combinaciones de color/talle que no existen físicamente)
     _isVirtual?: boolean; // Indica si es una variante virtual (no existe como producto físico)
     // Nuevos campos de precios
-    precioTransfer?: number; // Precio transfer
-    precioSImp?: number; // Precio sin impuestos
-    precio3cuotas?: number; // Precio en 3 cuotas
+    precioTransfer?: number;
+    precioSImp?: number;
+    precioLista?: number;
     // Descripción y textiles
     descripcionCompleta?: string; // Descripción completa del producto
     textiles?: string; // Composición de textiles
@@ -113,14 +113,23 @@ export interface ProductVariant {
     colorHex?: string;          // Color en formato hexadecimal (opcional)
     stock?: number;              // Stock disponible
     producto: ProductWithImage;  // Datos completos del producto
+    /** BD: `productos_web.id` */
+    productoWebId?: number;
+    /** BD: `productos_padre.id` */
+    productoPadreId?: number;
+    /** BD: `productos_web.sfactory_id` → pedido `sfactory_item_id` */
+    sfactoryItemId?: number;
 }
 
 export interface GroupedProduct {
     skuBase: string;                    // SKU sin número: L-OF-BU-RCON o nombre del producto
     skuBaseSlug?: string;               // Slug URL-friendly para navegación (ej: "jean-flow-dama")
+    destacado?: boolean;
     displayProduct: ProductWithImage;   // Producto principal para mostrar en cards
     variants: ProductVariant[];         // Array de variantes disponibles
     totalVariants: number;              // Total de variantes
     availableColors?: string[];         // Colores disponibles (si aplica)
     availableSizes?: string[];          // Talles disponibles (si aplica)
+    /** BD: `productos_padre.id` (detalle / adaptador) */
+    productoPadreId?: number;
 }
