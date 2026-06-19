@@ -6,7 +6,7 @@ import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { formatAuthError } from '@/lib/auth-errors';
-import { createConsumerEmailSchema } from '@/lib/schemas/email.schema';
+import { z } from 'zod';
 import toast from 'react-hot-toast';
 import { AuthForm } from '@/components/auth/AuthForm';
 import Button from '@/components/ui/Button';
@@ -22,9 +22,11 @@ export default function ForgotPasswordPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    const parsed = createConsumerEmailSchema({ requiredMessage: 'Ingresá tu email.' }).safeParse(
-      email.trim()
-    );
+    const parsed = z
+      .string()
+      .min(1, 'Ingresá tu email.')
+      .email('Email inválido')
+      .safeParse(email.trim());
     if (!parsed.success) {
       const msg = parsed.error.issues[0]?.message ?? 'Email inválido';
       setError(msg);
