@@ -38,10 +38,10 @@ export default function CheckoutShell({ children }: { children: React.ReactNode 
         )}
 
         <div className="sticky top-0 bg-white border-b border-gray-200 z-20">
-          <div className="w-full max-w-5xl xl:max-w-6xl mx-auto px-4 lg:px-15 py-1.5 sm:py-2">
+          <div className="w-full max-w-5xl xl:max-w-6xl mx-auto px-4 lg:px-15">
             <nav
               aria-label="Ruta de navegación"
-              className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] sm:text-xs"
+              className="flex flex-wrap items-center gap-x-1.5 gap-y-1 py-1.5 sm:py-2 text-[11px] sm:text-xs"
             >
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Link
@@ -86,12 +86,10 @@ export default function CheckoutShell({ children }: { children: React.ReactNode 
                 );
               })}
             </nav>
-          </div>
-        </div>
 
-        <div className="flex-shrink-0 border-b border-gray-200 py-1.5 sm:py-2 sticky top-[32px] sm:top-[38px] bg-white z-10">
-          <div className="flex items-center w-full max-w-5xl xl:max-w-6xl mx-auto px-4 lg:px-15">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-black tracking-tight">CHECKOUT</h1>
+            <div className="flex items-center py-1.5 sm:py-2">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-black tracking-tight">CHECKOUT</h1>
+            </div>
           </div>
         </div>
 

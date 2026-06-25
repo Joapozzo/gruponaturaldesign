@@ -17,10 +17,6 @@ import { CheckoutStorePickupPanel } from '@/app/components/checkout/shipping/Che
 import { CheckoutShippingAddressSection } from '@/app/components/checkout/shipping/CheckoutShippingAddressSection';
 import { CheckoutShippingQuoteOptionCard } from '@/app/components/checkout/shipping/CheckoutShippingQuoteOptionCard';
 import { CheckoutShippingAgencySelect } from '@/app/components/checkout/shipping/CheckoutShippingAgencySelect';
-import { CHECKOUT_STORE_PICKUP_ADDRESS } from '@/app/utils/constants';
-
-export type { ShippingQuoteOptionId } from '@/app/components/checkout/shipping/shippingQuote.utils';
-
 interface CheckoutStep3ShippingProps {
   onNext: () => void;
   onBack: () => void;
@@ -84,11 +80,7 @@ export default function CheckoutStep3Shipping({ onNext, onBack }: CheckoutStep3S
 
           <AnimatePresence mode="wait">
             {shipping.tipo === 'retiro' ? (
-              <CheckoutStorePickupPanel
-                key="retiro"
-                title="Retiro"
-                addressText={CHECKOUT_STORE_PICKUP_ADDRESS}
-              />
+              <CheckoutStorePickupPanel key="retiro" title="Retiro" />
             ) : (
               <motion.div
                 key="envio"

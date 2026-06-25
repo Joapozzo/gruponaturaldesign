@@ -16,6 +16,7 @@ type Props = {
   onCustomerChange: (field: keyof CustomerData, value: string) => void;
   onConfirmEmailChange: (value: string) => void;
   onBlur: (field: string) => void;
+  onNecesitaFacturaChange: (checked: boolean) => void;
 };
 
 export function CheckoutStep2PersonalSection({
@@ -26,13 +27,12 @@ export function CheckoutStep2PersonalSection({
   onCustomerChange,
   onConfirmEmailChange,
   onBlur,
+  onNecesitaFacturaChange,
 }: Props) {
   const maxBirthDate = new Date().toISOString().split('T')[0];
 
   return (
     <div className="bg-white border border-gray-200 shadow-sm p-3 sm:p-4 rounded-lg space-y-2 sm:space-y-3">
-      {/* <h3 className="text-xs sm:text-sm font-bold text-black">INFORMACIÓN PERSONAL</h3> */}
-
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <CheckoutStep2FormField label="Nombre" required error={errors.nombre} touched={touched.nombre}>
           <CheckoutStep2TextInput
@@ -143,14 +143,88 @@ export function CheckoutStep2PersonalSection({
             placeholder="Mi Empresa S.A."
           />
         </CheckoutStep2FormField>
-        <CheckoutStep2FormField label="CUIT (Opcional)">
-          <CheckoutStep2TextInput
-            type="text"
-            value={formData.cuit}
-            onChange={(e) => onCustomerChange('cuit', e.target.value)}
-            placeholder="20-12345678-9"
+        {!formData.necesitaFactura ? (
+          <CheckoutStep2FormField label="CUIT (Opcional)">
+            <CheckoutStep2TextInput
+              type="text"
+              value={formData.cuit}
+              onChange={(e) => onCustomerChange('cuit', e.target.value)}
+              placeholder="20-12345678-9"
+            />
+          </CheckoutStep2FormField>
+        ) : null}
+      </div>
+
+      <div className="border-t border-gray-100 pt-3 space-y-3">
+        <label className="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-800 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={Boolean(formData.necesitaFactura)}
+            onChange={(e) => onNecesitaFacturaChange(e.target.checked)}
+            className="rounded border-gray-300"
           />
-        </CheckoutStep2FormField>
+          Necesito factura
+        </label>
+
+        {formData.necesitaFactura ? (
+          <div className="space-y-3 pl-1">
+            <fieldset className="space-y-2">
+              <legend className="text-[10px] sm:text-xs font-medium text-gray-700">Tipo de factura</legend>
+              <div className="flex flex-wrap gap-4 text-xs sm:text-sm">
+                {(['A', 'C'] as const).map((tipo) => (
+                  <label key={tipo} className="inline-flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="facturaTipo"
+                      checked={formData.facturaTipo === tipo}
+                      onChange={() => onCustomerChange('facturaTipo', tipo)}
+                      onBlur={() => onBlur('facturaTipo')}
+                    />
+                    Factura {tipo}
+                  </label>
+                ))}
+              </div>
+              {errors.facturaTipo && touched.facturaTipo ? (
+                <p className="text-[10px] text-red-600">{errors.facturaTipo}</p>
+              ) : null}
+            </fieldset>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <CheckoutStep2FormField
+                label="CUIT"
+                required
+                error={errors.facturaCuit}
+                touched={touched.facturaCuit}
+              >
+                <CheckoutStep2TextInput
+                  type="text"
+                  value={formData.cuit}
+                  onChange={(e) => onCustomerChange('cuit', e.target.value)}
+                  onBlur={() => onBlur('facturaCuit')}
+                  error={errors.facturaCuit}
+                  touched={touched.facturaCuit}
+                  placeholder="20-12345678-9"
+                />
+              </CheckoutStep2FormField>
+              <CheckoutStep2FormField
+                label="Razón social"
+                required
+                error={errors.facturaRazonSocial}
+                touched={touched.facturaRazonSocial}
+              >
+                <CheckoutStep2TextInput
+                  type="text"
+                  value={formData.facturaRazonSocial ?? ''}
+                  onChange={(e) => onCustomerChange('facturaRazonSocial', e.target.value)}
+                  onBlur={() => onBlur('facturaRazonSocial')}
+                  error={errors.facturaRazonSocial}
+                  touched={touched.facturaRazonSocial}
+                  placeholder="Razón social"
+                />
+              </CheckoutStep2FormField>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <CheckoutStep2FormField label="Fecha de Nacimiento (Opcional)">
@@ -162,7 +236,7 @@ export function CheckoutStep2PersonalSection({
         />
         {formData.fecha_nacimiento ? (
           <p className="text-[10px] sm:text-xs text-gray-600 mt-0.5 sm:mt-1">
-            🎉 ¡Te enviaremos promociones especiales por tu cumpleaños!
+            Te enviaremos promociones especiales por tu cumpleaños.
           </p>
         ) : null}
       </CheckoutStep2FormField>

@@ -44,6 +44,9 @@ export interface CustomerData {
     fecha_nacimiento?: string;
     documento?: string;
     tipo_documento?: 'DNI' | 'CUIT' | 'CUIL';
+    necesitaFactura?: boolean;
+    facturaTipo?: 'A' | 'C' | null;
+    facturaRazonSocial?: string;
 }
 
 /** Payload alineado con `CheckoutEnvioClientPayload` del API (sin `address`: se arma al iniciar MP). */
@@ -68,7 +71,14 @@ export interface CheckoutEnvioSelection {
 // Datos de envío
 export interface ShippingData {
     tipo: 'envio' | 'retiro';
+    /** @deprecated Derivado de calle + numero */
     direccion?: string;
+    calle?: string;
+    numero?: string;
+    piso?: string;
+    depto?: string;
+    barrio?: string;
+    loteManzana?: string;
     localidad?: string;
     provincia?: string;
     codigo_postal?: string;

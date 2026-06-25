@@ -1,12 +1,13 @@
 'use client';
 
-export type ConfiguracionTabId = 'integraciones' | 'envios' | 'precios' | 'datos-bancarios';
+export type ConfiguracionTabId = 'integraciones' | 'envios' | 'precios' | 'datos-bancarios' | 'tienda-contacto';
 
 const tabs: Array<{ id: ConfiguracionTabId; label: string }> = [
   { id: 'integraciones', label: 'Integraciones' },
   { id: 'envios', label: 'Envíos' },
   { id: 'precios', label: 'Precios' },
   { id: 'datos-bancarios', label: 'Datos bancarios' },
+  { id: 'tienda-contacto', label: 'Tienda / contacto' },
 ];
 
 interface ConfiguracionTabBarProps {

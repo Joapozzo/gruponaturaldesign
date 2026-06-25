@@ -14,7 +14,7 @@ import { useWhatsApp } from './hooks/useWhatsApp';
 const Testimonios = () => {
     const [currentLogoIndex, setCurrentLogoIndex] = useState(0);
     const [currentTestimonioIndex, setCurrentTestimonioIndex] = useState(0);
-    const { openWhatsApp } = useWhatsApp({ defaultMessage: "¡Hola! Me interesa conocer más sobre los uniformes de NTDS. ¿Te gustaría hablar conmigo?" });
+    const { openWhatsApp } = useWhatsApp();
 
     useEffect(() => {
         const interval = setInterval(() => {

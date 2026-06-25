@@ -3,11 +3,10 @@ import { Mail, MapPin, Instagram } from 'lucide-react';
 import Image from 'next/image';
 import { WhatsApp } from './logos/WhatsApp';
 import { useWhatsApp } from './hooks/useWhatsApp';
-import { WHATSAPP_PHONE_NUMBER } from '@/app/utils/constants';
 import NewsletterFooterForm from '@/app/components/newsletter/NewsletterFooterForm';
 
 const Footer = () => {
-    const { openWhatsApp } = useWhatsApp({ defaultMessage: "¡Hola! Me interesa conocer más sobre los uniformes de NTDS. ¿Te gustaría hablar conmigo?" });
+    const { openWhatsApp, phoneNumber } = useWhatsApp();
     return (
         <footer className="bg-[var(--black)] text-white pt-12 pb-6">
             <div className="w-full px-4 lg:px-15">
@@ -72,7 +71,7 @@ const Footer = () => {
                             <p className="flex items-center cursor-pointer" onClick={() => openWhatsApp()}>
                                 {/* <Phone size={14} className="mr-1.5" /> */}
                                 <WhatsApp size={14} className="mr-1.5" />
-                                {WHATSAPP_PHONE_NUMBER}
+                                {phoneNumber}
                             </p>
                             <a 
                                 href="mailto:ventas@naturalonline.com.ar" 

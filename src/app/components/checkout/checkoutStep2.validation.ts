@@ -1,5 +1,6 @@
 import type { CustomerData, ShippingData } from '@/app/types/cart';
 import { isValidEmailFormat, validateEmailForApp } from '@/lib/email-validation';
+import { buildCheckoutEnvioAddress } from '@/app/utils/shippingAddress';
 
 export interface CheckoutStep2FormErrors {
   nombre?: string;
@@ -8,6 +9,11 @@ export interface CheckoutStep2FormErrors {
   confirmEmail?: string;
   telefono?: string;
   documento?: string;
+  facturaTipo?: string;
+  facturaCuit?: string;
+  facturaRazonSocial?: string;
+  calle?: string;
+  numero?: string;
   direccion?: string;
   localidad?: string;
   provincia?: string;
@@ -75,6 +81,32 @@ export function validateCheckoutField(
         return 'Mínimo 7 dígitos';
       }
       break;
+    case 'facturaTipo':
+      if (formData.necesitaFactura && !value.trim()) return 'Elegí tipo de factura';
+      break;
+    case 'facturaCuit':
+      if (formData.necesitaFactura && value.replace(/\D/g, '').length < 11) {
+        return 'CUIT inválido (11 dígitos)';
+      }
+      break;
+    case 'facturaRazonSocial':
+      if (formData.necesitaFactura && value.trim().length < 2) {
+        return 'Razón social requerida';
+      }
+      break;
+    case 'calle': {
+      const dom =
+        shipping.tipo === 'envio' && (shipping.checkoutDelivery ?? 'homeDelivery') === 'homeDelivery';
+      const street = value.trim() || shipping.direccion?.trim() || '';
+      if (dom && !street) return 'Requerido para envío a domicilio';
+      break;
+    }
+    case 'numero': {
+      const dom =
+        shipping.tipo === 'envio' && (shipping.checkoutDelivery ?? 'homeDelivery') === 'homeDelivery';
+      if (dom && !value.trim()) return 'Requerido para envío a domicilio';
+      break;
+    }
     case 'direccion': {
       const dom =
         shipping.tipo === 'envio' && (shipping.checkoutDelivery ?? 'homeDelivery') === 'homeDelivery';
@@ -147,6 +179,22 @@ export function validateCheckoutCustomerOnly(ctx: {
     }
   }
 
+  if (formData.necesitaFactura) {
+    (['facturaTipo', 'facturaCuit', 'facturaRazonSocial'] as const).forEach((field) => {
+      const value =
+        field === 'facturaTipo'
+          ? formData.facturaTipo ?? ''
+          : field === 'facturaCuit'
+            ? formData.cuit ?? ''
+            : formData.facturaRazonSocial ?? '';
+      const err = validateCheckoutField(field, value, vctx);
+      if (err) {
+        errors[field] = err;
+        ok = false;
+      }
+    });
+  }
+
   return { ok, errors };
 }
 
@@ -169,13 +217,23 @@ export function validateCheckoutShippingOnly(shipping: ShippingData): {
 
   const delivery = shipping.checkoutDelivery ?? 'homeDelivery';
   if (delivery === 'homeDelivery') {
-    (['direccion', 'localidad'] as const).forEach((field) => {
-      const err = validateCheckoutField(field, shipping[field] ?? '', ctx);
+    (['calle', 'numero', 'localidad'] as const).forEach((field) => {
+      const value =
+        field === 'calle'
+          ? shipping.calle ?? shipping.direccion ?? ''
+          : (shipping[field] ?? '');
+      const err = validateCheckoutField(field, value, ctx);
       if (err) {
-        errors[field] = err;
+        if (field === 'calle') errors.calle = err;
+        else if (field === 'numero') errors.numero = err;
+        else errors.localidad = err;
         ok = false;
       }
     });
+    if (!buildCheckoutEnvioAddress(shipping)) {
+      errors.envio = errors.envio ?? 'Completá la dirección de envío';
+      ok = false;
+    }
   }
   (['provincia', 'codigo_postal'] as const).forEach((field) => {
     const err = validateCheckoutField(field, shipping[field] ?? '', ctx);

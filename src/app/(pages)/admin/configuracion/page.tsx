@@ -5,6 +5,7 @@ import PageHeader from '@/components/admin/PageHeader';
 import { ConfiguracionTabBar, type ConfiguracionTabId } from '@/app/components/admin/configuracion/ConfiguracionTabBar';
 import { PreciosTab } from '@/app/components/admin/configuracion/PreciosTab';
 import { DatosBancariosTab } from '@/app/components/admin/configuracion/DatosBancariosTab';
+import { TiendaContactoTab } from '@/app/components/admin/configuracion/TiendaContactoTab';
 import { IntegracionesTab } from '@/app/components/admin/configuracion/IntegracionesTab';
 import { EnvioTab } from '@/app/components/admin/configuracion/EnvioTab';
 import { ConfiguracionPageActions } from '@/app/components/admin/configuracion/ConfiguracionPageActions';
@@ -20,7 +21,7 @@ export default function ConfiguracionPage() {
     <>
       <PageHeader
         title="Configuración"
-        description="Integraciones, envíos MiCorreo, precios y datos para transferencia / efectivo"
+        description="Integraciones, envíos, precios, datos bancarios y contacto de tienda"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Configuración' },
@@ -45,6 +46,9 @@ export default function ConfiguracionPage() {
           </div>
           <div hidden={activeTab !== 'datos-bancarios'}>
             <DatosBancariosTab />
+          </div>
+          <div hidden={activeTab !== 'tienda-contacto'}>
+            <TiendaContactoTab />
           </div>
         </div>
       </div>
