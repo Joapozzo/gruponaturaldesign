@@ -18,7 +18,7 @@ const variantClasses: Record<InputVariant, string> = {
 };
 
 const sizeClasses: Record<InputSize, string> = {
-    sm: 'px-3 py-1.5 sm:px-4 sm:py-2 text-sm',
+    sm: 'px-3 py-1.5 sm:px-4 sm:py-2 text-base sm:text-sm',
     md: 'px-4 py-2.5 text-base',
 };
 

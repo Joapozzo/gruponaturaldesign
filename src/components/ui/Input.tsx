@@ -41,9 +41,9 @@ const variantClasses: Record<InputVariant, string> = {
 };
 
 const sizeClasses: Record<InputSize, string> = {
-  xs: 'h-8 px-2 text-[11px]',
-  sm: 'h-9 px-3 text-xs',
-  md: 'h-10 px-3 text-sm',
+  xs: 'h-8 px-2 text-base sm:text-[11px]',
+  sm: 'h-9 px-3 text-base sm:text-xs',
+  md: 'h-10 px-3 text-base sm:text-sm',
   lg: 'h-11 px-4 text-base',
 };
 
