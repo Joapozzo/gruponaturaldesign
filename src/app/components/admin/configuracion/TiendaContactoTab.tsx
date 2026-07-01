@@ -147,7 +147,7 @@ function TiendaContactoFormFields({
           disabled={disabled}
           placeholder="ventas@empresa.com"
           maxLength={255}
-          hint="Destinatario de InternalOrderNotification al crear pedido web."
+          hint="Mail interno único: pedidos, consultas de contacto y comprobantes. Si está vacío, se usa RESEND_INTERNAL_TO del servidor."
         />
         <Field
           id="whatsappTelefono"

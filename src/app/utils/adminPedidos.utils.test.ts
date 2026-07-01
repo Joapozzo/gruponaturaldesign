@@ -48,7 +48,7 @@ describe('adminPedidos.utils', () => {
     const sf = [
       { id: 10, cliente: 'X', fecha: '2024-05-01', total: 50, estado: '1', estado_d: 'Ok' },
       { id: 11, cliente: 'Y', fecha: '2024-07-01', total: 60, estado: '1', estado_d: 'Ok' },
-    ] as SFactoryPedido[];
+    ] as unknown as SFactoryPedido[];
     const merged = mergePedidosLists(web, sf);
     expect(merged).toHaveLength(2);
     expect(merged.some((r) => r.key === 'sfactory-10')).toBe(false);
@@ -58,7 +58,7 @@ describe('adminPedidos.utils', () => {
   it('filterSfactoryBySearch por numero y cliente', () => {
     const rows = [
       { id: 1, numero: 'PE-100', cliente: 'Acme', fecha: '2024-01-01', total: 1, estado: '1' },
-    ] as SFactoryPedido[];
+    ] as unknown as SFactoryPedido[];
     expect(filterSfactoryBySearch(rows, 'acme')).toHaveLength(1);
     expect(filterSfactoryBySearch(rows, 'zzz')).toHaveLength(0);
   });

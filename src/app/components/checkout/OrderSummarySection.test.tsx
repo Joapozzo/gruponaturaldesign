@@ -44,7 +44,14 @@ describe('OrderSummarySection', () => {
         subtotal={200}
         total={242}
         shippingExtra={500}
-        cuponAplicado={{ codigo: 'OFF10', descuentoTotal: 20 }}
+        cuponAplicado={{
+          id: 1,
+          codigo: 'OFF10',
+          nombre: 'OFF10',
+          tipoDescuento: 'monto_fijo',
+          valorDescuento: 20,
+          descuentoTotal: 20,
+        }}
       />
     );
 

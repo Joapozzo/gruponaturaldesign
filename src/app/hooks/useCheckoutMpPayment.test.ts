@@ -12,7 +12,17 @@ const mpBody = {
   clienteNombre: 'Juan',
   clienteEmail: 'test@gmail.com',
   mpPricingMode: 'financiado' as const,
-  items: [{ productoWebId: 1, cantidad: 1, precioUnitario: 100 }],
+  items: [
+    {
+      productoWebId: 1,
+      productoPadreId: 1,
+      sfactoryItemId: 1,
+      nombre: 'Remera',
+      codigo: 'REM-1',
+      cantidad: 1,
+      precioUnitario: 100,
+    },
+  ],
 };
 
 describe('useCheckoutMpPayment', () => {

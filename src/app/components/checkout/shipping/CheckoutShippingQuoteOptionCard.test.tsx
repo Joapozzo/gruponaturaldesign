@@ -38,6 +38,7 @@ describe('CheckoutShippingQuoteOptionCard', () => {
         q={{ precio: 3500 }}
         selected={false}
         quoteLoading={false}
+        correoRatePick={undefined}
         onOptionClick={onOptionClick}
         onCorreoRateSelect={vi.fn()}
       />
@@ -55,6 +56,7 @@ describe('CheckoutShippingQuoteOptionCard', () => {
         q={{ error: 'Sin cobertura' }}
         selected={false}
         quoteLoading={false}
+        correoRatePick={undefined}
         onOptionClick={vi.fn()}
         onCorreoRateSelect={vi.fn()}
       />
@@ -70,6 +72,7 @@ describe('CheckoutShippingQuoteOptionCard', () => {
         q={{ precio: 1000 }}
         selected={false}
         quoteLoading={true}
+        correoRatePick={undefined}
         onOptionClick={onOptionClick}
         onCorreoRateSelect={vi.fn()}
       />

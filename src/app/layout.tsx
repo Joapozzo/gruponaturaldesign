@@ -6,6 +6,8 @@ import { Providers } from "./components/Providers";
 import NewsletterPopup from "./components/newsletter/NewsletterPopup";
 import { BRAND_NAME, BRAND_SHORT, WHATSAPP_PHONE_NUMBER, WHATSAPP_PHONE_NUMBER_FORMATTED } from "./utils/constants";
 
+const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID ?? "GTM-NB3MKBCM";
+
 // Fuentes según el manual de marca NTDS
 // Franklin Gothic Heavy no está en Google Fonts, usamos Poppins como fallback principal
 // Optimizado: solo cargamos los pesos necesarios (400, 600, 700) para reducir bundle size
@@ -172,6 +174,15 @@ export default function RootLayout({
   return (
     <html lang="es-AR">
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','${GTM_ID}');`,
+          }}
+        />
         <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17610803161"></script>
         <script
           dangerouslySetInnerHTML={{
@@ -267,6 +278,14 @@ export default function RootLayout({
         }}
         suppressHydrationWarning
       >
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
         <Providers>
           <ConditionalLayout>
             {children}

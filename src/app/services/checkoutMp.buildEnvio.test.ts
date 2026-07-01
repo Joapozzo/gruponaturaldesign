@@ -15,8 +15,8 @@ describe('checkoutMp build envío', () => {
       provider: 'andreani',
       deliveryType: 'homeDelivery',
       cpDestino: '5000',
-      quotedAmount: 1500,
-      parcel: { weightGrams: 500, height: 10, width: 20, length: 30 },
+      clientQuotedAmount: 1500,
+      parcel: { weightGrams: 500, height: 10, width: 20, depth: 30, declaredValue: 1000 },
     },
   };
 
