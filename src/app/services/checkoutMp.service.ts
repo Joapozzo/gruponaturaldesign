@@ -5,6 +5,7 @@ import {
   type CheckoutPriceMode,
   resolveCheckoutUnitPrice,
 } from '@/app/utils/checkoutPricing';
+import { buildCheckoutEnvioAddress, formatShippingAddressLine } from '@/app/utils/shippingAddress';
 
 export const CHECKOUT_MP_SNAPSHOT_KEY = 'checkout_mp_snapshot';
 
@@ -31,10 +32,19 @@ export type CheckoutEnvioMpPayload = CheckoutEnvioSelection & {
     zipCode: string;
     floor?: string;
     department?: string;
+    barrio?: string;
+    loteManzana?: string;
   };
 };
 
-export interface IniciarPagoMpBody {
+export interface CheckoutFacturaPayload {
+  necesitaFactura?: boolean;
+  facturaTipo?: 'A' | 'C' | null;
+  facturaCuit?: string | null;
+  facturaRazonSocial?: string | null;
+}
+
+export interface IniciarPagoMpBody extends CheckoutFacturaPayload {
   clienteNombre: string;
   clienteEmail: string;
   clienteTelefono?: string;
@@ -52,23 +62,20 @@ export function buildCheckoutEnvioForMp(shipping: ShippingData): CheckoutEnvioMp
   if (shipping.tipo !== 'envio' || !shipping.checkoutEnvio) return undefined;
   const c = shipping.checkoutEnvio;
   if (c.deliveryType === 'homeDelivery') {
-    const city = shipping.localidad?.trim() ?? '';
-    const state = shipping.provincia?.trim() ?? '';
-    const zipCode = shipping.codigo_postal?.trim() ?? c.cpDestino;
-    const streetName = shipping.direccion?.trim() ?? '';
-    if (!streetName || !city || !state || !zipCode) return undefined;
-    return {
-      ...c,
-      address: {
-        streetName,
-        streetNumber: 's/n',
-        city,
-        state,
-        zipCode,
-      },
-    };
+    const address = buildCheckoutEnvioAddress(shipping);
+    if (!address) return undefined;
+    return { ...c, address };
   }
   return { ...c };
+}
+
+export function buildClienteDireccionFromShipping(shipping: ShippingData): string | undefined {
+  if (shipping.tipo !== 'envio') return undefined;
+  if ((shipping.checkoutDelivery ?? 'homeDelivery') === 'agency' && shipping.checkoutEnvio?.agencyLabel) {
+    return `Retiro sucursal: ${shipping.checkoutEnvio.agencyLabel}`;
+  }
+  const line = formatShippingAddressLine(shipping);
+  return line || undefined;
 }
 
 export interface IniciarPagoMpResponse {
@@ -163,7 +170,7 @@ export async function iniciarPagoMp(body: IniciarPagoMpBody): Promise<IniciarPag
   return res.data;
 }
 
-export interface IniciarPagoManualBody {
+export interface IniciarPagoManualBody extends CheckoutFacturaPayload {
   clienteNombre: string;
   clienteEmail: string;
   clienteTelefono?: string;

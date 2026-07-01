@@ -25,6 +25,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
     handleConfirmEmailChange,
     handleBlur,
     handleSubmit,
+    handleNecesitaFacturaChange,
   } = useCheckoutStep2Form(customerData, setCustomerData, isWholesaleLimitReached, onNext);
 
   return (
@@ -44,6 +45,7 @@ export default function CheckoutStep2({ onNext, onBack }: CheckoutStep2Props) {
               onCustomerChange={handleCustomerChange}
               onConfirmEmailChange={handleConfirmEmailChange}
               onBlur={handleBlur}
+              onNecesitaFacturaChange={handleNecesitaFacturaChange}
             />
           </div>
         </div>

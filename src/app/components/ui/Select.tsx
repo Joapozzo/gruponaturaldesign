@@ -40,10 +40,10 @@ const variantClasses: Record<SelectVariant, string> = {
 };
 
 const sizeClasses: Record<SelectSize, string> = {
-    xs: 'h-8 pl-6 pr-8 text-[10px]',
-    sm: 'h-9 sm:h-[36px] pl-6 pr-8 text-[11px] sm:text-xs',
-    md: 'h-[36px] pl-7 pr-9 text-xs',
-    lg: 'h-10 pl-8 pr-10 text-sm',
+    xs: 'h-8 pl-6 pr-8 text-base sm:text-[10px]',
+    sm: 'h-9 sm:h-[36px] pl-6 pr-8 text-base sm:text-[11px] sm:text-xs',
+    md: 'h-[36px] pl-7 pr-9 text-base sm:text-xs',
+    lg: 'h-10 pl-8 pr-10 text-base sm:text-sm',
 };
 
 const sizeClassesWithIcon: Record<SelectSize, string> = {

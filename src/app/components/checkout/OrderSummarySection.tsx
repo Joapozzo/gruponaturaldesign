@@ -3,6 +3,8 @@
 import type { CartItem, CustomerData, ShippingData } from '@/app/types/cart';
 import type { CuponAplicado } from '@/app/types/cupones';
 import { formatPrice } from '@/app/utils/productHelpers';
+import { formatShippingAddressLine } from '@/app/utils/shippingAddress';
+import { CheckoutShippingMethodsInfo } from '@/app/components/checkout/CheckoutShippingMethodsInfo';
 import {
   type CheckoutPriceMode,
   resolveCartLineSubtotal,
@@ -181,10 +183,7 @@ function ShippingBlock({
             </p>
             {(shippingData.checkoutDelivery ?? 'homeDelivery') === 'homeDelivery' ? (
               <>
-                <p>{shippingData.direccion}</p>
-                <p>
-                  {shippingData.localidad}, {shippingData.provincia}
-                </p>
+                <p>{formatShippingAddressLine(shippingData) || shippingData.direccion}</p>
               </>
             ) : shippingData.checkoutEnvio?.agencyLabel ? (
               <p>{shippingData.checkoutEnvio.agencyLabel}</p>
@@ -303,7 +302,7 @@ export default function OrderSummarySection({
         Resumen final
       </h2>
 
-      <div className="max-h-[60vh] lg:max-h-[70vh] overflow-y-auto pr-2 space-y-2 sm:space-y-3 lg:min-w-0">
+      <div className="max-h-[60vh] lg:max-h-[70vh] min-w-0 overflow-x-hidden overflow-y-auto space-y-2 sm:space-y-3">
         <div className="bg-gray-50/80 border border-gray-200 p-3 sm:p-4 rounded-lg space-y-2 sm:space-y-3">
           <ProductsBlock items={items} priceMode={priceMode} />
         </div>
@@ -324,6 +323,8 @@ export default function OrderSummarySection({
             cuponAplicado={cuponAplicado}
           />
         </div>
+
+        <CheckoutShippingMethodsInfo variant="summary" />
       </div>
     </div>
   );

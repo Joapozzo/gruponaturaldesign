@@ -32,6 +32,9 @@ export function useCheckoutStep2Form(
     fecha_nacimiento: customerData?.fecha_nacimiento || '',
     documento: customerData?.documento || '',
     tipo_documento: customerData?.tipo_documento || 'DNI',
+    necesitaFactura: customerData?.necesitaFactura ?? false,
+    facturaTipo: customerData?.facturaTipo ?? null,
+    facturaRazonSocial: customerData?.facturaRazonSocial ?? '',
   });
 
   const [confirmEmail, setConfirmEmail] = useState<string>(customerData?.email || '');
@@ -52,6 +55,9 @@ export function useCheckoutStep2Form(
       fecha_nacimiento: prev.fecha_nacimiento ?? customerData.fecha_nacimiento ?? '',
       documento: prev.documento ?? customerData.documento ?? '',
       tipo_documento: prev.tipo_documento ?? customerData.tipo_documento ?? 'DNI',
+      necesitaFactura: prev.necesitaFactura ?? customerData.necesitaFactura ?? false,
+      facturaTipo: prev.facturaTipo ?? customerData.facturaTipo ?? null,
+      facturaRazonSocial: prev.facturaRazonSocial ?? customerData.facturaRazonSocial ?? '',
     }));
     setConfirmEmail((c) => c || customerData.email || '');
   }, [
@@ -64,7 +70,33 @@ export function useCheckoutStep2Form(
     customerData?.fecha_nacimiento,
     customerData?.documento,
     customerData?.tipo_documento,
+    customerData?.necesitaFactura,
+    customerData?.facturaTipo,
+    customerData?.facturaRazonSocial,
   ]);
+
+  const handleNecesitaFacturaChange = useCallback(
+    (checked: boolean) => {
+      const nextFormData: CustomerData = {
+        ...formData,
+        necesitaFactura: checked,
+        facturaTipo: checked ? formData.facturaTipo ?? null : null,
+        facturaRazonSocial: checked ? formData.facturaRazonSocial ?? '' : '',
+        cuit: checked ? formData.cuit ?? '' : formData.cuit,
+      };
+      setFormData(nextFormData);
+      if (!checked) {
+        setErrors((prev) => {
+          const next = { ...prev };
+          delete next.facturaTipo;
+          delete next.facturaCuit;
+          delete next.facturaRazonSocial;
+          return next;
+        });
+      }
+    },
+    [formData]
+  );
 
   const handleCustomerChange = useCallback(
     (field: keyof CustomerData, value: string) => {
@@ -141,6 +173,11 @@ export function useCheckoutStep2Form(
     if (formData.documento) {
       newTouched.documento = true;
     }
+    if (formData.necesitaFactura) {
+      newTouched.facturaTipo = true;
+      newTouched.facturaCuit = true;
+      newTouched.facturaRazonSocial = true;
+    }
     setTouched((prev) => ({ ...prev, ...newTouched }));
 
     const { ok, errors: nextErrors } = validateCheckoutCustomerOnly(
@@ -163,5 +200,6 @@ export function useCheckoutStep2Form(
     handleConfirmEmailChange,
     handleBlur,
     handleSubmit,
+    handleNecesitaFacturaChange,
   };
 }

@@ -1,35 +1,46 @@
+'use client';
+
 import { useCallback } from 'react';
-import { WHATSAPP_PHONE_NUMBER } from '@/app/utils/constants';
+import { useTiendaConfig } from '@/app/hooks/useTiendaConfig';
+import {
+  WHATSAPP_PHONE_NUMBER,
+  WHATSAPP_DEFAULT_MESSAGE,
+  getWhatsAppNumberForUrl,
+} from '@/app/utils/constants';
 
 interface UseWhatsAppProps {
-    phoneNumber?: string;
-    defaultMessage?: string;
+  phoneNumber?: string;
+  defaultMessage?: string;
 }
 
-export const useWhatsApp = ({
-    phoneNumber = WHATSAPP_PHONE_NUMBER,
-    defaultMessage = "¡Hola! Me interesa conocer más sobre los uniformes de NTDS. ¿Te gustaría hablar conmigo?"
-}: UseWhatsAppProps = {}) => {
+export const useWhatsApp = ({ phoneNumber, defaultMessage }: UseWhatsAppProps = {}) => {
+  const tienda = useTiendaConfig();
+  const resolvedPhone = phoneNumber ?? tienda.whatsappTelefono ?? WHATSAPP_PHONE_NUMBER;
+  const resolvedMessage = defaultMessage ?? tienda.whatsappMensajeDefault ?? WHATSAPP_DEFAULT_MESSAGE;
 
-    const openWhatsApp = useCallback((customMessage?: string) => {
-        const message = customMessage || defaultMessage;
-        const encodedMessage = encodeURIComponent(message);
-        const whatsappUrl = `https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodedMessage}`;
+  const openWhatsApp = useCallback(
+    (customMessage?: string) => {
+      const message = customMessage || resolvedMessage;
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/${getWhatsAppNumberForUrl(resolvedPhone)}?text=${encodedMessage}`;
+      window.open(whatsappUrl, '_blank');
+    },
+    [resolvedPhone, resolvedMessage]
+  );
 
-        // Abrir en nueva pestaña
-        window.open(whatsappUrl, '_blank');
-    }, [phoneNumber, defaultMessage]);
+  const getWhatsAppLink = useCallback(
+    (customMessage?: string) => {
+      const message = customMessage || resolvedMessage;
+      const encodedMessage = encodeURIComponent(message);
+      return `https://wa.me/${getWhatsAppNumberForUrl(resolvedPhone)}?text=${encodedMessage}`;
+    },
+    [resolvedPhone, resolvedMessage]
+  );
 
-    const getWhatsAppLink = useCallback((customMessage?: string) => {
-        const message = customMessage || defaultMessage;
-        const encodedMessage = encodeURIComponent(message);
-        return `https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodedMessage}`;
-    }, [phoneNumber, defaultMessage]);
-
-    return {
-        openWhatsApp,
-        getWhatsAppLink,
-        phoneNumber,
-        defaultMessage
-    };
+  return {
+    openWhatsApp,
+    getWhatsAppLink,
+    phoneNumber: resolvedPhone,
+    defaultMessage: resolvedMessage,
+  };
 };

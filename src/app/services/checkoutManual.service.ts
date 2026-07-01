@@ -31,7 +31,6 @@ export interface InstruccionesPagoResponse {
   customerEmail: string;
   customerName: string;
   bank: DatosBancariosPublic | null;
-  instrucciones: string | null;
   bankConfigured: boolean;
 }
 

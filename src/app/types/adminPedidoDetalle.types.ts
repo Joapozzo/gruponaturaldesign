@@ -32,6 +32,10 @@ export interface AdminPedidoDetalle {
   syncError?: string | null;
   sfactoryError?: string | null;
   tipoCliente?: string;
+  necesitaFactura?: boolean;
+  facturaTipo?: string | null;
+  facturaCuit?: string | null;
+  facturaRazonSocial?: string | null;
   clienteNombre: string;
   clienteEmail: string;
   clienteTelefono?: string | null;

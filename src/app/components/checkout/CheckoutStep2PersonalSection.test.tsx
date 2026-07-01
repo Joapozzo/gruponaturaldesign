@@ -22,10 +22,11 @@ describe('CheckoutStep2PersonalSection', () => {
         onCustomerChange={vi.fn()}
         onConfirmEmailChange={vi.fn()}
         onBlur={vi.fn()}
+        onNecesitaFacturaChange={vi.fn()}
       />
     );
     expect(screen.getByText('Requerido')).toBeTruthy();
-    expect(screen.getByText('INFORMACIÓN PERSONAL')).toBeTruthy();
+    expect(screen.getByText('Nombre')).toBeTruthy();
   });
 
   it('no muestra error si el campo no fue touched', () => {
@@ -38,6 +39,7 @@ describe('CheckoutStep2PersonalSection', () => {
         onCustomerChange={vi.fn()}
         onConfirmEmailChange={vi.fn()}
         onBlur={vi.fn()}
+        onNecesitaFacturaChange={vi.fn()}
       />
     );
     expect(screen.queryByText('Requerido')).toBeNull();
@@ -54,6 +56,7 @@ describe('CheckoutStep2PersonalSection', () => {
         onCustomerChange={onCustomerChange}
         onConfirmEmailChange={vi.fn()}
         onBlur={vi.fn()}
+        onNecesitaFacturaChange={vi.fn()}
       />
     );
     fireEvent.change(screen.getByPlaceholderText('Nombre'), { target: { value: 'Ana' } });

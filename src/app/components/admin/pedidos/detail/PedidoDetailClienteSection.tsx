@@ -25,6 +25,22 @@ export function PedidoDetailClienteSection({ pedido }: PedidoDetailClienteSectio
           <dt className="text-neutral-500">Dirección</dt>
           <dd>{pedido.clienteDireccion || '—'}</dd>
         </div>
+        {pedido.necesitaFactura ? (
+          <>
+            <div>
+              <dt className="text-neutral-500">Factura</dt>
+              <dd className="font-medium">Tipo {pedido.facturaTipo ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-neutral-500">CUIT factura</dt>
+              <dd>{pedido.facturaCuit || '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-neutral-500">Razón social factura</dt>
+              <dd>{pedido.facturaRazonSocial || '—'}</dd>
+            </div>
+          </>
+        ) : null}
         <div>
           <dt className="text-neutral-500">Ref. cliente</dt>
           <dd>{pedido.refCliente || '—'}</dd>

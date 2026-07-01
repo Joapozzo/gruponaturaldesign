@@ -1,7 +1,14 @@
 import { describe, it, expect } from 'vitest';
+import type { ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import OrderSummarySection from './OrderSummarySection';
 import type { CartItem, CustomerData, ShippingData } from '@/app/types/cart';
+
+function renderWithQuery(ui: ReactElement) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+}
 
 const customer: CustomerData = {
   nombre: 'Juan',
@@ -28,7 +35,7 @@ const item: CartItem = {
 describe('OrderSummarySection', () => {
   it('muestra productos, cliente y total con envío y cupón', () => {
     const shipping: ShippingData = { tipo: 'retiro' };
-    render(
+    renderWithQuery(
       <OrderSummarySection
         customerData={customer}
         shippingData={shipping}
@@ -37,7 +44,14 @@ describe('OrderSummarySection', () => {
         subtotal={200}
         total={242}
         shippingExtra={500}
-        cuponAplicado={{ codigo: 'OFF10', descuentoTotal: 20 }}
+        cuponAplicado={{
+          id: 1,
+          codigo: 'OFF10',
+          nombre: 'OFF10',
+          tipoDescuento: 'monto_fijo',
+          valorDescuento: 20,
+          descuentoTotal: 20,
+        }}
       />
     );
 
@@ -60,7 +74,7 @@ describe('OrderSummarySection', () => {
       checkoutDelivery: 'homeDelivery',
       checkoutProvider: 'andreani',
     };
-    render(
+    renderWithQuery(
       <OrderSummarySection
         customerData={customer}
         shippingData={shipping}
@@ -72,12 +86,37 @@ describe('OrderSummarySection', () => {
     );
     expect(screen.getByText(/Envío a domicilio/)).toBeTruthy();
     expect(screen.getByText(/Calle 1/)).toBeTruthy();
-    expect(screen.getByText(/Andreani/)).toBeTruthy();
+    expect(screen.getAllByText(/Andreani/).length).toBeGreaterThan(0);
+    expect(screen.getByText(/MEDIOS DE ENVÍO/i)).toBeTruthy();
+  });
+
+  it('muestra dirección desglosada calle y número', () => {
+    const shipping: ShippingData = {
+      tipo: 'envio',
+      calle: 'San Martín',
+      numero: '250',
+      localidad: 'Córdoba',
+      provincia: 'Córdoba',
+      codigo_postal: '5000',
+      checkoutDelivery: 'homeDelivery',
+    };
+    renderWithQuery(
+      <OrderSummarySection
+        customerData={customer}
+        shippingData={shipping}
+        items={[item]}
+        itemCount={2}
+        subtotal={200}
+        total={242}
+      />
+    );
+    expect(screen.getByText(/San Martín/)).toBeTruthy();
+    expect(screen.getByText(/250/)).toBeTruthy();
   });
 
   it('footer mobile muestra solo productos y totales', () => {
     const shipping: ShippingData = { tipo: 'retiro' };
-    render(
+    renderWithQuery(
       <OrderSummarySection
         customerData={customer}
         shippingData={shipping}

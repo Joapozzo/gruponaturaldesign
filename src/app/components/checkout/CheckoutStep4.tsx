@@ -13,8 +13,11 @@ import { CheckoutCuponSection } from '@/components/cupon/CheckoutCuponSection';
 import {
   mapCartItemsToMpPayload,
   buildCheckoutEnvioForMp,
+  buildClienteDireccionFromShipping,
   iniciarPagoManual,
 } from '@/app/services/checkoutMp.service';
+import type { CustomerData } from '@/app/types/cart';
+import { CheckoutPaymentProofBanner } from '@/app/components/checkout/CheckoutPaymentProofBanner';
 import { saveCheckoutManualSnapshot } from '@/app/services/checkoutManual.service';
 import { PaymentData, type MpCheckoutModo } from '@/app/types/cart';
 import { RiBankLine } from 'react-icons/ri';
@@ -30,6 +33,18 @@ import { usePrecioConfigPublic } from '@/app/hooks/usePrecioConfigPublic';
 import { buildHastaCuotasConMpLabel } from '@/app/utils/precioDisplay';
 import { resolveCheckoutPriceMode } from '@/app/utils/checkoutPricing';
 import toast from 'react-hot-toast';
+
+function buildFacturaPayload(customer: CustomerData) {
+  if (!customer.necesitaFactura) {
+    return { necesitaFactura: false as const };
+  }
+  return {
+    necesitaFactura: true as const,
+    facturaTipo: customer.facturaTipo ?? undefined,
+    facturaCuit: customer.cuit ?? undefined,
+    facturaRazonSocial: customer.facturaRazonSocial ?? undefined,
+  };
+}
 
 interface CheckoutStep4Props {
   onBack: () => void;
@@ -189,16 +204,10 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
 
       const clienteNombre = `${customerData.nombre} ${customerData.apellido}`.trim();
       const clienteDireccion =
-        shippingData?.tipo === 'envio'
-          ? (shippingData.checkoutDelivery ?? 'homeDelivery') === 'agency' &&
-            shippingData.checkoutEnvio?.agencyLabel
-            ? `Retiro sucursal: ${shippingData.checkoutEnvio.agencyLabel}`
-            : [shippingData.direccion, shippingData.localidad, shippingData.provincia]
-                .filter(Boolean)
-                .join(', ')
-          : undefined;
+        shippingData?.tipo === 'envio' ? buildClienteDireccionFromShipping(shippingData) : undefined;
       const checkoutEnvio = shippingData ? buildCheckoutEnvioForMp(shippingData) : undefined;
       const observaciones = [payment.notas, shippingData?.notas].filter(Boolean).join(' | ') || undefined;
+      const factura = buildFacturaPayload(customerData);
 
       const mpPriceMode = payment.mpModo === 'transfer' ? 'transfer' : 'lista';
 
@@ -211,6 +220,7 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
           observaciones,
           items: mapCartItemsToMpPayload(items, mpPriceMode),
           mpPricingMode: payment.mpModo,
+          ...factura,
           ...(checkoutEnvio ? { checkoutEnvio } : {}),
         },
         snapshot: {
@@ -241,16 +251,10 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
 
       const clienteNombre = `${customerData.nombre} ${customerData.apellido}`.trim();
       const clienteDireccion =
-        shippingData?.tipo === 'envio'
-          ? (shippingData.checkoutDelivery ?? 'homeDelivery') === 'agency' &&
-            shippingData.checkoutEnvio?.agencyLabel
-            ? `Retiro sucursal: ${shippingData.checkoutEnvio.agencyLabel}`
-            : [shippingData.direccion, shippingData.localidad, shippingData.provincia]
-                .filter(Boolean)
-                .join(', ')
-          : undefined;
+        shippingData?.tipo === 'envio' ? buildClienteDireccionFromShipping(shippingData) : undefined;
       const checkoutEnvio = shippingData ? buildCheckoutEnvioForMp(shippingData) : undefined;
       const observaciones = [payment.notas, shippingData?.notas].filter(Boolean).join(' | ') || undefined;
+      const factura = buildFacturaPayload(customerData);
 
       const pedidoData = await iniciarPagoManual({
         clienteNombre: clienteNombre || customerData.email,
@@ -260,6 +264,7 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
         observaciones,
         items: mapCartItemsToMpPayload(items, 'transfer'),
         formaPago: payment.metodo as 'efectivo' | 'transferencia',
+        ...factura,
         ...(checkoutEnvio ? { checkoutEnvio } : {}),
         cuponCodigo,
       });
@@ -490,6 +495,10 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
             <p>{manualError}</p>
           </div>
         )}
+
+        {payment.metodo === 'transferencia' || payment.metodo === 'efectivo' ? (
+          <CheckoutPaymentProofBanner formaPago={payment.metodo} />
+        ) : null}
 
         <div className="hidden lg:block">
           <CheckoutActionBar

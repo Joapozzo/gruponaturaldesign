@@ -61,4 +61,39 @@ describe('checkoutStep2.validation', () => {
       validateCheckoutField('codigo_postal', '', ctx({ shipping, formData: baseCustomer }))
     ).toBe('Requerido para envío');
   });
+
+  it('factura A/C exige tipo, CUIT y razón social', () => {
+    const withFactura: CustomerData = {
+      ...baseCustomer,
+      necesitaFactura: true,
+      facturaTipo: undefined,
+      cuit: '',
+      facturaRazonSocial: '',
+    };
+    expect(
+      validateCheckoutField('facturaTipo', '', ctx({ formData: withFactura }))
+    ).toBe('Elegí tipo de factura');
+    expect(
+      validateCheckoutField('facturaCuit', '123', ctx({ formData: withFactura }))
+    ).toMatch(/CUIT/);
+    expect(
+      validateCheckoutField('facturaRazonSocial', 'A', ctx({ formData: withFactura }))
+    ).toMatch(/razón social/i);
+  });
+
+  it('calle y número obligatorios en envío a domicilio', () => {
+    const shipping: ShippingData = {
+      tipo: 'envio',
+      checkoutDelivery: 'homeDelivery',
+      localidad: 'Córdoba',
+      provincia: 'Córdoba',
+      codigo_postal: '5000',
+    };
+    expect(
+      validateCheckoutField('calle', '', ctx({ shipping, formData: baseCustomer }))
+    ).toBe('Requerido para envío a domicilio');
+    expect(
+      validateCheckoutField('numero', '', ctx({ shipping: { ...shipping, calle: 'Colón' }, formData: baseCustomer }))
+    ).toBe('Requerido para envío a domicilio');
+  });
 });

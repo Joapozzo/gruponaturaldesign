@@ -7,6 +7,7 @@ import { Home, ChevronRight, Copy, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Button from '@/components/ui/Button';
 import NewsletterConfirmationBanner from '@/app/components/newsletter/NewsletterConfirmationBanner';
+import { CheckoutPaymentProofBanner } from '@/app/components/checkout/CheckoutPaymentProofBanner';
 import { useCart } from '@/app/components/hooks/useCart';
 import {
   clearCheckoutManualSnapshot,
@@ -145,6 +146,8 @@ function InstruccionesPagoInner() {
 
   const isTransfer = data?.formaPago === 'transferencia';
   const expiresLabel = formatExpiresAt(data?.expiresAt ?? null);
+  const showNextStepsBanner =
+    data != null && (data.formaPago === 'efectivo' || (isTransfer && data.bankConfigured));
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -206,26 +209,26 @@ function InstruccionesPagoInner() {
                 {data.bank.alias ? (
                   <BankRow label="Alias" value={data.bank.alias} copyLabel="Alias" />
                 ) : null}
+                {data.bank.instrucciones ? (
+                  <p className="text-sm text-gray-600 mt-4 pt-4 border-t border-gray-200">
+                    {data.bank.instrucciones}
+                  </p>
+                ) : null}
               </section>
             ) : isTransfer && !data.bankConfigured ? (
               <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-4">
                 Los datos bancarios se están actualizando. Te contactaremos a la brevedad con la
                 información para transferir.
               </p>
-            ) : (
-              <p className="text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-4">
-                Elegiste pago en efectivo. Te vamos a contactar para coordinar el pago o la
-                entrega. Incluí el número de pedido <strong>{data.externalOrderId}</strong> al
-                coordinar.
-              </p>
-            )}
+            ) : null}
 
-            {(data.instrucciones || data.bank?.instrucciones) && (
-              <p className="text-sm text-gray-700">
-                <span className="font-semibold">Importante:</span>{' '}
-                {data.instrucciones ?? data.bank?.instrucciones}
-              </p>
-            )}
+            {showNextStepsBanner ? (
+              <CheckoutPaymentProofBanner
+                formaPago={data.formaPago}
+                variant="confirmation"
+                externalOrderId={data.externalOrderId}
+              />
+            ) : null}
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
               <Button variant="brandRed" onClick={() => router.push('/')}>

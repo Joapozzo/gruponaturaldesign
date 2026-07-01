@@ -109,6 +109,15 @@
   textarea::placeholder {
     @apply text-gray-600;
   }
+
+  /* iOS Safari hace zoom si font-size < 16px al enfocar */
+  @media (max-width: 639px) {
+    input,
+    textarea,
+    select {
+      font-size: 16px;
+    }
+  }
 }
 
 @layer utilities {

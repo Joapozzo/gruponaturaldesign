@@ -1,9 +1,9 @@
 'use client';
 
-import { MapPin, Store, Truck } from 'lucide-react';
 import type { CartItem } from '@/app/types/cart';
 import { formatPrice } from '@/app/utils/productHelpers';
 import { CheckoutActionBar } from '@/app/components/checkout/CheckoutActionBar';
+import { CheckoutShippingMethodsInfo } from '@/app/components/checkout/CheckoutShippingMethodsInfo';
 
 type Props = {
   items: CartItem[];
@@ -82,41 +82,7 @@ export function CheckoutStep2Sidebar({
         </div>
       </div>
 
-      <div className="hidden lg:block bg-black text-white rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-3">
-        <h3 className="text-xs sm:text-sm font-bold mb-1.5 sm:mb-2">MEDIOS DE ENVÍO</h3>
-        <div className="text-[10px] sm:text-xs space-y-1.5 sm:space-y-2 text-gray-300">
-          <div>
-            <p className="font-semibold text-white mb-1 flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 shrink-0" aria-hidden />
-              Dentro de Ciudad de Cba:
-            </p>
-            <p className="ml-2">Servicio de cadetería a coordinar con el vendedor</p>
-            <p className="ml-2 text-gray-400">El costo corre por cuenta del cliente</p>
-          </div>
-          <div>
-            <p className="font-semibold text-white mb-1 flex items-center gap-1.5">
-              <Truck className="w-3.5 h-3.5 shrink-0" aria-hidden />
-              Interior de Cba. y Resto del país:
-            </p>
-            <p className="ml-2">A través de Correo Andreani</p>
-            <p className="ml-2 text-gray-400">El costo corre por cuenta del cliente</p>
-          </div>
-          <div>
-            <p className="font-semibold text-white mb-1 flex items-center gap-1.5">
-              <Store className="w-3.5 h-3.5 shrink-0" aria-hidden />
-              PICK UP:
-            </p>
-            <p className="ml-2">Coordina tu retiro por nuestro punto en Alta Cba.</p>
-            <p className="ml-2">Te enviaremos las instrucciones de retiro por email.</p>
-            {/* WhatsApp deshabilitado en checkout
-            <p className="ml-2">
-              Comunícate a través de WhatsApp al{' '}
-              <a href={`https://wa.me/...`} ...>{WHATSAPP_PHONE_NUMBER}</a>
-            </p>
-            */}
-          </div>
-        </div>
-      </div>
+      <CheckoutShippingMethodsInfo variant="sidebar" />
 
       <CheckoutActionBar
         onBack={onBack}
