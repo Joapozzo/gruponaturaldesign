@@ -120,9 +120,9 @@ const COLOR_MAPPING: { [key: string]: string[] } = {
     // buzo-standard-unisex-grismelange-1.jpg (para Gris Melange) - SIN GUION entre gris y melange
     // buzo-standard-unisex-gristopo-1.jpg (para Gris Topo)
     // buzo-standard-unisex-negro-1.jpg (para Negro)
-    'azul marino': ['azulmarino', 'marino'],
-    'azul-marino': ['azulmarino', 'marino'],
-    'azul mar': ['azulmarino', 'marino'],
+    'azul marino': ['azulmarino', 'azul-mar', 'marino'],
+    'azul-marino': ['azulmarino', 'azul-mar', 'marino'],
+    'azul mar': ['azulmarino', 'azul-mar', 'marino'],
     'gris melange claro': ['grismelangeclaro', 'grismelclaro', 'melangeclaro'],
     'gris-melange-claro': ['grismelangeclaro', 'grismelclaro', 'melangeclaro'],
     'gris melange oscuro': ['grismelangeoscuro', 'grismeloscuro', 'melangeoscuro'],

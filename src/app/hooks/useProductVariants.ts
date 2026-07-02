@@ -216,6 +216,40 @@ function findBestSelectableVariantForColor(
     return colorVariants.find((v) => isValidSelectableVariant(v, requireStock, groupedProduct));
 }
 
+function getColorUnselectableReason(
+    groupedProduct: GroupedProduct,
+    color: string,
+): string | null {
+    if (
+        findBestSelectableVariantForColor(groupedProduct, color, null, true) ||
+        findBestSelectableVariantForColor(groupedProduct, color, null, false)
+    ) {
+        return null;
+    }
+
+    const colorLower = color.toLowerCase();
+    const colorVariants = groupedProduct.variants.filter(
+        (v) => v.color?.toLowerCase() === colorLower,
+    );
+
+    if (colorVariants.length === 0) return 'No disponible';
+
+    const withStock = colorVariants.filter((v) => hasStock(v));
+    if (withStock.length === 0) return 'Sin stock';
+
+    const withStockAndImage = withStock.filter((v) =>
+        isValidSelectableVariant(v, false, groupedProduct),
+    );
+    if (withStockAndImage.length === 0) return 'Sin imagen para este color';
+
+    return 'No disponible';
+}
+
+export type ColorSelectability = {
+    selectable: boolean;
+    reason?: string;
+};
+
 function findDefaultSelectableVariant(
     groupedProduct: GroupedProduct,
     preferredTalle?: string | null,
@@ -433,6 +467,10 @@ export function useProductVariants(groupedProduct: GroupedProduct | null) {
             .map((v) => v.talle!)
             .filter((talle, index, self) => self.indexOf(talle) === index);
 
+        if (groupedProduct.availableSizes && groupedProduct.availableSizes.length > 0) {
+            return sizes.filter((t) => groupedProduct.availableSizes!.includes(t));
+        }
+
         return sizes;
     };
 
@@ -446,6 +484,20 @@ export function useProductVariants(groupedProduct: GroupedProduct | null) {
     }, [groupedProduct, selectedColor, hasColors]);
 
     const orderedAvailableSizes = availableSizes;
+
+    const colorSelectability = useMemo((): Record<string, ColorSelectability> => {
+        if (!groupedProduct?.availableColors?.length) return {};
+
+        const map: Record<string, ColorSelectability> = {};
+        for (const color of groupedProduct.availableColors) {
+            const reason = getColorUnselectableReason(groupedProduct, color);
+            map[color] = {
+                selectable: reason === null,
+                reason: reason ?? undefined,
+            };
+        }
+        return map;
+    }, [groupedProduct]);
 
     const handleColorSelect = (color: string) => {
         if (!groupedProduct) return;
@@ -491,6 +543,7 @@ export function useProductVariants(groupedProduct: GroupedProduct | null) {
         selectedVariant,
         orderedAvailableSizes,
         hasColors,
+        colorSelectability,
         handleColorSelect,
         handleSizeSelect,
     };

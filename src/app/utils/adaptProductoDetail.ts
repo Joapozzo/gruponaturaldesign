@@ -277,12 +277,24 @@ export function adaptProductoPadreToGroupedProduct(
 
   const colorsForSelector = availableColors.length > 0 ? availableColors : allColors;
 
-  const availableSizes = Array.from(
+  const variantTalles = Array.from(
     new Set(
       (productoPadre.productosWeb || [])
         .map((v) => v.talle)
         .filter((t): t is string => !!t)
     )
+  );
+
+  const padreTalles = Array.isArray(productoPadre.tallesDisponibles)
+    ? productoPadre.tallesDisponibles.filter(
+        (t): t is string => typeof t === 'string' && !!t,
+      )
+    : [];
+
+  const availableSizes = (
+    padreTalles.length > 0
+      ? variantTalles.filter((t) => padreTalles.includes(t))
+      : variantTalles
   ).sort();
 
   return {
