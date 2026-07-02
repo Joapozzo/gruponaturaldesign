@@ -80,6 +80,7 @@ export default function ProductDetailPageContent({
     hasColors,
     handleColorSelect,
     handleSizeSelect,
+    colorSelectability,
   } = useProductVariants(groupedProduct);
 
   // Este color agotado: el color seleccionado no tiene stock en ningún talle
@@ -280,6 +281,7 @@ export default function ProductDetailPageContent({
                   selectedSize={selectedSize}
                   availableSizes={orderedAvailableSizes}
                   hasColors={hasColors}
+                  colorSelectability={colorSelectability}
                   onColorSelect={handleColorSelect}
                   onSizeSelect={handleSizeSelect}
                 />
