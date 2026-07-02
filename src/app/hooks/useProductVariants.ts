@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { GroupedProduct, ProductVariant } from '@/app/types/producto';
+import { filterTallesForWebSelector } from '@/app/utils/webTalles.util';
 
 const SIZE_ORDER: { [key: string]: number } = {
     '2xs': 1,
@@ -76,6 +77,14 @@ function hasProductLevelImages(groupedProduct: GroupedProduct): boolean {
     );
 }
 
+function hasColorImages(groupedProduct: GroupedProduct, color: string): boolean {
+    const colorLower = color.toLowerCase();
+    return groupedProduct.variants.some(
+        (v) =>
+            v.color?.toLowerCase() === colorLower && hasVariantImages(v),
+    );
+}
+
 function isValidSelectableVariant(
     variant: ProductVariant,
     requireStock: boolean,
@@ -86,8 +95,19 @@ function isValidSelectableVariant(
         !productHasColors(groupedProduct) &&
         hasProductLevelImages(groupedProduct);
 
-    if (!skipImageCheck && !hasVariantImages(variant)) return false;
+    if (!skipImageCheck) {
+        if (
+            variant.color &&
+            groupedProduct &&
+            productHasColors(groupedProduct)
+        ) {
+            if (!hasColorImages(groupedProduct, variant.color)) return false;
+        } else if (!hasVariantImages(variant)) {
+            return false;
+        }
+    }
     if (requireStock && !hasStock(variant)) return false;
+    if (!variant.talle && groupedProduct?.availableSizes?.length) return false;
     return true;
 }
 
@@ -468,10 +488,12 @@ export function useProductVariants(groupedProduct: GroupedProduct | null) {
             .filter((talle, index, self) => self.indexOf(talle) === index);
 
         if (groupedProduct.availableSizes && groupedProduct.availableSizes.length > 0) {
-            return sizes.filter((t) => groupedProduct.availableSizes!.includes(t));
+            return filterTallesForWebSelector(
+                sizes.filter((t) => groupedProduct.availableSizes!.includes(t)),
+            );
         }
 
-        return sizes;
+        return filterTallesForWebSelector(sizes);
     };
 
     const hasColors = groupedProduct ? productHasColors(groupedProduct) : false;

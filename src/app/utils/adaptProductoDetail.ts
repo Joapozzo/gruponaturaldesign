@@ -6,6 +6,7 @@ import type { ProductoPadreConVariantes } from '../types/producto-detail.types';
 import type { GroupedProduct, ProductWithImage, ProductVariant } from '../types/producto';
 import { normalizeImageUrl } from './normalizeImageUrl';
 import { filterImagesByColor } from './productHelpers';
+import { filterTallesForWebSelector } from './webTalles.util';
 
 function collectPadreImagenes(productoPadre: ProductoPadreConVariantes): string[] {
   const urls: string[] = [];
@@ -98,8 +99,7 @@ function getImagenesForColor(
     }
 
     for (const img of variante.imagenes ?? []) {
-      if (!img.imagenUrl) continue;
-      if (!img.color || img.color.toLowerCase() === colorLower) {
+      if (img.imagenUrl) {
         add(img.imagenUrl);
       }
     }
@@ -291,10 +291,10 @@ export function adaptProductoPadreToGroupedProduct(
       )
     : [];
 
-  const availableSizes = (
+  const availableSizes = filterTallesForWebSelector(
     padreTalles.length > 0
       ? variantTalles.filter((t) => padreTalles.includes(t))
-      : variantTalles
+      : variantTalles,
   ).sort();
 
   return {
