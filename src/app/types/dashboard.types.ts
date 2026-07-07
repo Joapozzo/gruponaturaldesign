@@ -61,6 +61,8 @@ export interface DashboardAlertasQueryInput {
   limiteSfactoryIssues?: number;
   limitePagoPendienteAntiguo?: number;
   horasPagoPendienteMin?: number;
+  limiteProximosAVencer?: number;
+  horasProximoVencimiento?: number;
 }
 
 export interface DashboardRecientesQueryInput {
@@ -116,9 +118,11 @@ export interface DashboardSerieResponse {
 export interface DashboardAlertasResponse {
   generatedAt: string;
   horasPagoPendienteMin: number;
+  horasProximoVencimiento?: number;
   pendientesConfirmacion: DashPedidoSnippet[];
   sfactoryIssues: DashPedidoSnippet[];
   pagoPendienteAntiguo: DashPedidoSnippet[];
+  proximosAVencer: DashPedidoSnippet[];
 }
 
 export interface DashboardRecientesResponse {

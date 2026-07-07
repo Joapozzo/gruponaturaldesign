@@ -106,6 +106,7 @@ export interface AlertasSummary {
   pendientesConfirmacion: number;
   sfactoryIssues: number;
   pagoPendienteAntiguo: number;
+  proximosAVencer: number;
   total: number;
 }
 
@@ -113,11 +114,13 @@ export function summarizeAlertas(data: DashboardAlertasResponse): AlertasSummary
   const pendientesConfirmacion = data.pendientesConfirmacion.length;
   const sfactoryIssues = data.sfactoryIssues.length;
   const pagoPendienteAntiguo = data.pagoPendienteAntiguo.length;
+  const proximosAVencer = data.proximosAVencer?.length ?? 0;
   return {
     pendientesConfirmacion,
     sfactoryIssues,
     pagoPendienteAntiguo,
-    total: pendientesConfirmacion + sfactoryIssues + pagoPendienteAntiguo,
+    proximosAVencer,
+    total: pendientesConfirmacion + sfactoryIssues + pagoPendienteAntiguo + proximosAVencer,
   };
 }
 

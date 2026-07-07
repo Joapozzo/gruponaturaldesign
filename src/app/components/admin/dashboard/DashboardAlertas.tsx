@@ -1,6 +1,6 @@
 'use client';
 
-import { Clock, AlertTriangle, CreditCard } from 'lucide-react';
+import { Clock, AlertTriangle, CreditCard, Timer } from 'lucide-react';
 import { useDashboardAlertas } from '@/app/hooks/dashboard';
 import { DashboardSectionCard } from './DashboardSectionCard';
 import { DashboardAlertasList } from './DashboardAlertasList';
@@ -42,7 +42,8 @@ export function DashboardAlertas() {
   const total =
     (data?.pendientesConfirmacion.length ?? 0) +
     (data?.sfactoryIssues.length ?? 0) +
-    (data?.pagoPendienteAntiguo.length ?? 0);
+    (data?.pagoPendienteAntiguo.length ?? 0) +
+    (data?.proximosAVencer?.length ?? 0);
 
   return (
     <DashboardSectionCard
@@ -96,6 +97,22 @@ export function DashboardAlertas() {
             emptyMessage="Sin pagos pendientes viejos"
             badgeVariant="info"
             href="/admin/pedidos?estado=pendiente_pago"
+          />
+        </AlertaBloque>
+
+        <AlertaBloque
+          icon={<Timer className="w-3.5 h-3.5" />}
+          iconClass="text-violet-600"
+          title="Próximos a vencer"
+          count={data?.proximosAVencer?.length ?? 0}
+          countClass="text-violet-700"
+        >
+          <DashboardAlertasList
+            items={data?.proximosAVencer ?? []}
+            icon={<Timer className="w-4 h-4" />}
+            emptyMessage="Sin vencimientos próximos"
+            badgeVariant="warning"
+            href="/admin/pedidos?estado=pendiente_pago,pendiente_confirmacion"
           />
         </AlertaBloque>
       </div>
