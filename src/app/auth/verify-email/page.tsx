@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,8 +8,8 @@ import { auth } from '@/lib/firebase';
 import Button from '@/components/ui/Button';
 import {
   AUTH_CALLBACK_PARAM,
-  getSafeCallbackPath,
-  resolvePostLoginDestination,
+  redirectAfterAuth,
+  resolveAuthCallbackPath,
   withAuthCallback,
 } from '@/lib/auth-callback-url';
 import toast from 'react-hot-toast';
@@ -29,13 +29,14 @@ function LoadingSkeleton() {
 function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = getSafeCallbackPath(searchParams.get(AUTH_CALLBACK_PARAM));
+  const callbackUrl = resolveAuthCallbackPath(searchParams.get(AUTH_CALLBACK_PARAM));
   const { firebaseUser, sessionState, isLoading, resendVerificationEmail, refreshSessionState, logout } = useAuth();
   const [resending, setResending] = useState(false);
   const [sent, setSent] = useState(false);
   const [checking, setChecking] = useState(false);
   const [checkMessage, setCheckMessage] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
+  const redirectingRef = useRef(false);
 
   useEffect(() => {
     if (isLoading) return;
@@ -43,12 +44,9 @@ function VerifyEmailContent() {
       router.replace(withAuthCallback('/auth/login', callbackUrl));
       return;
     }
-    if (sessionState && !sessionState.needsEmailVerification) {
-      if (sessionState.needsOnboarding) {
-        router.replace(withAuthCallback('/auth/onboarding', callbackUrl));
-      } else {
-        router.replace(resolvePostLoginDestination(sessionState.role, callbackUrl));
-      }
+    if (sessionState && !sessionState.needsEmailVerification && !redirectingRef.current) {
+      redirectingRef.current = true;
+      redirectAfterAuth(sessionState, callbackUrl);
     }
   }, [firebaseUser, sessionState, isLoading, router, callbackUrl]);
 

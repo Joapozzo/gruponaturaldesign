@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/app/components/hooks/useCart';
 import { useSyncAuthToCart } from '@/app/hooks/useSyncAuthToCart';
 import CheckoutShell from '@/app/components/checkout/CheckoutShell';
@@ -26,7 +27,8 @@ export default function CheckoutLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { itemCount } = useCart();
+  const { items, itemCount } = useCart();
+  const { isLoading: authLoading } = useAuth();
   const [cartHydrated, setCartHydrated] = useState(() => {
     if (typeof window === 'undefined') return false;
     return useCartStore.persist?.hasHydrated() ?? false;
@@ -41,15 +43,16 @@ export default function CheckoutLayout({
   }, []);
 
   useEffect(() => {
-    if (!cartHydrated) return;
+    if (!cartHydrated || authLoading) return;
+    const hasItems = items.length > 0 || itemCount > 0;
     if (
-      itemCount === 0 &&
+      !hasItems &&
       pathname != null &&
       CHECKOUT_ROUTES_REQUIRE_CART.includes(pathname)
     ) {
       router.replace('/shoponline');
     }
-  }, [pathname, router, itemCount, cartHydrated]);
+  }, [pathname, router, items.length, itemCount, cartHydrated, authLoading]);
 
   if (isCheckoutStepPath(pathname)) {
     return <CheckoutShell>{children}</CheckoutShell>;

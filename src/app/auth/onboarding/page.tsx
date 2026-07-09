@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AuthForm } from '@/components/auth/AuthForm';
@@ -10,8 +10,8 @@ import { TextField } from '@/app/components/producto/fields/TextField';
 import { formatAuthError } from '@/lib/auth-errors';
 import {
   AUTH_CALLBACK_PARAM,
-  getSafeCallbackPath,
-  resolvePostLoginDestination,
+  redirectAfterAuth,
+  resolveAuthCallbackPath,
   withAuthCallback,
 } from '@/lib/auth-callback-url';
 import toast from 'react-hot-toast';
@@ -19,7 +19,7 @@ import toast from 'react-hot-toast';
 function OnboardingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = getSafeCallbackPath(searchParams.get(AUTH_CALLBACK_PARAM));
+  const callbackUrl = resolveAuthCallbackPath(searchParams.get(AUTH_CALLBACK_PARAM));
   const { firebaseUser, sessionState, isLoading, getToken, logout, refreshSessionState } = useAuth();
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
@@ -27,6 +27,7 @@ function OnboardingContent() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const redirectingRef = useRef(false);
 
   const handleVolverAtras = async (irAHome = false) => {
     setLeaving(true);
@@ -57,8 +58,9 @@ function OnboardingContent() {
       router.replace(withAuthCallback('/auth/login', callbackUrl));
       return;
     }
-    if (sessionState?.onboardingCompleted) {
-      router.replace(resolvePostLoginDestination(sessionState.role, callbackUrl));
+    if (sessionState?.onboardingCompleted && !redirectingRef.current) {
+      redirectingRef.current = true;
+      redirectAfterAuth(sessionState, callbackUrl);
       return;
     }
     if (sessionState?.needsEmailVerification) {
@@ -106,7 +108,9 @@ function OnboardingContent() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al guardar.');
       const nextState = await refreshSessionState();
-      router.replace(resolvePostLoginDestination(nextState?.role, callbackUrl));
+      if (!nextState) throw new Error('No se pudo actualizar la sesión.');
+      redirectingRef.current = true;
+      redirectAfterAuth(nextState, callbackUrl);
     } catch (err: unknown) {
       const msg = formatAuthError(err);
       setError(msg);

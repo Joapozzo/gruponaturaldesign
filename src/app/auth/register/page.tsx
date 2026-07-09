@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AuthForm } from '@/components/auth/AuthForm';
@@ -17,11 +17,14 @@ import { formatAuthError } from '@/lib/auth-errors';
 import { registerFormSchema } from '@/lib/schemas/register.schema';
 import {
   AUTH_CALLBACK_PARAM,
-  getSafeCallbackPath,
-  resolvePostLoginDestination,
+  redirectAfterAuth,
+  resolveAuthCallbackPath,
   withAuthCallback,
 } from '@/lib/auth-callback-url';
+import { AuthLoadingScreen } from '@/app/components/AuthLoadingScreen';
 import toast from 'react-hot-toast';
+
+const REGISTER_LOADING_MESSAGE = 'Creando tu cuenta...';
 
 const fieldVariants = {
   hidden: { opacity: 0, y: 10 },
@@ -33,28 +36,32 @@ const fieldVariants = {
 };
 
 function RegisterForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = getSafeCallbackPath(searchParams.get(AUTH_CALLBACK_PARAM));
-  const { register: registerFirebase, loginWithGoogle, firebaseUser, sessionState, isLoading: authLoading } = useAuth();
+  const callbackUrl = resolveAuthCallbackPath(
+    searchParams.get(AUTH_CALLBACK_PARAM) ?? searchParams.get('redirect'),
+  );
+  const {
+    register: registerFirebase,
+    loginWithGoogle,
+    firebaseUser,
+    sessionState,
+    isLoading: authLoading,
+    refreshSessionState,
+  } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const redirectingRef = useRef(false);
 
   useEffect(() => {
-    if (authLoading || !firebaseUser || !sessionState) return;
-    if (sessionState.needsEmailVerification) {
-      router.replace(withAuthCallback('/auth/verify-email', callbackUrl));
-      return;
-    }
-    if (sessionState.needsOnboarding) {
-      router.replace(withAuthCallback('/auth/onboarding', callbackUrl));
-      return;
-    }
-    router.replace(resolvePostLoginDestination(sessionState.role, callbackUrl));
-  }, [firebaseUser, sessionState, authLoading, router, callbackUrl]);
+    if (authLoading || !firebaseUser || !sessionState || redirectingRef.current) return;
+    redirectingRef.current = true;
+    setIsRedirecting(true);
+    redirectAfterAuth(sessionState, callbackUrl);
+  }, [firebaseUser, sessionState, authLoading, callbackUrl]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -78,13 +85,24 @@ function RegisterForm() {
     setIsLoading(true);
     try {
       await registerFirebase(result.data.email, result.data.password);
-      router.replace(withAuthCallback('/auth/verify-email', callbackUrl));
+      const state = await refreshSessionState();
+      if (!state) {
+        const msg = 'No se pudo completar el registro. Intentá de nuevo.';
+        setError(msg);
+        toast.error(msg);
+        return;
+      }
+      redirectingRef.current = true;
+      setIsRedirecting(true);
+      redirectAfterAuth(state, callbackUrl);
     } catch (err: unknown) {
       const msg = formatAuthError(err);
       setError(msg);
       toast.error(msg);
     } finally {
-      setIsLoading(false);
+      if (!redirectingRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -92,15 +110,32 @@ function RegisterForm() {
     setError(null);
     setIsLoading(true);
     try {
-      await loginWithGoogle();
+      const state = await loginWithGoogle();
+      if (!state) {
+        const msg = 'No se pudo registrarse con Google. Intentá de nuevo.';
+        setError(msg);
+        toast.error(msg);
+        return;
+      }
+      redirectingRef.current = true;
+      setIsRedirecting(true);
+      redirectAfterAuth(state, callbackUrl);
     } catch (err: unknown) {
       const msg = formatAuthError(err);
       setError(msg);
       toast.error(msg);
     } finally {
-      setIsLoading(false);
+      if (!redirectingRef.current) {
+        setIsLoading(false);
+      }
     }
   };
+
+  const isAuthenticating = authLoading || isLoading || isRedirecting;
+
+  if (isAuthenticating) {
+    return <AuthLoadingScreen message={REGISTER_LOADING_MESSAGE} />;
+  }
 
   return (
     <AuthShell title="Crear cuenta" subtitle="Email y contraseña">
@@ -182,17 +217,7 @@ function RegisterForm() {
 
 export default function RegisterPage() {
   return (
-    <Suspense
-      fallback={
-        <AuthShell title="Crear cuenta" subtitle="Email y contraseña">
-          <div className="animate-pulse space-y-4">
-            <div className="h-10 bg-gray-200 rounded-lg" />
-            <div className="h-10 bg-gray-200 rounded-lg" />
-            <div className="h-10 bg-gray-200 rounded-lg" />
-          </div>
-        </AuthShell>
-      }
-    >
+    <Suspense fallback={<AuthLoadingScreen message={REGISTER_LOADING_MESSAGE} />}>
       <RegisterForm />
     </Suspense>
   );

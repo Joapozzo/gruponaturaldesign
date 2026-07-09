@@ -1,3 +1,4 @@
+import { buildAuthLoginUrl } from './auth-callback-url';
 import { getAccessToken } from './auth-client';
 import type { ApiResponse, ApiError, PaginatedApiResponse } from './types/api.types';
 import {
@@ -155,7 +156,7 @@ export class ApiClient {
           !suppressAuthRedirect &&
           typeof window !== 'undefined'
         ) {
-          window.location.href = '/auth/login?reason=session_expired';
+          window.location.href = buildAuthLoginUrl({ reason: 'session_expired' });
         }
         // 503: un reintento automático solo para GET (evitar reenviar POST/PUT)
         const isGet = (fetchOptions.method ?? 'GET').toUpperCase() === 'GET';
@@ -388,7 +389,7 @@ export class ApiClient {
         message: 'Error al descargar el archivo',
       }));
       if (response.status === 401 && !skipAuth && typeof window !== 'undefined') {
-        window.location.href = '/auth/login?reason=session_expired';
+        window.location.href = buildAuthLoginUrl({ reason: 'session_expired' });
       }
       throw this.normalizeError(responseData, response.status);
     }

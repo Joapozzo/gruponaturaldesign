@@ -17,11 +17,10 @@ import { formatAuthError } from '@/lib/auth-errors';
 import { loginFormSchema } from '@/lib/schemas/login.schema';
 import {
   AUTH_CALLBACK_PARAM,
-  getSafeCallbackPath,
-  resolvePostLoginDestination,
+  redirectAfterAuth,
+  resolveAuthCallbackPath,
   withAuthCallback,
 } from '@/lib/auth-callback-url';
-import type { SessionUserState } from '@/types/auth.types';
 import { AuthLoadingScreen } from '@/app/components/AuthLoadingScreen';
 import toast from 'react-hot-toast';
 
@@ -36,21 +35,9 @@ const fieldVariants = {
   }),
 };
 
-function redirectAfterAuth(state: SessionUserState, callbackUrl: string): void {
-  if (state.needsEmailVerification) {
-    window.location.href = withAuthCallback('/auth/verify-email', callbackUrl);
-    return;
-  }
-  if (state.needsOnboarding) {
-    window.location.href = withAuthCallback('/auth/onboarding', callbackUrl);
-    return;
-  }
-  window.location.href = resolvePostLoginDestination(state.role, callbackUrl);
-}
-
 function LoginForm() {
   const searchParams = useSearchParams();
-  const callbackUrl = getSafeCallbackPath(
+  const callbackUrl = resolveAuthCallbackPath(
     searchParams.get(AUTH_CALLBACK_PARAM) ?? searchParams.get('redirect'),
   );
   const {
