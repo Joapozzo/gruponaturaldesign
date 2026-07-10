@@ -34,16 +34,20 @@ type HeroPanelProps = {
   carousel: boolean;
   alt: string;
   showScrollHint: boolean;
+  /** Solo una imagen LCP en toda la home (primer slide mobile). */
+  lcpPriority: boolean;
 };
 
 function HeroSlideImage({
   src,
   alt,
   priority,
+  loading,
 }: {
   src: string;
   alt: string;
   priority?: boolean;
+  loading?: 'eager' | 'lazy';
 }) {
   return (
     <Image
@@ -51,7 +55,8 @@ function HeroSlideImage({
       alt={alt}
       fill
       priority={priority}
-      quality={90}
+      loading={priority ? undefined : loading ?? 'lazy'}
+      quality={priority ? 80 : 70}
       sizes="100vw"
       className="object-cover object-center"
     />
@@ -66,6 +71,7 @@ function HeroPanel({
   carousel,
   alt,
   showScrollHint,
+  lcpPriority,
 }: HeroPanelProps) {
   return (
     <div className={`relative w-full ${aspectClass} ${visibilityClass}`}>
@@ -82,13 +88,19 @@ function HeroPanel({
             <HeroSlideImage
               src={slides[index]}
               alt={`${alt} ${index + 1}`}
-              priority={index === 0}
+              priority={lcpPriority && index === 0}
+              loading={index === 0 ? 'eager' : 'lazy'}
             />
           </motion.div>
         </AnimatePresence>
       ) : (
         <div className="absolute inset-0 w-full h-full">
-          <HeroSlideImage src={slides[0]} alt={alt} priority />
+          <HeroSlideImage
+            src={slides[0]}
+            alt={alt}
+            priority={lcpPriority}
+            loading="eager"
+          />
         </div>
       )}
       {showScrollHint && (
@@ -137,6 +149,7 @@ const Hero = ({
         carousel={carousel}
         alt={alt}
         showScrollHint={showScrollHint}
+        lcpPriority
       />
       <HeroPanel
         slides={desktopSlides}
@@ -146,6 +159,7 @@ const Hero = ({
         carousel={carousel}
         alt={alt}
         showScrollHint={showScrollHint}
+        lcpPriority={false}
       />
       {children}
     </section>

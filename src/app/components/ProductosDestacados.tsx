@@ -12,11 +12,13 @@ import Section from './Section';
 import Button from '@/components/ui/Button';
 import { useProductosDestacadosLogic } from '../hooks/useProductosDestacadosLogic';
 import ProductCardPublicado from './ProductCardPublicado';
+import ProductosDestacadosSkeleton from './skeleton/ProductSectionSkeleton';
 
 const ProductosDestacados = () => {
 
   const {
     productos,
+    isLoading,
     isError,
     error,
     expandedSku,
@@ -32,6 +34,10 @@ const ProductosDestacados = () => {
     limit: 20,
   });
   // console.log('productos', productos);
+
+  if (isLoading && productos.length === 0) {
+    return <ProductosDestacadosSkeleton />;
+  }
 
   if (isError) {
     return (
