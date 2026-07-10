@@ -1,4 +1,5 @@
 import { apiClient } from '@/lib/apiClient';
+import type { MicorreoHealthReport } from '@/app/types/integrations.types';
 
 export type CorreoAccountStatus = 'not_configured' | 'pending' | 'active' | 'invalid';
 
@@ -119,6 +120,16 @@ export async function registerMicorreoAccount(): Promise<EnvioConfigAdmin> {
   );
   if (!res.success || res.data == null) {
     throw new Error(res.message || 'Error al registrar MiCorreo');
+  }
+  return res.data;
+}
+
+export async function getMicorreoHealth(): Promise<MicorreoHealthReport> {
+  const res = await apiClient.get<MicorreoHealthReport>(
+    '/admin/empresa/envio-config/micorreo/health'
+  );
+  if (!res.success || res.data == null) {
+    throw new Error(res.message || 'Error al verificar estado de MiCorreo');
   }
   return res.data;
 }

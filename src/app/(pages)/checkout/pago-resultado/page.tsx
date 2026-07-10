@@ -21,6 +21,7 @@ import {
 } from '@/app/components/checkout/checkoutRoutes';
 import NewsletterConfirmationBanner from '@/app/components/newsletter/NewsletterConfirmationBanner';
 import Button from '@/components/ui/Button';
+import { trackMetaPurchase } from '@/app/analytics/metaPixel/metaPixel.client';
 
 function parsePedidoIdFromExternalReference(ref: string | null): number | null {
   if (!ref) return null;
@@ -74,10 +75,13 @@ function PagoResultadoInner() {
   useEffect(() => {
     if (effectiveUi === 'approved' && !clearedRef.current) {
       clearedRef.current = true;
+      if (pedidoId != null && snap?.analytics) {
+        trackMetaPurchase(snap.analytics, pedidoId);
+      }
       clearCart();
       clearCheckoutMpSnapshot();
     }
-  }, [effectiveUi, clearCart]);
+  }, [effectiveUi, clearCart, pedidoId, snap?.analytics]);
 
   useEffect(() => {
     if (effectiveUi !== 'abandoned' || abandonedRedirectRef.current) return;

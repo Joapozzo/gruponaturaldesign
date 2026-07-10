@@ -1,7 +1,8 @@
 'use client';
 
-import { MapPin, Store, Truck } from 'lucide-react';
+import { Store, Truck } from 'lucide-react';
 import { useTiendaConfig } from '@/app/hooks/useTiendaConfig';
+import { StorePickupInfoList } from '@/app/components/checkout/shipping/StorePickupInfoList';
 import { cn } from '@/lib/utils';
 
 type Variant = 'sidebar' | 'summary';
@@ -55,18 +56,11 @@ export function CheckoutShippingMethodsInfo({
             <Store className="w-3.5 h-3.5 shrink-0" aria-hidden />
             Pick up
           </p>
-          <p className={isSidebar ? 'ml-2' : ''}>{tienda.retiroDireccion}</p>
-          {tienda.retiroHorarios ? (
-            <p className={isSidebar ? 'ml-2' : ''}>Horarios: {tienda.retiroHorarios}</p>
-          ) : null}
-          {tienda.retiroDemora ? (
-            <p className={isSidebar ? 'ml-2' : ''}>{tienda.retiroDemora}</p>
-          ) : null}
-          {tienda.retiroNotas ? (
-            <p className={cn(isSidebar ? 'ml-2 text-gray-400' : 'text-gray-500')}>
-              {tienda.retiroNotas}
-            </p>
-          ) : null}
+          <StorePickupInfoList
+            tienda={tienda}
+            variant="sidebar"
+            className={cn('mt-1.5', isSidebar ? 'ml-0.5' : '')}
+          />
         </div>
         {/* <div>
           <p className={headingClass}>

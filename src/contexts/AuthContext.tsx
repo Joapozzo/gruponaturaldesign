@@ -17,15 +17,22 @@ import { useClearCheckoutOnAuthChange } from '@/app/hooks/useClearCheckoutOnAuth
 import { tryHandleMaintenanceResponse } from '@/lib/api-maintenance';
 import { getEmailActionCodeSettings } from '@/lib/auth-action-url';
 
+export type SessionSyncResult = {
+  state: SessionUserState | null;
+  error: string | null;
+};
+
 type AuthContextValue = {
   firebaseUser: FirebaseUser | null;
   sessionState: SessionUserState | null;
+  sessionError: string | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<SessionUserState | null>;
+  login: (email: string, password: string) => Promise<SessionSyncResult>;
   register: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => Promise<SessionUserState | null>;
+  loginWithGoogle: () => Promise<SessionSyncResult>;
   logout: () => Promise<void>;
-  refreshSessionState: () => Promise<SessionUserState | null>;
+  refreshSessionState: () => Promise<SessionSyncResult>;
+  clearSessionError: () => void;
   getToken: () => Promise<string | null>;
   resendVerificationEmail: () => Promise<void>;
 };
@@ -77,13 +84,14 @@ async function callSessionApi(idToken: string, timeoutMs = 10000): Promise<Sessi
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [sessionState, setSessionState] = useState<SessionUserState | null>(null);
+  const [sessionError, setSessionError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const getTokenRef = useRef<() => Promise<string | null>>(async () => null);
   const sessionSyncGenRef = useRef(0);
 
   useClearCheckoutOnAuthChange();
 
-  const syncSessionForUser = useCallback(async (user: FirebaseUser): Promise<SessionUserState | null> => {
+  const syncSessionForUser = useCallback(async (user: FirebaseUser): Promise<SessionSyncResult> => {
     const gen = ++sessionSyncGenRef.current;
     try {
       let token = await user.getIdToken();
@@ -100,22 +108,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       if (gen === sessionSyncGenRef.current) {
         setSessionState(state);
+        setSessionError(null);
       }
-      return state;
-    } catch {
+      return { state, error: null };
+    } catch (error: unknown) {
+      const message =
+        error instanceof AuthSessionError ? error.message : 'Error al crear sesión';
       if (gen === sessionSyncGenRef.current) {
         setSessionState(null);
+        setSessionError(message);
       }
-      return null;
+      return { state: null, error: message };
     }
   }, []);
 
-  const refreshSessionState = useCallback(async (): Promise<SessionUserState | null> => {
+  const clearSessionError = useCallback(() => {
+    setSessionError(null);
+  }, []);
+
+  const refreshSessionState = useCallback(async (): Promise<SessionSyncResult> => {
     const user = auth.currentUser;
     if (!user) {
       sessionSyncGenRef.current += 1;
       setSessionState(null);
-      return null;
+      setSessionError(null);
+      return { state: null, error: null };
     }
     return syncSessionForUser(user);
   }, [syncSessionForUser]);
@@ -144,6 +161,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!user) {
         sessionSyncGenRef.current += 1;
         setSessionState(null);
+        setSessionError(null);
         setIsLoading(false);
         return;
       }
@@ -181,6 +199,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res = await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
     await res.json().catch(() => ({}));
     setSessionState(null);
+    setSessionError(null);
     await firebaseSignOut(auth);
   }, []);
 
@@ -197,12 +216,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value: AuthContextValue = {
     firebaseUser,
     sessionState,
+    sessionError,
     isLoading,
     login,
     register,
     loginWithGoogle,
     logout,
     refreshSessionState,
+    clearSessionError,
     getToken,
     resendVerificationEmail,
   };

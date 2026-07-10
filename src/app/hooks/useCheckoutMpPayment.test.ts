@@ -51,6 +51,35 @@ describe('useCheckoutMpPayment', () => {
     vi.useRealTimers();
   });
 
+  it('ignora startPayment concurrente mientras hay un pago en curso', async () => {
+    let resolveMp: (value: { pedidoId: number; checkoutUrl: string; preferenceId: string }) => void;
+    vi.mocked(iniciarPagoMp).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveMp = resolve;
+        })
+    );
+
+    const { result } = renderHook(() => useCheckoutMpPayment());
+
+    let firstCall: Promise<void>;
+    await act(async () => {
+      firstCall = result.current.startPayment({ body: mpBody });
+      await result.current.startPayment({ body: mpBody });
+    });
+
+    expect(iniciarPagoMp).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveMp!({
+        pedidoId: 42,
+        checkoutUrl: 'https://mp.test/checkout',
+        preferenceId: 'pref-1',
+      });
+      await firstCall!;
+    });
+  });
+
   it('inicia pago, guarda snapshot y redirige', async () => {
     const { result } = renderHook(() => useCheckoutMpPayment());
 

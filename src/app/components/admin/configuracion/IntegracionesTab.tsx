@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/Button';
 import { AlertCircle, CheckCircle2, Loader2, RefreshCw, Server, WifiOff } from 'lucide-react';
 import { useIntegrationsStatusQuery } from '@/app/hooks/useIntegrationsStatusQuery';
 import type {
+  CorreoIntegrationStatusItem,
   IntegrationCheckStatus,
   IntegrationStatusItem,
   IntegrationsStatusPayload,
+  MicorreoLayerStatus,
 } from '@/app/types/integrations.types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
@@ -19,7 +21,7 @@ const INTEGRATION_LABELS: Record<keyof IntegrationsStatusPayload['integrations']
   andreani: 'Andreani',
 };
 
-function mapStatusBadge(status: IntegrationCheckStatus): {
+function mapStatusBadge(status: IntegrationCheckStatus | MicorreoLayerStatus): {
   variant: 'success' | 'danger' | 'warning' | 'info' | 'default';
   label: string;
 } {
@@ -32,6 +34,8 @@ function mapStatusBadge(status: IntegrationCheckStatus): {
       return { variant: 'danger', label: 'Sin configurar' };
     case 'error':
       return { variant: 'danger', label: 'Error' };
+    case 'skipped':
+      return { variant: 'default', label: 'Omitido' };
     default:
       return { variant: 'default', label: status };
   }
@@ -58,37 +62,155 @@ function formatCheckedAt(iso: string): string {
   }
 }
 
+function StatusIcon({ status }: { status: IntegrationCheckStatus | MicorreoLayerStatus }) {
+  if (status === 'ok') {
+    return <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600" aria-hidden />;
+  }
+  if (status === 'mock' || status === 'skipped') {
+    return <AlertCircle className="h-5 w-5 shrink-0 text-amber-500" aria-hidden />;
+  }
+  return <WifiOff className="h-5 w-5 shrink-0 text-red-500" aria-hidden />;
+}
+
 function IntegrationRow({
   name,
   item,
+  compact = false,
 }: {
   name: string;
   item: IntegrationStatusItem;
+  compact?: boolean;
 }) {
   const badge = mapStatusBadge(item.status);
   const modeLabel = formatIntegrationModeLabel(item.mode);
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
+    <div className={`rounded-lg border border-gray-200 bg-white ${compact ? 'p-3' : 'p-4'}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-sm font-semibold text-gray-900">{name}</h3>
+            <h3 className={`font-semibold text-gray-900 ${compact ? 'text-xs' : 'text-sm'}`}>
+              {name}
+            </h3>
             <Badge variant={badge.variant}>{badge.label}</Badge>
-            {modeLabel ? (
+            {!compact && modeLabel ? (
               <Badge variant="info">{modeLabel}</Badge>
             ) : null}
           </div>
-          <p className="mt-2 text-sm text-gray-600 wrap-break-word">{item.detail}</p>
+          <p className={`mt-2 text-gray-600 wrap-break-word ${compact ? 'text-xs' : 'text-sm'}`}>
+            {item.detail}
+          </p>
         </div>
-        {item.status === 'ok' ? (
-          <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600" aria-hidden />
-        ) : item.status === 'mock' ? (
-          <AlertCircle className="h-5 w-5 shrink-0 text-amber-500" aria-hidden />
-        ) : (
-          <WifiOff className="h-5 w-5 shrink-0 text-red-500" aria-hidden />
-        )}
+        <StatusIcon status={item.status} />
       </div>
+    </div>
+  );
+}
+
+function CorreoIntegrationBlock({
+  item,
+  onOpenEnvios,
+}: {
+  item: CorreoIntegrationStatusItem;
+  onOpenEnvios?: () => void;
+}) {
+  const badge = mapStatusBadge(item.status);
+  const modeLabel = formatIntegrationModeLabel(item.mode);
+  const showEnviosLink =
+    onOpenEnvios &&
+    (item.status === 'misconfigured' ||
+      item.status === 'error' ||
+      item.layers.account.status !== 'ok' ||
+      item.layers.integrator.status === 'error');
+
+  return (
+    <div className="space-y-2">
+      <div className="rounded-lg border border-gray-200 bg-white p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-sm font-semibold text-gray-900">
+                {INTEGRATION_LABELS.correo}
+              </h3>
+              <Badge variant={badge.variant}>{badge.label}</Badge>
+              {modeLabel ? <Badge variant="info">{modeLabel}</Badge> : null}
+              {item.healthy ? (
+                <Badge variant="success">Saludable</Badge>
+              ) : (
+                <Badge variant="warning">Revisar capas</Badge>
+              )}
+              {item.readyForCheckout ? (
+                <Badge variant="success">Listo checkout</Badge>
+              ) : (
+                <Badge variant="danger">Checkout bloqueado</Badge>
+              )}
+            </div>
+            <p className="mt-2 text-sm text-gray-600 wrap-break-word">{item.detail}</p>
+          </div>
+          <StatusIcon status={item.status} />
+        </div>
+      </div>
+
+      <div className="ml-3 space-y-2 border-l-2 border-gray-200 pl-3">
+        <IntegrationRow
+          compact
+          name="API integrador (servidor)"
+          item={{
+            configured: item.layers.integrator.status !== 'misconfigured',
+            status:
+              item.layers.integrator.status === 'skipped'
+                ? 'mock'
+                : item.layers.integrator.status === 'ok'
+                  ? 'ok'
+                  : item.layers.integrator.status === 'error'
+                    ? 'error'
+                    : 'misconfigured',
+            mode: item.mode,
+            detail: item.layers.integrator.detail,
+          }}
+        />
+        <IntegrationRow
+          compact
+          name="Cuenta portal MiCorreo"
+          item={{
+            configured: item.layers.account.status !== 'misconfigured',
+            status:
+              item.layers.account.status === 'skipped'
+                ? 'mock'
+                : item.layers.account.status === 'ok'
+                  ? 'ok'
+                  : item.layers.account.status === 'error'
+                    ? 'error'
+                    : 'misconfigured',
+            mode: item.mode,
+            detail: item.layers.account.detail,
+          }}
+        />
+        {item.layers.operational.status !== 'skipped' ? (
+          <IntegrationRow
+            compact
+            name="Validación operativa"
+            item={{
+              configured: true,
+              status: item.layers.operational.status === 'ok' ? 'ok' : 'error',
+              mode: item.mode,
+              detail: item.layers.operational.detail,
+            }}
+          />
+        ) : null}
+      </div>
+
+      {showEnviosLink ? (
+        <p className="text-sm">
+          <button
+            type="button"
+            className="font-medium text-red-700 underline"
+            onClick={onOpenEnvios}
+          >
+            Configurar MiCorreo en Envíos
+          </button>
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -124,7 +246,7 @@ export function IntegracionesTab({ onOpenEnvios }: { onOpenEnvios?: () => void }
   }
 
   const entries = Object.entries(data.integrations) as Array<
-    [keyof IntegrationsStatusPayload['integrations'], IntegrationStatusItem]
+    [keyof IntegrationsStatusPayload['integrations'], IntegrationStatusItem | CorreoIntegrationStatusItem]
   >;
 
   return (
@@ -160,24 +282,17 @@ export function IntegracionesTab({ onOpenEnvios }: { onOpenEnvios?: () => void }
       </Card>
 
       <div className="space-y-3">
-        {entries.map(([key, item]) => (
-          <div key={key}>
-            <IntegrationRow name={INTEGRATION_LABELS[key]} item={item} />
-            {key === 'correo' &&
-            (item.status === 'misconfigured' || item.status === 'error') &&
-            onOpenEnvios ? (
-              <p className="mt-2 text-sm">
-                <button
-                  type="button"
-                  className="text-red-700 underline font-medium"
-                  onClick={onOpenEnvios}
-                >
-                  Configurar MiCorreo en Envíos
-                </button>
-              </p>
-            ) : null}
-          </div>
-        ))}
+        {entries.map(([key, item]) =>
+          key === 'correo' ? (
+            <CorreoIntegrationBlock
+              key={key}
+              item={item as CorreoIntegrationStatusItem}
+              onOpenEnvios={onOpenEnvios}
+            />
+          ) : (
+            <IntegrationRow key={key} name={INTEGRATION_LABELS[key]} item={item} />
+          )
+        )}
       </div>
     </div>
   );

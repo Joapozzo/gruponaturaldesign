@@ -30,13 +30,27 @@ function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = resolveAuthCallbackPath(searchParams.get(AUTH_CALLBACK_PARAM));
-  const { firebaseUser, sessionState, isLoading, resendVerificationEmail, refreshSessionState, logout } = useAuth();
+  const { firebaseUser, sessionState, sessionError, isLoading, resendVerificationEmail, refreshSessionState, logout, clearSessionError } = useAuth();
   const [resending, setResending] = useState(false);
   const [sent, setSent] = useState(false);
   const [checking, setChecking] = useState(false);
   const [checkMessage, setCheckMessage] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
   const redirectingRef = useRef(false);
+  const sessionErrorToastRef = useRef(false);
+
+  useEffect(() => {
+    if (isLoading || !firebaseUser || sessionState) return;
+    if (!sessionError || sessionErrorToastRef.current) return;
+    sessionErrorToastRef.current = true;
+    toast.error(sessionError);
+  }, [isLoading, firebaseUser, sessionState, sessionError]);
+
+  useEffect(() => {
+    if (!sessionError) {
+      sessionErrorToastRef.current = false;
+    }
+  }, [sessionError]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -55,15 +69,24 @@ function VerifyEmailContent() {
     if (!user) return;
     setChecking(true);
     setCheckMessage(null);
+    clearSessionError();
     try {
       await user.reload();
       await user.getIdToken(true);
-      const state = await refreshSessionState();
+      const { state, error } = await refreshSessionState();
       const stillUnverified =
         !auth.currentUser?.emailVerified || state?.needsEmailVerification === true;
       if (stillUnverified) {
         setCheckMessage(NOT_VERIFIED_MESSAGE);
         toast.error(NOT_VERIFIED_MESSAGE);
+        return;
+      }
+      if (!state) {
+        const msg =
+          error ??
+          'No pudimos sincronizar tu cuenta. Intentá de nuevo en unos segundos.';
+        setCheckMessage(msg);
+        toast.error(msg);
       }
     } catch {
       const msg = 'No pudimos verificar el estado. Intentá de nuevo en unos segundos.';
@@ -114,6 +137,14 @@ function VerifyEmailContent() {
           Enviamos un enlace a <strong>{firebaseUser.email}</strong>. Abrí el correo, hacé clic en el enlace y después
           confirmá acá. Si no llega, revisá spam o reenviá el enlace.
         </p>
+        {sessionError && (
+          <div
+            className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-left text-sm text-red-900"
+            role="alert"
+          >
+            {sessionError}
+          </div>
+        )}
         {checkMessage && (
           <div
             className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-left text-sm text-amber-900"

@@ -85,9 +85,9 @@ function RegisterForm() {
     setIsLoading(true);
     try {
       await registerFirebase(result.data.email, result.data.password);
-      const state = await refreshSessionState();
+      const { state, error } = await refreshSessionState();
       if (!state) {
-        const msg = 'No se pudo completar el registro. Intentá de nuevo.';
+        const msg = error ?? 'No se pudo completar el registro. Intentá de nuevo.';
         setError(msg);
         toast.error(msg);
         return;
@@ -110,9 +110,9 @@ function RegisterForm() {
     setError(null);
     setIsLoading(true);
     try {
-      const state = await loginWithGoogle();
+      const { state, error } = await loginWithGoogle();
       if (!state) {
-        const msg = 'No se pudo registrarse con Google. Intentá de nuevo.';
+        const msg = error ?? 'No se pudo registrarse con Google. Intentá de nuevo.';
         setError(msg);
         toast.error(msg);
         return;

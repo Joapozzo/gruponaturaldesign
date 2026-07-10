@@ -28,7 +28,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
 
     async function resolveAccess() {
       if (firebaseUser) {
-        const state = await refreshSessionState();
+        const { state } = await refreshSessionState();
         if (cancelled) return;
         if (state?.role === 'ADMIN') return;
 

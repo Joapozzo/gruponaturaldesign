@@ -18,6 +18,7 @@ import {
 } from '@/app/services/checkoutMp.service';
 import type { CustomerData } from '@/app/types/cart';
 import { CheckoutPaymentProofBanner } from '@/app/components/checkout/CheckoutPaymentProofBanner';
+import { CheckoutExpiryNotice } from '@/app/components/checkout/CheckoutExpiryNotice';
 import { saveCheckoutManualSnapshot } from '@/app/services/checkoutManual.service';
 import { PaymentData, type MpCheckoutModo } from '@/app/types/cart';
 import { RiBankLine } from 'react-icons/ri';
@@ -30,8 +31,12 @@ import OrderSummarySection from '@/app/components/checkout/OrderSummarySection';
 import NewsletterCheckoutOptIn from '@/app/components/newsletter/NewsletterCheckoutOptIn';
 import { useNewsletterSubscribe } from '@/app/hooks/useNewsletterSubscribe';
 import { usePrecioConfigPublic } from '@/app/hooks/usePrecioConfigPublic';
+import { useTiendaConfig } from '@/app/hooks/useTiendaConfig';
 import { buildHastaCuotasConMpLabel } from '@/app/utils/precioDisplay';
+import { buildCheckoutExpiryBullet } from '@/app/utils/checkoutPaymentCopy';
 import { resolveCheckoutPriceMode } from '@/app/utils/checkoutPricing';
+import { buildMetaPixelAnalyticsFromCart } from '@/app/analytics/metaPixel/metaPixel.mappers';
+import { trackMetaAddPaymentInfo } from '@/app/analytics/metaPixel/metaPixel.client';
 import toast from 'react-hot-toast';
 
 function buildFacturaPayload(customer: CustomerData) {
@@ -136,6 +141,7 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [manualError, setManualError] = useState<string | null>(null);
   const [newsletterOptIn, setNewsletterOptIn] = useState(true);
+  const submitLockRef = useRef(false);
   const { subscribe: newsletterSubscribe } = useNewsletterSubscribe();
 
   const shippingExtra =
@@ -149,6 +155,7 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
   const mpSelected = payment.metodo === 'mercado_pago';
   const mpFinanciado = mpSelected && payment.mpModo === 'financiado';
   const { data: precioConfig } = usePrecioConfigPublic();
+  const tiendaConfig = useTiendaConfig();
   const cuotasLabel = buildHastaCuotasConMpLabel(precioConfig?.cuotasFinanciado ?? 3);
 
   const handlePaymentSelect = (metodo: PaymentMethodId) => {
@@ -173,28 +180,34 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
   };
 
   const handleSubmitOrder = async () => {
-    if (isWholesaleLimitReached) {
+    if (isWholesaleLimitReached || submitLockRef.current || isProcessing || mpLoading) {
       return;
     }
+
+    submitLockRef.current = true;
 
     let cuponCodigo: string | undefined;
     try {
       cuponCodigo = await cuponHook.resolveForCheckout(items);
     } catch (error) {
+      submitLockRef.current = false;
       toast.error(error instanceof Error ? error.message : 'Cupón inválido');
       return;
     }
 
     if (payment.metodo === 'mercado_pago') {
       if (!customerData?.email) {
+        submitLockRef.current = false;
         toast.error('Faltan datos del cliente.');
         return;
       }
       if (!payment.mpModo) {
+        submitLockRef.current = false;
         toast.error('Elegí cómo pagar con Mercado Pago.');
         return;
       }
       if (!firebaseUser) {
+        submitLockRef.current = false;
         toast.error('Iniciá sesión para pagar con Mercado Pago.', { duration: 5000 });
         return;
       }
@@ -210,6 +223,9 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
       const factura = buildFacturaPayload(customerData);
 
       const mpPriceMode = payment.mpModo === 'transfer' ? 'transfer' : 'lista';
+      const checkoutAnalytics = buildMetaPixelAnalyticsFromCart(items, payTotal);
+
+      trackMetaAddPaymentInfo(items, payTotal, payment.metodo);
 
       await startPayment({
         body: {
@@ -227,23 +243,30 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
           totalLabel: formatPrice(payTotal),
           itemCount,
           clienteEmail: customerData.email,
+          analytics: checkoutAnalytics,
         },
         cuponCodigo,
+      }).then((ok) => {
+        if (!ok) submitLockRef.current = false;
       });
       return;
     }
 
     if (!customerData?.email) {
+      submitLockRef.current = false;
       toast.error('Faltan datos del cliente.');
       return;
     }
     if (!firebaseUser) {
+      submitLockRef.current = false;
       toast.error('Iniciá sesión para confirmar el pedido.', { duration: 5000 });
       return;
     }
 
     setManualError(null);
     setIsProcessing(true);
+
+    trackMetaAddPaymentInfo(items, payTotal, payment.metodo);
 
     try {
       setPaymentData(payment);
@@ -275,6 +298,7 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
         formaPago: pedidoData.formaPago,
         totalLabel: formatPrice(payTotal),
         customerEmail: customerData.email,
+        analytics: buildMetaPixelAnalyticsFromCart(items, payTotal),
       });
 
       // No llamar clearCart() acá: /checkout/pago redirige a /datos si customerData queda null antes del cambio de ruta.
@@ -283,6 +307,7 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
           `/checkout/instrucciones-pago?pedidoId=${pedidoData.pedidoId}`
       );
     } catch (error) {
+      submitLockRef.current = false;
       setManualError(
         error instanceof Error
           ? error.message
@@ -498,6 +523,8 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
 
         {payment.metodo === 'transferencia' || payment.metodo === 'efectivo' ? (
           <CheckoutPaymentProofBanner formaPago={payment.metodo} />
+        ) : payment.metodo === 'mercado_pago' ? (
+          <CheckoutExpiryNotice />
         ) : null}
 
         <div className="hidden lg:block">
@@ -520,12 +547,18 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
               <li>• Serás redirigido a Mercado Pago para abonar</li>
               <li>• Al volver verás el resultado del pago en esta tienda</li>
               <li>• Necesitás tener sesión iniciada</li>
+              <li>
+                • {buildCheckoutExpiryBullet('mercado_pago', tiendaConfig)}
+              </li>
             </ul>
           ) : (
             <ul className="space-y-0.5 sm:space-y-1">
               <li>• Verás los datos para transferir o las instrucciones de efectivo</li>
               <li>• Recibirás un email con el detalle y datos de pago</li>
               <li>• El pedido queda pendiente hasta confirmar el pago</li>
+              <li>
+                • {buildCheckoutExpiryBullet(payment.metodo, tiendaConfig)}
+              </li>
             </ul>
           )}
         </div>

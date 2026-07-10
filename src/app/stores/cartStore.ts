@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CartState, CartProduct, CartItem, CustomerData, ShippingData, PaymentData } from '../types/cart';
+import { trackMetaAddToCart } from '@/app/analytics/metaPixel/metaPixel.client';
 
 import { WHATSAPP_PHONE_NUMBER, getWhatsAppNumberForUrl } from '@/app/utils/constants';
 import { calculateTotals } from '@/app/stores/cartTotals';
@@ -84,6 +85,8 @@ export const useCartStore = create<CartState>()(
                         ...calculateTotals(newItems),
                     };
                 });
+
+                trackMetaAddToCart(product, quantity);
             },
 
             removeItem: (productId: number) => {

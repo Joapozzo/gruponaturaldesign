@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getIntegrationsStatus } from '@/app/services/integrations.service';
 import { configuracionKeys } from './configuracionQueryKeys';
 
-const STALE_MS = 2 * 60 * 1000;
+const STALE_MS = 30 * 1000;
 const GC_MS = 10 * 60 * 1000;
 
 export function useIntegrationsStatusQuery(enabled = true) {
@@ -15,6 +15,7 @@ export function useIntegrationsStatusQuery(enabled = true) {
     gcTime: GC_MS,
     enabled,
     refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
   });
 }
 

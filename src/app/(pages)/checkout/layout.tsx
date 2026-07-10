@@ -12,6 +12,7 @@ import {
 } from '@/app/components/checkout/checkoutRoutes';
 import { useCartStore } from '@/app/stores/cartStore';
 import { useCheckoutSessionLifecycle } from '@/app/hooks/useCheckoutSessionLifecycle';
+import { trackMetaInitiateCheckout } from '@/app/analytics/metaPixel/metaPixel.client';
 
 /** Pasos que exigen ítems en carrito (en /pago el carrito puede vaciarse al confirmar el pedido). */
 const CHECKOUT_ROUTES_REQUIRE_CART: readonly string[] = [
@@ -27,7 +28,7 @@ export default function CheckoutLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { items, itemCount } = useCart();
+  const { items, itemCount, totalLista } = useCart();
   const { isLoading: authLoading } = useAuth();
   const [cartHydrated, setCartHydrated] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -53,6 +54,13 @@ export default function CheckoutLayout({
       router.replace('/shoponline');
     }
   }, [pathname, router, items.length, itemCount, cartHydrated, authLoading]);
+
+  useEffect(() => {
+    if (!cartHydrated || authLoading) return;
+    if (pathname !== CHECKOUT_ROUTES.pedido) return;
+    if (items.length === 0 && itemCount === 0) return;
+    trackMetaInitiateCheckout(items, totalLista);
+  }, [pathname, cartHydrated, authLoading, items, itemCount, totalLista]);
 
   if (isCheckoutStepPath(pathname)) {
     return <CheckoutShell>{children}</CheckoutShell>;

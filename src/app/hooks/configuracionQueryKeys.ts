@@ -4,5 +4,6 @@ export const configuracionKeys = {
   datosBancarios: ['datosBancarios'] as const,
   tiendaConfig: ['tiendaConfig'] as const,
   envio: ['envioConfig'] as const,
+  micorreoHealth: ['envioConfig', 'micorreoHealth'] as const,
   integraciones: ['admin', 'configuracion', 'integraciones'] as const,
 };

@@ -74,7 +74,7 @@ function LoginForm() {
     setIsClearingStaleAuth(true);
 
     async function resolveStaleSession() {
-      const state = await refreshSessionState();
+      const { state } = await refreshSessionState();
       if (cancelled) return;
       if (state) {
         setIsClearingStaleAuth(false);
@@ -124,9 +124,9 @@ function LoginForm() {
     }
     setIsLoading(true);
     try {
-      const state = await login(parsed.data.email, parsed.data.password);
+      const { state, error } = await login(parsed.data.email, parsed.data.password);
       if (!state) {
-        const msg = 'No se pudo iniciar sesión. Intentá de nuevo.';
+        const msg = error ?? 'No se pudo iniciar sesión. Intentá de nuevo.';
         setError(msg);
         toast.error(msg);
         return;
@@ -149,9 +149,9 @@ function LoginForm() {
     setError(null);
     setIsLoading(true);
     try {
-      const state = await loginWithGoogle();
+      const { state, error } = await loginWithGoogle();
       if (!state) {
-        const msg = 'No se pudo iniciar sesión con Google. Intentá de nuevo.';
+        const msg = error ?? 'No se pudo iniciar sesión con Google. Intentá de nuevo.';
         setError(msg);
         toast.error(msg);
         return;

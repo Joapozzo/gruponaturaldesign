@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Home, ChevronRight, Copy, Check } from 'lucide-react';
@@ -15,6 +15,7 @@ import {
   readCheckoutManualSnapshot,
   type InstruccionesPagoResponse,
 } from '@/app/services/checkoutManual.service';
+import { trackMetaPedidoCreado } from '@/app/analytics/metaPixel/metaPixel.client';
 
 function formatExpiresAt(iso: string | null): string | null {
   if (!iso) return null;
@@ -100,6 +101,7 @@ function InstruccionesPagoInner() {
   const [error, setError] = useState<string | null>(null);
 
   const snap = typeof window !== 'undefined' ? readCheckoutManualSnapshot() : null;
+  const pedidoCreadoTrackedRef = useRef(false);
 
   useEffect(() => {
     if (!Number.isFinite(pedidoId) || pedidoId <= 0) {
@@ -139,6 +141,10 @@ function InstruccionesPagoInner() {
     if (Date.now() - snap.savedAt > maxAgeMs) {
       clearCheckoutManualSnapshot();
       return;
+    }
+    if (!pedidoCreadoTrackedRef.current && snap.analytics) {
+      pedidoCreadoTrackedRef.current = true;
+      trackMetaPedidoCreado(snap.analytics, pedidoId);
     }
     clearCart();
     clearCheckoutManualSnapshot();

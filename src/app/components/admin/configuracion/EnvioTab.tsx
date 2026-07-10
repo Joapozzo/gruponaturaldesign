@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { Label } from '@/components/ui/Label';
 import { Badge } from '@/components/ui/Badge';
 import { useEnvioConfigQuery } from '@/app/hooks/useEnvioConfigQuery';
+import { useMicorreoHealthQuery } from '@/app/hooks/useMicorreoHealthQuery';
 import { configuracionKeys } from '@/app/hooks/configuracionQueryKeys';
 import {
   CORREO_PROVINCE_OPTIONS,
@@ -26,6 +27,7 @@ import ConfirmModal from '@/app/components/modal/ConfirmModal';
 export function EnvioTab() {
   const queryClient = useQueryClient();
   const { data: config, isPending, isFetching } = useEnvioConfigQuery();
+  const { data: micorreoHealth } = useMicorreoHealthQuery();
   const [form, setForm] = useState(() => envioConfigToForm(null));
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showUnsavedSyncModal, setShowUnsavedSyncModal] = useState(false);
@@ -46,6 +48,7 @@ export function EnvioTab() {
       toast.success('Configuración de envíos guardada');
       void queryClient.invalidateQueries({ queryKey: configuracionKeys.envio });
       void queryClient.invalidateQueries({ queryKey: configuracionKeys.integraciones });
+      void queryClient.invalidateQueries({ queryKey: configuracionKeys.micorreoHealth });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : 'Error al guardar'),
   });
@@ -57,6 +60,7 @@ export function EnvioTab() {
       toast.success('Cuenta MiCorreo vinculada');
       void queryClient.invalidateQueries({ queryKey: configuracionKeys.envio });
       void queryClient.invalidateQueries({ queryKey: configuracionKeys.integraciones });
+      void queryClient.invalidateQueries({ queryKey: configuracionKeys.micorreoHealth });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : 'Error al vincular'),
   });
@@ -67,6 +71,7 @@ export function EnvioTab() {
       toast.success('Cuenta MiCorreo registrada');
       void queryClient.invalidateQueries({ queryKey: configuracionKeys.envio });
       void queryClient.invalidateQueries({ queryKey: configuracionKeys.integraciones });
+      void queryClient.invalidateQueries({ queryKey: configuracionKeys.micorreoHealth });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : 'Error al registrar'),
   });
@@ -92,6 +97,8 @@ export function EnvioTab() {
   }
 
   const status = config?.correoAccountStatus ?? 'not_configured';
+  const integratorDown =
+    status === 'active' && micorreoHealth?.integrator.status === 'error';
 
   const handleVincularClick = () => {
     if (hasChanges) {
@@ -121,6 +128,14 @@ export function EnvioTab() {
           La cuenta MiCorreo es de la empresa (no del cliente). Configurá remitente, origen y
           vinculá la cuenta existente para cotizar en checkout e importar envíos.
         </p>
+
+        {integratorDown ? (
+          <p className="text-sm text-amber-800 rounded border border-amber-200 bg-amber-50 p-3">
+            La cuenta portal figura como vinculada, pero el API integrador del servidor no responde
+            ({micorreoHealth?.integrator.detail}). El checkout no podrá cotizar envíos hasta corregir
+            las variables CORREO_USERNAME_* / CORREO_PASSWORD_* en el entorno de deploy.
+          </p>
+        ) : null}
 
         {config?.correoAccountLastError ? (
           <p className="text-sm text-red-600 rounded border border-red-200 bg-red-50 p-3">

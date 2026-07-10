@@ -31,6 +31,7 @@ import { ProductInfoSkeleton } from '../skeleton/ProductInfoSkeleton';
 import { ProductVariantsSkeleton } from '../skeleton/ProductVariantsSkeleton';
 import { RelatedProductsSkeleton } from '../skeleton/RelatedProductsSkeleton';
 import ProductDetailSkeleton from './ProductDetailSkeleton';
+import { trackMetaViewContent } from '@/app/analytics/metaPixel/metaPixel.client';
 
 interface ProductDetailPageContentProps {
   initialData: ProductoDetailResponse;
@@ -184,6 +185,33 @@ export default function ProductDetailPageContent({
 
   // Prefetch productos relacionados cuando estén disponibles
   useRelatedProductsPrefetch(relatedProducts);
+
+  const viewContentTrackedRef = React.useRef<string | null>(null);
+
+  React.useEffect(() => {
+    if (isLoading || !groupedProduct || !selectedVariant) return;
+
+    const contentId =
+      selectedVariant.codigo?.trim() ||
+      String(selectedVariant.productoWebId ?? selectedVariant.sfactoryItemId ?? '');
+    if (!contentId || viewContentTrackedRef.current === contentId) return;
+
+    viewContentTrackedRef.current = contentId;
+
+    const rawPrice = selectedVariant.producto?.PrecioVenta;
+    const value =
+      typeof rawPrice === 'number'
+        ? rawPrice
+        : parseFloat(String(rawPrice ?? '').replace(/[^0-9.-]+/g, '')) || 0;
+
+    const display = groupedProduct.displayProduct;
+    trackMetaViewContent({
+      contentId,
+      contentName: groupedProduct.skuBase || display?.NOMBRE || 'Producto',
+      contentCategory: display?.Rubro ?? undefined,
+      value,
+    });
+  }, [isLoading, groupedProduct, selectedVariant]);
 
   // Estados de carga y error (después de todos los hooks)
   // IMPORTANTE: Verificar loading primero para mostrar skeleton

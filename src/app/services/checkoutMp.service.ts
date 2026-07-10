@@ -88,12 +88,15 @@ export interface IniciarPagoMpResponse {
   totalCobro?: number;
 }
 
+import type { MetaPixelAnalytics } from '@/app/analytics/metaPixel/metaPixel.types';
+
 export interface CheckoutMpSnapshot {
   savedAt: number;
   pedidoId?: number;
   clienteEmail?: string;
   totalLabel?: string;
   itemCount?: number;
+  analytics?: MetaPixelAnalytics;
 }
 
 export function mapCartItemsToMpPayload(

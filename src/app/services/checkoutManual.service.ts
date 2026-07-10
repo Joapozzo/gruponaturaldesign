@@ -1,3 +1,4 @@
+import type { MetaPixelAnalytics } from '@/app/analytics/metaPixel/metaPixel.types';
 import { apiClient } from '@/lib/apiClient';
 
 export const CHECKOUT_MANUAL_SNAPSHOT_KEY = 'checkout_manual_snapshot';
@@ -20,6 +21,7 @@ export interface CheckoutManualSnapshot {
   formaPago: 'transferencia' | 'efectivo';
   totalLabel?: string;
   customerEmail?: string;
+  analytics?: MetaPixelAnalytics;
 }
 
 export interface InstruccionesPagoResponse {

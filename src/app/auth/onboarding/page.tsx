@@ -107,8 +107,8 @@ function OnboardingContent() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al guardar.');
-      const nextState = await refreshSessionState();
-      if (!nextState) throw new Error('No se pudo actualizar la sesión.');
+      const { state: nextState, error } = await refreshSessionState();
+      if (!nextState) throw new Error(error ?? 'No se pudo actualizar la sesión.');
       redirectingRef.current = true;
       redirectAfterAuth(nextState, callbackUrl);
     } catch (err: unknown) {

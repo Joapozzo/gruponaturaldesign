@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { MetaPixelAnalytics } from '@/app/analytics/metaPixel/metaPixel.types';
 import {
   iniciarPagoMp,
   saveCheckoutMpSnapshot,
@@ -14,7 +15,12 @@ export type MpPaymentPhase = 'idle' | 'creating' | 'redirecting';
 
 interface StartPaymentParams {
   body: IniciarPagoMpBody;
-  snapshot?: { totalLabel: string; itemCount: number; clienteEmail?: string };
+  snapshot?: {
+    totalLabel: string;
+    itemCount: number;
+    clienteEmail?: string;
+    analytics?: MetaPixelAnalytics;
+  };
   cuponCodigo?: string;
 }
 
@@ -48,6 +54,7 @@ export function useCheckoutMpPayment() {
   const [phase, setPhase] = useState<MpPaymentPhase>('idle');
   const [fallbackCheckoutUrl, setFallbackCheckoutUrl] = useState<string | null>(null);
   const redirectWatchdogRef = useRef<number | null>(null);
+  const inFlightRef = useRef(false);
 
   const clearRedirectWatchdog = useCallback(() => {
     if (redirectWatchdogRef.current != null) {
@@ -60,14 +67,18 @@ export function useCheckoutMpPayment() {
 
   const resetMpPaymentState = useCallback(() => {
     clearRedirectWatchdog();
+    inFlightRef.current = false;
     setLoading(false);
     setPhase('idle');
     setFallbackCheckoutUrl(null);
   }, [clearRedirectWatchdog]);
 
   const startPayment = useCallback(
-    async (params: StartPaymentParams) => {
+    async (params: StartPaymentParams): Promise<boolean> => {
+      if (inFlightRef.current) return false;
+
       const { body, snapshot, cuponCodigo } = params;
+      inFlightRef.current = true;
       clearRedirectWatchdog();
       setLoading(true);
       setPhase('creating');
@@ -95,6 +106,7 @@ export function useCheckoutMpPayment() {
                 clienteEmail: snapshot.clienteEmail ?? body.clienteEmail,
                 totalLabel: snapshot.totalLabel,
                 itemCount: snapshot.itemCount,
+                analytics: snapshot.analytics,
               }
             : { clienteEmail: body.clienteEmail }),
           pedidoId: data.pedidoId,
@@ -103,6 +115,7 @@ export function useCheckoutMpPayment() {
         setPhase('redirecting');
         redirectWatchdogRef.current = window.setTimeout(() => {
           redirectWatchdogRef.current = null;
+          inFlightRef.current = false;
           setLoading(false);
           setPhase('idle');
           setError(
@@ -112,12 +125,15 @@ export function useCheckoutMpPayment() {
         }, REDIRECT_WATCHDOG_MS);
 
         window.location.href = data.checkoutUrl;
+        return true;
       } catch (e: unknown) {
         clearRedirectWatchdog();
+        inFlightRef.current = false;
         const msg = e instanceof Error ? e.message : 'No se pudo iniciar el pago';
         setError(msg);
         setLoading(false);
         setPhase('idle');
+        return false;
       }
     },
     [clearRedirectWatchdog]

@@ -5,6 +5,8 @@ import { ReactNode, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { SalesProvider } from '../contexts/SalesContext';
+import { MetaPixelRouteTracker } from '@/app/analytics/metaPixel/MetaPixelRouteTracker';
+import { MetaPixelScript } from '@/app/analytics/metaPixel/MetaPixelScript';
 
 export function Providers({ children }: { children: ReactNode }) {
   // Crear el queryClient dentro del componente para evitar problemas de serialización
@@ -27,6 +29,8 @@ export function Providers({ children }: { children: ReactNode }) {
     <AuthProvider>
       <QueryClientProvider client={queryClient}>
         <SalesProvider>
+          <MetaPixelScript />
+          <MetaPixelRouteTracker />
           {children}
         <Toaster 
           position="top-right"
