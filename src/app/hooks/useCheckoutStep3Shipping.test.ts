@@ -47,6 +47,8 @@ vi.mock('@/app/components/hooks/useCart', () => ({
       },
     ],
     subtotal: 100,
+    totalLista: 121,
+    totalTransfer: 85,
     total: 121,
   }),
 }));
@@ -156,6 +158,9 @@ describe('useCheckoutStep3Shipping', () => {
     await waitFor(() => expect(result.current.quoteLoading).toBe(false));
 
     expect(quoteCheckoutShipping).toHaveBeenCalledTimes(3);
+    expect(quoteCheckoutShipping).toHaveBeenCalledWith(
+      expect.objectContaining({ declaredValueSubtotal: 121 })
+    );
     expect(quoteCheckoutShipping).not.toHaveBeenCalledWith(
       expect.objectContaining({
         provider: 'andreani',

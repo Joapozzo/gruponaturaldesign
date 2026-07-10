@@ -1,4 +1,5 @@
 import { apiClient } from '@/lib/apiClient';
+import { extractApiErrorMessage } from '@/lib/apiErrorMessage';
 import type { CartItem, CheckoutEnvioSelection, ShippingData } from '@/app/types/cart';
 import { parseProductSpecs } from '@/app/utils/productHelpers';
 import {
@@ -45,16 +46,18 @@ export interface CheckoutFacturaPayload {
 }
 
 export interface IniciarPagoMpBody extends CheckoutFacturaPayload {
+  /** Cotización del servidor; si está presente, no enviar items ni precios. */
+  quoteId?: string;
   clienteNombre: string;
   clienteEmail: string;
   clienteTelefono?: string;
   clienteDireccion?: string;
   observaciones?: string;
-  items: CrearPedidoMpItemPayload[];
+  items?: CrearPedidoMpItemPayload[];
   checkoutEnvio?: CheckoutEnvioMpPayload;
   cuponCodigo?: string;
   /** transfer = precio transfer; financiado = precio lista + cuotas MP. */
-  mpPricingMode: 'transfer' | 'financiado';
+  mpPricingMode?: 'transfer' | 'financiado';
 }
 
 /** Arma el payload de envío para MP; `undefined` si no aplica (retiro o falta cotización). */
@@ -162,25 +165,31 @@ export async function abandonarCheckoutMp(pedidoId: number): Promise<void> {
 }
 
 export async function iniciarPagoMp(body: IniciarPagoMpBody): Promise<IniciarPagoMpResponse> {
-  const res = await apiClient.post<IniciarPagoMpResponse>('/checkout/mp', body);
-  if (!res.success || res.data == null) {
-    const msg =
-      (res as { message?: string }).message ??
-      (res as { error?: string }).error ??
-      'No se pudo iniciar el pago';
-    throw new Error(msg);
+  try {
+    const res = await apiClient.post<IniciarPagoMpResponse>('/checkout/mp', body);
+    if (!res.success || res.data == null) {
+      const msg =
+        (res as { message?: string }).message ??
+        (res as { error?: string }).error ??
+        'No se pudo iniciar el pago';
+      throw new Error(msg);
+    }
+    return res.data;
+  } catch (error) {
+    throw new Error(extractApiErrorMessage(error, 'No se pudo iniciar el pago'));
   }
-  return res.data;
 }
 
 export interface IniciarPagoManualBody extends CheckoutFacturaPayload {
+  /** Cotización del servidor; si está presente, no enviar items ni precios. */
+  quoteId?: string;
   clienteNombre: string;
   clienteEmail: string;
   clienteTelefono?: string;
   clienteDireccion?: string;
   observaciones?: string;
-  items: CrearPedidoMpItemPayload[];
-  formaPago: 'efectivo' | 'transferencia';
+  items?: CrearPedidoMpItemPayload[];
+  formaPago?: 'efectivo' | 'transferencia';
   checkoutEnvio?: CheckoutEnvioMpPayload;
   cuponCodigo?: string;
 }

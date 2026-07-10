@@ -19,13 +19,15 @@ import {
   resolveCorreoSelection,
   canTriggerQuote,
 } from '@/app/components/checkout/shipping/shippingQuote.utils';
+import { resolveShippingDeclaredValueSubtotal } from '@/app/utils/shippingDeclaredValue';
 
 export interface UseCheckoutStep3ShippingArgs {
   onNext: () => void;
 }
 
 export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArgs) {
-  const { shippingData, setShippingData, itemCount, items, subtotal, total } = useCart();
+  const { shippingData, setShippingData, itemCount, items, subtotal, total, totalLista, totalTransfer } =
+    useCart();
   const { isWholesaleLimitReached } = useSales();
 
   const {
@@ -139,6 +141,12 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
     const shippingItems = mapCartItemsToShippingQuoteItems(items);
     if (shippingItems.length === 0) return;
 
+    const declaredValueSubtotal = resolveShippingDeclaredValueSubtotal(
+      'lista',
+      totalLista,
+      totalTransfer
+    );
+
     setQuoteLoading(true);
     setQuoteByOption({});
     setCorreoRatePick({});
@@ -162,7 +170,7 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
             provider: opt.provider,
             deliveryType: opt.deliveryType,
             items: shippingItems,
-            declaredValueSubtotal: subtotal,
+            declaredValueSubtotal,
             cpDestino: cp,
           });
           if (!sharedParcel) sharedParcel = data.parcel;
@@ -195,7 +203,7 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
       setQuotedParcel(sharedParcel);
       pickCheapestAndApply(next, cp, sharedParcel);
     }
-  }, [shipping, items, subtotal, patchShipping, pickCheapestAndApply]);
+  }, [shipping, items, totalLista, totalTransfer, patchShipping, pickCheapestAndApply]);
 
   const onCodigoPostalBlur = useCallback(() => {
     handleBlur('codigo_postal');

@@ -7,6 +7,7 @@ import {
   saveCheckoutMpSnapshot,
   type IniciarPagoMpBody,
 } from '@/app/services/checkoutMp.service';
+import { extractApiErrorMessage } from '@/lib/apiErrorMessage';
 
 const API_TIMEOUT_MS = 30_000;
 const REDIRECT_WATCHDOG_MS = 10_000;
@@ -129,7 +130,7 @@ export function useCheckoutMpPayment() {
       } catch (e: unknown) {
         clearRedirectWatchdog();
         inFlightRef.current = false;
-        const msg = e instanceof Error ? e.message : 'No se pudo iniciar el pago';
+        const msg = extractApiErrorMessage(e, 'No se pudo iniciar el pago');
         setError(msg);
         setLoading(false);
         setPhase('idle');

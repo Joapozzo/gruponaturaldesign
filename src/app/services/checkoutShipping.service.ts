@@ -1,5 +1,6 @@
 import { apiClient } from '@/lib/apiClient';
-import type { CartItem } from '@/app/types/cart';
+import type { CartItem, CheckoutEnvioSelection } from '@/app/types/cart';
+import { resolveCorreoSelection } from '@/app/components/checkout/shipping/shippingQuote.utils';
 
 export type CheckoutShippingProvider = 'correo' | 'andreani';
 export type CheckoutShippingDeliveryType = 'homeDelivery' | 'agency';
@@ -72,6 +73,43 @@ export async function quoteCheckoutShipping(
     throw new Error(msg);
   }
   return res.data;
+}
+
+/**
+ * Re-cotiza la opción de envío ya elegida con el valor declarado alineado al modo de pago.
+ * Actualiza monto y bulto antes de confirmar checkout (MP o manual).
+ */
+export async function revalidateCheckoutEnvioQuote(
+  checkoutEnvio: CheckoutEnvioSelection,
+  items: CartItem[],
+  declaredValueSubtotal: number
+): Promise<CheckoutEnvioSelection> {
+  const data = await quoteCheckoutShipping({
+    provider: checkoutEnvio.provider,
+    deliveryType: checkoutEnvio.deliveryType,
+    items: mapCartItemsToShippingQuoteItems(items),
+    declaredValueSubtotal,
+    cpDestino: checkoutEnvio.cpDestino,
+  });
+
+  let clientQuotedAmount = data.precio;
+  let correoProductType = checkoutEnvio.correoProductType;
+
+  if (checkoutEnvio.provider === 'correo' && data.correoOpciones?.length) {
+    const resolved = resolveCorreoSelection(
+      { precio: data.precio, correoOpciones: data.correoOpciones },
+      checkoutEnvio.correoProductType
+    );
+    clientQuotedAmount = resolved.price;
+    if (resolved.serviceCode) correoProductType = resolved.serviceCode;
+  }
+
+  return {
+    ...checkoutEnvio,
+    parcel: data.parcel,
+    clientQuotedAmount,
+    ...(correoProductType ? { correoProductType } : {}),
+  };
 }
 
 export async function fetchCheckoutShippingAgencies(params: {

@@ -11,11 +11,10 @@ import { useCheckoutMpPayment } from '@/app/hooks/useCheckoutMpPayment';
 import { useCheckoutCupon } from '@/app/hooks/useCheckoutCupon';
 import { CheckoutCuponSection } from '@/components/cupon/CheckoutCuponSection';
 import {
-  mapCartItemsToMpPayload,
-  buildCheckoutEnvioForMp,
   buildClienteDireccionFromShipping,
   iniciarPagoManual,
 } from '@/app/services/checkoutMp.service';
+import { useCheckoutQuote } from '@/app/hooks/useCheckoutQuote';
 import type { CustomerData } from '@/app/types/cart';
 import { CheckoutPaymentProofBanner } from '@/app/components/checkout/CheckoutPaymentProofBanner';
 import { CheckoutExpiryNotice } from '@/app/components/checkout/CheckoutExpiryNotice';
@@ -35,6 +34,7 @@ import { useTiendaConfig } from '@/app/hooks/useTiendaConfig';
 import { buildHastaCuotasConMpLabel } from '@/app/utils/precioDisplay';
 import { buildCheckoutExpiryBullet } from '@/app/utils/checkoutPaymentCopy';
 import { resolveCheckoutPriceMode } from '@/app/utils/checkoutPricing';
+import { extractApiErrorMessage } from '@/lib/apiErrorMessage';
 import { buildMetaPixelAnalyticsFromCart } from '@/app/analytics/metaPixel/metaPixel.mappers';
 import { trackMetaAddPaymentInfo } from '@/app/analytics/metaPixel/metaPixel.client';
 import toast from 'react-hot-toast';
@@ -116,8 +116,6 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
     setPaymentData,
     itemCount,
     subtotal,
-    totalLista,
-    totalTransfer,
     cuponAplicado,
   } = useCart();
   const cuponHook = useCheckoutCupon({
@@ -144,14 +142,31 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
   const submitLockRef = useRef(false);
   const { subscribe: newsletterSubscribe } = useNewsletterSubscribe();
 
-  const shippingExtra =
-    shippingData?.tipo === 'envio' ? shippingData.checkoutEnvio?.clientQuotedAmount ?? 0 : 0;
-  const cuponDescuento = cuponAplicado?.descuentoTotal ?? cuponHook.cuponAplicado?.descuentoTotal ?? 0;
+  const resolvedCuponCodigo =
+    cuponAplicado?.codigo ?? cuponHook.cuponAplicado?.codigo ?? cuponHook.codigo.trim();
+
+  const {
+    quote,
+    mpQuotes,
+    loading: quoteLoading,
+    error: quoteError,
+    refresh: refreshQuote,
+  } = useCheckoutQuote({
+    items,
+    shippingData,
+    paymentMetodo: payment.metodo,
+    mpModo: payment.mpModo,
+    cuponCodigo: resolvedCuponCodigo || undefined,
+    enabled: Boolean(firebaseUser),
+  });
+
+  const shippingExtra = quote?.costoEnvio ?? 0;
+  const cuponDescuento = quote?.descuentoCupon ?? cuponAplicado?.descuentoTotal ?? cuponHook.cuponAplicado?.descuentoTotal ?? 0;
   const priceMode = resolveCheckoutPriceMode(payment.metodo, payment.mpModo);
-  const productsTotal = priceMode === 'lista' ? totalLista : totalTransfer;
-  const payTotal = productsTotal + shippingExtra - cuponDescuento;
-  const payTotalOff = totalTransfer + shippingExtra - cuponDescuento;
-  const payTotalLista = totalLista + shippingExtra - cuponDescuento;
+  const productsTotal = quote?.subtotalProductos ?? 0;
+  const payTotal = quote?.totalFinal ?? 0;
+  const payTotalOff = mpQuotes.transfer?.totalFinal ?? payTotal;
+  const payTotalLista = mpQuotes.financiado?.totalFinal ?? payTotal;
   const mpSelected = payment.metodo === 'mercado_pago';
   const mpFinanciado = mpSelected && payment.mpModo === 'financiado';
   const { data: precioConfig } = usePrecioConfigPublic();
@@ -180,7 +195,13 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
   };
 
   const handleSubmitOrder = async () => {
-    if (isWholesaleLimitReached || submitLockRef.current || isProcessing || mpLoading) {
+    if (
+      isWholesaleLimitReached ||
+      submitLockRef.current ||
+      isProcessing ||
+      mpLoading ||
+      quoteLoading
+    ) {
       return;
     }
 
@@ -194,6 +215,24 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
       toast.error(error instanceof Error ? error.message : 'Cupón inválido');
       return;
     }
+
+    const freshQuote = await refreshQuote();
+    if (!freshQuote?.quoteId) {
+      submitLockRef.current = false;
+      const msg = quoteError ?? 'No se pudo calcular el total. Intentá de nuevo.';
+      toast.error(msg);
+      return;
+    }
+
+    const payTotalFresh = freshQuote.totalFinal;
+    const clienteNombre = customerData
+      ? `${customerData.nombre} ${customerData.apellido}`.trim()
+      : '';
+    const clienteDireccion =
+      shippingData?.tipo === 'envio' ? buildClienteDireccionFromShipping(shippingData) : undefined;
+    const observaciones =
+      [payment.notas, shippingData?.notas].filter(Boolean).join(' | ') || undefined;
+    const factura = customerData ? buildFacturaPayload(customerData) : { necesitaFactura: false as const };
 
     if (payment.metodo === 'mercado_pago') {
       if (!customerData?.email) {
@@ -215,32 +254,21 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
       setPaymentData(payment);
       subscribeNewsletterIfNeeded(customerData.email);
 
-      const clienteNombre = `${customerData.nombre} ${customerData.apellido}`.trim();
-      const clienteDireccion =
-        shippingData?.tipo === 'envio' ? buildClienteDireccionFromShipping(shippingData) : undefined;
-      const checkoutEnvio = shippingData ? buildCheckoutEnvioForMp(shippingData) : undefined;
-      const observaciones = [payment.notas, shippingData?.notas].filter(Boolean).join(' | ') || undefined;
-      const factura = buildFacturaPayload(customerData);
-
-      const mpPriceMode = payment.mpModo === 'transfer' ? 'transfer' : 'lista';
-      const checkoutAnalytics = buildMetaPixelAnalyticsFromCart(items, payTotal);
-
-      trackMetaAddPaymentInfo(items, payTotal, payment.metodo);
+      const checkoutAnalytics = buildMetaPixelAnalyticsFromCart(items, payTotalFresh);
+      trackMetaAddPaymentInfo(items, payTotalFresh, payment.metodo);
 
       await startPayment({
         body: {
+          quoteId: freshQuote.quoteId,
           clienteNombre: clienteNombre || customerData.email,
           clienteEmail: customerData.email,
           clienteTelefono: customerData.telefono,
           clienteDireccion,
           observaciones,
-          items: mapCartItemsToMpPayload(items, mpPriceMode),
-          mpPricingMode: payment.mpModo,
           ...factura,
-          ...(checkoutEnvio ? { checkoutEnvio } : {}),
         },
         snapshot: {
-          totalLabel: formatPrice(payTotal),
+          totalLabel: formatPrice(payTotalFresh),
           itemCount,
           clienteEmail: customerData.email,
           analytics: checkoutAnalytics,
@@ -265,43 +293,31 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
 
     setManualError(null);
     setIsProcessing(true);
-
-    trackMetaAddPaymentInfo(items, payTotal, payment.metodo);
+    trackMetaAddPaymentInfo(items, payTotalFresh, payment.metodo);
 
     try {
       setPaymentData(payment);
       subscribeNewsletterIfNeeded(customerData.email);
 
-      const clienteNombre = `${customerData.nombre} ${customerData.apellido}`.trim();
-      const clienteDireccion =
-        shippingData?.tipo === 'envio' ? buildClienteDireccionFromShipping(shippingData) : undefined;
-      const checkoutEnvio = shippingData ? buildCheckoutEnvioForMp(shippingData) : undefined;
-      const observaciones = [payment.notas, shippingData?.notas].filter(Boolean).join(' | ') || undefined;
-      const factura = buildFacturaPayload(customerData);
-
       const pedidoData = await iniciarPagoManual({
+        quoteId: freshQuote.quoteId,
         clienteNombre: clienteNombre || customerData.email,
         clienteEmail: customerData.email,
         clienteTelefono: customerData.telefono,
         clienteDireccion,
         observaciones,
-        items: mapCartItemsToMpPayload(items, 'transfer'),
-        formaPago: payment.metodo as 'efectivo' | 'transferencia',
         ...factura,
-        ...(checkoutEnvio ? { checkoutEnvio } : {}),
-        cuponCodigo,
       });
 
       saveCheckoutManualSnapshot({
         pedidoId: pedidoData.pedidoId,
         externalOrderId: pedidoData.externalOrderId,
         formaPago: pedidoData.formaPago,
-        totalLabel: formatPrice(payTotal),
+        totalLabel: formatPrice(payTotalFresh),
         customerEmail: customerData.email,
-        analytics: buildMetaPixelAnalyticsFromCart(items, payTotal),
+        analytics: buildMetaPixelAnalyticsFromCart(items, payTotalFresh),
       });
 
-      // No llamar clearCart() acá: /checkout/pago redirige a /datos si customerData queda null antes del cambio de ruta.
       router.replace(
         pedidoData.redirectPath ??
           `/checkout/instrucciones-pago?pedidoId=${pedidoData.pedidoId}`
@@ -309,17 +325,20 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
     } catch (error) {
       submitLockRef.current = false;
       setManualError(
-        error instanceof Error
-          ? error.message
-          : 'Hubo un error al procesar tu pedido. Por favor, intenta nuevamente.'
+        extractApiErrorMessage(
+          error,
+          'Hubo un error al procesar tu pedido. Por favor, intenta nuevamente.'
+        )
       );
       setIsProcessing(false);
     }
   };
 
-  const busy = isProcessing || mpLoading;
+  const busy = isProcessing || mpLoading || quoteLoading;
 
-  const continueLabel = mpLoading
+  const continueLabel = quoteLoading
+    ? 'CALCULANDO...'
+    : mpLoading
     ? mpPhase === 'redirecting'
       ? 'REDIRIGIENDO...'
       : 'PROCESANDO...'
@@ -500,6 +519,12 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
             placeholder="Ej: Prefiero pagar en efectivo..."
           />
         </div>
+
+        {quoteError && (
+          <div className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-2 py-1.5">
+            <p>{quoteError}</p>
+          </div>
+        )}
 
         {mpError && (
           <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-2 py-1.5 space-y-2">

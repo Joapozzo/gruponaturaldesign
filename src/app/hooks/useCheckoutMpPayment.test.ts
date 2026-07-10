@@ -102,6 +102,20 @@ describe('useCheckoutMpPayment', () => {
     expect(result.current.phase).toBe('redirecting');
   });
 
+  it('setea error con mensaje del apiClient si no es Error', async () => {
+    vi.mocked(iniciarPagoMp).mockRejectedValue({
+      message: 'El costo de envío cambió ($20802.10). Volvé a calcular el envío en el checkout.',
+      status: 400,
+    });
+    const { result } = renderHook(() => useCheckoutMpPayment());
+
+    await act(async () => {
+      await result.current.startPayment({ body: mpBody });
+    });
+
+    expect(result.current.error).toContain('costo de envío cambió');
+  });
+
   it('setea error y deja de cargar si falla iniciarPagoMp', async () => {
     vi.mocked(iniciarPagoMp).mockRejectedValue(new Error('MP caído'));
     const { result } = renderHook(() => useCheckoutMpPayment());
