@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ShippingData } from '@/app/types/cart';
 import { useCart } from '@/app/components/hooks/useCart';
 import { useSales } from '@/app/contexts/SalesContext';
 import { useCheckoutShippingForm } from '@/app/hooks/useCheckoutShippingForm';
@@ -18,6 +19,9 @@ import {
   type ShippingQuoteOptionId,
   resolveCorreoSelection,
   canTriggerQuote,
+  buildShippingAddressQuoteKey,
+  shippingPatchAffectsQuote,
+  shippingFieldAffectsQuote,
 } from '@/app/components/checkout/shipping/shippingQuote.utils';
 import { resolveShippingDeclaredValueSubtotal } from '@/app/utils/shippingDeclaredValue';
 
@@ -52,6 +56,52 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
   const [agencies, setAgencies] = useState<ShippingAgencyDto[]>([]);
   const [agenciesLoading, setAgenciesLoading] = useState(false);
   const [quotedParcel, setQuotedParcel] = useState<CheckoutShippingParcelDto | null>(null);
+  const quotedAddressKeyRef = useRef<string | null>(null);
+
+  const invalidateShippingQuote = useCallback(() => {
+    quotedAddressKeyRef.current = null;
+    setQuoteByOption({});
+    setCorreoRatePick({});
+    setSelectedOptionId(null);
+    setAgencyPick(null);
+    setQuotedParcel(null);
+    patchShipping({ checkoutEnvio: undefined });
+  }, [patchShipping]);
+
+  const isQuoteFreshForAddress = useCallback(
+    (addressKey?: string) => {
+      const key = addressKey ?? buildShippingAddressQuoteKey(shipping);
+      return quotedAddressKeyRef.current != null && quotedAddressKeyRef.current === key;
+    },
+    [shipping]
+  );
+
+  const handleShippingChangeWrapped = useCallback(
+    (field: keyof ShippingData, value: string) => {
+      if (shippingFieldAffectsQuote(field) && quotedAddressKeyRef.current) {
+        invalidateShippingQuote();
+      }
+      handleShippingChange(field, value);
+    },
+    [handleShippingChange, invalidateShippingQuote]
+  );
+
+  const patchShippingWrapped = useCallback(
+    (patch: Partial<ShippingData>) => {
+      if (shippingPatchAffectsQuote(patch) && quotedAddressKeyRef.current) {
+        quotedAddressKeyRef.current = null;
+        setQuoteByOption({});
+        setCorreoRatePick({});
+        setSelectedOptionId(null);
+        setAgencyPick(null);
+        setQuotedParcel(null);
+        patchShipping({ ...patch, checkoutEnvio: undefined });
+        return;
+      }
+      patchShipping(patch);
+    },
+    [patchShipping]
+  );
 
   const resolveActiveParcel = useCallback((): CheckoutShippingParcelDto | null => {
     return quotedParcel ?? shipping.checkoutEnvio?.parcel ?? null;
@@ -75,6 +125,8 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
       const opt = QUOTE_OPTIONS.find((o) => o.id === optionId);
       const q = quotes[optionId];
       if (!opt || !q || 'error' in q) return;
+      const currentKey = buildShippingAddressQuoteKey(shipping);
+      if (!quotedAddressKeyRef.current || currentKey !== quotedAddressKeyRef.current) return;
 
       const mergePick = { ...correoRatePick, ...rateOverrides };
       let clientQuotedAmount = q.precio;
@@ -103,7 +155,7 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
         },
       });
     },
-    [patchShipping, correoRatePick]
+    [patchShipping, correoRatePick, shipping]
   );
 
   const pickCheapestAndApply = useCallback(
@@ -151,6 +203,7 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
     setQuoteByOption({});
     setCorreoRatePick({});
     setSelectedOptionId(null);
+    quotedAddressKeyRef.current = null;
     patchShipping({ checkoutEnvio: undefined });
 
     let sharedParcel:
@@ -201,6 +254,7 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
     setQuoteLoading(false);
     if (sharedParcel) {
       setQuotedParcel(sharedParcel);
+      quotedAddressKeyRef.current = buildShippingAddressQuoteKey(shipping);
       pickCheapestAndApply(next, cp, sharedParcel);
     }
   }, [shipping, items, totalLista, totalTransfer, patchShipping, pickCheapestAndApply]);
@@ -243,6 +297,9 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
     if (ce.parcel) {
       setQuotedParcel(ce.parcel);
     }
+    if (shippingData) {
+      quotedAddressKeyRef.current = buildShippingAddressQuoteKey(shippingData);
+    }
   }, [shippingData]);
 
   useEffect(() => {
@@ -283,6 +340,7 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
 
   const handleSelectDeliveryTipo = useCallback(
     (tipo: 'envio' | 'retiro') => {
+      quotedAddressKeyRef.current = null;
       setQuoteByOption({});
       setCorreoRatePick({});
       setSelectedOptionId(null);
@@ -308,6 +366,7 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
 
   const handleOptionCardClick = useCallback(
     (optionId: ShippingQuoteOptionId) => {
+      if (!isQuoteFreshForAddress()) return;
       const q = quoteByOption[optionId];
       const parcel = resolveActiveParcel();
       if (!q || 'error' in q || !parcel) return;
@@ -316,11 +375,12 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
       setAgencyPick(null);
       applySelection(optionId, quoteByOption, null, cp, parcel);
     },
-    [quoteByOption, applySelection, shipping.codigo_postal, resolveActiveParcel]
+    [quoteByOption, applySelection, shipping.codigo_postal, resolveActiveParcel, isQuoteFreshForAddress]
   );
 
   const handleCorreoRateSelect = useCallback(
     (optionId: ShippingQuoteOptionId, serviceCode: string) => {
+      if (!isQuoteFreshForAddress()) return;
       const q = quoteByOption[optionId];
       const parcel = resolveActiveParcel();
       if (!q || 'error' in q || !parcel) return;
@@ -332,11 +392,12 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
       }
       applySelection(optionId, quoteByOption, null, cp, parcel, { [optionId]: serviceCode });
     },
-    [selectedOptionId, applySelection, quoteByOption, shipping.codigo_postal, resolveActiveParcel]
+    [selectedOptionId, applySelection, quoteByOption, shipping.codigo_postal, resolveActiveParcel, isQuoteFreshForAddress]
   );
 
   const onAgencySelect = useCallback(
     (agencyId: string) => {
+      if (!isQuoteFreshForAddress()) return;
       if (!selectedOptionId?.endsWith('-agency')) return;
       const q = quoteByOption[selectedOptionId];
       const parcel = resolveActiveParcel();
@@ -353,20 +414,29 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
         parcel
       );
     },
-    [selectedOptionId, quoteByOption, agencies, applySelection, shipping.codigo_postal, resolveActiveParcel]
+    [selectedOptionId, quoteByOption, agencies, applySelection, shipping.codigo_postal, resolveActiveParcel, isQuoteFreshForAddress]
   );
 
   const canContinue = useMemo(() => {
     if (isWholesaleLimitReached) return false;
+    if (shipping.tipo === 'envio' && shipping.checkoutEnvio && !isQuoteFreshForAddress()) {
+      return false;
+    }
     return validateCheckoutShippingOnly(shipping).ok;
-  }, [shipping, isWholesaleLimitReached]);
+  }, [shipping, isWholesaleLimitReached, isQuoteFreshForAddress]);
 
   const continueHint = useMemo(() => {
     if (canContinue) return undefined;
     if (shipping.tipo === 'retiro') return undefined;
     if (shipping.tipo === 'envio' && !validateCheckoutShippingOnly(shipping).ok) {
+      if (shipping.checkoutEnvio && !isQuoteFreshForAddress()) {
+        return 'La dirección cambió — volvé a calcular el envío';
+      }
       if (!shipping.checkoutEnvio?.clientQuotedAmount && Object.keys(quoteByOption).length === 0) {
         return 'Completá la dirección para continuar';
+      }
+      if (Object.keys(quoteByOption).length > 0 && !shipping.checkoutEnvio) {
+        return 'Volvé a calcular el envío después de cambiar la dirección';
       }
       if (
         shipping.checkoutEnvio?.deliveryType === 'agency' &&
@@ -377,7 +447,7 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
       return 'Completá la dirección para continuar';
     }
     return undefined;
-  }, [canContinue, shipping, quoteByOption]);
+  }, [canContinue, shipping, quoteByOption, isQuoteFreshForAddress]);
 
   return {
     items,
@@ -387,8 +457,8 @@ export function useCheckoutStep3Shipping({ onNext }: UseCheckoutStep3ShippingArg
     shipping,
     errors,
     touched,
-    handleShippingChange,
-    patchShipping,
+    handleShippingChange: handleShippingChangeWrapped,
+    patchShipping: patchShippingWrapped,
     handleBlur,
     handleSubmit,
     quoteLoading,

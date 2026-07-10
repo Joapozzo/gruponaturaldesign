@@ -1,3 +1,4 @@
+import type { ShippingData } from '@/app/types/cart';
 import type {
   CheckoutCorreoOpcionQuote,
   CheckoutShippingProvider,
@@ -78,6 +79,34 @@ export function resolveCorreoSelection(
     opts.find((o) => o.serviceCode && o.serviceCode.trim().toUpperCase() === upper) ??
     sortCorreoByPrice(opts)[0];
   return { price: row.price, serviceCode: row.serviceCode };
+}
+
+/** Clave estable de dirección usada para validar que la cotización sigue vigente. */
+export function buildShippingAddressQuoteKey(shipping: ShippingData): string {
+  return [
+    shipping.codigo_postal?.trim() ?? '',
+    shipping.provincia?.trim() ?? '',
+    shipping.localidad?.trim() ?? '',
+    shipping.calle?.trim() || shipping.direccion?.trim() || '',
+    shipping.numero?.trim() ?? '',
+  ].join('|');
+}
+
+const ADDRESS_FIELDS_AFFECTING_QUOTE: (keyof ShippingData)[] = [
+  'codigo_postal',
+  'provincia',
+  'localidad',
+  'calle',
+  'numero',
+  'direccion',
+];
+
+export function shippingPatchAffectsQuote(patch: Partial<ShippingData>): boolean {
+  return ADDRESS_FIELDS_AFFECTING_QUOTE.some((field) => field in patch);
+}
+
+export function shippingFieldAffectsQuote(field: keyof ShippingData): boolean {
+  return ADDRESS_FIELDS_AFFECTING_QUOTE.includes(field);
 }
 
 export function canTriggerQuote(shipping: {

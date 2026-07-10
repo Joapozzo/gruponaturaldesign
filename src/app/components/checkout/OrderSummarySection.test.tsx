@@ -30,6 +30,7 @@ const item: CartItem = {
   },
   quantity: 2,
   subtotal: 242,
+  subtotalTransfer: 200,
 };
 
 describe('OrderSummarySection', () => {
@@ -132,5 +133,82 @@ describe('OrderSummarySection', () => {
     expect(screen.getByText(/^TOTAL$/)).toBeTruthy();
     expect(screen.queryByText(/^Cliente$/)).toBeNull();
     expect(screen.queryByText(/^Entrega$/)).toBeNull();
+  });
+
+  it('modo transfer muestra lista tachada y precio OFF en productos y subtotal', () => {
+    const shipping: ShippingData = { tipo: 'retiro' };
+    const { container } = renderWithQuery(
+      <OrderSummarySection
+        customerData={customer}
+        shippingData={shipping}
+        items={[item]}
+        itemCount={2}
+        subtotal={200}
+        productsGross={200}
+        productsGrossLista={242}
+        payTotal={200}
+        priceMode="transfer"
+      />
+    );
+
+    expect(container.querySelectorAll('.line-through').length).toBeGreaterThan(0);
+    expect(container.textContent).toMatch(/\$242/);
+    expect(container.textContent).toMatch(/\$200/);
+  });
+
+  it('modo lista no muestra precio tachado', () => {
+    const shipping: ShippingData = { tipo: 'retiro' };
+    const { container } = renderWithQuery(
+      <OrderSummarySection
+        customerData={customer}
+        shippingData={shipping}
+        items={[item]}
+        itemCount={2}
+        subtotal={242}
+        productsGross={242}
+        productsGrossLista={242}
+        payTotal={242}
+        priceMode="lista"
+      />
+    );
+
+    expect(container.querySelector('.line-through')).toBeNull();
+  });
+
+  it('cupón aparece antes del envío en totales', () => {
+    const shipping: ShippingData = {
+      tipo: 'envio',
+      direccion: 'Calle 1',
+      localidad: 'CABA',
+      provincia: 'BA',
+      codigo_postal: '1406',
+      checkoutDelivery: 'homeDelivery',
+    };
+    renderWithQuery(
+      <OrderSummarySection
+        customerData={customer}
+        shippingData={shipping}
+        items={[item]}
+        itemCount={2}
+        productsGross={242}
+        payTotal={722}
+        shippingExtra={500}
+        cuponAplicado={{
+          id: 1,
+          codigo: 'OFF10',
+          nombre: 'OFF10',
+          tipoDescuento: 'monto_fijo',
+          valorDescuento: 20,
+          descuentoTotal: 20,
+        }}
+      />
+    );
+
+    const text = document.body.textContent ?? '';
+    const cuponIdx = text.indexOf('Cupón OFF10');
+    const envioIdx = text.indexOf('+ Envío');
+    expect(cuponIdx).toBeGreaterThan(-1);
+    expect(envioIdx).toBeGreaterThan(-1);
+    expect(cuponIdx).toBeLessThan(envioIdx);
   });
 });

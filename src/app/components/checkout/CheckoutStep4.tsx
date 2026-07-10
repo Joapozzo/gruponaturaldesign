@@ -166,6 +166,10 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
   const cuponDescuento = quote?.descuentoCupon ?? cuponAplicado?.descuentoTotal ?? cuponHook.cuponAplicado?.descuentoTotal ?? 0;
   const priceMode = resolveCheckoutPriceMode(payment.metodo, payment.mpModo);
   const productsTotal = quote?.subtotalProductos ?? 0;
+  const productsGross = productsTotal + cuponDescuento;
+  const productsGrossLista = mpQuotes.financiado
+    ? mpQuotes.financiado.subtotalProductos + (mpQuotes.financiado.descuentoCupon ?? 0)
+    : undefined;
   const payTotal = quote?.totalFinal ?? 0;
   const payTotalOff = mpQuotes.transfer?.totalFinal ?? payTotal;
   const payTotalLista = mpQuotes.financiado?.totalFinal ?? payTotal;
@@ -355,6 +359,8 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
     itemCount,
     subtotal,
     productsTotal,
+    productsGross,
+    productsGrossLista,
     payTotal,
     priceMode,
     shippingExtra,

@@ -4,7 +4,7 @@ import type { ShippingData } from '@/app/types/cart';
 import { useCheckoutStep3Shipping } from './useCheckoutStep3Shipping';
 import { quoteCheckoutShipping } from '@/app/services/checkoutShipping.service';
 
-const { shippingRef, patchShipping } = vi.hoisted(() => {
+const { shippingRef, patchShipping, handleShippingChange } = vi.hoisted(() => {
   const shippingRef = {
     current: {
       tipo: 'envio' as const,
@@ -17,7 +17,22 @@ const { shippingRef, patchShipping } = vi.hoisted(() => {
   const patchShipping = vi.fn((partial: Partial<ShippingData>) => {
     shippingRef.current = { ...shippingRef.current, ...partial };
   });
-  return { shippingRef, patchShipping };
+  const handleShippingChange = vi.fn((field: keyof ShippingData, value: string) => {
+    const clearsQuote =
+      field === 'tipo' ||
+      field === 'direccion' ||
+      field === 'calle' ||
+      field === 'numero' ||
+      field === 'localidad' ||
+      field === 'provincia' ||
+      field === 'codigo_postal';
+    shippingRef.current = {
+      ...shippingRef.current,
+      [field]: value,
+      ...(clearsQuote ? { checkoutEnvio: undefined } : {}),
+    };
+  });
+  return { shippingRef, patchShipping, handleShippingChange };
 });
 
 vi.mock('@/app/hooks/useCheckoutShippingForm', () => ({
@@ -27,7 +42,7 @@ vi.mock('@/app/hooks/useCheckoutShippingForm', () => ({
     },
     errors: {},
     touched: {},
-    handleShippingChange: vi.fn(),
+    handleShippingChange,
     patchShipping,
     handleBlur: vi.fn(),
     handleSubmit: vi.fn(),
@@ -176,6 +191,55 @@ describe('useCheckoutStep3Shipping', () => {
       })
     );
     expect(result.current.selectedOptionId).toBe('correo-agency');
+  });
+
+  it('cambiar CP invalida cotización y no permite reactivar precio con tarjeta vieja', async () => {
+    vi.mocked(quoteCheckoutShipping)
+      .mockResolvedValueOnce({
+        precio: 5000,
+        moneda: 'ARS',
+        provider: 'andreani',
+        parcel: { weightGrams: 612, height: 8, width: 50, depth: 80, declaredValue: 100 },
+      })
+      .mockResolvedValueOnce({
+        precio: 1200,
+        moneda: 'ARS',
+        provider: 'correo',
+        parcel: { weightGrams: 612, height: 8, width: 50, depth: 80, declaredValue: 100 },
+        correoOpciones: [{ price: 1200, serviceCode: 'STD' }],
+      })
+      .mockResolvedValueOnce({
+        precio: 4000,
+        moneda: 'ARS',
+        provider: 'correo',
+        parcel: { weightGrams: 612, height: 8, width: 50, depth: 80, declaredValue: 100 },
+      });
+
+    const { result } = renderHook(() => useCheckoutStep3Shipping({ onNext }));
+
+    await act(async () => {
+      result.current.calculateShipping();
+    });
+    await waitFor(() => expect(result.current.quoteLoading).toBe(false));
+
+    expect(shippingRef.current.checkoutEnvio?.clientQuotedAmount).toBe(1200);
+    expect(Object.keys(result.current.quoteByOption).length).toBeGreaterThan(0);
+
+    act(() => {
+      result.current.handleShippingChange('codigo_postal', '5000');
+    });
+
+    expect(result.current.quoteByOption).toEqual({});
+    expect(result.current.selectedOptionId).toBeNull();
+    expect(result.current.canContinue).toBe(false);
+    expect(shippingRef.current.checkoutEnvio).toBeUndefined();
+
+    act(() => {
+      result.current.handleOptionCardClick('correo-home');
+    });
+
+    expect(shippingRef.current.checkoutEnvio).toBeUndefined();
+    expect(result.current.canContinue).toBe(false);
   });
 });
 

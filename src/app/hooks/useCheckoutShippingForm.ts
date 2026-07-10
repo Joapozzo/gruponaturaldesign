@@ -99,6 +99,8 @@ export function useCheckoutShippingForm(
       const clearsQuote =
         field === 'tipo' ||
         field === 'direccion' ||
+        field === 'calle' ||
+        field === 'numero' ||
         field === 'localidad' ||
         field === 'provincia' ||
         field === 'codigo_postal';

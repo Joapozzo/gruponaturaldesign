@@ -8,8 +8,11 @@ import { CheckoutShippingMethodsInfo } from '@/app/components/checkout/CheckoutS
 import {
   type CheckoutPriceMode,
   resolveCartLineSubtotal,
+  resolveCartProductsTotal,
 } from '@/app/utils/checkoutPricing';
 import { cn } from '@/lib/utils';
+
+const PRICE_EPSILON = 0.01;
 
 export interface OrderSummarySectionProps {
   customerData: CustomerData | null;
@@ -17,11 +20,15 @@ export interface OrderSummarySectionProps {
   items: CartItem[];
   itemCount: number;
   subtotal: number;
-  /** @deprecated Preferir `productsTotal` + `payTotal`. */
+  /** @deprecated Preferir `productsGross` + `payTotal`. */
   total?: number;
-  /** Subtotal productos según forma de pago (lista o transfer). */
+  /** Subtotal productos neto (post cupón) según quote. */
   productsTotal?: number;
-  /** Total a pagar (productos + envío − cupón). */
+  /** Subtotal productos bruto (pre cupón) al precio del modo de pago. */
+  productsGross?: number;
+  /** Subtotal bruto en precio lista (para tachado en modo transfer). */
+  productsGrossLista?: number;
+  /** Total a pagar (productos netos + envío). */
   payTotal?: number;
   /** Precio por línea en el resumen (default lista). */
   priceMode?: CheckoutPriceMode;
@@ -31,40 +38,77 @@ export interface OrderSummarySectionProps {
   variant?: 'sidebar' | 'payment-footer';
 }
 
+function showTransferDiscount(listaAmount: number, finalAmount: number): boolean {
+  return listaAmount > finalAmount + PRICE_EPSILON;
+}
+
+function CheckoutDualPrice({
+  listaAmount,
+  finalAmount,
+  showDiscount,
+  className,
+}: {
+  listaAmount: number;
+  finalAmount: number;
+  showDiscount: boolean;
+  className?: string;
+}) {
+  if (!showDiscount || !showTransferDiscount(listaAmount, finalAmount)) {
+    return <span className={cn('tabular-nums', className)}>{formatPrice(finalAmount)}</span>;
+  }
+
+  return (
+    <span className={cn('inline-flex items-baseline gap-1.5 flex-wrap justify-end', className)}>
+      <span className="line-through text-gray-400 tabular-nums">{formatPrice(listaAmount)}</span>
+      <span className="font-semibold text-[#Ed3237] tabular-nums">{formatPrice(finalAmount)}</span>
+    </span>
+  );
+}
+
 function SummaryTotals({
-  productsTotal,
+  productsGross,
+  productsGrossLista,
   payTotal,
   shippingExtra,
   cuponAplicado,
+  priceMode = 'lista',
   compact = false,
 }: {
-  productsTotal: number;
+  productsGross: number;
+  productsGrossLista: number;
   payTotal: number;
   shippingExtra: number;
   cuponAplicado?: CuponAplicado | null;
+  priceMode?: CheckoutPriceMode;
   compact?: boolean;
 }) {
   const rowClass = compact
-    ? 'flex justify-between text-[11px] text-gray-500'
-    : 'flex justify-between text-[10px] sm:text-xs text-gray-500';
-  const valueClass = 'text-gray-700 tabular-nums';
+    ? 'flex justify-between text-[11px] text-gray-500 gap-2'
+    : 'flex justify-between text-[10px] sm:text-xs text-gray-500 gap-2';
+  const valueClass = 'text-gray-700 tabular-nums shrink-0 text-right';
+  const showOff = priceMode === 'transfer';
 
   return (
     <div className={cn('space-y-1', compact ? 'pt-2' : 'pt-2 sm:pt-3 border-t border-gray-200')}>
       <div className={rowClass}>
         <span>Subtotal productos</span>
-        <span className={valueClass}>{formatPrice(productsTotal)}</span>
+        <CheckoutDualPrice
+          listaAmount={productsGrossLista}
+          finalAmount={productsGross}
+          showDiscount={showOff}
+          className={valueClass}
+        />
       </div>
+      {cuponAplicado && cuponAplicado.descuentoTotal > 0 ? (
+        <div className={rowClass}>
+          <span>Cupón {cuponAplicado.codigo}</span>
+          <span className={valueClass}>-{formatPrice(cuponAplicado.descuentoTotal)}</span>
+        </div>
+      ) : null}
       {shippingExtra > 0 ? (
         <div className={rowClass}>
           <span>+ Envío</span>
           <span className={valueClass}>{formatPrice(shippingExtra)}</span>
-        </div>
-      ) : null}
-      {cuponAplicado ? (
-        <div className={rowClass}>
-          <span>Cupón {cuponAplicado.codigo}</span>
-          <span className={valueClass}>-{formatPrice(cuponAplicado.descuentoTotal)}</span>
         </div>
       ) : null}
       <div
@@ -89,6 +133,8 @@ function ProductsBlock({
   compact?: boolean;
   priceMode?: CheckoutPriceMode;
 }) {
+  const showOff = priceMode === 'transfer';
+
   return (
     <div className={cn('space-y-1.5', compact ? '' : 'sm:space-y-2')}>
       <h3
@@ -100,28 +146,38 @@ function ProductsBlock({
         Productos ({items.length})
       </h3>
       <div className="space-y-1.5">
-        {items.map((item, index) => (
-          <div
-            key={`${item.product.id}-${index}`}
-            className={cn(
-              'text-[10px] sm:text-xs',
-              compact ? 'py-1 border-b border-gray-100 last:border-0' : 'bg-gray-50/80 p-1.5 sm:p-2 rounded',
-            )}
-          >
-            <p className="font-medium text-gray-800">
-              {index + 1}. {item.product.nombre}
-            </p>
-            {item.especificaciones ? (
-              <p className="text-gray-500 text-[9px] sm:text-[10px] mt-0.5">{item.especificaciones}</p>
-            ) : null}
-            {item.bordado ? (
-              <p className="text-gray-500 mt-0.5 text-[9px] sm:text-[10px]">Bordado</p>
-            ) : null}
-            <p className="text-gray-500 mt-0.5">
-              {item.quantity} u. · {formatPrice(resolveCartLineSubtotal(item, priceMode))}
-            </p>
-          </div>
-        ))}
+        {items.map((item, index) => {
+          const lineFinal = resolveCartLineSubtotal(item, priceMode);
+          const lineLista = resolveCartLineSubtotal(item, 'lista');
+
+          return (
+            <div
+              key={`${item.product.id}-${index}`}
+              className={cn(
+                'text-[10px] sm:text-xs',
+                compact ? 'py-1 border-b border-gray-100 last:border-0' : 'bg-gray-50/80 p-1.5 sm:p-2 rounded',
+              )}
+            >
+              <p className="font-medium text-gray-800">
+                {index + 1}. {item.product.nombre}
+              </p>
+              {item.especificaciones ? (
+                <p className="text-gray-500 text-[9px] sm:text-[10px] mt-0.5">{item.especificaciones}</p>
+              ) : null}
+              {item.bordado ? (
+                <p className="text-gray-500 mt-0.5 text-[9px] sm:text-[10px]">Bordado</p>
+              ) : null}
+              <p className="text-gray-500 mt-0.5">
+                {item.quantity} u. ·{' '}
+                <CheckoutDualPrice
+                  listaAmount={lineLista}
+                  finalAmount={lineFinal}
+                  showDiscount={showOff}
+                />
+              </p>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -205,56 +261,72 @@ function ShippingBlock({
 
 function PaymentFooterSummary({
   items,
-  productsTotal,
+  productsGross,
+  productsGrossLista,
   payTotal,
   shippingExtra,
   cuponAplicado,
   priceMode = 'lista',
 }: {
   items: CartItem[];
-  productsTotal: number;
+  productsGross: number;
+  productsGrossLista: number;
   payTotal: number;
   shippingExtra: number;
   cuponAplicado?: CuponAplicado | null;
   priceMode?: CheckoutPriceMode;
 }) {
   const manyProducts = items.length > 3;
+  const showOff = priceMode === 'transfer';
 
   return (
     <div className="bg-gray-50 px-4 pt-3 pb-2">
       {items.length > 0 ? (
         <div className={cn('space-y-1', manyProducts && 'max-h-[20vh] overflow-y-auto')}>
-          {items.map((item, index) => (
-            <div
-              key={`${item.product.id}-${index}`}
-              className="flex justify-between gap-2 text-[11px] text-gray-600"
-            >
-              <span className="truncate">
-                {item.quantity}x {item.product.nombre}
-              </span>
-              <span className="shrink-0 tabular-nums text-gray-700">
-                {formatPrice(resolveCartLineSubtotal(item, priceMode))}
-              </span>
-            </div>
-          ))}
+          {items.map((item, index) => {
+            const lineFinal = resolveCartLineSubtotal(item, priceMode);
+            const lineLista = resolveCartLineSubtotal(item, 'lista');
+
+            return (
+              <div
+                key={`${item.product.id}-${index}`}
+                className="flex justify-between gap-2 text-[11px] text-gray-600"
+              >
+                <span className="truncate">
+                  {item.quantity}x {item.product.nombre}
+                </span>
+                <CheckoutDualPrice
+                  listaAmount={lineLista}
+                  finalAmount={lineFinal}
+                  showDiscount={showOff}
+                  className="shrink-0 text-gray-700"
+                />
+              </div>
+            );
+          })}
         </div>
       ) : null}
 
       <div className="mt-2 pt-2 border-t border-gray-200 space-y-1">
-        <div className="flex justify-between text-[11px] text-gray-500">
+        <div className="flex justify-between gap-2 text-[11px] text-gray-500">
           <span>Subtotal productos</span>
-          <span className="tabular-nums text-gray-700">{formatPrice(productsTotal)}</span>
+          <CheckoutDualPrice
+            listaAmount={productsGrossLista}
+            finalAmount={productsGross}
+            showDiscount={showOff}
+            className="text-gray-700"
+          />
         </div>
+        {cuponAplicado && cuponAplicado.descuentoTotal > 0 ? (
+          <div className="flex justify-between text-[11px] text-gray-500">
+            <span>Cupón {cuponAplicado.codigo}</span>
+            <span className="tabular-nums text-gray-700">-{formatPrice(cuponAplicado.descuentoTotal)}</span>
+          </div>
+        ) : null}
         {shippingExtra > 0 ? (
           <div className="flex justify-between text-[11px] text-gray-500">
             <span>+ Envío</span>
             <span className="tabular-nums text-gray-700">{formatPrice(shippingExtra)}</span>
-          </div>
-        ) : null}
-        {cuponAplicado ? (
-          <div className="flex justify-between text-[11px] text-gray-500">
-            <span>Cupón {cuponAplicado.codigo}</span>
-            <span className="tabular-nums text-gray-700">-{formatPrice(cuponAplicado.descuentoTotal)}</span>
           </div>
         ) : null}
         <div className="flex justify-between text-sm font-semibold text-gray-900 pt-1 border-t border-gray-200">
@@ -272,22 +344,30 @@ export default function OrderSummarySection({
   items,
   total,
   productsTotal: productsTotalProp,
+  productsGross: productsGrossProp,
+  productsGrossLista: productsGrossListaProp,
   payTotal: payTotalProp,
   priceMode = 'lista',
   shippingExtra = 0,
   cuponAplicado,
   variant = 'sidebar',
 }: OrderSummarySectionProps) {
-  const productsTotal = productsTotalProp ?? total ?? 0;
+  const cuponDiscount = cuponAplicado?.descuentoTotal ?? 0;
+  const productsGross =
+    productsGrossProp ??
+    (productsTotalProp != null ? productsTotalProp + cuponDiscount : (total ?? 0));
+  const productsGrossLista =
+    productsGrossListaProp ?? resolveCartProductsTotal(items, 'lista');
   const payTotal =
-    payTotalProp ?? productsTotal + shippingExtra - (cuponAplicado?.descuentoTotal ?? 0);
+    payTotalProp ?? productsGross - cuponDiscount + shippingExtra;
   const isFooter = variant === 'payment-footer';
 
   if (isFooter) {
     return (
       <PaymentFooterSummary
         items={items}
-        productsTotal={productsTotal}
+        productsGross={productsGross}
+        productsGrossLista={productsGrossLista}
         payTotal={payTotal}
         shippingExtra={shippingExtra}
         cuponAplicado={cuponAplicado}
@@ -317,10 +397,12 @@ export default function OrderSummarySection({
 
         <div className="bg-gray-50 border border-gray-200 p-3 sm:p-4 rounded-lg">
           <SummaryTotals
-            productsTotal={productsTotal}
+            productsGross={productsGross}
+            productsGrossLista={productsGrossLista}
             payTotal={payTotal}
             shippingExtra={shippingExtra}
             cuponAplicado={cuponAplicado}
+            priceMode={priceMode}
           />
         </div>
 
