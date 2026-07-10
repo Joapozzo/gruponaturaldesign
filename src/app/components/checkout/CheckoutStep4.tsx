@@ -87,6 +87,8 @@ const PAYMENT_METHODS = [
 
 type PaymentMethodId = (typeof PAYMENT_METHODS)[number]['id'];
 
+type Step4PaymentState = Omit<PaymentData, 'metodo'> & { metodo: PaymentMethodId };
+
 function normalizeStoredMetodo(m: PaymentData['metodo'] | undefined): PaymentMethodId {
   if (m === 'tarjeta') return 'mercado_pago';
   if (m === 'whatsapp' || m === 'transferencia' || m === 'efectivo' || m === 'mercado_pago') {
@@ -128,7 +130,7 @@ export default function CheckoutStep4({ onBack }: CheckoutStep4Props) {
   });
   const { isWholesaleLimitReached } = useSales();
 
-  const [payment, setPayment] = useState<PaymentData>(() => ({
+  const [payment, setPayment] = useState<Step4PaymentState>(() => ({
     metodo: normalizeStoredMetodo(paymentData?.metodo),
     mpModo:
       paymentData?.mpModo ??
