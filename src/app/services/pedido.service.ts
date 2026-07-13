@@ -186,6 +186,27 @@ class PedidoService {
     return response;
   }
 
+  async setTracking(
+    id: number,
+    body: { provider: 'correo' | 'andreani'; trackingNumber: string }
+  ) {
+    const response = await apiClient.patch<{
+      tracking?: {
+        provider: 'correo' | 'andreani';
+        trackingNumber: string;
+        trackingUrl: string | null;
+      };
+      pedido?: AdminPedidoDetalle | null;
+      message?: string;
+    }>(`/admin/pedidos/${id}/tracking`, body);
+    if (!response.success) {
+      throw new Error(
+        response.message || response.error || 'No se pudo guardar el número de seguimiento'
+      );
+    }
+    return response;
+  }
+
   async rechazar(id: number, motivo?: string) {
     return apiClient.post(`/admin/pedidos/${id}/rechazar`, motivo ? { motivo } : {});
   }

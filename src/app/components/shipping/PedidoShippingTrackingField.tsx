@@ -36,7 +36,13 @@ export function PedidoShippingTrackingField({
         {trackingNumber ? (
           <ShippingTrackingNumberButton trackingNumber={trackingNumber} onClick={onOpenTracking} />
         ) : showWhenPending ? (
-          <p className="text-sm text-neutral-600">{pendingLabel}</p>
+          <button
+            type="button"
+            onClick={onOpenTracking}
+            className="text-sm text-neutral-600 hover:text-neutral-900 underline-offset-2 hover:underline text-left"
+          >
+            {pendingLabel} — cargar número
+          </button>
         ) : null}
         {trackingUrl ? (
           <a

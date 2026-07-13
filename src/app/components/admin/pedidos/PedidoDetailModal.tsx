@@ -146,6 +146,19 @@ export function PedidoDetailModal({ row, isOpen, onClose }: PedidoDetailModalPro
         isOpen={trackingModalOpen}
         onClose={() => setTrackingModalOpen(false)}
         initial={trackingInitial}
+        onSaved={async () => {
+          if (webId == null) return;
+          const r = await webQuery.refetch();
+          if (r.data) {
+            const resolved = resolvePedidoShippingTracking(r.data);
+            setTrackingInitial({
+              pedidoId: r.data.id,
+              provider: resolved.shippingProvider ?? undefined,
+              trackingNumber: resolved.trackingNumber ?? undefined,
+              trackingUrl: resolved.trackingUrl,
+            });
+          }
+        }}
       />
     </>
   );

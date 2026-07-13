@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, ExternalLink } from 'lucide-react';
+import toast from 'react-hot-toast';
 import BaseModal from '@/app/components/modal/BaseModal';
 import Button from '@/components/ui/Button';
 import { ShippingProviderOptionCard } from '@/app/components/shipping/ShippingProviderOptionCard';
@@ -12,6 +14,8 @@ import {
   buildClientShippingTrackingUrl,
 } from '@/app/components/shipping/shippingTracking.constants';
 import { useShippingTrackingQuery } from '@/app/hooks/useShippingTrackingQuery';
+import { pedidoService } from '@/app/services/pedido.service';
+import { pedidosKeys } from '@/app/utils/pedidosKeys';
 import type { ShippingProviderId } from '@/app/validation/shippingTracking.schema';
 
 function getQueryErrorMessage(error: unknown): string {
@@ -35,30 +39,77 @@ interface ShippingTrackingModalProps {
   isOpen: boolean;
   onClose: () => void;
   initial?: ShippingTrackingModalInitial;
+  /** Tras guardar nº en el pedido (admin). */
+  onSaved?: () => void;
 }
 
-export function ShippingTrackingModal({ isOpen, onClose, initial }: ShippingTrackingModalProps) {
+export function ShippingTrackingModal({
+  isOpen,
+  onClose,
+  initial,
+  onSaved,
+}: ShippingTrackingModalProps) {
+  const queryClient = useQueryClient();
   const [provider, setProvider] = useState<ShippingProviderId | null>(null);
   const [trackingNumber, setTrackingNumber] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [savedTracking, setSavedTracking] = useState('');
 
   useEffect(() => {
     if (!isOpen) {
       setProvider(null);
       setTrackingNumber('');
       setSubmitted(false);
+      setSavedTracking('');
       return;
     }
+    const tn = initial?.trackingNumber?.trim() ?? '';
     setProvider(initial?.provider ?? null);
-    setTrackingNumber(initial?.trackingNumber?.trim() ?? '');
-    setSubmitted(Boolean(initial?.provider && initial?.trackingNumber?.trim()));
-  }, [isOpen, initial?.provider, initial?.trackingNumber]);
+    setTrackingNumber(tn);
+    setSavedTracking(tn);
+    setSubmitted(Boolean(initial?.provider && tn));
+  }, [isOpen, initial?.provider, initial?.trackingNumber, initial?.pedidoId]);
 
   const query = useShippingTrackingQuery({
     provider,
     trackingNumber,
     pedidoId: initial?.pedidoId,
     enabled: submitted && isOpen,
+  });
+
+  const canSave =
+    initial?.pedidoId != null && provider != null && trackingNumber.trim().length > 0;
+  const isDirty = trackingNumber.trim() !== savedTracking.trim();
+
+  const saveMutation = useMutation({
+    mutationFn: () => {
+      if (initial?.pedidoId == null || provider == null) {
+        throw new Error('Pedido o proveedor inválido');
+      }
+      return pedidoService.setTracking(initial.pedidoId, {
+        provider,
+        trackingNumber: trackingNumber.trim(),
+      });
+    },
+    onSuccess: async (res) => {
+      const tn =
+        res.data?.tracking?.trackingNumber?.trim() || trackingNumber.trim();
+      setSavedTracking(tn);
+      setTrackingNumber(tn);
+      toast.success(res.message || `Número guardado: ${tn}`);
+      if (initial?.pedidoId != null) {
+        await queryClient.invalidateQueries({
+          queryKey: ['admin', 'pedido-detalle', initial.pedidoId],
+        });
+      }
+      await queryClient.invalidateQueries({ queryKey: pedidosKeys.all });
+      onSaved?.();
+    },
+    onError: (err) => {
+      toast.error(
+        err instanceof Error ? err.message : 'No se pudo guardar el número'
+      );
+    },
   });
 
   const externalUrl =
@@ -136,24 +187,52 @@ export function ShippingTrackingModal({ isOpen, onClose, initial }: ShippingTrac
                 placeholder="Pegá el número de envío"
                 autoComplete="off"
               />
+              {initial?.pedidoId != null ? (
+                <p className="mt-1.5 text-xs text-neutral-500">
+                  Podés cargar o editar el número (p. ej. desde el portal MiCorreo) y
+                  guardarlo en el pedido.
+                </p>
+              ) : null}
             </div>
 
-            <Button
-              variant="primary"
-              size="sm"
-              className="w-full sm:w-auto"
-              disabled={!trackingNumber.trim() || query.isFetching}
-              onClick={handleConsult}
-            >
-              {query.isFetching ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 inline animate-spin" />
-                  Consultando…
-                </>
-              ) : (
-                'Consultar seguimiento'
-              )}
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              {initial?.pedidoId != null ? (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                  disabled={!canSave || !isDirty || saveMutation.isPending}
+                  onClick={() => saveMutation.mutate()}
+                >
+                  {saveMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 inline animate-spin" />
+                      Guardando…
+                    </>
+                  ) : savedTracking ? (
+                    'Guardar cambios'
+                  ) : (
+                    'Guardar número'
+                  )}
+                </Button>
+              ) : null}
+              <Button
+                variant={initial?.pedidoId != null ? 'secondary' : 'primary'}
+                size="sm"
+                className="w-full sm:w-auto"
+                disabled={!trackingNumber.trim() || query.isFetching}
+                onClick={handleConsult}
+              >
+                {query.isFetching ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 inline animate-spin" />
+                    Consultando…
+                  </>
+                ) : (
+                  'Consultar seguimiento'
+                )}
+              </Button>
+            </div>
 
             {query.isError ? (
               <p className="text-sm text-[var(--red)]">{getQueryErrorMessage(query.error)}</p>
