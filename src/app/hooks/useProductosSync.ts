@@ -3,6 +3,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { syncService } from '@/app/services/sync.service';
 import { productosKeys } from '@/app/utils/productosKeys';
+import { rubrosKeys } from '@/app/utils/rubrosKeys';
+import { subrubrosKeys } from '@/app/utils/subrubrosKeys';
 import { useSync } from '@/components/admin/SyncContext';
 
 /** Segundos de cooldown en el botón tras un sync exitoso (evitar doble clic / sync seguidos) */
@@ -43,16 +45,26 @@ export function useProductosSync({ onSuccess, onError }: UseProductosSyncParams 
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: productosKeys.all });
+      queryClient.invalidateQueries({ queryKey: rubrosKeys.all });
+      queryClient.invalidateQueries({ queryKey: subrubrosKeys.all });
       cooldownUntilRef.current = Date.now() + SYNC_COOLDOWN_SECONDS * 1000;
       setCooldownRemainingSeconds(SYNC_COOLDOWN_SECONDS);
 
       const resumen = data.resumen;
       const paso1 = data.syncSfactory;
       const paso2 = data.procesamiento;
-      const base = 'Sincronización de productos completada';
+      const rubrosExtra =
+        data.rubros != null
+          ? ` · rubros ${data.rubros.exitosos}/${data.rubros.procesados}`
+          : '';
+      const subrubrosExtra =
+        data.subrubros != null
+          ? ` · subrubros ${data.subrubros.exitosos}/${data.subrubros.procesados}`
+          : '';
+      const base = 'Sincronización completada';
       const stats = resumen
-        ? ` · ${resumen.exitosos ?? '?'} exitosos · ${resumen.productosWeb ?? 0} variantes escritas · ${resumen.productosWebOmitidos ?? 0} omitidas · paso1 omitidos ${paso1?.omitidos ?? resumen.productosSfactoryOmitidos ?? 0} · grupos ${paso2?.gruposProcesados ?? resumen.gruposProcesados ?? '?'}`
-        : '';
+        ? `${rubrosExtra}${subrubrosExtra} · ${resumen.exitosos ?? '?'} exitosos · ${resumen.productosWeb ?? 0} variantes escritas · ${resumen.productosWebOmitidos ?? 0} omitidas · paso1 omitidos ${paso1?.omitidos ?? resumen.productosSfactoryOmitidos ?? 0} · grupos ${paso2?.gruposProcesados ?? resumen.gruposProcesados ?? '?'}`
+        : `${rubrosExtra}${subrubrosExtra}`;
       const stockExtra =
         data.stockPrecios != null
           ? ` · Stock depósito: ${data.stockPrecios.variantesActualizadas} actualizadas`

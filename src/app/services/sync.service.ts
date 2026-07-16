@@ -17,6 +17,12 @@ export interface StockPreciosSyncData {
   codigosOmitidos: string[];
 }
 
+export interface CatalogoSyncStats {
+  procesados: number;
+  exitosos: number;
+  fallidos: number;
+}
+
 export interface ProductosSyncResumen {
   productosSfactory?: number;
   productosSfactoryOmitidos?: number;
@@ -30,6 +36,8 @@ export interface ProductosSyncResumen {
 }
 
 export interface ProductosSyncResult {
+  rubros?: CatalogoSyncStats;
+  subrubros?: CatalogoSyncStats;
   syncSfactory?: {
     procesados: number;
     insertados: number;
