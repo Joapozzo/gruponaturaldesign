@@ -43,8 +43,16 @@ describe('adminPedidos.utils', () => {
     expect(parseSyncStatusUrlParam(null)).toEqual([]);
   });
 
-  it('mergePedidosLists excluye sfactory ya vinculados', () => {
-    const web = [webPedido({ id: 1, sfactoryOrdenId: 10 })];
+  it('mergePedidosLists excluye sfactory ya vinculados y usa total neto con cupón', () => {
+    const web = [
+      webPedido({
+        id: 1,
+        sfactoryOrdenId: 10,
+        total: 39941.5,
+        descuento: 19970.75,
+        cuponDescuentoTotal: 19970.75,
+      }),
+    ];
     const sf = [
       { id: 10, cliente: 'X', fecha: '2024-05-01', total: 50, estado: '1', estado_d: 'Ok' },
       { id: 11, cliente: 'Y', fecha: '2024-07-01', total: 60, estado: '1', estado_d: 'Ok' },
@@ -53,6 +61,8 @@ describe('adminPedidos.utils', () => {
     expect(merged).toHaveLength(2);
     expect(merged.some((r) => r.key === 'sfactory-10')).toBe(false);
     expect(merged[0].key).toBe('sfactory-11');
+    const webRow = merged.find((r) => r.key === 'web-1');
+    expect(webRow?.total).toBe(19970.75);
   });
 
   it('filterSfactoryBySearch por numero y cliente', () => {

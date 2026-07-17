@@ -5,6 +5,7 @@ import type {
   PedidoOrigenFilter,
 } from '@/app/types/adminPedido.types';
 import { mapEstadoPedidoLabel } from '@/app/utils/dashboard.utils';
+import { computePedidoTotalNeto } from '@/app/utils/pedidoTotals';
 import type {
   EstadoPedido,
   Pedido,
@@ -61,7 +62,7 @@ export function normalizeWebPedido(p: Pedido): AdminPedidoRow {
     cliente: p.clienteNombre,
     clienteSub: p.clienteEmail,
     fecha: p.fechaPedido,
-    total: Number(p.total),
+    total: computePedidoTotalNeto(p),
     estadoLabel: mapEstadoPedidoLabel(p.estadoInterno),
     web: p,
   };

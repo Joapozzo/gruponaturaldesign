@@ -37,7 +37,10 @@ export interface Pedido {
   syncError?: string | null;
   clienteNombre: string;
   clienteEmail: string;
+  /** Bruto (subtotal + envío). El monto cobrado es total − descuento. */
   total: string | number;
+  descuento?: string | number | null;
+  cuponDescuentoTotal?: string | number | null;
   formaPago?: string | null;
   fechaPedido: string;
   sfactorySyncedAt?: string | null;

@@ -1,4 +1,5 @@
 import type { AdminPedidoDetalle } from '@/app/types/adminPedidoDetalle.types';
+import { computePedidoTotalNeto } from '@/app/utils/pedidoTotals';
 import { formatPedidoMoney } from './pedidoDetailFormat';
 
 interface PedidoDetailItemsSectionProps {
@@ -8,6 +9,7 @@ interface PedidoDetailItemsSectionProps {
 export function PedidoDetailItemsSection({ pedido }: PedidoDetailItemsSectionProps) {
   const totalLabel =
     pedido.estadoInterno === 'pendiente_pago' ? 'Total a cobrar' : 'Total cobrado';
+  const totalCobrado = computePedidoTotalNeto(pedido);
 
   return (
     <section>
@@ -78,7 +80,7 @@ export function PedidoDetailItemsSection({ pedido }: PedidoDetailItemsSectionPro
         ) : null}
         <div className="pt-1 border-t border-neutral-200 w-full flex justify-end gap-2">
           <span className="text-base font-semibold text-neutral-900">
-            {totalLabel} {formatPedidoMoney(pedido.total)}
+            {totalLabel} {formatPedidoMoney(totalCobrado)}
           </span>
         </div>
       </div>

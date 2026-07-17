@@ -13,7 +13,8 @@ describe('checkoutPaymentCopy', () => {
     const msg = buildPaymentProofMessage(DEFAULT_TIENDA_CONFIG_PUBLIC);
     expect(msg.toLowerCase()).toContain('comprobante');
     expect(msg).toContain('2 días');
-    expect(msg).toContain(DEFAULT_TIENDA_CONFIG_PUBLIC.whatsappTelefono);
+    expect(msg.toLowerCase()).toContain('por email');
+    expect(msg.toLowerCase()).not.toContain('whatsapp');
   });
 
   it('buildPaymentProofMessage en confirmación omite plazo genérico', () => {
@@ -27,35 +28,37 @@ describe('checkoutPaymentCopy', () => {
 
   it('buildPaymentProofMessage usa config mock', () => {
     const msg = buildPaymentProofMessage({
-      whatsappTelefono: '+54 9 351 000-0000',
+      emailPedidosInterno: 'pedidos@tienda.com',
       pagoManualHorasPlazo: 24,
       pagoManualInstruccionesExtra: 'Incluí el número de pedido.',
     });
-    expect(msg).toContain('+54 9 351 000-0000');
+    expect(msg).toContain('pedidos@tienda.com');
     expect(msg).toContain('1 día');
     expect(msg).toContain('número de pedido');
+    expect(msg.toLowerCase()).not.toContain('whatsapp');
   });
 
-  it('buildEfectivoProofMessage menciona comprobante, WhatsApp y pedido', () => {
+  it('buildEfectivoProofMessage menciona comprobante, email y pedido', () => {
     const msg = buildEfectivoProofMessage({
       ...DEFAULT_TIENDA_CONFIG_PUBLIC,
+      emailPedidosInterno: 'pedidos@tienda.com',
       variant: 'confirmation',
       externalOrderId: 'WEB-87',
     });
     expect(msg.toLowerCase()).toContain('comprobante');
-    expect(msg.toLowerCase()).toContain('whatsapp');
+    expect(msg).toContain('pedidos@tienda.com');
+    expect(msg.toLowerCase()).not.toContain('whatsapp');
     expect(msg).toContain('WEB-87');
   });
 
   it('incluye email de tienda cuando está configurado', () => {
     const msg = buildPaymentProofMessage({
-      whatsappTelefono: '+54 9 351 000-0000',
       emailPedidosInterno: 'pedidos@tienda.com',
       variant: 'confirmation',
     });
     expect(msg.toLowerCase()).toContain('comprobante');
     expect(msg).toContain('pedidos@tienda.com');
-    expect(msg).toContain('+54 9 351 000-0000');
+    expect(msg.toLowerCase()).not.toContain('whatsapp');
   });
 
   it('formatPlazoHoras usa días cuando aplica', () => {

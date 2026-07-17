@@ -55,16 +55,13 @@ export interface PaymentCopyInput {
   pagoManualInstruccionesExtra?: string | null;
 }
 
-/** WhatsApp + email de tienda (si está configurado) para enviar comprobante. */
-export function buildProofContactPhrase(
-  phone: string,
-  emailPedidosInterno?: string | null
-): string {
+/** Email de tienda para enviar comprobante. */
+export function buildProofContactPhrase(emailPedidosInterno?: string | null): string {
   const email = emailPedidosInterno?.trim();
   if (email) {
-    return `por WhatsApp al ${phone} o por email a ${email}`;
+    return `por email a ${email}`;
   }
-  return `por WhatsApp al ${phone}`;
+  return 'por email';
 }
 
 /** `checkout` = antes de confirmar (incluye plazo genérico). `confirmation` = post-pedido (plazo exacto va en el hero). */
@@ -76,8 +73,7 @@ export interface PaymentCopyOptions extends PaymentCopyInput {
 }
 
 export function buildPaymentProofMessage(config?: PaymentCopyOptions): string {
-  const phone = config?.whatsappTelefono?.trim() || WHATSAPP_PHONE_NUMBER;
-  const contact = buildProofContactPhrase(phone, config?.emailPedidosInterno);
+  const contact = buildProofContactPhrase(config?.emailPedidosInterno);
   const hours = config?.pagoManualHorasPlazo ?? 48;
   const plazo = formatPlazoHoras(hours);
   const extra = config?.pagoManualInstruccionesExtra?.trim();
@@ -90,8 +86,7 @@ export function buildPaymentProofMessage(config?: PaymentCopyOptions): string {
 }
 
 export function buildEfectivoProofMessage(config?: PaymentCopyOptions): string {
-  const phone = config?.whatsappTelefono?.trim() || WHATSAPP_PHONE_NUMBER;
-  const contact = buildProofContactPhrase(phone, config?.emailPedidosInterno);
+  const contact = buildProofContactPhrase(config?.emailPedidosInterno);
   const extra = config?.pagoManualInstruccionesExtra?.trim();
   const orderRef = config?.externalOrderId?.trim();
   const orderPart = orderRef ? ` Incluí el pedido ${orderRef} al escribir.` : '';
