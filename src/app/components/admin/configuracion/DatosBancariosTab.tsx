@@ -80,20 +80,20 @@ function DatosBancariosFormFields({
         />
         <Field
           id="tipoCuenta"
-          label="Tipo de cuenta"
+          label="Tipo de cuenta (opcional)"
           value={form.tipoCuenta}
           onChange={(v) => update('tipoCuenta', v)}
           disabled={disabled}
-          placeholder="Ej. Cuenta Corriente"
+          placeholder="Ej. Cuenta Corriente — vacío si es MP"
           maxLength={50}
         />
         <Field
           id="numeroCuenta"
-          label="Número de cuenta"
+          label="Número de cuenta (opcional)"
           value={form.numeroCuenta}
           onChange={(v) => update('numeroCuenta', v)}
           disabled={disabled}
-          placeholder="Ej. 1234567890"
+          placeholder="Ej. 1234567890 — vacío si es MP"
           maxLength={50}
         />
         <Field

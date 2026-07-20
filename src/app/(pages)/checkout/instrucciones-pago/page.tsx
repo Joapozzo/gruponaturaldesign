@@ -209,8 +209,12 @@ function InstruccionesPagoInner() {
                 <BankRow label="Banco" value={data.bank.banco} />
                 <BankRow label="Titular" value={data.bank.titular} />
                 {data.bank.cuit ? <BankRow label="CUIT" value={data.bank.cuit} /> : null}
-                <BankRow label="Tipo de cuenta" value={data.bank.tipoCuenta} />
-                <BankRow label="Nº de cuenta" value={data.bank.numeroCuenta} />
+                {data.bank.tipoCuenta?.trim() ? (
+                  <BankRow label="Tipo de cuenta" value={data.bank.tipoCuenta} />
+                ) : null}
+                {data.bank.numeroCuenta?.trim() ? (
+                  <BankRow label="Nº de cuenta" value={data.bank.numeroCuenta} />
+                ) : null}
                 {data.bank.cbu ? <BankRow label="CBU" value={data.bank.cbu} copyLabel="CBU" /> : null}
                 {data.bank.alias ? (
                   <BankRow label="Alias" value={data.bank.alias} copyLabel="Alias" />
