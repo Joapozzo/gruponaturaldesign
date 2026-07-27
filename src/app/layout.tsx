@@ -183,14 +183,13 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','${GTM_ID}');`,
           }}
         />
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-JCM5RGR01L"></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17610803161"></script>
         <script
           dangerouslySetInnerHTML={{
             __html: `
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-        gtag('config', 'G-JCM5RGR01L');
         gtag('config', 'AW-17610803161');
       `,
           }}
