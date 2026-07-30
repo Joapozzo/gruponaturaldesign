@@ -88,7 +88,8 @@ class PedidoService {
   }
 
   async crearSFactory(body: {
-    source: string;
+    /** Lo fija el API con SFACTORY_PEDIDO_EXTERNO_SOURCE. */
+    source?: string;
     ext_order_id: string;
     fecha?: string;
     fecha_entrega?: string;
