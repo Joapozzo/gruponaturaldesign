@@ -202,7 +202,6 @@ export function CrearPedidoForm({ onClose, onSuccess }: { onClose: () => void; o
       if (items.length === 0) throw new Error('Debe agregar al menos un producto');
 
       const extOrderId = `MANUAL-${Date.now()}`;
-      const source = 'WEB';
 
       const clientePayload: any = {};
       if (selectedCliente.razonSocial) clientePayload.razon_social = selectedCliente.razonSocial;
@@ -218,7 +217,6 @@ export function CrearPedidoForm({ onClose, onSuccess }: { onClose: () => void; o
       }));
 
       return pedidoService.crearSFactory({
-        source,
         ext_order_id: extOrderId,
         titulo: titulo || undefined,
         observaciones: observaciones || undefined,
