@@ -4,11 +4,11 @@ import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { GroupedProduct } from '@/app/types/producto';
+import type { ProductoPublicado } from '@/app/types/producto-publicado.types';
 import { productoDetailService, type ProductoDetailResponse } from '../services/producto-detail.service';
 import { adaptProductoPadreToGroupedProduct } from '../utils/adaptProductoDetail';
 import { getEmpresaId } from '../utils/getEmpresaId';
 import { productDetailKeys } from '../utils/productDetailKeys';
-import { findRelatedProductsForOutfit } from './useProductDetail.helpers';
 
 const STALE_TIME_MS = 1000 * 60 * 5;   // 5 minutos
 const GC_TIME_MS = 1000 * 60 * 30;     // 30 minutos
@@ -45,9 +45,9 @@ export function useProductDetail(options: UseProductDetailOptions = {}) {
     return adaptProductoPadreToGroupedProduct(query.data.producto);
   }, [query.data?.producto]);
 
-  const relatedProducts = useMemo<GroupedProduct[]>(() => {
+  const relatedProducts = useMemo<ProductoPublicado[]>(() => {
     if (!query.data?.relatedProducts?.length) return [];
-    return query.data.relatedProducts.map(adaptProductoPadreToGroupedProduct);
+    return query.data.relatedProducts;
   }, [query.data?.relatedProducts]);
 
   return {

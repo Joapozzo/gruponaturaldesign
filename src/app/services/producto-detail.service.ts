@@ -5,10 +5,11 @@
 
 import { apiClient } from '@/lib/apiClient';
 import type { ProductoPadreConVariantes } from '@/app/types/producto-detail.types';
+import type { ProductoPublicado } from '@/app/types/producto-publicado.types';
 
 export interface ProductoDetailResponse {
   producto: ProductoPadreConVariantes;
-  relatedProducts: ProductoPadreConVariantes[];
+  relatedProducts: ProductoPublicado[];
 }
 
 export interface ProductoDetailParams {

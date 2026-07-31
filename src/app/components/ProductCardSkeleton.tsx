@@ -13,15 +13,15 @@ const ProductCardSkeleton: React.FC<ProductCardSkeletonProps> = ({ index = 0 }) 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
-      className="relative bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300"
+      className="relative flex flex-col bg-white transition-all duration-300 font-sans !border-0 !border-transparent outline-none ring-0 !shadow-none [border:0] [box-shadow:none]"
     >
-      {/* Imagen del producto - aspect-square */}
-      <div className="relative aspect-square cursor-pointer overflow-hidden rounded-t-lg">
+      {/* Imagen del producto - mismo ratio que ProductCardPublicado */}
+      <div className="relative aspect-[3/4] cursor-pointer overflow-hidden">
         <div className="absolute inset-0 bg-gray-200 animate-pulse" />
       </div>
 
       {/* Contenido */}
-      <div className="p-4">
+      <div className="flex flex-col min-h-[7.5rem] p-4">
         {/* Header - Nombre y precio */}
         <div className="mb-2">
           <div className="mb-1">
@@ -32,7 +32,7 @@ const ProductCardSkeleton: React.FC<ProductCardSkeletonProps> = ({ index = 0 }) 
         </div>
 
         {/* Acciones skeleton - Botón de agregar */}
-        <div className="mt-2">
+        <div className="mt-auto pt-2 -mx-4 px-4">
           <div className="w-full h-10 bg-gray-300 rounded-lg animate-pulse" />
         </div>
       </div>

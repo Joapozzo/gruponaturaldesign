@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface RelatedProduct {
-  skuBaseSlug?: string;
+  slug?: string | null;
 }
 
 /**
@@ -15,8 +15,8 @@ export function useRelatedProductsPrefetch(relatedProducts: RelatedProduct[] | n
   useEffect(() => {
     if (relatedProducts && relatedProducts.length > 0) {
       relatedProducts.slice(0, 4).forEach((product) => {
-        if (product.skuBaseSlug) {
-          router.prefetch(`/producto/${product.skuBaseSlug}`);
+        if (product.slug) {
+          router.prefetch(`/producto/${product.slug}`);
         }
       });
     }

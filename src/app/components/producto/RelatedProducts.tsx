@@ -1,26 +1,20 @@
 'use client';
 
-import React, { useMemo } from 'react';
-import { GroupedProduct } from '@/app/types/producto';
+import React from 'react';
+import type { ProductoPublicado } from '@/app/types/producto-publicado.types';
 import ProductCardPublicado from '@/app/components/ProductCardPublicado';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay } from 'swiper/modules';
 import { ArrowRight } from 'lucide-react';
 import { useRelatedProductsSwiper } from './hooks/useRelatedProductsSwiper';
-import { groupedProductToProductoPublicado } from '@/app/utils/groupedProductToProductoPublicado';
 import 'swiper/css';
 import 'swiper/css/navigation';
 
 interface RelatedProductsProps {
-  relatedProducts: GroupedProduct[];
+  relatedProducts: ProductoPublicado[];
 }
 
 export default function RelatedProducts({ relatedProducts }: RelatedProductsProps) {
-  const productosPublicados = useMemo(
-    () => relatedProducts.map(groupedProductToProductoPublicado),
-    [relatedProducts]
-  );
-
   const {
     expandedSku,
     setExpandedSku,
@@ -32,9 +26,9 @@ export default function RelatedProducts({ relatedProducts }: RelatedProductsProp
     handleNextSlide,
   } = useRelatedProductsSwiper();
 
-  if (productosPublicados.length === 0) return null;
+  if (relatedProducts.length === 0) return null;
 
-  const count = productosPublicados.length;
+  const count = relatedProducts.length;
   const maxSlides = { 320: 1.5, 480: 2, 640: 3, 1024: 5 };
   const slidesPerViewBase = Math.max(1, Math.min(5, count));
   const allFitOnDesktop = count <= 5;
@@ -101,7 +95,7 @@ export default function RelatedProducts({ relatedProducts }: RelatedProductsProp
           breakpoints={breakpoints}
           className="pb-12"
         >
-          {productosPublicados.map((producto, index) => (
+          {relatedProducts.map((producto, index) => (
             <SwiperSlide
               key={`${producto.id}-${index}`}
               className="mb-5 !flex !items-start !border-0 [border:0]"
