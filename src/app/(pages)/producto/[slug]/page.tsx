@@ -7,6 +7,10 @@ import ProductDetailSkeleton from '@/app/components/producto/ProductDetailSkelet
 import type { ProductoPadreConVariantes } from '@/app/types/producto-detail.types';
 import { getEmpresaId } from '@/app/utils/getEmpresaId';
 import { adaptProductoPadreToGroupedProduct } from '@/app/utils/adaptProductoDetail';
+import {
+  buildProductMicrodata,
+  type ProductPageQuery,
+} from '@/app/utils/productMicrodata';
 import type { ProductoDetailResponse } from '@/app/services/producto-detail.service';
 
 const META_DESCRIPTION_MAX = 160;
@@ -27,31 +31,19 @@ async function getProductData(slug: string): Promise<ProductoDetailResponse | nu
   try {
     const empresaId = getEmpresaId();
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
-    
-    // El slug ya viene decodificado de Next.js, pero puede tener caracteres especiales
-    // Solo codificamos si es necesario (si tiene caracteres que necesitan encoding)
+
     const encodedSlug = slug.includes('%') ? slug : encodeURIComponent(slug);
     const url = `${apiUrl}/productos/slug/${encodedSlug}?empresaId=${empresaId}&includeVariantes=true`;
-    
-    // console.log('[ProductDetailPage] Fetching product:', { 
-    //   originalSlug: slug, 
-    //   encodedSlug, 
-    //   empresaId, 
-    //   url 
-    // });
-    
+
     const response = await fetch(url, {
-      next: { revalidate: 60 }, // Revalidar cada 60 segundos
+      next: { revalidate: 60 },
       headers: {
         'Content-Type': 'application/json',
       },
     });
 
-    // console.log('[ProductDetailPage] Response status:', response.status);
-
     if (!response.ok) {
       if (response.status === 404) {
-        // console.log('[ProductDetailPage] Product not found (404)');
         return null;
       }
       const errorText = await response.text();
@@ -60,17 +52,11 @@ async function getProductData(slug: string): Promise<ProductoDetailResponse | nu
     }
 
     const data = await response.json();
-    // console.log('[ProductDetailPage] Response data:', { 
-    //   success: data.success, 
-    //   hasData: !!data.data,
-    //   hasProducto: !!data.data?.producto 
-    // });
-    
-    // Validar estructura de respuesta
+
     if (data.success && data.data) {
       return data.data as ProductoDetailResponse;
     }
-    
+
     return null;
   } catch (error) {
     console.error('[ProductDetailPage] Error fetching product:', error);
@@ -80,12 +66,15 @@ async function getProductData(slug: string): Promise<ProductoDetailResponse | nu
 
 interface ProductDetailPageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<ProductPageQuery>;
 }
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: ProductDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
+  const query = await searchParams;
   const productData = await getProductData(slug);
 
   if (!productData?.producto) {
@@ -96,7 +85,13 @@ export async function generateMetadata({
   const title = p.metaTitle?.trim() || p.nombre;
   const description = buildMetaDescription(p);
   const grouped = adaptProductoPadreToGroupedProduct(p);
-  const ogImage = grouped.displayProduct.imagen;
+  const microdata = buildProductMicrodata(
+    grouped,
+    p.slug?.trim() || slug,
+    query,
+    description
+  );
+  const ogImage = microdata?.imageUrl || grouped.displayProduct.imagen;
 
   const pathSlug = p.slug?.trim() || slug;
   const canonicalPath = `/producto/${pathSlug}`;
@@ -125,21 +120,50 @@ export async function generateMetadata({
     alternates: {
       canonical: canonicalPath,
     },
+    ...(microdata
+      ? {
+          other: {
+            ...microdata.openGraphProduct,
+          },
+        }
+      : {}),
   };
 }
 
-export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
+export default async function ProductDetailPage({
+  params,
+  searchParams,
+}: ProductDetailPageProps) {
   const { slug } = await params;
+  const query = await searchParams;
   const productData = await getProductData(slug);
 
   if (!productData?.producto) {
     notFound();
   }
 
+  const p = productData.producto;
+  const description = buildMetaDescription(p);
+  const grouped = adaptProductoPadreToGroupedProduct(p);
+  const microdata = buildProductMicrodata(
+    grouped,
+    p.slug?.trim() || slug,
+    query,
+    description
+  );
+
   return (
     <ErrorBoundary>
+      {microdata ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(microdata.jsonLd),
+          }}
+        />
+      ) : null}
       <Suspense fallback={<ProductDetailSkeleton />}>
-        <ProductDetailPageContent 
+        <ProductDetailPageContent
           initialData={productData}
           slug={slug}
         />
