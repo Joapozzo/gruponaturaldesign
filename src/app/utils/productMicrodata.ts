@@ -156,7 +156,8 @@ export function buildProductMicrodata(
   const jsonLd: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'Product',
-    '@id': `${productUrl}#product`,
+    // Meta Catalog usa @id como content id; debe ser corto (SKU), no la URL.
+    '@id': contentId,
     name,
     description: desc,
     sku: contentId,

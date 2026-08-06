@@ -75,6 +75,7 @@ describe('productMicrodata', () => {
 
     expect(md).not.toBeNull();
     expect(md!.contentId).toBe('L-WW-CAM-DR39');
+    expect(md!.jsonLd['@id']).toBe('L-WW-CAM-DR39');
     expect(md!.jsonLd.sku).toBe('L-WW-CAM-DR39');
     expect(md!.jsonLd.productID).toBe('L-WW-CAM-DR39');
     expect((md!.jsonLd.offers as { price: number }).price).toBe(39990);
